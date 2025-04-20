@@ -631,6 +631,14 @@ const _inlineRuntimeConfig = {
       "/__nuxt_error": {
         "cache": false
       },
+      "/_fonts/**": {
+        "headers": {
+          "cache-control": "public, max-age=31536000, immutable"
+        },
+        "cache": {
+          "maxAge": 31536000
+        }
+      },
       "/_nuxt/builds/meta/**": {
         "headers": {
           "cache-control": "public, max-age=31536000, immutable"
@@ -1111,6 +1119,7 @@ const _lazy_7k0SbT = () => Promise.resolve().then(function () { return renderer$
 
 const handlers = [
   { route: '/__nuxt_error', handler: _lazy_7k0SbT, lazy: true, middleware: false, method: undefined },
+  { route: '/_fonts/**', handler: _lazy_7k0SbT, lazy: true, middleware: false, method: undefined },
   { route: '/**', handler: _lazy_7k0SbT, lazy: true, middleware: false, method: undefined }
 ];
 
