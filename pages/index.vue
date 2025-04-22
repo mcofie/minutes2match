@@ -9,13 +9,15 @@
           Welcome to
           Minutes2Match</h2>
         <small class="text-white text-xs xl:text-sm">Where Chemistry Meets Opportunity</small>
-        <p class="mt-2 xl:text-md lg:text-sm text-sm md:text-lg text-white">
+        <p class="mt-2 xl:text-lg lg:text-md text-sm md:text-lg text-white">
           Tired of endless swiping and awkward texting? At Minutes2Match, we bring back the magic of real-life
           connection. Our curated speed dating events are designed for modern singles who want meaningful interactions,
           minus the pressure.
         </p>
-        <a href="https://docs.google.com/forms/d/e/1FAIpQLSdc9sbS1XMCeaSWcl3MKQ0lNrvzx7sGmIHxafaKZwmnyglyOQ/viewform?usp=header">
-          <button class="py-2  bg-white my-2 px-2 underline xl:px-2 xl:py-2 xl:text-md self-center"> Register Now!
+        <a target="_blank"
+           href="https://docs.google.com/forms/d/e/1FAIpQLSdc9sbS1XMCeaSWcl3MKQ0lNrvzx7sGmIHxafaKZwmnyglyOQ/viewform?usp=header">
+          <button class="px-10 py-5 w-fit text-white  bg-black my-2  underline xl:px-2 xl:py-2 xl:text-md self-center">
+            Register Now!
           </button>
         </a>
 
@@ -27,12 +29,15 @@
 
     <div
         class="text-center pb-32 px-5 bg-white border-r-1 border-l-gray-200 border-l-1 border-r-gray-200 justify-center flex flex-col items-center">
-      <div class="p-5 xl:mb-20 mb-10 bg-red-500 w-fit  text-white text-md self-start"><h4>How it works</h4></div>
-      <div class="w-full flex flex-col md:flex-row space-y-3 space-x-5 xl:px-10">
+      <div
+          class="p-5 xl:mb-20 mb-10 bg-red-500 w-fit drop-shadow-lg  text-white text-md self-center xl:self-start lg:self-start">
+        <h4>
+          How it works</h4></div>
+      <div class="w-full flex flex-col md:flex-row space-y-3 space-x-5 lg:pt-7 xl:pt-7 xl:px-10">
         <div class="w-full md:w-1/3 py-3">
           <span class="px-6 py-4 rounded-full bg-red-100 font-bold">1</span>
           <h5 class="text-xl mt-5">Register Online</h5>
-          <p class="text-start text-sm">
+          <p class="text-start text-sm lg:text-md xl:text-lg">
             Fill out our quick sign-up form — it only takes a minute. Share your basic info, a few preferences, and your
             availability. No fluff. Just facts that help us find the right event for you.
           </p>
@@ -41,7 +46,7 @@
         <div class="w-full md:w-1/3 py-3">
           <span class="px-6 py-4 rounded-full bg-red-100 font-bold">2</span>
           <h5 class="text-xl mt-5">Screening & Shortlisting</h5>
-          <p class="text-start text-sm">
+          <p class="text-start text-sm lg:text-md xl:text-lg">
             Once you register, our team does a quick screening to ensure everyone’s on the same page — age group,
             interests, and vibes. We believe in quality over quantity, so our events are carefully curated.
           </p>
@@ -50,7 +55,7 @@
         <div class="w-full md:w-1/3 py-3">
           <span class="px-6 py-4 rounded-full bg-red-100 font-bold">3</span>
           <h5 class="text-xl mt-5">Confirmation & Invite</h5>
-          <p class="text-start text-sm">
+          <p class="text-start text-sm lg:text-md xl:text-lg">
             If you’re shortlisted, you’ll receive a confirmation email or WhatsApp message with your event invite,
             payment link, and all the details. Lock in your spot quickly — seats fill up fast!
           </p>
@@ -59,9 +64,10 @@
     </div>
 
     <div class="bg-black pb-20 px-10 text-center justify-center flex flex-col items-center">
-      <div class="p-5 mb-10 bg-white w-fit text-md self-start"><h4>What Happens at the
+      <div class="p-5 mb-10 bg-white w-fit text-md self-center xl:self-start lg:self-start drop-shadow-lg"><h4>What
+        Happens at the
         Event?</h4></div>
-      <iframe width="100%" height="520" src="https://www.youtube.com/embed/tgbNymZ7vqY">
+      <iframe class="aspect-video" width="100%" src="https://www.youtube.com/embed/Y5xXAMBNFNE?si=JfNEVBk68NKp0AXp">
       </iframe>
       <div class="flex flex-col text-start text-white">
         <ol class="hidden">
@@ -77,11 +83,12 @@
         class="w-full lg:w-full p-10 md:w-4/5 mx-auto border-r-1 border-l-1 border-l-gray-200 border-r-gray-200 flex flex-col items-center justify-center text-center bg-white">
       <div class="w-full flex flex-col space-y-5 items-center justify-center ">
         <h2 class="text-2xl lg:text-3xl">Do you want to come to <br> our next event?</h2>
-        <p>
+        <p class="lg:w-2/3 mx-auto lg:text-md xl:text-lg">
           Join us for an evening of meaningful connections, great conversations, and a vibe you won’t forget. Whether
           you’re coming solo or with friends, there’s something special in store for you.
         </p>
-        <a href="https://docs.google.com/forms/d/e/1FAIpQLSdc9sbS1XMCeaSWcl3MKQ0lNrvzx7sGmIHxafaKZwmnyglyOQ/viewform?usp=header">
+        <a target="_blank"
+           href="https://docs.google.com/forms/d/e/1FAIpQLSdc9sbS1XMCeaSWcl3MKQ0lNrvzx7sGmIHxafaKZwmnyglyOQ/viewform?usp=header">
           <button class="hover:bg-gray-900 cursor-pointer bg-black text-white px-10 py-5 w-fit">Register Now!</button>
         </a>
       </div>
