@@ -1,121 +1,157 @@
-<template xmlns="http://www.w3.org/1999/html">
-  <main class="xl:w-4/5 lg:w-5/6 w-full mx-auto">
-    <div class="w-full flex flex-col xl:flex-row lg:flex-row mt-10 items-center bg-red-500 p-5 xl:px-10">
-      <div class="w-full xl:hidden lg:hidden">
-        <img src="/assets/imgs/jumbo_img.png" alt="Jumbo"/>
-      </div>
-      <div class="w-full md:w-full md:text-center xl:text-start lg:text-start text-center lg:w-1/2">
-        <h2 class="text-4xl lg:text-start xl:text-start xl:text-6xl lg:text-4xl md:text-6xl md:text-center text-center text-white">
-          Welcome to
-          Minutes2Match</h2>
-        <small class="text-white text-xs xl:text-sm">Where Chemistry Meets Opportunity</small>
-        <p class="mt-2 xl:text-lg lg:text-md text-md md:text-lg text-white">
-          Tired of endless swiping and awkward texting? At Minutes2Match, we bring back the magic of real-life
-          connection. Our curated speed dating events are designed for modern singles who want meaningful interactions,
-          minus the pressure.
-        </p>
-        <a target="_blank"
-           href="https://docs.google.com/forms/d/e/1FAIpQLSdc9sbS1XMCeaSWcl3MKQ0lNrvzx7sGmIHxafaKZwmnyglyOQ/viewform?usp=header">
-          <button class="px-10 py-5 w-fit text-white  bg-black my-2  underline xl:px-2 xl:py-2 xl:text-md self-center">
-            Register Now!
-          </button>
-        </a>
-
-      </div>
-      <div class="md:w-1/2 lg:w-1/2 hidden lg:block">
-        <img src="/assets/imgs/jumbo_img.png" alt="Jumbo"/>
-      </div>
-    </div>
-
-    <div
-        class="text-center pb-20 px-5 bg-white border-r-1 border-l-gray-200 border-l-1 border-r-gray-200 justify-center flex flex-col items-center">
-      <div
-          class="p-5 xl:mb-20 mb-10 bg-red-500 w-fit drop-shadow-lg  text-white text-md self-center xl:self-start lg:self-start">
-        <h4>
-          How it works</h4></div>
-      <div class="w-full flex flex-col md:flex-row space-y-3 space-x-5 lg:pt-7 xl:pt-7 xl:px-10">
-        <div class="w-full md:w-1/3 py-3">
-          <span class="px-6 py-4 rounded-full bg-red-100 font-bold">1</span>
-          <h5 class="text-xl mt-5">Register Online</h5>
-          <p class="text-start text-md lg:text-md xl:text-lg">
-            Fill out our quick sign-up form — it only takes a minute. Share your basic info, a few preferences, and your
-            availability. No fluff. Just facts that help us find the right event for you.
-          </p>
+<template>
+  <main class="w-full mx-auto overflow-x-hidden bg-[var(--color-bg-main)] text-[var(--color-text-main)]">
+    
+    <!-- Hero Section -->
+    <div class="relative w-full min-h-screen flex items-center justify-center p-6">
+        <!-- Visual Decor -->
+        <div class="absolute inset-0 border-[20px] border-white pointer-events-none z-20 hidden md:block"></div>
+        <div class="absolute inset-0 z-0">
+             <!-- Elegant, desaturated background image -->
+             <img src="/assets/imgs/jumbo_img.png" alt="Connection" class="w-full h-full object-cover opacity-10 grayscale contrast-125" />
         </div>
 
-        <div class="w-full md:w-1/3 py-3">
-          <span class="px-6 py-4 rounded-full bg-red-100 font-bold">2</span>
-          <h5 class="text-xl mt-5">Screening & Shortlisting</h5>
-          <p class="text-start text-md lg:text-md xl:text-lg">
-            Once you register, our team does a quick screening to ensure everyone’s on the same page — age group,
-            interests, and vibes. We believe in quality over quantity, so our events are carefully curated.
-          </p>
+        <div class="relative z-10 container mx-auto text-center max-w-4xl">
+             <div class="mb-10 animate-fade-in-up">
+                <span class="inline-block px-4 py-2 border border-[var(--color-text-main)] text-[10px] uppercase tracking-[0.3em] font-bold">
+                    Now Accepting Members
+                </span>
+            </div>
+            
+            <h1 class="text-6xl md:text-8xl lg:text-9xl font-serif text-[var(--color-text-main)] mb-8 leading-[0.9] tracking-tighter animate-fade-in-up delay-100">
+                Minutes<span class="text-[var(--color-brand-primary)] italic pr-2">2</span>Match
+            </h1>
+            
+            <p class="text-lg md:text-xl text-[var(--color-text-muted)] mb-12 max-w-lg mx-auto font-sans font-light leading-relaxed animate-fade-in-up delay-200">
+                Curated connections for the discerning single. <br/>Where chemistry meets opportunity.
+            </p>
+            
+            <div class="flex flex-col sm:flex-row items-center justify-center gap-8 animate-fade-in-up delay-300">
+                <a target="_blank" href="https://docs.google.com/forms/d/e/1FAIpQLSdc9sbS1XMCeaSWcl3MKQ0lNrvzx7sGmIHxafaKZwmnyglyOQ/viewform?usp=header">
+                    <UiButton variant="primary" size="lg" :rounded="false" class="min-w-[240px]">
+                        Request Invitation
+                    </UiButton>
+                </a>
+                <UiButton variant="outline" size="lg" :rounded="false" @click="scrollToHow" class="min-w-[240px]">
+                    The Process
+                </UiButton>
+            </div>
         </div>
+    </div>
 
-        <div class="w-full md:w-1/3 py-3">
-          <span class="px-6 py-4 rounded-full bg-red-100 font-bold">3</span>
-          <h5 class="text-xl mt-5">Confirmation & Invite</h5>
-          <p class="text-start text-md lg:text-md xl:text-lg">
-            If you’re shortlisted, you’ll receive a confirmation email or WhatsApp message with your event invite,
-            payment link, and all the details. Lock in your spot quickly — seats fill up fast!
-          </p>
+    <!-- How it works Section -->
+    <div id="how-it-works" class="py-40 bg-white relative">
+        <div class="container mx-auto px-6 max-w-6xl">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-20 items-center mb-32">
+                 <div>
+                    <span class="text-[var(--color-brand-primary)] uppercase tracking-[0.2em] text-xs font-bold mb-4 block">Our Approach</span>
+                    <h2 class="text-5xl md:text-6xl font-serif leading-tight">Curated <br/><span class="italic text-gray-400">Simplicity.</span></h2>
+                 </div>
+                 <div class="text-[var(--color-text-muted)] text-lg leading-loose font-light">
+                     <p>We believe in the power of face-to-face connection. No algorithms, no endless swiping. Just a room full of potential, curated by human experts.</p>
+                 </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-12">
+                <div class="group relative">
+                    <div class="absolute -left-6 -top-6 text-[120px] font-serif text-[var(--color-brand-primary)]/10 font-bold -z-10 group-hover:text-[var(--color-brand-primary)]/20 transition-colors">1</div>
+                    <div class="border-t border-[var(--color-text-main)] pt-8">
+                        <h3 class="text-2xl font-serif mb-4">Register</h3>
+                        <p class="text-[var(--color-text-muted)] leading-relaxed">
+                            Complete your profile. We value quality over quantity, ensuring every member adds to the community.
+                        </p>
+                    </div>
+                </div>
+
+                 <div class="group relative">
+                    <div class="absolute -left-6 -top-6 text-[120px] font-serif text-[var(--color-brand-primary)]/10 font-bold -z-10 group-hover:text-[var(--color-brand-primary)]/20 transition-colors">2</div>
+                    <div class="border-t border-[var(--color-text-main)] pt-8">
+                        <h3 class="text-2xl font-serif mb-4">Selection</h3>
+                        <p class="text-[var(--color-text-muted)] leading-relaxed">
+                            Our team hand-picks guests for each event to ensure compatibility and balance.
+                        </p>
+                    </div>
+                </div>
+
+                 <div class="group relative">
+                    <div class="absolute -left-6 -top-6 text-[120px] font-serif text-[var(--color-brand-primary)]/10 font-bold -z-10 group-hover:text-[var(--color-brand-primary)]/20 transition-colors">3</div>
+                    <div class="border-t border-[var(--color-text-main)] pt-8">
+                         <h3 class="text-2xl font-serif mb-4">Connect</h3>
+                        <p class="text-[var(--color-text-muted)] leading-relaxed">
+                            Meet in an exclusive setting. meaningful conversations. Real connections.
+                        </p>
+                    </div>
+                </div>
+            </div>
         </div>
-      </div>
     </div>
 
-    <div class="bg-black pb-20 px-5 text-center justify-center flex flex-col items-center">
-      <div class="p-5 mb-10 bg-white w-fit text-md self-center xl:self-start lg:self-start drop-shadow-lg"><h4>What
-        Happens at the
-        Event?</h4></div>
-      <iframe class="aspect-video" width="100%" src="https://www.youtube.com/embed/I7NAzsnZKXo?si=piV9t82jSUKSTWES">
-      </iframe>
-      <div class="flex flex-col text-start text-white">
-        <ol class="hidden">
-          <li> You meet up to 10 like-minded singles in one evening</li>
-          <li> Each conversation lasts around 5–7 minutes</li>
-          <li> You mark who you’d like to see again</li>
-          <li>If there’s a match, we will connect you after the event!</li>
-        </ol>
-      </div>
+    <!-- Video / Experience Section -->
+    <div class="py-40 bg-[var(--color-bg-main)]">
+        <div class="container mx-auto px-6 max-w-5xl text-center">
+            <h2 class="text-4xl md:text-5xl font-serif mb-16">The Event Experience</h2>
+            <div class="relative p-4 border border-[var(--color-text-main)]/10 bg-white shadow-elegant">
+                <iframe 
+                    class="w-full aspect-video grayscale hover:grayscale-0 transition-all duration-700" 
+                    src="https://www.youtube.com/embed/I7NAzsnZKXo?si=piV9t82jSUKSTWES" 
+                    frameborder="0" 
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                    allowfullscreen
+                ></iframe>
+            </div>
+             <p class="mt-8 text-xs uppercase tracking-widest text-gray-400">See what awaits you</p>
+        </div>
     </div>
 
-    <div
-        class="w-full lg:w-full p-10 md:w-4/5 mx-auto border-r-1 border-l-1 border-l-gray-200 border-r-gray-200 flex flex-col items-center justify-center text-center bg-white">
-      <div class="w-full flex flex-col space-y-5 items-center justify-center ">
-        <h2 class="text-2xl lg:text-3xl">Do you want to come to <br> our next event?</h2>
-        <p class="lg:w-2/3 mx-auto lg:text-md xl:text-lg">
-          Join us for an evening of meaningful connections, great conversations, and a vibe you won’t forget. Whether
-          you’re coming solo or with friends, there’s something special in store for you.
-        </p>
-        <a target="_blank"
-           href="https://docs.google.com/forms/d/e/1FAIpQLSdc9sbS1XMCeaSWcl3MKQ0lNrvzx7sGmIHxafaKZwmnyglyOQ/viewform?usp=header">
-          <button class="hover:bg-gray-900 cursor-pointer bg-black text-white px-10 py-5 w-fit">Register Now!</button>
-        </a>
-      </div>
+    <!-- Final Call to Action -->
+    <div class="py-40 bg-[#1a1a1a] text-white text-center relative overflow-hidden">
+        <div class="container mx-auto px-6 relative z-10">
+            <h2 class="text-5xl md:text-7xl font-serif mb-10 text-white">Your Match Awaits.</h2>
+            <div class="w-24 h-1 bg-[var(--color-brand-primary)] mx-auto mb-12"></div>
+            <a target="_blank" href="https://docs.google.com/forms/d/e/1FAIpQLSdc9sbS1XMCeaSWcl3MKQ0lNrvzx7sGmIHxafaKZwmnyglyOQ/viewform?usp=header">
+                <UiButton variant="primary" size="lg" :rounded="false" class="px-20 py-6 text-xl bg-white text-black hover:bg-gray-200 hover:text-black">
+                    Begin Application
+                </UiButton>
+            </a>
+        </div>
     </div>
 
-    <div class="w-full p-10 flex flex-col bg-black items-center justify-center text-center ">
-      <p class="text-gray-500 text-sm">&copy; 2025. All Rights Reserved.</p>
-    </div>
-
+    <!-- Footer -->
+    <footer class="bg-white text-[var(--color-text-main)] py-20 border-t border-gray-100">
+        <div class="container mx-auto px-6 flex flex-col items-center">
+            <div class="mb-10 text-center">
+                 <h2 class="text-3xl font-serif font-bold tracking-tight mb-2">Minutes<span class="text-[var(--color-brand-primary)]">2</span>Match</h2>
+                 <p class="text-xs uppercase tracking-[0.3em] text-[var(--color-text-muted)]">Est. 2024</p>
+            </div>
+            <div class="w-full h-px bg-gray-100 max-w-xs mx-auto mb-8"></div>
+            <p class="text-sm text-[var(--color-text-muted)]">&copy; {{ new Date().getFullYear() }} Minutes2Match. All Rights Reserved.</p>
+        </div>
+    </footer>
   </main>
 </template>
 
 <script setup lang="ts">
-const isLoaded = ref(false)
-const isPlaying = ref(false)
-const video = ref()
+import UiButton from '~/components/ui/Button.vue'
 
-
-async function play() {
-  await video.value.player.playVideo()
-}
-
-function stateChange(event) {
-  isPlaying.value = event.data === 1
+function scrollToHow() {
+    document.getElementById('how-it-works')?.scrollIntoView({ behavior: 'smooth' })
 }
 </script>
 
 <style scoped>
+.animate-fade-in-up {
+    animation: fadeInUp 1.2s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    opacity: 0;
+    transform: translateY(40px);
+}
 
+.delay-100 { animation-delay: 0.1s; }
+.delay-200 { animation-delay: 0.2s; }
+.delay-300 { animation-delay: 0.3s; }
+
+@keyframes fadeInUp {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
 </style>

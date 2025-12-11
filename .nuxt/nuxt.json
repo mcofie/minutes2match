@@ -1,9 +1,9 @@
 {
-  "_hash": "2n6L8Lp5C9Ik7TC9Ru5ddXPtz3wr4HKIeDn98W1eT8s",
+  "_hash": "vBOHZDOYAPjePoKN_8lgMV2W9H5s_MNAOk-uG8G4YkQ",
   "project": {
     "rootDir": "/Users/maxwellcofie/WebstormProjects/minutes2match"
   },
   "versions": {
-    "nuxt": "3.16.2"
+    "nuxt": "3.20.2"
   }
 }
