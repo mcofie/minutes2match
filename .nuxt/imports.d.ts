@@ -38,4 +38,3 @@ export { useSupabaseCookieRedirect } from '../node_modules/@nuxtjs/supabase/dist
 export { useSupabaseSession } from '../node_modules/@nuxtjs/supabase/dist/runtime/composables/useSupabaseSession';
 export { useSupabaseUser } from '../node_modules/@nuxtjs/supabase/dist/runtime/composables/useSupabaseUser';
 export { defineStore, acceptHMRUpdate, usePinia, storeToRefs } from '../node_modules/@pinia/nuxt/dist/runtime/composables';
-export { useNuxtDevTools } from '../node_modules/@nuxt/devtools/dist/runtime/use-nuxt-devtools';
