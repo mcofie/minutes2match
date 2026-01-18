@@ -3,6 +3,30 @@ import type { Serialize, Simplify } from "nitropack/types";
 declare module "nitropack/types" {
   type Awaited<T> = T extends PromiseLike<infer U> ? Awaited<U> : T
   interface InternalApi {
+    '/api/auth/login': {
+      'post': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/auth/login.post').default>>>>
+    }
+    '/api/auth/signup': {
+      'post': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/auth/signup.post').default>>>>
+    }
+    '/api/paystack/initialize': {
+      'post': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/paystack/initialize.post').default>>>>
+    }
+    '/api/paystack/verify': {
+      'get': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/paystack/verify.get').default>>>>
+    }
+    '/api/paystack/webhook': {
+      'post': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/paystack/webhook.post').default>>>>
+    }
+    '/api/profiles/create': {
+      'post': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/profiles/create.post').default>>>>
+    }
+    '/api/send-sms': {
+      'post': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/send-sms.post').default>>>>
+    }
+    '/api/verify-admin-login': {
+      'post': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/verify-admin-login.post').default>>>>
+    }
     '/__nuxt_error': {
       'default': Simplify<Serialize<Awaited<ReturnType<typeof import('../../node_modules/@nuxt/nitro-server/dist/runtime/handlers/renderer').default>>>>
     }

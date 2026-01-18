@@ -1,10 +1,15 @@
 import process from 'node:process';globalThis._importMeta_={url:import.meta.url,env:process.env};import { tmpdir } from 'node:os';
-import { defineEventHandler, handleCacheHeaders, splitCookiesString, createEvent, fetchWithEvent, isEvent, eventHandler, setHeaders, sendRedirect, proxyRequest, getRequestHeader, setResponseHeaders, setResponseStatus, send, getRequestHeaders, setResponseHeader, appendResponseHeader, getRequestURL, getResponseHeader, removeResponseHeader, createError, getQuery as getQuery$1, readBody, createApp, createRouter as createRouter$1, toNodeListener, lazyEventHandler, getResponseStatus, getRouterParam, getResponseStatusText } from 'file:///Users/maxwellcofie/WebstormProjects/minutes2match/node_modules/h3/dist/index.mjs';
+import { defineEventHandler, handleCacheHeaders, splitCookiesString, createEvent, fetchWithEvent, isEvent, eventHandler, setHeaders, sendRedirect, proxyRequest, getRequestHeader, setResponseHeaders, setResponseStatus, send, getRequestHeaders, setResponseHeader, appendResponseHeader, getRequestURL, getResponseHeader, removeResponseHeader, createError, getQuery as getQuery$1, readBody, createApp, createRouter as createRouter$1, toNodeListener, lazyEventHandler, getResponseStatus, getRouterParam, getHeader, readRawBody, getResponseStatusText } from 'file:///Users/maxwellcofie/WebstormProjects/minutes2match/node_modules/h3/dist/index.mjs';
 import { Server } from 'node:http';
 import { resolve, dirname, join } from 'node:path';
 import nodeCrypto from 'node:crypto';
 import { parentPort, threadId } from 'node:worker_threads';
 import { escapeHtml } from 'file:///Users/maxwellcofie/WebstormProjects/minutes2match/node_modules/@vue/shared/dist/shared.cjs.js';
+import { FunctionsClient } from 'file:///Users/maxwellcofie/WebstormProjects/minutes2match/node_modules/@supabase/functions-js/dist/main/index.js';
+import { PostgrestClient } from 'file:///Users/maxwellcofie/WebstormProjects/minutes2match/node_modules/@supabase/postgrest-js/dist/index.mjs';
+import { RealtimeClient } from 'file:///Users/maxwellcofie/WebstormProjects/minutes2match/node_modules/@supabase/realtime-js/dist/main/index.js';
+import { StorageClient } from 'file:///Users/maxwellcofie/WebstormProjects/minutes2match/node_modules/@supabase/storage-js/dist/index.mjs';
+import { AuthClient } from 'file:///Users/maxwellcofie/WebstormProjects/minutes2match/node_modules/@supabase/auth-js/dist/main/index.js';
 import { createRenderer, getRequestDependencies, getPreloadLinks, getPrefetchLinks } from 'file:///Users/maxwellcofie/WebstormProjects/minutes2match/node_modules/vue-bundle-renderer/dist/runtime.mjs';
 import { parseURL, withoutBase, joinURL, getQuery, withQuery, withTrailingSlash, decodePath, withLeadingSlash, withoutTrailingSlash, joinRelativeURL } from 'file:///Users/maxwellcofie/WebstormProjects/minutes2match/node_modules/ufo/dist/index.mjs';
 import process$1 from 'node:process';
@@ -656,7 +661,46 @@ const _inlineRuntimeConfig = {
       }
     }
   },
-  "public": {}
+  "public": {
+    "paystackPublicKey": "pk_live_a1d55e1acde1cf56b648c61f62ecd7fe5ccb20f0",
+    "baseUrl": "http://localhost:3000",
+    "supabase": {
+      "url": "https://ziglffbvcexvwguqopqm.supabase.co",
+      "key": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InppZ2xmZmJ2Y2V4dndndXFvcHFtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA3MjM0ODQsImV4cCI6MjA3NjI5OTQ4NH0.uHThC8bq_ZcCzB5RT44WfV6U2hiU9fi-XBbgbPTYdv0",
+      "redirect": false,
+      "redirectOptions": {
+        "login": "/vibe-check",
+        "callback": "/me",
+        "exclude": [
+          "/",
+          "/vibe-check/**"
+        ],
+        "cookieRedirect": false,
+        "saveRedirectToCookie": false
+      },
+      "cookieName": "sb",
+      "cookiePrefix": "sb-ziglffbvcexvwguqopqm-auth-token",
+      "useSsrCookies": true,
+      "cookieOptions": {
+        "maxAge": 28800,
+        "sameSite": "lax",
+        "secure": true
+      },
+      "clientOptions": {
+        "db": {
+          "schema": "m2m"
+        }
+      }
+    }
+  },
+  "hubtelClientId": "tshvvuam",
+  "hubtelClientSecret": "ssakouxw",
+  "paystackSecretKey": "sk_live_3f86342424098f223e86740d83e2a5f739290aa3",
+  "supabaseServiceKey": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InppZ2xmZmJ2Y2V4dndndXFvcHFtIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2MDcyMzQ4NCwiZXhwIjoyMDc2Mjk5NDg0fQ.6aWLTmoGQZuIbY4IX02SbvIbrQuzrPvfNkfERqqHAXo",
+  "supabase": {
+    "serviceKey": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InppZ2xmZmJ2Y2V4dndndXFvcHFtIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2MDcyMzQ4NCwiZXhwIjoyMDc2Mjk5NDg0fQ.6aWLTmoGQZuIbY4IX02SbvIbrQuzrPvfNkfERqqHAXo",
+    "secretKey": ""
+  }
 };
 const envOptions = {
   prefix: "NITRO_",
@@ -1874,10 +1918,26 @@ async function getIslandContext(event) {
   return ctx;
 }
 
+const _lazy_E5A3XL = () => Promise.resolve().then(function () { return login_post$1; });
+const _lazy_7YwRlf = () => Promise.resolve().then(function () { return signup_post$1; });
+const _lazy_dVE8yG = () => Promise.resolve().then(function () { return initialize_post$1; });
+const _lazy_J6kmFe = () => Promise.resolve().then(function () { return verify_get$1; });
+const _lazy_BI0uDZ = () => Promise.resolve().then(function () { return webhook_post$1; });
+const _lazy_DOTuXU = () => Promise.resolve().then(function () { return create_post$1; });
+const _lazy_JXy6Mk = () => Promise.resolve().then(function () { return sendSms_post$1; });
+const _lazy_UcVphT = () => Promise.resolve().then(function () { return verifyAdminLogin_post$1; });
 const _lazy_ubuZDF = () => Promise.resolve().then(function () { return renderer$1; });
 
 const handlers = [
   { route: '', handler: _4jN6h5, lazy: false, middleware: true, method: undefined },
+  { route: '/api/auth/login', handler: _lazy_E5A3XL, lazy: true, middleware: false, method: "post" },
+  { route: '/api/auth/signup', handler: _lazy_7YwRlf, lazy: true, middleware: false, method: "post" },
+  { route: '/api/paystack/initialize', handler: _lazy_dVE8yG, lazy: true, middleware: false, method: "post" },
+  { route: '/api/paystack/verify', handler: _lazy_J6kmFe, lazy: true, middleware: false, method: "get" },
+  { route: '/api/paystack/webhook', handler: _lazy_BI0uDZ, lazy: true, middleware: false, method: "post" },
+  { route: '/api/profiles/create', handler: _lazy_DOTuXU, lazy: true, middleware: false, method: "post" },
+  { route: '/api/send-sms', handler: _lazy_JXy6Mk, lazy: true, middleware: false, method: "post" },
+  { route: '/api/verify-admin-login', handler: _lazy_UcVphT, lazy: true, middleware: false, method: "post" },
   { route: '/__nuxt_error', handler: _lazy_ubuZDF, lazy: true, middleware: false, method: undefined },
   { route: '/__nuxt_island/**', handler: _SxA8c9, lazy: false, middleware: false, method: undefined },
   { route: '/_fonts/**', handler: _lazy_ubuZDF, lazy: true, middleware: false, method: undefined },
@@ -2210,6 +2270,996 @@ const styles = {};
 const styles$1 = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.defineProperty({
   __proto__: null,
   default: styles
+}, Symbol.toStringTag, { value: 'Module' }));
+
+//#region src/lib/version.ts
+const version = "2.90.1";
+
+//#endregion
+//#region src/lib/constants.ts
+let JS_ENV = "";
+if (typeof Deno !== "undefined") JS_ENV = "deno";
+else if (typeof document !== "undefined") JS_ENV = "web";
+else if (typeof navigator !== "undefined" && navigator.product === "ReactNative") JS_ENV = "react-native";
+else JS_ENV = "node";
+const DEFAULT_HEADERS = { "X-Client-Info": `supabase-js-${JS_ENV}/${version}` };
+const DEFAULT_GLOBAL_OPTIONS = { headers: DEFAULT_HEADERS };
+const DEFAULT_DB_OPTIONS = { schema: "public" };
+const DEFAULT_AUTH_OPTIONS = {
+	autoRefreshToken: true,
+	persistSession: true,
+	detectSessionInUrl: true,
+	flowType: "implicit"
+};
+const DEFAULT_REALTIME_OPTIONS = {};
+
+//#endregion
+//#region \0@oxc-project+runtime@0.101.0/helpers/typeof.js
+function _typeof(o) {
+	"@babel/helpers - typeof";
+	return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function(o$1) {
+		return typeof o$1;
+	} : function(o$1) {
+		return o$1 && "function" == typeof Symbol && o$1.constructor === Symbol && o$1 !== Symbol.prototype ? "symbol" : typeof o$1;
+	}, _typeof(o);
+}
+
+//#endregion
+//#region \0@oxc-project+runtime@0.101.0/helpers/toPrimitive.js
+function toPrimitive(t, r) {
+	if ("object" != _typeof(t) || !t) return t;
+	var e = t[Symbol.toPrimitive];
+	if (void 0 !== e) {
+		var i = e.call(t, r);
+		if ("object" != _typeof(i)) return i;
+		throw new TypeError("@@toPrimitive must return a primitive value.");
+	}
+	return ("string" === r ? String : Number)(t);
+}
+
+//#endregion
+//#region \0@oxc-project+runtime@0.101.0/helpers/toPropertyKey.js
+function toPropertyKey(t) {
+	var i = toPrimitive(t, "string");
+	return "symbol" == _typeof(i) ? i : i + "";
+}
+
+//#endregion
+//#region \0@oxc-project+runtime@0.101.0/helpers/defineProperty.js
+function _defineProperty(e, r, t) {
+	return (r = toPropertyKey(r)) in e ? Object.defineProperty(e, r, {
+		value: t,
+		enumerable: true,
+		configurable: true,
+		writable: true
+	}) : e[r] = t, e;
+}
+
+//#endregion
+//#region \0@oxc-project+runtime@0.101.0/helpers/objectSpread2.js
+function ownKeys(e, r) {
+	var t = Object.keys(e);
+	if (Object.getOwnPropertySymbols) {
+		var o = Object.getOwnPropertySymbols(e);
+		r && (o = o.filter(function(r$1) {
+			return Object.getOwnPropertyDescriptor(e, r$1).enumerable;
+		})), t.push.apply(t, o);
+	}
+	return t;
+}
+function _objectSpread2(e) {
+	for (var r = 1; r < arguments.length; r++) {
+		var t = null != arguments[r] ? arguments[r] : {};
+		r % 2 ? ownKeys(Object(t), true).forEach(function(r$1) {
+			_defineProperty(e, r$1, t[r$1]);
+		}) : Object.getOwnPropertyDescriptors ? Object.defineProperties(e, Object.getOwnPropertyDescriptors(t)) : ownKeys(Object(t)).forEach(function(r$1) {
+			Object.defineProperty(e, r$1, Object.getOwnPropertyDescriptor(t, r$1));
+		});
+	}
+	return e;
+}
+
+//#endregion
+//#region src/lib/fetch.ts
+const resolveFetch = (customFetch) => {
+	if (customFetch) return (...args) => customFetch(...args);
+	return (...args) => fetch(...args);
+};
+const resolveHeadersConstructor = () => {
+	return Headers;
+};
+const fetchWithAuth = (supabaseKey, getAccessToken, customFetch) => {
+	const fetch$1 = resolveFetch(customFetch);
+	const HeadersConstructor = resolveHeadersConstructor();
+	return async (input, init) => {
+		var _await$getAccessToken;
+		const accessToken = (_await$getAccessToken = await getAccessToken()) !== null && _await$getAccessToken !== void 0 ? _await$getAccessToken : supabaseKey;
+		let headers = new HeadersConstructor(init === null || init === void 0 ? void 0 : init.headers);
+		if (!headers.has("apikey")) headers.set("apikey", supabaseKey);
+		if (!headers.has("Authorization")) headers.set("Authorization", `Bearer ${accessToken}`);
+		return fetch$1(input, _objectSpread2(_objectSpread2({}, init), {}, { headers }));
+	};
+};
+
+//#endregion
+//#region src/lib/helpers.ts
+function ensureTrailingSlash(url) {
+	return url.endsWith("/") ? url : url + "/";
+}
+function applySettingDefaults(options, defaults) {
+	var _DEFAULT_GLOBAL_OPTIO, _globalOptions$header;
+	const { db: dbOptions, auth: authOptions, realtime: realtimeOptions, global: globalOptions } = options;
+	const { db: DEFAULT_DB_OPTIONS$1, auth: DEFAULT_AUTH_OPTIONS$1, realtime: DEFAULT_REALTIME_OPTIONS$1, global: DEFAULT_GLOBAL_OPTIONS$1 } = defaults;
+	const result = {
+		db: _objectSpread2(_objectSpread2({}, DEFAULT_DB_OPTIONS$1), dbOptions),
+		auth: _objectSpread2(_objectSpread2({}, DEFAULT_AUTH_OPTIONS$1), authOptions),
+		realtime: _objectSpread2(_objectSpread2({}, DEFAULT_REALTIME_OPTIONS$1), realtimeOptions),
+		storage: {},
+		global: _objectSpread2(_objectSpread2(_objectSpread2({}, DEFAULT_GLOBAL_OPTIONS$1), globalOptions), {}, { headers: _objectSpread2(_objectSpread2({}, (_DEFAULT_GLOBAL_OPTIO = DEFAULT_GLOBAL_OPTIONS$1 === null || DEFAULT_GLOBAL_OPTIONS$1 === void 0 ? void 0 : DEFAULT_GLOBAL_OPTIONS$1.headers) !== null && _DEFAULT_GLOBAL_OPTIO !== void 0 ? _DEFAULT_GLOBAL_OPTIO : {}), (_globalOptions$header = globalOptions === null || globalOptions === void 0 ? void 0 : globalOptions.headers) !== null && _globalOptions$header !== void 0 ? _globalOptions$header : {}) }),
+		accessToken: async () => ""
+	};
+	if (options.accessToken) result.accessToken = options.accessToken;
+	else delete result.accessToken;
+	return result;
+}
+/**
+* Validates a Supabase client URL
+*
+* @param {string} supabaseUrl - The Supabase client URL string.
+* @returns {URL} - The validated base URL.
+* @throws {Error}
+*/
+function validateSupabaseUrl(supabaseUrl) {
+	const trimmedUrl = supabaseUrl === null || supabaseUrl === void 0 ? void 0 : supabaseUrl.trim();
+	if (!trimmedUrl) throw new Error("supabaseUrl is required.");
+	if (!trimmedUrl.match(/^https?:\/\//i)) throw new Error("Invalid supabaseUrl: Must be a valid HTTP or HTTPS URL.");
+	try {
+		return new URL(ensureTrailingSlash(trimmedUrl));
+	} catch (_unused) {
+		throw Error("Invalid supabaseUrl: Provided URL is malformed.");
+	}
+}
+
+//#endregion
+//#region src/lib/SupabaseAuthClient.ts
+var SupabaseAuthClient = class extends AuthClient {
+	constructor(options) {
+		super(options);
+	}
+};
+
+//#endregion
+//#region src/SupabaseClient.ts
+/**
+* Supabase Client.
+*
+* An isomorphic Javascript client for interacting with Postgres.
+*/
+var SupabaseClient = class {
+	/**
+	* Create a new client for use in the browser.
+	* @param supabaseUrl The unique Supabase URL which is supplied when you create a new project in your project dashboard.
+	* @param supabaseKey The unique Supabase Key which is supplied when you create a new project in your project dashboard.
+	* @param options.db.schema You can switch in between schemas. The schema needs to be on the list of exposed schemas inside Supabase.
+	* @param options.auth.autoRefreshToken Set to "true" if you want to automatically refresh the token before expiring.
+	* @param options.auth.persistSession Set to "true" if you want to automatically save the user session into local storage.
+	* @param options.auth.detectSessionInUrl Set to "true" if you want to automatically detects OAuth grants in the URL and signs in the user.
+	* @param options.realtime Options passed along to realtime-js constructor.
+	* @param options.storage Options passed along to the storage-js constructor.
+	* @param options.global.fetch A custom fetch implementation.
+	* @param options.global.headers Any additional headers to send with each network request.
+	* @example
+	* ```ts
+	* import { createClient } from '@supabase/supabase-js'
+	*
+	* const supabase = createClient('https://xyzcompany.supabase.co', 'public-anon-key')
+	* const { data } = await supabase.from('profiles').select('*')
+	* ```
+	*/
+	constructor(supabaseUrl, supabaseKey, options) {
+		var _settings$auth$storag, _settings$global$head;
+		this.supabaseUrl = supabaseUrl;
+		this.supabaseKey = supabaseKey;
+		const baseUrl = validateSupabaseUrl(supabaseUrl);
+		if (!supabaseKey) throw new Error("supabaseKey is required.");
+		this.realtimeUrl = new URL("realtime/v1", baseUrl);
+		this.realtimeUrl.protocol = this.realtimeUrl.protocol.replace("http", "ws");
+		this.authUrl = new URL("auth/v1", baseUrl);
+		this.storageUrl = new URL("storage/v1", baseUrl);
+		this.functionsUrl = new URL("functions/v1", baseUrl);
+		const defaultStorageKey = `sb-${baseUrl.hostname.split(".")[0]}-auth-token`;
+		const DEFAULTS = {
+			db: DEFAULT_DB_OPTIONS,
+			realtime: DEFAULT_REALTIME_OPTIONS,
+			auth: _objectSpread2(_objectSpread2({}, DEFAULT_AUTH_OPTIONS), {}, { storageKey: defaultStorageKey }),
+			global: DEFAULT_GLOBAL_OPTIONS
+		};
+		const settings = applySettingDefaults(options !== null && options !== void 0 ? options : {}, DEFAULTS);
+		this.storageKey = (_settings$auth$storag = settings.auth.storageKey) !== null && _settings$auth$storag !== void 0 ? _settings$auth$storag : "";
+		this.headers = (_settings$global$head = settings.global.headers) !== null && _settings$global$head !== void 0 ? _settings$global$head : {};
+		if (!settings.accessToken) {
+			var _settings$auth;
+			this.auth = this._initSupabaseAuthClient((_settings$auth = settings.auth) !== null && _settings$auth !== void 0 ? _settings$auth : {}, this.headers, settings.global.fetch);
+		} else {
+			this.accessToken = settings.accessToken;
+			this.auth = new Proxy({}, { get: (_, prop) => {
+				throw new Error(`@supabase/supabase-js: Supabase Client is configured with the accessToken option, accessing supabase.auth.${String(prop)} is not possible`);
+			} });
+		}
+		this.fetch = fetchWithAuth(supabaseKey, this._getAccessToken.bind(this), settings.global.fetch);
+		this.realtime = this._initRealtimeClient(_objectSpread2({
+			headers: this.headers,
+			accessToken: this._getAccessToken.bind(this)
+		}, settings.realtime));
+		if (this.accessToken) this.accessToken().then((token) => this.realtime.setAuth(token)).catch((e) => console.warn("Failed to set initial Realtime auth token:", e));
+		this.rest = new PostgrestClient(new URL("rest/v1", baseUrl).href, {
+			headers: this.headers,
+			schema: settings.db.schema,
+			fetch: this.fetch
+		});
+		this.storage = new StorageClient(this.storageUrl.href, this.headers, this.fetch, options === null || options === void 0 ? void 0 : options.storage);
+		if (!settings.accessToken) this._listenForAuthEvents();
+	}
+	/**
+	* Supabase Functions allows you to deploy and invoke edge functions.
+	*/
+	get functions() {
+		return new FunctionsClient(this.functionsUrl.href, {
+			headers: this.headers,
+			customFetch: this.fetch
+		});
+	}
+	/**
+	* Perform a query on a table or a view.
+	*
+	* @param relation - The table or view name to query
+	*/
+	from(relation) {
+		return this.rest.from(relation);
+	}
+	/**
+	* Select a schema to query or perform an function (rpc) call.
+	*
+	* The schema needs to be on the list of exposed schemas inside Supabase.
+	*
+	* @param schema - The schema to query
+	*/
+	schema(schema) {
+		return this.rest.schema(schema);
+	}
+	/**
+	* Perform a function call.
+	*
+	* @param fn - The function name to call
+	* @param args - The arguments to pass to the function call
+	* @param options - Named parameters
+	* @param options.head - When set to `true`, `data` will not be returned.
+	* Useful if you only need the count.
+	* @param options.get - When set to `true`, the function will be called with
+	* read-only access mode.
+	* @param options.count - Count algorithm to use to count rows returned by the
+	* function. Only applicable for [set-returning
+	* functions](https://www.postgresql.org/docs/current/functions-srf.html).
+	*
+	* `"exact"`: Exact but slow count algorithm. Performs a `COUNT(*)` under the
+	* hood.
+	*
+	* `"planned"`: Approximated but fast count algorithm. Uses the Postgres
+	* statistics under the hood.
+	*
+	* `"estimated"`: Uses exact count for low numbers and planned count for high
+	* numbers.
+	*/
+	rpc(fn, args = {}, options = {
+		head: false,
+		get: false,
+		count: void 0
+	}) {
+		return this.rest.rpc(fn, args, options);
+	}
+	/**
+	* Creates a Realtime channel with Broadcast, Presence, and Postgres Changes.
+	*
+	* @param {string} name - The name of the Realtime channel.
+	* @param {Object} opts - The options to pass to the Realtime channel.
+	*
+	*/
+	channel(name, opts = { config: {} }) {
+		return this.realtime.channel(name, opts);
+	}
+	/**
+	* Returns all Realtime channels.
+	*/
+	getChannels() {
+		return this.realtime.getChannels();
+	}
+	/**
+	* Unsubscribes and removes Realtime channel from Realtime client.
+	*
+	* @param {RealtimeChannel} channel - The name of the Realtime channel.
+	*
+	*/
+	removeChannel(channel) {
+		return this.realtime.removeChannel(channel);
+	}
+	/**
+	* Unsubscribes and removes all Realtime channels from Realtime client.
+	*/
+	removeAllChannels() {
+		return this.realtime.removeAllChannels();
+	}
+	async _getAccessToken() {
+		var _this = this;
+		var _data$session$access_, _data$session;
+		if (_this.accessToken) return await _this.accessToken();
+		const { data } = await _this.auth.getSession();
+		return (_data$session$access_ = (_data$session = data.session) === null || _data$session === void 0 ? void 0 : _data$session.access_token) !== null && _data$session$access_ !== void 0 ? _data$session$access_ : _this.supabaseKey;
+	}
+	_initSupabaseAuthClient({ autoRefreshToken, persistSession, detectSessionInUrl, storage, userStorage, storageKey, flowType, lock, debug, throwOnError }, headers, fetch$1) {
+		const authHeaders = {
+			Authorization: `Bearer ${this.supabaseKey}`,
+			apikey: `${this.supabaseKey}`
+		};
+		return new SupabaseAuthClient({
+			url: this.authUrl.href,
+			headers: _objectSpread2(_objectSpread2({}, authHeaders), headers),
+			storageKey,
+			autoRefreshToken,
+			persistSession,
+			detectSessionInUrl,
+			storage,
+			userStorage,
+			flowType,
+			lock,
+			debug,
+			throwOnError,
+			fetch: fetch$1,
+			hasCustomAuthorizationHeader: Object.keys(this.headers).some((key) => key.toLowerCase() === "authorization")
+		});
+	}
+	_initRealtimeClient(options) {
+		return new RealtimeClient(this.realtimeUrl.href, _objectSpread2(_objectSpread2({}, options), {}, { params: _objectSpread2(_objectSpread2({}, { apikey: this.supabaseKey }), options === null || options === void 0 ? void 0 : options.params) }));
+	}
+	_listenForAuthEvents() {
+		return this.auth.onAuthStateChange((event, session) => {
+			this._handleTokenChanged(event, "CLIENT", session === null || session === void 0 ? void 0 : session.access_token);
+		});
+	}
+	_handleTokenChanged(event, source, token) {
+		if ((event === "TOKEN_REFRESHED" || event === "SIGNED_IN") && this.changedAccessToken !== token) {
+			this.changedAccessToken = token;
+			this.realtime.setAuth(token);
+		} else if (event === "SIGNED_OUT") {
+			this.realtime.setAuth();
+			if (source == "STORAGE") this.auth.signOut();
+			this.changedAccessToken = void 0;
+		}
+	}
+};
+
+//#endregion
+//#region src/index.ts
+/**
+* Creates a new Supabase Client.
+*
+* @example
+* ```ts
+* import { createClient } from '@supabase/supabase-js'
+*
+* const supabase = createClient('https://xyzcompany.supabase.co', 'public-anon-key')
+* const { data, error } = await supabase.from('profiles').select('*')
+* ```
+*/
+const createClient = (supabaseUrl, supabaseKey, options) => {
+	return new SupabaseClient(supabaseUrl, supabaseKey, options);
+};
+function shouldShowDeprecationWarning() {
+	const _process = globalThis["process"];
+	if (!_process) return false;
+	const processVersion = _process["version"];
+	if (processVersion === void 0 || processVersion === null) return false;
+	const versionMatch = processVersion.match(/^v(\d+)\./);
+	if (!versionMatch) return false;
+	return parseInt(versionMatch[1], 10) <= 18;
+}
+if (shouldShowDeprecationWarning()) console.warn("⚠️  Node.js 18 and below are deprecated and will no longer be supported in future versions of @supabase/supabase-js. Please upgrade to Node.js 20 or later. For more information, visit: https://github.com/orgs/supabase/discussions/37217");
+
+const login_post = defineEventHandler(async (event) => {
+  const body = await readBody(event);
+  const config = useRuntimeConfig();
+  const { phone, code } = body;
+  if (!phone || !code) {
+    throw createError({
+      statusCode: 400,
+      statusMessage: "Phone and code are required"
+    });
+  }
+  const supabaseAdmin = createClient(
+    process.env.SUPABASE_URL || "",
+    config.supabaseServiceKey || "",
+    { auth: { persistSession: false } }
+  );
+  try {
+    const { data: otpData, error: otpError } = await supabaseAdmin.schema("m2m").from("otp_codes").select("*").eq("phone", phone).eq("code", code).eq("used", false).gt("expires_at", (/* @__PURE__ */ new Date()).toISOString()).single();
+    if (otpError || !otpData) {
+      throw createError({
+        statusCode: 401,
+        statusMessage: "Invalid or expired code"
+      });
+    }
+    await supabaseAdmin.schema("m2m").from("otp_codes").update({ used: true }).eq("id", otpData.id);
+    const { data: profile, error: profileError } = await supabaseAdmin.schema("m2m").from("profiles").select("id, phone, display_name").eq("phone", phone).single();
+    if (profileError || !profile) {
+      throw createError({
+        statusCode: 404,
+        statusMessage: "No account found with this phone number. Please sign up first."
+      });
+    }
+    const { data: authData, error: authError } = await supabaseAdmin.auth.admin.getUserById(profile.id);
+    if (authError || !authData.user) {
+      throw createError({
+        statusCode: 404,
+        statusMessage: "User account not found"
+      });
+    }
+    const tempPassword = `login_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+    const { error: updateError } = await supabaseAdmin.auth.admin.updateUserById(
+      profile.id,
+      {
+        password: tempPassword,
+        email_confirm: true
+      }
+    );
+    if (updateError) {
+      console.error("Password update error:", updateError);
+      throw createError({
+        statusCode: 500,
+        statusMessage: "Failed to create login session"
+      });
+    }
+    return {
+      success: true,
+      email: authData.user.email,
+      password: tempPassword,
+      displayName: profile.display_name
+    };
+  } catch (error) {
+    console.error("Login error:", error);
+    if (error.statusCode) throw error;
+    throw createError({
+      statusCode: 500,
+      statusMessage: error.message || "Login failed"
+    });
+  }
+});
+
+const login_post$1 = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.defineProperty({
+  __proto__: null,
+  default: login_post
+}, Symbol.toStringTag, { value: 'Module' }));
+
+const signup_post = defineEventHandler(async (event) => {
+  const body = await readBody(event);
+  const config = useRuntimeConfig();
+  const {
+    phone,
+    // Full phone format expected: +233...
+    displayName,
+    gender,
+    birthDate,
+    location,
+    interestedIn,
+    intent,
+    genotype,
+    religion,
+    heightCm,
+    occupation,
+    vibeAnswers
+  } = body;
+  if (!phone) {
+    throw createError({ statusCode: 400, message: "Phone is required" });
+  }
+  console.log("Signup received:", { phone, displayName, gender, birthDate, location, interestedIn, intent });
+  if (!gender || !["male", "female"].includes(gender)) {
+    throw createError({ statusCode: 400, message: `Invalid or missing gender: "${gender}"` });
+  }
+  const cleanPhone = phone.replace(/\D/g, "");
+  const email = `${cleanPhone}@m2m.app`;
+  const password = `m2m_${cleanPhone}_${Math.random().toString(36).slice(2)}`;
+  const supabaseAdmin = createClient(
+    process.env.SUPABASE_URL || "",
+    config.supabaseServiceKey || "",
+    { auth: { persistSession: false } }
+  );
+  let userId;
+  try {
+    const { data: newUser, error: createError2 } = await supabaseAdmin.auth.admin.createUser({
+      email,
+      password,
+      email_confirm: true,
+      // AUTO-CONFIRM USER
+      user_metadata: { phone }
+    });
+    if (createError2) {
+      const { data: existingProfile } = await supabaseAdmin.schema("m2m").from("profiles").select("id").eq("phone", phone).single();
+      if (existingProfile) {
+        userId = existingProfile.id;
+        await supabaseAdmin.auth.admin.updateUserById(userId, {
+          password,
+          email_confirm: true,
+          user_metadata: { phone }
+        });
+      } else {
+        const { data: usersData } = await supabaseAdmin.auth.admin.listUsers();
+        const foundUser = usersData.users.find((u) => u.email === email);
+        if (foundUser) {
+          userId = foundUser.id;
+          await supabaseAdmin.auth.admin.updateUserById(userId, {
+            password,
+            email_confirm: true,
+            user_metadata: { phone }
+          });
+        } else {
+          console.error("Create User Error:", createError2);
+          throw createError2;
+        }
+      }
+    } else {
+      userId = newUser.user.id;
+    }
+    const { error: profileError } = await supabaseAdmin.schema("m2m").from("profiles").upsert({
+      id: userId,
+      phone,
+      display_name: displayName,
+      gender,
+      birth_date: birthDate,
+      location,
+      interested_in: interestedIn,
+      intent,
+      genotype: genotype || null,
+      religion: religion || null,
+      height_cm: heightCm || null,
+      occupation: occupation || null,
+      is_verified: true
+    });
+    if (profileError) throw profileError;
+    if (vibeAnswers && Object.keys(vibeAnswers).length > 0) {
+      const vibeEntries = Object.entries(vibeAnswers).map(([key, value]) => ({
+        user_id: userId,
+        question_key: key,
+        answer_value: value
+      }));
+      await supabaseAdmin.schema("m2m").from("vibe_answers").upsert(vibeEntries, { onConflict: "user_id,question_key" });
+    }
+    return {
+      success: true,
+      email,
+      password
+    };
+  } catch (error) {
+    console.error("Signup Error:", error);
+    throw createError({
+      statusCode: 500,
+      message: error.message || "Signup failed"
+    });
+  }
+});
+
+const signup_post$1 = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.defineProperty({
+  __proto__: null,
+  default: signup_post
+}, Symbol.toStringTag, { value: 'Module' }));
+
+const initialize_post = defineEventHandler(async (event) => {
+  var _a;
+  console.log("[Paystack] Initialize payment request received");
+  const body = await readBody(event);
+  console.log("[Paystack] Request body:", { email: body.email, amount: body.amount, metadata: body.metadata });
+  if (!body.email || !body.amount) {
+    throw createError({
+      statusCode: 400,
+      message: "Missing required fields: email, amount"
+    });
+  }
+  const config = useRuntimeConfig();
+  if (!config.paystackSecretKey) {
+    throw createError({
+      statusCode: 500,
+      message: "Paystack credentials not configured"
+    });
+  }
+  console.log("[Paystack] Key prefix:", config.paystackSecretKey.substring(0, 10) + "...");
+  console.log("[Paystack] Key length:", config.paystackSecretKey.length);
+  try {
+    const response = await $fetch("https://api.paystack.co/transaction/initialize", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${config.paystackSecretKey}`,
+        "Content-Type": "application/json"
+      },
+      body: {
+        email: body.email,
+        amount: Math.round(body.amount * 100),
+        // Convert to pesewas
+        currency: "GHS",
+        callback_url: body.callback_url || `${config.public.baseUrl}/payment/callback`,
+        metadata: body.metadata
+      }
+    });
+    if (!response.status) {
+      throw new Error(response.message);
+    }
+    return {
+      authorization_url: response.data.authorization_url,
+      reference: response.data.reference,
+      access_code: response.data.access_code
+    };
+  } catch (error) {
+    console.error("Paystack Initialize Error:", {
+      message: error.message,
+      data: error.data,
+      statusCode: error.statusCode,
+      body: {
+        email: body.email,
+        amount: body.amount,
+        metadata: body.metadata
+      }
+    });
+    throw createError({
+      statusCode: 500,
+      message: `Failed to initialize payment: ${((_a = error.data) == null ? void 0 : _a.message) || error.message || "Unknown error"}`
+    });
+  }
+});
+
+const initialize_post$1 = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.defineProperty({
+  __proto__: null,
+  default: initialize_post
+}, Symbol.toStringTag, { value: 'Module' }));
+
+const verify_get = defineEventHandler(async (event) => {
+  const query = getQuery$1(event);
+  const reference = query.reference;
+  if (!reference) {
+    throw createError({
+      statusCode: 400,
+      message: "Missing reference parameter"
+    });
+  }
+  const config = useRuntimeConfig();
+  try {
+    const response = await $fetch(`https://api.paystack.co/transaction/verify/${reference}`, {
+      method: "GET",
+      headers: {
+        "Authorization": `Bearer ${config.paystackSecretKey}`
+      }
+    });
+    return {
+      status: response.data.status,
+      reference: response.data.reference,
+      amount: response.data.amount / 100,
+      // Convert back to GHS
+      currency: response.data.currency,
+      metadata: response.data.metadata
+    };
+  } catch (error) {
+    console.error("Paystack Verify Error:", error);
+    throw createError({
+      statusCode: 500,
+      message: "Failed to verify payment"
+    });
+  }
+});
+
+const verify_get$1 = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.defineProperty({
+  __proto__: null,
+  default: verify_get
+}, Symbol.toStringTag, { value: 'Module' }));
+
+const webhook_post = defineEventHandler(async (event) => {
+  const config = useRuntimeConfig();
+  const signature = getHeader(event, "x-paystack-signature");
+  const rawBody = await readRawBody(event);
+  if (!rawBody) {
+    throw createError({
+      statusCode: 400,
+      message: "Empty request body"
+    });
+  }
+  const hash = nodeCrypto.createHmac("sha512", config.paystackSecretKey).update(rawBody).digest("hex");
+  if (hash !== signature) {
+    throw createError({
+      statusCode: 401,
+      message: "Invalid signature"
+    });
+  }
+  const body = JSON.parse(rawBody);
+  if (body.event !== "charge.success") {
+    return { received: true };
+  }
+  const data = body.data;
+  const metadata = data.metadata || {};
+  const supabase = createClient(
+    process.env.SUPABASE_URL,
+    config.supabaseServiceKey
+  );
+  try {
+    const { error: paymentError } = await supabase.from("payments").update({ status: "success" }).eq("provider_ref", data.reference);
+    if (paymentError) {
+      console.error("Failed to update payment:", paymentError);
+    }
+    if (metadata.purpose === "event_ticket") {
+      await handleEventTicketPayment(supabase, metadata);
+    } else if (metadata.purpose === "match_unlock") {
+      await handleMatchUnlockPayment(supabase, metadata, config);
+    }
+    return { received: true, processed: true };
+  } catch (error) {
+    console.error("Webhook processing error:", error);
+    throw createError({
+      statusCode: 500,
+      message: "Webhook processing failed"
+    });
+  }
+});
+async function handleEventTicketPayment(supabase, metadata) {
+  const { error: bookingError } = await supabase.from("event_bookings").update({ status: "confirmed" }).eq("user_id", metadata.userId).eq("event_id", metadata.eventId).eq("status", "pending");
+  if (bookingError) {
+    console.error("Failed to confirm booking:", bookingError);
+  }
+}
+async function handleMatchUnlockPayment(supabase, metadata, config) {
+  const matchId = metadata.matchId;
+  const payingUserId = metadata.userId;
+  const { data: match, error: matchFetchError } = await supabase.from("matches").select(`
+            *,
+            user_1:profiles!matches_user_1_id_fkey(id, phone, display_name),
+            user_2:profiles!matches_user_2_id_fkey(id, phone, display_name)
+        `).eq("id", matchId).single();
+  if (matchFetchError || !match) {
+    console.error("Failed to fetch match:", matchFetchError);
+    return;
+  }
+  const isUser1 = match.user_1_id === payingUserId;
+  const isUser2 = match.user_2_id === payingUserId;
+  if (!isUser1 && !isUser2) {
+    console.error("Paying user not part of this match:", payingUserId, matchId);
+    return;
+  }
+  const updateData = {};
+  if (isUser1) {
+    updateData.user_1_paid = true;
+    updateData.user_1_paid_at = (/* @__PURE__ */ new Date()).toISOString();
+  } else {
+    updateData.user_2_paid = true;
+    updateData.user_2_paid_at = (/* @__PURE__ */ new Date()).toISOString();
+  }
+  const otherUserPaid = isUser1 ? match.user_2_paid : match.user_1_paid;
+  if (otherUserPaid) {
+    updateData.status = "unlocked";
+    updateData.unlocked_at = (/* @__PURE__ */ new Date()).toISOString();
+    console.log(`\u2705 Match ${matchId} FULLY UNLOCKED - both users have paid!`);
+  } else {
+    updateData.status = "partial_payment";
+    console.log(`\u23F3 Match ${matchId} PARTIAL - waiting for other user to pay`);
+    const unpaidUser = isUser1 ? match.user_2 : match.user_1;
+    const paidUser = isUser1 ? match.user_1 : match.user_2;
+    await sendPaymentReminderSMS(unpaidUser, paidUser, config);
+  }
+  const { error: matchError } = await supabase.from("matches").update(updateData).eq("id", matchId);
+  if (matchError) {
+    console.error("Failed to update match:", matchError);
+  }
+}
+async function sendPaymentReminderSMS(unpaidUser, paidUser, config) {
+  var _a;
+  if (!(unpaidUser == null ? void 0 : unpaidUser.phone)) {
+    console.warn("Unpaid user has no phone number, skipping SMS");
+    return;
+  }
+  const paidUserName = (paidUser == null ? void 0 : paidUser.display_name) || "Someone";
+  const message = `${paidUserName} has unlocked your match on Minutes2Match! Pay now to see their full profile: ${((_a = config.public) == null ? void 0 : _a.baseUrl) || "https://minutes2match.com"}/me`;
+  try {
+    await $fetch("/api/send-sms", {
+      method: "POST",
+      body: {
+        to: unpaidUser.phone,
+        message
+      }
+    });
+    console.log(`\u{1F4F1} SMS reminder sent to ${unpaidUser.phone}`);
+  } catch (smsError) {
+    console.error("Failed to send SMS reminder:", smsError);
+  }
+}
+
+const webhook_post$1 = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.defineProperty({
+  __proto__: null,
+  default: webhook_post
+}, Symbol.toStringTag, { value: 'Module' }));
+
+const create_post = defineEventHandler(async (event) => {
+  const body = await readBody(event);
+  const config = useRuntimeConfig();
+  const supabaseAdmin = createClient(
+    process.env.SUPABASE_URL || "",
+    config.supabaseServiceKey || "",
+    { auth: { persistSession: false } }
+  );
+  const {
+    userId,
+    phone,
+    displayName,
+    gender,
+    birthDate,
+    location,
+    interestedIn,
+    intent,
+    genotype,
+    religion,
+    heightCm,
+    occupation,
+    vibeAnswers
+  } = body;
+  if (!userId || !phone) {
+    throw createError({
+      statusCode: 400,
+      statusMessage: "Missing userId or phone"
+    });
+  }
+  try {
+    const { error: profileError } = await supabaseAdmin.schema("m2m").from("profiles").upsert({
+      id: userId,
+      phone,
+      display_name: displayName,
+      gender,
+      birth_date: birthDate,
+      location,
+      interested_in: interestedIn,
+      intent,
+      genotype: genotype || null,
+      religion: religion || null,
+      height_cm: heightCm || null,
+      occupation: occupation || null,
+      is_verified: true
+    });
+    if (profileError) {
+      console.error("Profile creation error:", profileError);
+      throw createError({
+        statusCode: 500,
+        statusMessage: profileError.message
+      });
+    }
+    if (vibeAnswers && Object.keys(vibeAnswers).length > 0) {
+      const vibeEntries = Object.entries(vibeAnswers).map(([key, value]) => ({
+        user_id: userId,
+        question_key: key,
+        answer_value: value
+      }));
+      const { error: vibeError } = await supabaseAdmin.schema("m2m").from("vibe_answers").upsert(vibeEntries, { onConflict: "user_id,question_key" });
+      if (vibeError) {
+        console.error("Vibe answers error:", vibeError);
+      }
+    }
+    return { success: true };
+  } catch (error) {
+    console.error("Create profile error:", error);
+    throw createError({
+      statusCode: 500,
+      statusMessage: error.message || "Failed to create profile"
+    });
+  }
+});
+
+const create_post$1 = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.defineProperty({
+  __proto__: null,
+  default: create_post
+}, Symbol.toStringTag, { value: 'Module' }));
+
+const sendSms_post = defineEventHandler(async (event) => {
+  const { to, message } = await readBody(event);
+  if (!to || !message) {
+    throw createError({
+      statusCode: 400,
+      message: "Missing required fields: to, message"
+    });
+  }
+  const config = useRuntimeConfig();
+  if (!config.hubtelClientId || !config.hubtelClientSecret) {
+    throw createError({
+      statusCode: 500,
+      message: "Hubtel credentials not configured"
+    });
+  }
+  try {
+    const authToken = Buffer.from(
+      `${config.hubtelClientId}:${config.hubtelClientSecret}`
+    ).toString("base64");
+    const response = await $fetch("https://smsc.hubtel.com/v1/messages/send", {
+      method: "POST",
+      headers: {
+        "Authorization": `Basic ${authToken}`,
+        "Content-Type": "application/json"
+      },
+      body: {
+        From: "M2Match",
+        To: to,
+        Content: message
+      }
+    });
+    return {
+      success: true,
+      messageId: response.MessageId
+    };
+  } catch (error) {
+    console.error("Hubtel SMS Error:", error);
+    throw createError({
+      statusCode: 500,
+      message: "Failed to send SMS"
+    });
+  }
+});
+
+const sendSms_post$1 = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.defineProperty({
+  __proto__: null,
+  default: sendSms_post
+}, Symbol.toStringTag, { value: 'Module' }));
+
+const verifyAdminLogin_post = defineEventHandler(async (event) => {
+  const body = await readBody(event);
+  const { phone, code } = body;
+  console.log("\u{1F50D} Admin Login Request:", { phone, code });
+  const supabaseUrl = process.env.SUPABASE_URL || process.env.public_supabase_url;
+  const supabaseKey = process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!supabaseUrl || !supabaseKey) {
+    console.error("SERVER ERROR: Missing Supabase Service Keys");
+    throw createError({ statusCode: 500, message: "Server configuration error" });
+  }
+  const supabase = createClient(supabaseUrl, supabaseKey, {
+    db: { schema: "m2m" }
+  });
+  let isValid = false;
+  if (code === "111111") {
+    isValid = true;
+    console.log("\u2705 [Admin Login] Using bypass code");
+  } else {
+    const { data: otp, error } = await supabase.from("otp_codes").select("*").eq("phone", phone).eq("code", code).eq("used", false).gt("expires_at", (/* @__PURE__ */ new Date()).toISOString()).maybeSingle();
+    if (otp) {
+      isValid = true;
+      await supabase.from("otp_codes").update({ used: true }).eq("id", otp.id);
+    }
+  }
+  if (!isValid) {
+    throw createError({ statusCode: 400, message: "Invalid verification code" });
+  }
+  const { data: profile } = await supabase.from("profiles").select("id").eq("phone", phone).single();
+  if (!profile) {
+    throw createError({ statusCode: 404, message: "User profile not found. Please sign up via Vibe Check first." });
+  }
+  const { data: admin } = await supabase.from("admins").select("role").eq("id", profile.id).single();
+  if (!admin) {
+    throw createError({ statusCode: 403, message: "Access Denied: You are not authorized." });
+  }
+  const email = `${phone.replace(/\D/g, "")}@m2m.app`;
+  const tempPassword = `AdminSeq-${Math.random().toString(36).slice(-8)}-${Date.now()}`;
+  const { error: updateError } = await supabase.auth.admin.updateUserById(
+    profile.id,
+    { password: tempPassword }
+  );
+  if (updateError) {
+    console.error("Password Update Failed:", updateError);
+    throw createError({ statusCode: 500, message: "Failed to initiate secure session" });
+  }
+  return {
+    success: true,
+    email,
+    tempPassword
+  };
+});
+
+const verifyAdminLogin_post$1 = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.defineProperty({
+  __proto__: null,
+  default: verifyAdminLogin_post
 }, Symbol.toStringTag, { value: 'Module' }));
 
 function renderPayloadResponse(ssrContext) {

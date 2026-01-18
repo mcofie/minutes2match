@@ -103,6 +103,15 @@
       ],
       "#unhead/composables": [
         "../node_modules/nuxt/dist/head/runtime/composables/v3"
+      ],
+      "#supabase/server": [
+        "../node_modules/@nuxtjs/supabase/dist/runtime/server/services"
+      ],
+      "#supabase/server/*": [
+        "../node_modules/@nuxtjs/supabase/dist/runtime/server/services/*"
+      ],
+      "#supabase/database": [
+        "./types/supabase-database"
       ]
     },
     "lib": [
@@ -124,6 +133,8 @@
     "../node_modules",
     "../node_modules/nuxt/node_modules",
     "../node_modules/@nuxt/fonts/node_modules",
+    "../node_modules/@nuxtjs/supabase/node_modules",
+    "../node_modules/@pinia/nuxt/node_modules",
     "../node_modules/@nuxt/devtools/node_modules",
     "../node_modules/@nuxt/telemetry/node_modules",
     "../dist"
