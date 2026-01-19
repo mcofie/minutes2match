@@ -15,6 +15,27 @@ export default defineNuxtConfig({
             tailwindcss(),
         ],
     },
+    app: {
+        head: {
+            title: 'Minutes 2 Match',
+            titleTemplate: '%s | Minutes 2 Match',
+            meta: [
+                { charset: 'utf-8' },
+                { name: 'viewport', content: 'width=device-width, initial-scale=1' },
+                { name: 'description', content: 'Find your perfect match through curated speed dating events. Science-backed compatibility matching for meaningful connections.' },
+                { name: 'theme-color', content: '#000000' },
+                { property: 'og:title', content: 'Minutes 2 Match' },
+                { property: 'og:description', content: 'Find your perfect match through curated speed dating events.' },
+                { property: 'og:type', content: 'website' },
+                { property: 'og:site_name', content: 'Minutes 2 Match' },
+                { name: 'twitter:card', content: 'summary_large_image' },
+            ],
+            link: [
+                { rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' },
+                { rel: 'apple-touch-icon', href: '/apple-touch-icon.png' },
+            ],
+        }
+    },
     supabase: {
         redirect: false,
         redirectOptions: {

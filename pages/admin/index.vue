@@ -265,6 +265,8 @@
 </template>
 
 <script setup lang="ts">
+useHead({ title: 'Dashboard' })
+
 definePageMeta({
   layout: 'admin',
   middleware: ['admin']

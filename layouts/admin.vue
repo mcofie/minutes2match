@@ -40,6 +40,13 @@
           </svg>
           <span class="label">Matchmaker</span>
         </NuxtLink>
+        <NuxtLink to="/admin/matches/queue" class="sidebar-link" @click="sidebarOpen = false">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/>
+            <polyline points="12 6 12 12 16 14"/>
+          </svg>
+          <span class="label">Match Queue</span>
+        </NuxtLink>
         <NuxtLink to="/admin/events" class="sidebar-link" @click="sidebarOpen = false">
           <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
@@ -48,6 +55,12 @@
             <line x1="3" y1="10" x2="21" y2="10"/>
           </svg>
           <span class="label">Events</span>
+        </NuxtLink>
+        <NuxtLink to="/admin/messaging" class="sidebar-link" @click="sidebarOpen = false">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+          </svg>
+          <span class="label">SMS Messaging</span>
         </NuxtLink>
         <NuxtLink to="/admin/questions" class="sidebar-link" @click="sidebarOpen = false">
           <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -120,8 +133,11 @@ const pageTitle = computed(() => {
   const path = route.path
   if (path === '/admin') return 'Dashboard Overview'
   if (path.startsWith('/admin/users')) return 'User Management'
+  if (path === '/admin/matches/queue') return 'Smart Match Queue'
   if (path.startsWith('/admin/matches')) return 'Matchmaker Tool'
   if (path.startsWith('/admin/events')) return 'Event Management'
+  if (path === '/admin/messaging/history') return 'SMS History'
+  if (path.startsWith('/admin/messaging')) return 'SMS Messaging'
   if (path.startsWith('/admin/questions')) return 'Vibe Questions'
   if (path.startsWith('/admin/settings')) return 'Platform Settings'
   return 'Admin Portal'

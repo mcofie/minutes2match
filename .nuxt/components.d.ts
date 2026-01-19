@@ -15,11 +15,16 @@ type LazyComponent<T> = DefineComponent<HydrationStrategies, {}, {}, {}, {}, {},
 
 
 export const BlindProfileCard: typeof import("../components/BlindProfileCard.vue").default
+export const CompatibilityBreakdown: typeof import("../components/CompatibilityBreakdown.vue").default
 export const EventCard: typeof import("../components/EventCard.vue").default
+export const UserActivityTimeline: typeof import("../components/UserActivityTimeline.vue").default
 export const VibeCard: typeof import("../components/VibeCard.vue").default
 export const UiButton: typeof import("../components/ui/Button.vue").default
 export const UiCard: typeof import("../components/ui/Card.vue").default
+export const UiCommerceHero: typeof import("../components/ui/CommerceHero.vue").default
 export const UiDatePicker: typeof import("../components/ui/DatePicker.vue").default
+export const UiSeparator: typeof import("../components/ui/Separator.vue").default
+export const UiSheet: typeof import("../components/ui/Sheet.vue").default
 export const NuxtWelcome: typeof import("../node_modules/nuxt/dist/app/components/welcome.vue").default
 export const NuxtLayout: typeof import("../node_modules/nuxt/dist/app/components/nuxt-layout").default
 export const NuxtErrorBoundary: typeof import("../node_modules/nuxt/dist/app/components/nuxt-error-boundary.vue").default
@@ -44,11 +49,16 @@ export const Html: typeof import("../node_modules/nuxt/dist/head/runtime/compone
 export const Body: typeof import("../node_modules/nuxt/dist/head/runtime/components").Body
 export const NuxtIsland: typeof import("../node_modules/nuxt/dist/app/components/nuxt-island").default
 export const LazyBlindProfileCard: LazyComponent<typeof import("../components/BlindProfileCard.vue").default>
+export const LazyCompatibilityBreakdown: LazyComponent<typeof import("../components/CompatibilityBreakdown.vue").default>
 export const LazyEventCard: LazyComponent<typeof import("../components/EventCard.vue").default>
+export const LazyUserActivityTimeline: LazyComponent<typeof import("../components/UserActivityTimeline.vue").default>
 export const LazyVibeCard: LazyComponent<typeof import("../components/VibeCard.vue").default>
 export const LazyUiButton: LazyComponent<typeof import("../components/ui/Button.vue").default>
 export const LazyUiCard: LazyComponent<typeof import("../components/ui/Card.vue").default>
+export const LazyUiCommerceHero: LazyComponent<typeof import("../components/ui/CommerceHero.vue").default>
 export const LazyUiDatePicker: LazyComponent<typeof import("../components/ui/DatePicker.vue").default>
+export const LazyUiSeparator: LazyComponent<typeof import("../components/ui/Separator.vue").default>
+export const LazyUiSheet: LazyComponent<typeof import("../components/ui/Sheet.vue").default>
 export const LazyNuxtWelcome: LazyComponent<typeof import("../node_modules/nuxt/dist/app/components/welcome.vue").default>
 export const LazyNuxtLayout: LazyComponent<typeof import("../node_modules/nuxt/dist/app/components/nuxt-layout").default>
 export const LazyNuxtErrorBoundary: LazyComponent<typeof import("../node_modules/nuxt/dist/app/components/nuxt-error-boundary.vue").default>

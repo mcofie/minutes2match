@@ -98,16 +98,27 @@
 <script setup lang="ts">
 import UiButton from '~/components/ui/Button.vue'
 
+useHead({
+  title: 'Sign In',
+  meta: [
+    { name: 'description', content: 'Sign in to your Minutes 2 Match account to view your matches and upcoming events.' }
+  ]
+})
+
 const supabase = useSupabaseClient()
 const user = useSupabaseUser()
 
-// If user is already logged in, redirect to /me
-watch(user, (newUser) => {
-  if (newUser?.id) {
-    console.log('[Login] User already authenticated, redirecting to /me')
+// Track if we're in the middle of a login attempt
+const isLoggingIn = ref(false)
+
+// If user is already logged in on page load, redirect to /me
+// But don't redirect during the login process (we handle that after verifyOtp)
+onMounted(() => {
+  if (user.value?.id && !isLoggingIn.value) {
+    console.log('[Login] User already authenticated on mount, redirecting to /me')
     navigateTo('/me')
   }
-}, { immediate: true })
+})
 
 const phone = ref('')
 const otpCode = ref('')
@@ -150,6 +161,7 @@ const verifyOtp = async () => {
   if (otpCode.value.length !== 6) return
   
   verifying.value = true
+  isLoggingIn.value = true // Prevent redirect loop
   error.value = ''
   
   try {

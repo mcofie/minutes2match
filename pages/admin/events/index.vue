@@ -17,12 +17,17 @@
     <!-- Events Grid -->
     <div v-else class="card-grid">
       <div v-for="event in events" :key="event.id" class="admin-card">
-        <div class="admin-card__header">
-          <span class="badge" :class="getStatusClass(event.status)">
-            {{ event.status.replace('_', ' ') }}
-          </span>
-          <span class="text-xs text-muted font-bold font-mono">{{ formatDate(event.event_date) }}</span>
+        <div class="relative h-32 bg-stone-100 -mx-6 -mt-6 mb-4 overflow-hidden">
+          <img v-if="event.cover_image_url" :src="event.cover_image_url" class="w-full h-full object-cover" />
+          <div v-else class="w-full h-full flex items-center justify-center text-stone-300 text-4xl">🎫</div>
+          <div class="absolute top-2 right-2">
+            <span class="badge" :class="getStatusClass(event.status)">
+              {{ event.status.replace('_', ' ') }}
+            </span>
+          </div>
         </div>
+        
+        <div class="text-xs text-muted font-bold font-mono mb-2">{{ formatDate(event.event_date) }}</div>
         
         <h3 class="admin-card__title">{{ event.title }}</h3>
         <p class="admin-card__subtitle mb-4">📍 {{ event.venue }}</p>
@@ -57,6 +62,30 @@
           
           <div class="modal__content">
             <form @submit.prevent="saveEvent">
+              
+              <!-- Image Upload -->
+              <div class="form-group">
+                <label class="form-label">Event Cover Image</label>
+                <div class="flex items-center gap-4">
+                  <div class="w-24 h-24 bg-stone-100 rounded-lg overflow-hidden border border-stone-200 flex items-center justify-center relative">
+                    <img v-if="form.cover_image_url" :src="form.cover_image_url" class="w-full h-full object-cover" />
+                    <span v-else class="text-2xl">📷</span>
+                    <div v-if="uploading" class="absolute inset-0 bg-black/50 flex items-center justify-center">
+                      <div class="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    </div>
+                  </div>
+                  <div class="flex-1">
+                    <input 
+                      type="file" 
+                      accept="image/*" 
+                      @change="handleImageUpload" 
+                      class="block w-full text-sm text-stone-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-black file:text-white hover:file:bg-stone-800"
+                    />
+                    <p class="text-xs text-stone-400 mt-1">Recommended: 1200x600px JPG or PNG</p>
+                  </div>
+                </div>
+              </div>
+
               <div class="form-group">
                 <label class="form-label">Event Title</label>
                 <input v-model="form.title" type="text" class="form-input" required placeholder="e.g. Singles Mixer in Accra" />
@@ -223,6 +252,8 @@
 </template>
 
 <script setup lang="ts">
+useHead({ title: 'Events' })
+
 definePageMeta({
   layout: 'admin',
   middleware: ['admin']
@@ -233,6 +264,7 @@ const supabase = useSupabaseClient()
 // State
 const loading = ref(true)
 const saving = ref(false)
+const uploading = ref(false)
 const events = ref<any[]>([])
 const showModal = ref(false)
 const editingEvent = ref<any>(null)
@@ -243,6 +275,7 @@ const form = reactive({
   event_date: '',
   venue: '',
   venue_address: '',
+  cover_image_url: '',
   male_capacity: 15,
   female_capacity: 15,
   ticket_price_male: 100,
@@ -301,12 +334,44 @@ const closeModal = () => {
     event_date: '',
     venue: '',
     venue_address: '',
+    cover_image_url: '',
     male_capacity: 15,
     female_capacity: 15,
     ticket_price_male: 100,
     ticket_price_female: 80,
     status: 'draft'
   })
+}
+
+const handleImageUpload = async (e: Event) => {
+  try {
+    const input = e.target as HTMLInputElement
+    if (!input.files?.length) return
+    
+    uploading.value = true
+    const file = input.files[0]
+    const fileExt = file.name.split('.').pop()
+    const fileName = `event-cover-${Date.now()}.${fileExt}`
+    const filePath = `covers/${fileName}`
+    
+    const { error: uploadError } = await supabase.storage
+      .from('events') // Updated to events bucket
+      .upload(filePath, file)
+      
+    if (uploadError) throw uploadError
+    
+    // Get public URL
+    const { data: { publicUrl } } = supabase.storage
+      .from('events')
+      .getPublicUrl(filePath)
+      
+    form.cover_image_url = publicUrl
+  } catch (err) {
+    console.error('Upload failed:', err)
+    alert('Failed to upload image')
+  } finally {
+    uploading.value = false
+  }
 }
 
 const saveEvent = async () => {
@@ -319,6 +384,7 @@ const saveEvent = async () => {
       event_date: new Date(form.event_date).toISOString(),
       venue: form.venue,
       venue_address: form.venue_address,
+      cover_image_url: form.cover_image_url,
       male_capacity: form.male_capacity,
       female_capacity: form.female_capacity,
       ticket_price_male: form.ticket_price_male,

@@ -296,6 +296,13 @@ import UiButton from '~/components/ui/Button.vue'
 import { personas, type Persona } from '~/composables/usePersona'
 import type { Database } from '~/types/database'
 
+useHead({
+  title: 'My Dashboard',
+  meta: [
+    { name: 'description', content: 'View your matches, upcoming events, and manage your profile on Minutes 2 Match.' }
+  ]
+})
+
 definePageMeta({
   middleware: ['auth']
 })

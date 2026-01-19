@@ -258,56 +258,73 @@
         <div class="match-stage">
           <!-- User 1 (The Anchor) -->
           <div 
-            class="stage-card" 
+            class="stage-card group"
             :class="{ 'stage-card--filled': user1, 'stage-card--active': selectingSlot === 1 }"
             @click="selectingSlot = 1"
           >
-            <div v-if="!user1" class="stage-card__empty">
-              <div class="stage-card__avatar-placeholder">
-                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                  <circle cx="12" cy="7" r="4"></circle>
+            <div v-if="!user1" class="flex flex-col items-center justify-center text-center h-full min-h-[220px] p-6">
+              <div class="w-20 h-20 rounded-full flex items-center justify-center mb-5 bg-stone-50 text-stone-300 group-hover:bg-black group-hover:text-white transition-all duration-300 shadow-sm group-hover:scale-110">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                   <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                   <circle cx="12" cy="7" r="4"></circle>
                 </svg>
               </div>
-              <h3 class="stage-card__title">Person A</h3>
-              <p class="stage-card__hint">Click to select</p>
-              <div class="stage-card__pulse"></div>
+              
+              <h3 class="font-bold text-lg mb-2 text-stone-900">Select Person A</h3>
+              <p class="text-sm text-stone-500 max-w-[200px] leading-relaxed mb-6">
+                Start by selecting the primary user for this match interaction
+              </p>
+              
+              <div class="px-5 py-2.5 bg-stone-100 rounded-lg text-xs font-bold uppercase tracking-wide text-stone-600 transition-colors group-hover:bg-black group-hover:text-white">
+                Choose User
+              </div>
             </div>
-            <div v-else class="stage-card__filled">
-              <button class="stage-card__remove-btn" @click.stop="user1 = null; user2 = null">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            <div v-else class="stage-card__filled p-6 relative h-full flex flex-col">
+              <button class="absolute top-3 right-3 p-2 text-stone-300 hover:text-red-500 hover:bg-red-50 rounded-full transition-colors z-10" @click.stop="user1 = null; user2 = null">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
               </button>
               
-              <div class="stage-card__user-info">
-                <div class="stage-card__avatar">
+              <div class="flex flex-col items-center text-center">
+                <div class="w-24 h-24 rounded-full bg-black text-white flex items-center justify-center text-3xl font-bold shadow-lg mb-4 ring-4 ring-stone-50">
                   {{ user1.display_name?.charAt(0) }}
                 </div>
-                <div class="stage-card__details">
-                  <h3 class="stage-card__name">{{ user1.display_name }}</h3>
-                  <div class="stage-card__meta">
-                    <span class="capitalize">{{ user1.gender?.substring(0,1) }}</span>
-                    <span>•</span>
-                    <span>{{ getAge(user1.birth_date) }}y</span>
-                    <span v-if="user1.height_cm">• {{ cmToFeet(user1.height_cm) }}</span>
-                  </div>
-                  <div class="stage-card__badges">
-                    <span v-if="user1.genotype" class="stage-card__badge">{{ user1.genotype }}</span>
-                    <span v-if="user1.intent" class="stage-card__badge capitalize">{{ user1.intent }}</span>
-                  </div>
+                
+                <h3 class="text-xl font-bold text-stone-900 leading-tight mb-1">{{ user1.display_name }}</h3>
+                <div class="flex items-center gap-2 text-sm text-stone-500 font-medium mb-5">
+                  <span class="capitalize">{{ user1.gender }}</span>
+                  <span>•</span>
+                  <span>{{ getAge(user1.birth_date) }}y</span>
+                  <span v-if="user1.height_cm">• {{ cmToFeet(user1.height_cm) }}</span>
                 </div>
-              </div>
-              
-              <div v-if="user1.dating_persona" class="stage-card__persona">
-                <span class="stage-card__persona-icon" v-html="getPersonaIcon(user1.dating_persona)"></span>
-                <div class="stage-card__persona-details">
-                  <span class="stage-card__persona-name">{{ getPersona(user1.dating_persona)?.name }}</span>
-                  <span class="stage-card__persona-label">Persona</span>
-                </div>
-              </div>
 
-              <div class="stage-card__location-badges">
-                 <span class="badge badge--gray">{{ user1.location || 'Unknown Location' }}</span>
-                 <span class="badge badge--dark">{{ user1.is_verified ? 'Verified' : 'Unverified' }}</span>
+                <div class="grid grid-cols-2 gap-3 w-full mb-5">
+                  <div class="bg-stone-50 rounded-lg p-2.5 text-center border border-stone-100">
+                     <span class="block text-[10px] uppercase tracking-wider text-stone-400 font-bold mb-0.5">Genotype</span>
+                     <span class="font-bold text-sm text-stone-900">{{ user1.genotype || '?' }}</span>
+                  </div>
+                  <div class="bg-stone-50 rounded-lg p-2.5 text-center border border-stone-100">
+                     <span class="block text-[10px] uppercase tracking-wider text-stone-400 font-bold mb-0.5">Intent</span>
+                     <span class="font-bold text-sm text-stone-900 capitalize">{{ user1.intent || '?' }}</span>
+                  </div>
+                </div>
+
+                <div v-if="user1.dating_persona" class="w-full flex items-center gap-3 p-3 bg-blue-50/50 rounded-xl border border-blue-100 mb-5">
+                  <span class="text-xl" v-html="getPersonaIcon(user1.dating_persona)"></span>
+                  <div class="flex flex-col items-start">
+                    <span class="font-bold text-sm text-stone-900">{{ getPersona(user1.dating_persona)?.name }}</span>
+                    <span class="text-[10px] uppercase tracking-wide text-blue-600 font-bold">Persona</span>
+                  </div>
+                </div>
+
+                <div class="mt-auto flex flex-wrap justify-center gap-2">
+                   <span class="px-2.5 py-1 rounded-full bg-stone-100 text-stone-600 text-xs font-medium border border-stone-200">
+                     {{ user1.location || 'Unknown' }}
+                   </span>
+                   <span v-if="user1.is_verified" class="px-2.5 py-1 rounded-full bg-green-50 text-green-700 text-xs font-bold border border-green-200 flex items-center gap-1">
+                     <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                     Verified
+                   </span>
+                </div>
               </div>
             </div>
           </div>
@@ -325,79 +342,129 @@
 
           <!-- User 2 (The Match) -->
           <div 
-            class="stage-card"
+            class="stage-card group"
             :class="{ 'stage-card--filled': user2, 'stage-card--active': selectingSlot === 2 }"
             @click="selectingSlot = 2"
           >
-            <div v-if="!user2" class="stage-card__empty">
-              <div class="stage-card__avatar-placeholder stage-card__avatar-placeholder--secondary">
-                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <div v-if="!user2 && !hoveredUser" class="flex flex-col items-center justify-center text-center h-full min-h-[220px] p-6">
+              <div 
+                class="w-20 h-20 rounded-full flex items-center justify-center mb-5 transition-all duration-300 shadow-sm"
+                :class="user1 ? 'bg-black text-white scale-100' : 'bg-stone-50 text-stone-300'"
+              >
+                <svg v-if="user1" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
                   <circle cx="8.5" cy="7" r="4"></circle>
                   <line x1="20" y1="8" x2="20" y2="14"></line>
                   <line x1="23" y1="11" x2="17" y2="11"></line>
                 </svg>
+                <svg v-else width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                   <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                   <circle cx="12" cy="7" r="4"></circle>
+                </svg>
               </div>
-              <h3 class="stage-card__title">Person B</h3>
-              <p v-if="user1" class="stage-card__hint stage-card__hint--ready">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
-                Ready for suggestions
+              
+              <h3 class="font-bold text-lg mb-2" :class="user1 ? 'text-stone-900' : 'text-stone-400'">
+                {{ user1 ? 'Select Match' : 'Waiting for Person A' }}
+              </h3>
+              
+              <p class="text-sm text-stone-500 max-w-[200px] leading-relaxed mb-6">
+                {{ user1 ? 'Choose a compatible partner to complete the pair' : 'Select a primary user to start matching' }}
               </p>
-              <p v-else class="stage-card__hint">Select Person A first</p>
-              <div v-if="selectingSlot === 2" class="stage-card__pulse"></div>
+              
+              <div v-if="user1" class="px-5 py-2.5 bg-stone-100 rounded-lg text-xs font-bold uppercase tracking-wide text-stone-600 transition-colors group-hover:bg-stone-200">
+                Browse Candidates
+              </div>
             </div>
-            <div v-else class="stage-card__filled">
-              <button class="stage-card__remove-btn" @click.stop="user2 = null">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+
+            <div v-else-if="!user2 && hoveredUser" class="flex flex-col items-center justify-center text-center h-full min-h-[220px] p-6 bg-stone-50/50 relative">
+              <div class="absolute top-3 right-3">
+                 <span class="bg-black text-white px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider shadow-sm">Preview</span>
+              </div>
+              
+              <div class="w-20 h-20 rounded-full flex items-center justify-center mb-4 bg-white border-2 border-dashed border-stone-300 shadow-sm text-2xl font-bold text-stone-400">
+                 {{ hoveredUser.display_name?.charAt(0) }}
+              </div>
+              
+              <h3 class="font-bold text-lg mb-1 text-stone-500">{{ hoveredUser.display_name }}</h3>
+              <div class="bg-white border border-stone-200 rounded-full px-3 py-1 text-xs font-medium text-stone-500 mb-4 shadow-sm">
+                 {{ getAge(hoveredUser.birth_date) }}y • {{ hoveredUser.gender }}
+              </div>
+              
+              <div class="text-xs text-stone-400 animate-pulse font-medium">
+                 Click card below to select
+              </div>
+            </div>
+
+            <div v-else class="stage-card__filled p-6 relative h-full flex flex-col">
+              <button class="absolute top-3 right-3 p-2 text-stone-300 hover:text-red-500 hover:bg-red-50 rounded-full transition-colors z-10" @click.stop="user2 = null">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
               </button>
               
-              <div class="stage-card__user-info">
-                <div class="stage-card__avatar">
+              <div class="flex flex-col items-center text-center">
+                <div class="w-24 h-24 rounded-full bg-black text-white flex items-center justify-center text-3xl font-bold shadow-lg mb-4 ring-4 ring-stone-50">
                   {{ user2.display_name?.charAt(0) }}
                 </div>
-                <div class="stage-card__details">
-                  <h3 class="stage-card__name">{{ user2.display_name }}</h3>
-                  <div class="stage-card__meta">
-                    <span class="capitalize">{{ user2.gender?.substring(0,1) }}</span>
-                    <span>•</span>
-                    <span>{{ getAge(user2.birth_date) }}y</span>
-                    <span v-if="user2.height_cm">• {{ cmToFeet(user2.height_cm) }}</span>
-                  </div>
-                  <div class="stage-card__badges">
-                    <span v-if="user2.genotype" class="stage-card__badge">{{ user2.genotype }}</span>
-                    <span v-if="user2.intent" class="stage-card__badge capitalize">{{ user2.intent }}</span>
-                  </div>
+                
+                <h3 class="text-xl font-bold text-stone-900 leading-tight mb-1">{{ user2.display_name }}</h3>
+                <div class="flex items-center gap-2 text-sm text-stone-500 font-medium mb-5">
+                  <span class="capitalize">{{ user2.gender }}</span>
+                  <span>•</span>
+                  <span>{{ getAge(user2.birth_date) }}y</span>
+                  <span v-if="user2.height_cm">• {{ cmToFeet(user2.height_cm) }}</span>
                 </div>
-              </div>
-              
-              <div v-if="user2.dating_persona" class="stage-card__persona">
-                <span class="stage-card__persona-icon" v-html="getPersonaIcon(user2.dating_persona)"></span>
-                <div class="stage-card__persona-details">
-                  <span class="stage-card__persona-name">{{ getPersona(user2.dating_persona)?.name }}</span>
-                  <span class="stage-card__persona-label">Persona</span>
-                </div>
-              </div>
 
-               <!-- Match Analysis -->
-              <div v-if="matchData.reasons.length || matchData.warnings.length" class="mb-3 p-3 bg-gray-50 rounded-lg border border-gray-100">
-                <div class="flex flex-wrap gap-1 mb-1">
-                  <span v-for="reason in matchData.reasons" :key="reason" class="inline-block bg-white border border-green-100 text-green-700 text-[10px] px-2 py-0.5 rounded font-bold mr-1 shadow-sm">
-                    {{ reason }}
-                  </span>
+                <div class="grid grid-cols-2 gap-3 w-full mb-3">
+                  <div class="bg-stone-50 rounded-lg p-2.5 text-center border border-stone-100">
+                     <span class="block text-[10px] uppercase tracking-wider text-stone-400 font-bold mb-0.5">Genotype</span>
+                     <span class="font-bold text-sm text-stone-900">{{ user2.genotype || '?' }}</span>
+                  </div>
+                  <div class="bg-stone-50 rounded-lg p-2.5 text-center border border-stone-100">
+                     <span class="block text-[10px] uppercase tracking-wider text-stone-400 font-bold mb-0.5">Intent</span>
+                     <span class="font-bold text-sm text-stone-900 capitalize">{{ user2.intent || '?' }}</span>
+                  </div>
                 </div>
-                <div v-if="matchData.warnings.length" class="flex flex-wrap gap-1 mt-2 pt-2 border-t border-gray-200">
-                  <span v-for="warn in matchData.warnings" :key="warn" class="inline-block bg-white border border-red-100 text-red-600 text-[10px] px-2 py-0.5 rounded font-bold mr-1 shadow-sm">
-                    ! {{ warn }}
-                  </span>
-                </div>
-              </div>
 
-              <div class="stage-card__location-badges">
-                 <span class="badge badge--gray">{{ user2.location || 'Unknown Location' }}</span>
-                 <span class="badge badge--dark">{{ user2.is_verified ? 'Verified' : 'Unverified' }}</span>
+                <!-- Match Analysis -->
+                <div v-if="matchData.reasons.length || matchData.warnings.length" class="w-full mb-5 flex flex-wrap justify-center gap-1.5">
+                   <span v-for="reason in matchData.reasons" :key="reason" class="px-2 py-0.5 bg-green-50 text-green-700 text-[10px] font-bold uppercase tracking-wide rounded border border-green-100">
+                     {{ reason }}
+                   </span>
+                   <span v-for="warn in matchData.warnings" :key="warn" class="px-2 py-0.5 bg-red-50 text-red-600 text-[10px] font-bold uppercase tracking-wide rounded border border-red-100">
+                     ! {{ warn }}
+                   </span>
+                </div>
+
+                <div v-if="user2.dating_persona" class="w-full flex items-center gap-3 p-3 bg-blue-50/50 rounded-xl border border-blue-100 mb-5">
+                  <span class="text-xl" v-html="getPersonaIcon(user2.dating_persona)"></span>
+                  <div class="flex flex-col items-start">
+                    <span class="font-bold text-sm text-stone-900">{{ getPersona(user2.dating_persona)?.name }}</span>
+                    <span class="text-[10px] uppercase tracking-wide text-blue-600 font-bold">Persona</span>
+                  </div>
+                </div>
+
+                <div class="mt-auto flex flex-wrap justify-center gap-2">
+                   <span class="px-2.5 py-1 rounded-full bg-stone-100 text-stone-600 text-xs font-medium border border-stone-200">
+                     {{ user2.location || 'Unknown' }}
+                   </span>
+                   <span v-if="user2.is_verified" class="px-2.5 py-1 rounded-full bg-green-50 text-green-700 text-xs font-bold border border-green-200 flex items-center gap-1">
+                     <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                     Verified
+                   </span>
+                </div>
               </div>
             </div>
           </div>
+        </div>
+        
+        <!-- Compatibility Breakdown -->
+        <div v-if="user1 && (user2 || hoveredUser)" class="mt-6">
+          <CompatibilityBreakdown
+            :user1="user1"
+            :user2="user2 || hoveredUser"
+            :score="matchData.score"
+            :reasons="matchData.reasons"
+            :warnings="matchData.warnings"
+          />
         </div>
         
         <!-- Status Messages -->
@@ -474,6 +541,8 @@
             class="candidate-card"
             :class="{ 'opacity-50 grayscale': isDisabled(user), 'candidate-card--selected': isSelected(user) }"
             @click="selectCandidate(user)"
+            @mouseenter="hoveredUser = user"
+            @mouseleave="hoveredUser = null"
           >
             <div v-if="user1 && !isDisabled(user)" class="match-score-badge" :style="{ backgroundColor: getScoreColor(user.matchDetails.score) }">
                {{ user.matchDetails.score }}%
@@ -531,7 +600,10 @@
 
 <script setup lang="ts">
 import { personas } from '~/composables/usePersona'
+import { useCompatibility, type VibeAnswer, type UserProfile } from '~/composables/useCompatibility'
 import type { Database } from '~/types/database'
+
+useHead({ title: 'Matchmaker' })
 
 definePageMeta({
   layout: 'admin',
@@ -548,6 +620,7 @@ const mode = ref<'manual' | 'auto'>('manual')
 const users = ref<any[]>([])
 const user1 = ref<any>(null)
 const user2 = ref<any>(null)
+const hoveredUser = ref<any>(null)
 const selectingSlot = ref(1)
 const unlockPrice = ref(1) // Testing price - change back to 50 for production
 const creating = ref(false)
@@ -576,6 +649,10 @@ const filters = reactive({
 // Fetch existing matches to exclude
 const existingMatches = ref<Set<string>>(new Set())
 
+// Vibe answers for enhanced compatibility scoring
+const userVibeAnswers = ref<Map<string, VibeAnswer[]>>(new Map())
+const { calculateCompatibility, getCompatibilityTier } = useCompatibility()
+
 onMounted(() => {
   const stored = sessionStorage.getItem('matchUser1')
   if (stored) {
@@ -595,6 +672,7 @@ onMounted(() => {
   }
   fetchUsers()
   fetchExistingMatches()
+  fetchVibeAnswers()
 })
 
 const fetchUsers = async () => {
@@ -620,6 +698,23 @@ const fetchExistingMatches = async () => {
       pairs.add(`${m.user_2_id}-${m.user_1_id}`)
     })
     existingMatches.value = pairs
+  }
+}
+
+// Fetch all vibe answers for enhanced compatibility scoring
+const fetchVibeAnswers = async () => {
+  const { data } = await supabase
+    .from('vibe_answers')
+    .select('user_id, question_key, answer')
+  
+  if (data) {
+    const answersMap = new Map<string, VibeAnswer[]>()
+    data.forEach((row: any) => {
+      const existing = answersMap.get(row.user_id) || []
+      existing.push({ question_key: row.question_key, answer: row.answer })
+      answersMap.set(row.user_id, existing)
+    })
+    userVibeAnswers.value = answersMap
   }
 }
 
@@ -673,7 +768,7 @@ const compatibilityMatrix: Record<string, string[]> = {
   homebody: ['homebody', 'romantic', 'intellectual']
 }
 
-// SMART MATCHING ALGORITHM
+// SMART MATCHING ALGORITHM - Enhanced with Vibe Answers
 const calculateMatchScore = (u1: any, u2: any) => {
   let score = 0
   const reasons: string[] = []
@@ -688,15 +783,15 @@ const calculateMatchScore = (u1: any, u2: any) => {
   }
   
   // Opposite gender bonus
-  if (u1.gender !== u2.gender) score += 30
+  if (u1.gender !== u2.gender) score += 15
   
   // 2. Age Rule
   const age1 = getAge(u1.birth_date)
   const age2 = getAge(u2.birth_date)
   const gap = Math.abs(age1 - age2)
-  if (gap <= 3) { score += 20; reasons.push('Close Age') }
-  else if (gap <= 7) { score += 10 }
-  else if (gap > 10) { score -= 10 }
+  if (gap <= 3) { score += 10; reasons.push('Close Age') }
+  else if (gap <= 7) { score += 5 }
+  else if (gap > 10) { score -= 5 }
   
   // 3. Genotype Compatibility (CRITICAL)
   if (u1.genotype && u2.genotype) {
@@ -712,7 +807,7 @@ const calculateMatchScore = (u1: any, u2: any) => {
       warnings.push('Genotype Risk')
     }
     else if (g1 === 'AA' || g2 === 'AA') {
-      score += 10
+      score += 5
       reasons.push('Safe Genotype')
     }
   }
@@ -723,14 +818,14 @@ const calculateMatchScore = (u1: any, u2: any) => {
     const casual = ['casual', 'friendship']
     
     if (u1.intent === u2.intent) {
-      score += 20
+      score += 15
       reasons.push('Same Goals')
     } 
     else if (serious.includes(u1.intent) && serious.includes(u2.intent)) {
-      score += 10
+      score += 8
     }
     else if ((serious.includes(u1.intent) && casual.includes(u2.intent)) || (casual.includes(u1.intent) && serious.includes(u2.intent))) {
-      score -= 30
+      score -= 20
       warnings.push('Mismatched Goals')
     }
   }
@@ -740,10 +835,10 @@ const calculateMatchScore = (u1: any, u2: any) => {
   const p2 = u2.dating_persona
   if (p1 && p2) {
     if (compatibilityMatrix[p1]?.includes(p2) || compatibilityMatrix[p2]?.includes(p1)) {
-      score += 20
+      score += 10
       reasons.push('Great Vibe')
     } else if (p1 === p2) {
-      score += 10
+      score += 5
       reasons.push('Similar Vibe')
     }
   }
@@ -751,15 +846,64 @@ const calculateMatchScore = (u1: any, u2: any) => {
   // 6. Religion
   if (u1.religion && u2.religion && u1.religion !== 'None' && u2.religion !== 'None') {
     if (u1.religion === u2.religion) {
-      score += 15
+      score += 8
       reasons.push('Shared Faith')
     }
   }
   
   // 7. Location
   if (u1.location && u2.location && u1.location === u2.location) {
-    score += 10
+    score += 7
     reasons.push('Same City')
+  }
+  
+  // 8. VIBE ANSWERS COMPATIBILITY (NEW - Up to 30 bonus points)
+  const u1Answers = userVibeAnswers.value.get(u1.id)
+  const u2Answers = userVibeAnswers.value.get(u2.id)
+  
+  if (u1Answers && u2Answers && u1Answers.length > 0 && u2Answers.length > 0) {
+    // Convert to profiles for calculateCompatibility
+    const profile1: UserProfile = {
+      id: u1.id,
+      gender: u1.gender,
+      interested_in: u1.interested_in,
+      intent: u1.intent,
+      location: u1.location,
+      religion: u1.religion,
+      genotype: u1.genotype,
+      birth_date: u1.birth_date
+    }
+    const profile2: UserProfile = {
+      id: u2.id,
+      gender: u2.gender,
+      interested_in: u2.interested_in,
+      intent: u2.intent,
+      location: u2.location,
+      religion: u2.religion,
+      genotype: u2.genotype,
+      birth_date: u2.birth_date
+    }
+    
+    const vibeResult = calculateCompatibility(profile1, u1Answers, profile2, u2Answers)
+    
+    // Add vibe score (scaled to add up to 30 points max)
+    const vibeBonus = Math.round(vibeResult.score * 0.3) // 30% of 0-100 = 0-30 points
+    score += vibeBonus
+    
+    // Add vibe-based insights
+    if (vibeResult.strengths.length > 0) {
+      reasons.push(...vibeResult.strengths.slice(0, 2))
+    }
+    if (vibeResult.warnings.length > 0) {
+      warnings.push(...vibeResult.warnings.slice(0, 1))
+    }
+    
+    // Show vibe analysis indicator
+    if (vibeBonus >= 20) {
+      reasons.unshift('💕 High Vibe Match')
+    } else if (vibeBonus >= 10) {
+      reasons.unshift('✨ Good Vibe Match')
+    }
   }
   
   return { score: Math.max(0, Math.min(score, 100)), reasons, warnings }
@@ -953,8 +1097,9 @@ const paginationCandidates = computed(() => {
 
 // === MANAGE MATCH STATUS ===
 const matchData = computed(() => {
-  if (!user1.value || !user2.value) return { score: 0, reasons: [], warnings: [] }
-  return calculateMatchScore(user1.value, user2.value)
+  const targetUser2 = user2.value || hoveredUser.value
+  if (!user1.value || !targetUser2) return { score: 0, reasons: [], warnings: [] }
+  return calculateMatchScore(user1.value, targetUser2)
 })
 
 const canCreateMatch = computed(() => {
@@ -1030,9 +1175,7 @@ const createMatch = async () => {
     setTimeout(() => {
       user2.value = null
       matchSuccess.value = ''
-      matchData.score = 0
-      matchData.reasons = []
-      matchData.warnings = []
+      // matchData is computed and will auto-reset when user2 becomes null
     }, 2000)
   } catch (err: any) {
     if (err.code === '23505') {

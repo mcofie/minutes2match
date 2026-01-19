@@ -82,7 +82,10 @@
           <div class="grid grid-cols-2 gap-4">
             <div class="space-y-2">
               <label class="block text-xs font-bold uppercase tracking-wide text-stone-500">Birthday</label>
-              <input type="date" v-model="form.birthDate" class="w-full px-4 py-3 rounded-xl border border-stone-200 bg-white focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition-all" :max="maxBirthDate" />
+              <UiDatePicker 
+                v-model="form.birthDate" 
+                placeholder="Select your birthday"
+              />
             </div>
             <div class="space-y-2">
               <label class="block text-xs font-bold uppercase tracking-wide text-stone-500">City</label>
@@ -157,11 +160,15 @@
         </div>
       </div>
 
-      <!-- Steps 3-5: Vibe Questions (Auto-advance) -->
-      <div v-else-if="currentStep >= 3 && currentStep <= 5" class="w-full animate-fade-in space-y-8">
+      <!-- Steps 3-9: Vibe Questions (5 core + 2 bonus = 7 total) -->
+      <div v-else-if="currentStep >= 3 && currentStep <= 9" class="w-full animate-fade-in space-y-8">
         <div class="text-center space-y-2">
           <span class="text-4xl block mb-4">{{ getVibeEmoji() }}</span>
-          <p class="text-xs font-bold uppercase tracking-wide text-stone-400">Question {{ currentStep - 2 }} of 3</p>
+          <div class="flex items-center justify-center gap-2 mb-2">
+            <span v-if="currentStep <= 7" class="text-[10px] font-bold uppercase tracking-wide text-orange-500 bg-orange-50 px-2 py-1 rounded-full">Core</span>
+            <span v-else class="text-[10px] font-bold uppercase tracking-wide text-blue-500 bg-blue-50 px-2 py-1 rounded-full">Bonus</span>
+          </div>
+          <p class="text-xs font-bold uppercase tracking-wide text-stone-400">Question {{ currentStep - 2 }} of {{ totalQuestions }}</p>
         </div>
 
         <div v-if="loadingQuestions" class="text-center py-12">
@@ -187,8 +194,8 @@
         </template>
       </div>
 
-      <!-- Step 6: Phone Verification -->
-      <div v-else-if="currentStep === 6" class="w-full animate-fade-in space-y-8">
+      <!-- Step 10: Phone Verification -->
+      <div v-else-if="currentStep === 10" class="w-full animate-fade-in space-y-8">
         <div class="text-center space-y-2">
           <span class="text-4xl block mb-4">📱</span>
           <h1 class="text-3xl font-bold tracking-tight">Last step!</h1>
@@ -252,8 +259,8 @@
         </div>
       </div>
 
-      <!-- Step 7: Persona Reveal -->
-      <div v-else-if="currentStep === 7" class="w-full animate-fade-in text-center">
+      <!-- Step 11: Persona Reveal -->
+      <div v-else-if="currentStep === 11" class="w-full animate-fade-in text-center">
         <div class="relative py-12">
           <div class="confetti-container">
             <span v-for="i in 20" :key="i" class="confetti" :style="{ '--delay': i * 0.1 + 's', '--x': (Math.random() * 200 - 100) + 'px' }">🎉</span>
@@ -314,6 +321,13 @@ import VibeCard from '~/components/VibeCard.vue'
 import { usePersona, type Persona } from '~/composables/usePersona'
 import type { Database } from '~/types/database'
 
+useHead({
+  title: 'Vibe Check',
+  meta: [
+    { name: 'description', content: 'Take our 90-second personality assessment to discover your dating persona and find compatible matches.' }
+  ]
+})
+
 // Form state
 const form = reactive({
   displayName: '',
@@ -331,7 +345,8 @@ const form = reactive({
 
 const vibeAnswers = reactive<Record<string, string>>({})
 const currentStep = ref(1)
-const totalSteps = 7
+const totalSteps = 11
+const totalQuestions = 7 // 5 core + 2 bonus
 const showExtras = ref(false)
 
 // Encouragement
@@ -362,6 +377,8 @@ interface VibeQuestion {
   options: string[]
   display_order: number
   is_active: boolean
+  is_core?: boolean
+  dimension?: string
 }
 
 const activeQuestions = ref<VibeQuestion[]>([])
@@ -372,6 +389,7 @@ const fetchVibeQuestions = async () => {
   const supabase = useSupabaseClient<Database>()
   
   try {
+    // Fetch all active questions
     const { data, error } = await supabase
       .from('questions')
       .select('*')
@@ -381,15 +399,30 @@ const fetchVibeQuestions = async () => {
     if (error) throw error
     
     if (data && data.length > 0) {
-      const shuffled = [...data].sort(() => 0.5 - Math.random())
-      activeQuestions.value = shuffled.slice(0, 3) as any
+      // Separate core and bonus questions
+      const coreQuestions = data.filter((q: any) => q.is_core === true)
+      const bonusQuestions = data.filter((q: any) => q.is_core !== true)
+      
+      // Take all core questions (5) and 2 random bonus questions
+      const shuffledBonus = [...bonusQuestions].sort(() => 0.5 - Math.random())
+      const selectedBonus = shuffledBonus.slice(0, 2)
+      
+      // Combine: all cores first, then bonus
+      activeQuestions.value = [...coreQuestions, ...selectedBonus] as any
     }
   } catch (err) {
     console.error('Failed to fetch questions:', err)
+    // Enhanced fallback questions covering key dimensions
     activeQuestions.value = [
-      { key: 'default_1', question: 'What matters most in a relationship?', category: 'values', options: ['Trust', 'Communication', 'Adventure'], display_order: 1, is_active: true },
-      { key: 'default_2', question: 'Your ideal weekend?', category: 'lifestyle', options: ['Adventure outdoors', 'Cozy at home', 'Out with friends'], display_order: 2, is_active: true },
-      { key: 'default_3', question: 'How do you handle disagreements?', category: 'values', options: ['Talk it out', 'Take space first', 'Compromise quickly'], display_order: 3, is_active: true }
+      // Core questions fallback
+      { key: 'love_language', question: 'How do you most feel loved?', category: 'romance', options: ['Words of Affirmation 💬', 'Acts of Service 🛠️', 'Gifts 🎁', 'Quality Time ⏰', 'Physical Touch 🫂'], display_order: 1, is_active: true, is_core: true },
+      { key: 'conflict_style', question: 'When we disagree, I prefer to...', category: 'values', options: ['Talk it out immediately 🗣️', 'Take space first 🧘', 'Find a quick compromise 🤝'], display_order: 2, is_active: true, is_core: true },
+      { key: 'social_energy', question: 'On a scale of homebody to social butterfly, I am...', category: 'lifestyle', options: ['Full homebody 🛋️', 'Balanced ⚖️', 'Life of the party 🦋'], display_order: 3, is_active: true, is_core: true },
+      { key: 'life_priority', question: 'In 5 years, my biggest priority is...', category: 'values', options: ['Career & wealth 💼', 'Family 👨‍👩‍👧', 'Travel & experiences 🌍'], display_order: 4, is_active: true, is_core: true },
+      { key: 'relationship_pace', question: 'When it comes to relationships, I prefer to...', category: 'romance', options: ['Take it slow 🐢', 'Go with the flow 🌊', 'Move with intention 🎯'], display_order: 5, is_active: true, is_core: true },
+      // Bonus questions fallback
+      { key: 'weekend_vibe', question: 'It\'s Friday night. What\'s the move?', category: 'lifestyle', options: ['Clubbing 🪩', 'Netflix 🍿', 'Dinner with friends 🍽️'], display_order: 10, is_active: true, is_core: false },
+      { key: 'music_taste', question: 'Pass the aux cord. What are we playing?', category: 'fun', options: ['Afrobeats 🇬🇭', 'Amapiano 🎹', 'R&B 🎷', 'Gospel 🙏'], display_order: 11, is_active: true, is_core: false }
     ]
   } finally {
     loadingQuestions.value = false
@@ -432,7 +465,7 @@ const canProceedStep2 = computed(() => {
 
 // Methods
 const getVibeEmoji = () => {
-  const emojis = ['🎯', '💫', '🌟']
+  const emojis = ['💕', '🗣️', '🎉', '🎯', '💫', '🌟', '✨']
   return emojis[currentStep.value - 3] || '✨'
 }
 
@@ -471,7 +504,7 @@ const nextStep = () => {
 const handleVibeSelect = (key: string, value: string) => {
   vibeAnswers[key] = value
   setTimeout(() => {
-    if (currentStep.value < 5) {
+    if (currentStep.value < 9) {
       showEncouragementToast()
     }
     nextStep()

@@ -341,145 +341,10 @@
 
             <!-- Activity Tab -->
             <div v-if="activeTab === 'activity'" class="tab-content">
-              <div v-if="loadingActivity" class="loading-state">
-                <div class="spinner"></div>
-                <p>Loading activity...</p>
-              </div>
-              
-              <div v-else class="activity-content">
-                <!-- Stats Overview -->
-                <div class="stats-grid">
-                  <div class="stat-card">
-                    <div class="stat-card__icon stat-icon--matches">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-                      </svg>
-                    </div>
-                    <div class="stat-card__content">
-                      <span class="stat-card__value">{{ userActivity.totalMatches }}</span>
-                      <span class="stat-card__label">Total Matches</span>
-                    </div>
-                  </div>
-                  
-                  <div class="stat-card">
-                    <div class="stat-card__icon stat-icon--unlocked">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-                        <path d="M7 11V7a5 5 0 0 1 9.9-1"/>
-                      </svg>
-                    </div>
-                    <div class="stat-card__content">
-                      <span class="stat-card__value">{{ userActivity.unlockedMatches }}</span>
-                      <span class="stat-card__label">Unlocked</span>
-                    </div>
-                  </div>
-                  
-                  <div class="stat-card">
-                    <div class="stat-card__icon stat-icon--events">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
-                        <line x1="16" y1="2" x2="16" y2="6"/>
-                        <line x1="8" y1="2" x2="8" y2="6"/>
-                        <line x1="3" y1="10" x2="21" y2="10"/>
-                      </svg>
-                    </div>
-                    <div class="stat-card__content">
-                      <span class="stat-card__value">{{ userActivity.eventsAttended }}</span>
-                      <span class="stat-card__label">Events</span>
-                    </div>
-                  </div>
-                  
-                  <div class="stat-card">
-                    <div class="stat-card__icon stat-icon--revenue">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <line x1="12" y1="1" x2="12" y2="23"/>
-                        <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
-                      </svg>
-                    </div>
-                    <div class="stat-card__content">
-                      <span class="stat-card__value">GH₵ {{ userActivity.totalSpent.toFixed(2) }}</span>
-                      <span class="stat-card__label">Total Spent</span>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- Matches List -->
-                <div class="activity-section" v-if="userActivity.matches.length > 0">
-                  <h4 class="activity-section__title">Recent Matches</h4>
-                  <div class="matches-list">
-                    <div v-for="match in userActivity.matches" :key="match.id" class="match-item">
-                      <div class="match-item__avatar">
-                        {{ match.matchedWith?.display_name?.charAt(0) || '?' }}
-                      </div>
-                      <div class="match-item__info">
-                        <span class="match-item__name">{{ match.matchedWith?.display_name || 'Unknown' }}</span>
-                        <span class="match-item__date">{{ formatDate(match.created_at) }}</span>
-                      </div>
-                      <span class="match-item__status" :class="'status-' + match.status">
-                        {{ formatMatchStatus(match.status) }}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- Events List -->
-                <div class="activity-section" v-if="userActivity.events.length > 0">
-                  <h4 class="activity-section__title">Event Bookings</h4>
-                  <div class="events-list">
-                    <div v-for="booking in userActivity.events" :key="booking.id" class="event-item">
-                      <div class="event-item__date">
-                        <span class="event-day">{{ getEventDay(booking.event?.event_date) }}</span>
-                        <span class="event-month">{{ getEventMonth(booking.event?.event_date) }}</span>
-                      </div>
-                      <div class="event-item__info">
-                        <span class="event-item__title">{{ booking.event?.title || 'Unknown Event' }}</span>
-                        <span class="event-item__venue">{{ booking.event?.venue || '' }}</span>
-                      </div>
-                      <span class="event-item__status" :class="'status-' + booking.status">
-                        {{ capitalize(booking.status) }}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- Payments List -->
-                <div class="activity-section" v-if="userActivity.payments.length > 0">
-                  <h4 class="activity-section__title">Payment History</h4>
-                  <div class="payments-list">
-                    <div v-for="payment in userActivity.payments" :key="payment.id" class="payment-item">
-                      <div class="payment-item__icon" :class="'purpose-' + payment.purpose">
-                        <svg v-if="payment.purpose === 'match_unlock'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                          <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-                          <path d="M7 11V7a5 5 0 0 1 9.9-1"/>
-                        </svg>
-                        <svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                          <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
-                          <line x1="16" y1="2" x2="16" y2="6"/>
-                          <line x1="8" y1="2" x2="8" y2="6"/>
-                        </svg>
-                      </div>
-                      <div class="payment-item__info">
-                        <span class="payment-item__purpose">{{ formatPurpose(payment.purpose) }}</span>
-                        <span class="payment-item__date">{{ formatDate(payment.created_at) }}</span>
-                      </div>
-                      <div class="payment-item__amount">
-                        <span class="amount-value">GH₵ {{ payment.amount }}</span>
-                        <span class="payment-status" :class="'status-' + payment.status">
-                          {{ capitalize(payment.status) }}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- Empty States -->
-                <div v-if="userActivity.matches.length === 0 && userActivity.events.length === 0 && userActivity.payments.length === 0" class="empty-activity">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                    <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
-                  </svg>
-                  <p>No activity recorded yet</p>
-                </div>
-              </div>
+              <UserActivityTimeline 
+                :userId="selectedUser.id" 
+                :user="selectedUser" 
+              />
             </div>
 
             <!-- Vibe Check Tab -->
@@ -528,6 +393,8 @@
 
 <script setup lang="ts">
 import { personas } from '~/composables/usePersona'
+
+useHead({ title: 'Users' })
 
 definePageMeta({
   layout: 'admin',
