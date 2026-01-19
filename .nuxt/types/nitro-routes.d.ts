@@ -15,6 +15,9 @@ declare module "nitropack/types" {
     '/api/paystack/verify': {
       'get': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/paystack/verify.get').default>>>>
     }
+    '/api/paystack/webhook-test': {
+      'get': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/paystack/webhook-test.get').default>>>>
+    }
     '/api/paystack/webhook': {
       'post': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/paystack/webhook.post').default>>>>
     }
