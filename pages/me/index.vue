@@ -99,6 +99,8 @@
               :ticketPriceMale="event.ticket_price_male"
               :ticketPriceFemale="event.ticket_price_female"
               :userGender="profile?.gender || 'male'"
+              :booked="hasBookedEvent(event.id)"
+              :loading="loadingBookings"
               @book="handleBookEvent(event)"
             />
           </div>
@@ -317,8 +319,10 @@ const activeTab = ref<'events' | 'matches' | 'profile'>('events')
 const profile = ref<any>(null)
 const events = ref<any[]>([])
 const matches = ref<any[]>([])
+const userBookings = ref<Set<string>>(new Set()) // Track user's confirmed bookings
 const loadingEvents = ref(true)
 const loadingMatches = ref(true)
+const loadingBookings = ref(true) // Track booking fetch status
 const showBookingModal = ref(false)
 const selectedEvent = ref<any>(null)
 const processing = ref(false)
@@ -368,6 +372,27 @@ const fetchEvents = async () => {
 
   events.value = data || []
   loadingEvents.value = false
+}
+
+// Fetch user's event bookings (both confirmed AND pending)
+const fetchUserBookings = async (userId: string) => {
+  loadingBookings.value = true
+  try {
+    const { data } = await supabase
+      .from('event_bookings')
+      .select('event_id, status')
+      .eq('user_id', userId)
+      .in('status', ['confirmed', 'pending']) // Include pending to prevent re-purchase during payment
+    
+    userBookings.value = new Set((data || []).map((b: any) => b.event_id))
+  } finally {
+    loadingBookings.value = false
+  }
+}
+
+// Check if user has booked an event
+const hasBookedEvent = (eventId: string) => {
+  return userBookings.value.has(eventId)
 }
 
 // Profile save
@@ -520,6 +545,11 @@ const getTicketPrice = (event: any): string => {
 
 // Event booking
 const handleBookEvent = (event: any) => {
+  // Check if already booked
+  if (hasBookedEvent(event.id)) {
+    alert('You have already booked this event!')
+    return
+  }
   selectedEvent.value = event
   showBookingModal.value = true
 }
@@ -530,6 +560,29 @@ const processEventPayment = async () => {
   processing.value = true
   
   try {
+    // CRITICAL: Server-side check for existing booking
+    const { data: existingBooking } = await supabase
+      .from('event_bookings')
+      .select('id, status')
+      .eq('event_id', selectedEvent.value.id)
+      .eq('user_id', currentUserId.value)
+      .maybeSingle()
+    
+    const booking = existingBooking as { id: string; status: string } | null
+    
+    if (booking) {
+      // User already has a booking for this event
+      showBookingModal.value = false
+      if (booking.status === 'confirmed') {
+        alert('You have already booked this event! Check your confirmed bookings.')
+      } else if (booking.status === 'pending') {
+        alert('You already have a pending booking for this event. Please complete your previous payment or contact support.')
+      }
+      // Refresh bookings to update UI
+      await fetchUserBookings(currentUserId.value)
+      return
+    }
+
     const { initializePayment, createPaymentRecord } = usePaystack()
     
     const price = profile.value.gender === 'female'
@@ -543,13 +596,25 @@ const processEventPayment = async () => {
       { userId: currentUserId.value, eventId: selectedEvent.value.id }
     )
 
-    await supabase
+    // Insert booking with pending status
+    const { error: bookingError } = await supabase
       .from('event_bookings')
       .insert({
         event_id: selectedEvent.value.id,
         user_id: currentUserId.value,
         status: 'pending'
       } as any)
+
+    if (bookingError) {
+      // Handle unique constraint violation (race condition)
+      if (bookingError.code === '23505') {
+        alert('You have already booked this event!')
+        await fetchUserBookings(currentUserId.value)
+        showBookingModal.value = false
+        return
+      }
+      throw bookingError
+    }
 
     await createPaymentRecord(
       currentUserId.value,
@@ -558,6 +623,9 @@ const processEventPayment = async () => {
       paymentData.reference,
       { eventId: selectedEvent.value.id }
     )
+
+    // Update local bookings immediately
+    userBookings.value.add(selectedEvent.value.id)
 
     window.location.href = paymentData.authorization_url
   } catch (error) {
@@ -630,7 +698,7 @@ onMounted(async () => {
     try {
       // Manually set user if it came from session
       await fetchProfileById(userId)
-      await Promise.all([fetchEvents(), fetchMatchesById(userId)])
+      await Promise.all([fetchEvents(), fetchMatchesById(userId), fetchUserBookings(userId)])
     } catch (err) {
       console.error('[Profile] Error loading data:', err)
     }

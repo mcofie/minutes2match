@@ -54,7 +54,24 @@
     
     <div class="px-6 py-4 bg-stone-50 border-t border-stone-100 flex items-center justify-between">
       <span class="text-lg font-bold text-stone-900">{{ formattedPrice }}</span>
+      
+      <!-- Loading state -->
+      <div v-if="loading" class="flex items-center gap-2 text-stone-400">
+        <div class="w-4 h-4 border-2 border-stone-200 border-t-stone-500 rounded-full animate-spin"></div>
+        <span class="text-sm">Checking...</span>
+      </div>
+      
+      <!-- Booked state -->
+      <div v-else-if="booked" class="flex items-center gap-2 text-green-600 font-bold">
+        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
+        </svg>
+        Booked
+      </div>
+      
+      <!-- Book button -->
       <UiButton
+        v-else
         :variant="buttonState === 'available' ? 'primary' : 'outline'"
         size="sm"
         @click="$emit('book')"
@@ -80,6 +97,8 @@ interface Props {
   ticketPriceMale: number
   ticketPriceFemale: number
   userGender: 'male' | 'female'
+  booked?: boolean
+  loading?: boolean // When true, disables book button (while checking booking status)
 }
 
 const props = defineProps<Props>()
