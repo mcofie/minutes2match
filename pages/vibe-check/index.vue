@@ -1,5 +1,45 @@
 <template>
   <main class="min-h-screen bg-white flex flex-col font-sans text-stone-900 relative overflow-hidden">
+    <!-- Retake Confirmation Modal -->
+    <Transition name="modal">
+      <div v-if="showRetakeModal" class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8 animate-in zoom-in-95 duration-300">
+          <div class="text-center space-y-4">
+            <span class="text-5xl block">🔄</span>
+            <h2 class="text-2xl font-bold text-stone-900">Retake Vibe Test?</h2>
+            <p class="text-stone-500 leading-relaxed">
+              You've already completed the vibe test. Retaking it will <strong class="text-stone-700">replace your current answers</strong> and may affect your matches.
+            </p>
+            <div class="bg-amber-50 border border-amber-200 rounded-xl p-4 text-left">
+              <div class="flex items-start gap-3">
+                <span class="text-amber-500 text-xl">⚠️</span>
+                <div class="text-sm text-amber-800">
+                  <p class="font-semibold">This action cannot be undone</p>
+                  <p class="text-amber-700 mt-1">Your persona and compatibility scores will be recalculated.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="mt-8 flex flex-col gap-3">
+            <UiButton
+              variant="primary"
+              size="lg"
+              @click="confirmRetake"
+              class="w-full"
+            >
+              Yes, Retake Test 🎯
+            </UiButton>
+            <button
+              @click="cancelRetake"
+              class="w-full py-3 text-stone-500 font-medium hover:text-stone-700 transition-colors"
+            >
+              No, Go Back to Dashboard
+            </button>
+          </div>
+        </div>
+      </div>
+    </Transition>
+
     <!-- Progress Bar -->
     <div class="fixed top-0 left-0 right-0 h-1 bg-stone-100 z-50">
       <div class="h-full bg-black transition-all duration-500 ease-out" :style="{ width: progressPercentage + '%' }"></div>
@@ -272,7 +312,7 @@
             <span class="text-6xl relative z-10">{{ assignedPersona?.emoji }}</span>
           </div>
           
-          <h1 class="text-4xl font-bold text-stone-900 mb-4">You're a {{ assignedPersona?.name }}!</h1>
+          <h1 class="text-4xl font-bold text-stone-900 mb-4">You're {{ assignedPersona?.name }}!</h1>
           <p class="text-lg text-stone-500 max-w-sm mx-auto mb-10 leading-relaxed">{{ assignedPersona?.description }}</p>
           
           <div class="bg-stone-50 rounded-2xl p-6 mb-8 border border-stone-100">
@@ -295,7 +335,7 @@
             @click="finishOnboarding"
             class="w-full"
           >
-            Go to Dashboard 🚀
+            Go to Account ✨
           </UiButton>
         </div>
       </div>
@@ -321,12 +361,51 @@ import VibeCard from '~/components/VibeCard.vue'
 import { usePersona, type Persona } from '~/composables/usePersona'
 import type { Database } from '~/types/database'
 
+const route = useRoute()
+const user = useSupabaseUser()
+
 useHead({
   title: 'Vibe Check',
   meta: [
     { name: 'description', content: 'Take our 90-second personality assessment to discover your dating persona and find compatible matches.' }
   ]
 })
+
+// Retake modal state
+const showRetakeModal = ref(false)
+const isRetakeMode = ref(false)
+const isCheckingAuth = ref(true)
+
+// Check if user is already logged in
+onMounted(async () => {
+  const isRetakeRequest = route.query.retake === 'true'
+  
+  if (user.value) {
+    if (isRetakeRequest) {
+      // User wants to retake - show confirmation modal
+      showRetakeModal.value = true
+      isCheckingAuth.value = false
+    } else {
+      // Logged in user without retake flag - redirect to dashboard
+      await navigateTo('/me')
+      return
+    }
+  } else {
+    isCheckingAuth.value = false
+  }
+  
+  fetchVibeQuestions()
+})
+
+const confirmRetake = () => {
+  showRetakeModal.value = false
+  isRetakeMode.value = true
+}
+
+const cancelRetake = async () => {
+  showRetakeModal.value = false
+  await navigateTo('/me')
+}
 
 // Form state
 const form = reactive({
@@ -439,10 +518,6 @@ const verifyingOtp = ref(false)
 // Persona state
 const assignedPersona = ref<Persona | null>(null)
 
-onMounted(() => {
-  fetchVibeQuestions()
-})
-
 // Computed
 const progressPercentage = computed(() => (currentStep.value / totalSteps) * 100)
 
@@ -550,7 +625,7 @@ const handleVerifyOtp = async () => {
     const { calculatePersona } = usePersona()
     assignedPersona.value = calculatePersona(vibeAnswers)
     
-    currentStep.value = 7
+    currentStep.value = 11
   } catch (error) {
     otpError.value = 'Verification failed. Please try again.'
   } finally {
@@ -669,5 +744,21 @@ const finishOnboarding = async () => {
 @keyframes confettiFall {
   0% { opacity: 1; transform: translateY(-50px) translateX(var(--x)) rotate(0deg); }
   100% { opacity: 0; transform: translateY(300px) translateX(var(--x)) rotate(720deg); }
+}
+
+/* Modal Transition */
+.modal-enter-active,
+.modal-leave-active {
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.modal-enter-from,
+.modal-leave-to {
+  opacity: 0;
+}
+
+.modal-enter-from > div,
+.modal-leave-to > div {
+  transform: scale(0.95);
 }
 </style>

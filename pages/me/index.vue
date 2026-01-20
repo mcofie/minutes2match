@@ -140,6 +140,9 @@
               :displayName="match.matchedProfile?.display_name"
               :photoUrl="match.matchedProfile?.photo_url"
               :phone="match.status === 'unlocked' ? match.matchedProfile?.phone : undefined"
+              :bio="match.matchedProfile?.about_me"
+              :interests="match.matchedProfile?.interests"
+              :sharedInterests="getSharedInterests(match.matchedProfile?.interests)"
               @unlock="handleUnlockMatch(match)"
             />
           </div>
@@ -242,9 +245,111 @@
                          <option value="Other">Other</option>
                        </select>
                    </div>
-                   <div class="col-span-2 space-y-2">
+                   <div class="space-y-2">
+                       <label class="text-xs font-bold uppercase text-stone-500 tracking-wide">Genotype</label>
+                       <select v-model="editForm.genotype" class="w-full px-4 py-3 rounded-xl border border-stone-200 bg-stone-50 focus:bg-white focus:ring-2 focus:ring-black outline-none transition-all font-medium">
+                         <option value="">Prefer not to say</option>
+                         <option value="AA">AA</option>
+                         <option value="AS">AS</option>
+                         <option value="SS">SS</option>
+                         <option value="AC">AC</option>
+                       </select>
+                   </div>
+                   <div class="space-y-2">
+                       <label class="text-xs font-bold uppercase text-stone-500 tracking-wide">Height (cm)</label>
+                       <input type="number" v-model.number="editForm.height_cm" class="w-full px-4 py-3 rounded-xl border border-stone-200 bg-stone-50 focus:bg-white focus:ring-2 focus:ring-black outline-none transition-all font-medium" placeholder="e.g. 175" min="100" max="250" />
+                   </div>
+                   <div class="space-y-2">
                        <label class="text-xs font-bold uppercase text-stone-500 tracking-wide">Occupation</label>
                        <input type="text" v-model="editForm.occupation" class="w-full px-4 py-3 rounded-xl border border-stone-200 bg-stone-50 focus:bg-white focus:ring-2 focus:ring-black outline-none transition-all font-medium" placeholder="e.g. Software Engineer" />
+                   </div>
+                </div>
+             </div>
+
+             <!-- Bio / About Me -->
+             <div class="bg-white p-8 rounded-2xl border border-stone-200 shadow-sm">
+                <div class="flex items-center justify-between mb-6">
+                   <h3 class="text-xl font-bold text-stone-900">About Me</h3>
+                   <span class="text-xs font-medium" :class="editForm.about_me.length > 250 ? 'text-red-500' : 'text-stone-400'">
+                      {{ editForm.about_me.length }}/300
+                   </span>
+                </div>
+                <textarea 
+                   v-model="editForm.about_me" 
+                   rows="4"
+                   maxlength="300"
+                   class="w-full px-4 py-3 rounded-xl border border-stone-200 bg-stone-50 focus:bg-white focus:ring-2 focus:ring-black outline-none transition-all font-medium resize-none"
+                   placeholder="Share a little about yourself... What makes you unique? What are you passionate about?"
+                ></textarea>
+                <p class="text-xs text-stone-400 mt-2">💡 Profiles with bios get 40% more matches</p>
+             </div>
+
+             <!-- Interests -->
+             <div class="bg-white p-8 rounded-2xl border border-stone-200 shadow-sm">
+                <div class="flex items-center justify-between mb-6">
+                   <h3 class="text-xl font-bold text-stone-900">Your Interests</h3>
+                   <span class="text-xs font-medium text-stone-400">{{ editForm.interests.length }}/6 selected</span>
+                </div>
+                <div class="flex flex-wrap gap-2">
+                   <button 
+                      v-for="interest in availableInterests" 
+                      :key="interest.id"
+                      @click="toggleInterest(interest.id)"
+                      class="px-4 py-2 rounded-full text-sm font-medium transition-all duration-200"
+                      :class="editForm.interests.includes(interest.id) 
+                         ? 'bg-black text-white' 
+                         : 'bg-stone-100 text-stone-600 hover:bg-stone-200'"
+                   >
+                      {{ interest.label }}
+                   </button>
+                </div>
+                <p class="text-xs text-stone-400 mt-4">Choose up to 6 interests to help find common ground with matches</p>
+             </div>
+
+             <!-- Deal Breakers / Age Preferences -->
+             <div class="bg-white p-8 rounded-2xl border border-stone-200 shadow-sm">
+                <h3 class="text-xl font-bold text-stone-900 mb-2">Match Preferences</h3>
+                <p class="text-sm text-stone-500 mb-6">Help us find people in your preferred age range</p>
+                
+                <div class="grid grid-cols-2 gap-6 mb-6">
+                   <div class="space-y-2">
+                      <label class="text-xs font-bold uppercase text-stone-500 tracking-wide">Minimum Age</label>
+                      <div class="flex items-center gap-3">
+                         <input 
+                            type="range" 
+                            v-model.number="editForm.min_age" 
+                            min="18" 
+                            max="60" 
+                            class="flex-1 accent-black"
+                         />
+                         <span class="text-lg font-bold text-stone-900 w-10 text-center">{{ editForm.min_age }}</span>
+                      </div>
+                   </div>
+                   <div class="space-y-2">
+                      <label class="text-xs font-bold uppercase text-stone-500 tracking-wide">Maximum Age</label>
+                      <div class="flex items-center gap-3">
+                         <input 
+                            type="range" 
+                            v-model.number="editForm.max_age" 
+                            min="18" 
+                            max="70" 
+                            class="flex-1 accent-black"
+                         />
+                         <span class="text-lg font-bold text-stone-900 w-10 text-center">{{ editForm.max_age }}</span>
+                      </div>
+                   </div>
+                </div>
+                
+                <!-- Genotype Warning -->
+                <div v-if="editForm.genotype === 'AS'" class="bg-amber-50 border border-amber-200 rounded-xl p-4">
+                   <div class="flex items-start gap-3">
+                      <span class="text-amber-500 text-xl">⚠️</span>
+                      <div>
+                         <p class="font-semibold text-amber-800">Genotype Awareness</p>
+                         <p class="text-sm text-amber-700 mt-1">
+                            You have AS genotype. We'll notify you if a potential match also has AS genotype so you can make informed decisions.
+                         </p>
+                      </div>
                    </div>
                 </div>
              </div>
@@ -338,8 +443,44 @@ const editForm = reactive({
   genotype: '',
   religion: '',
   height_cm: null as number | null,
-  occupation: ''
+  occupation: '',
+  // New fields
+  about_me: '',
+  min_age: 18 as number,
+  max_age: 50 as number,
+  interests: [] as string[]
 })
+
+// Available interests for selection
+const availableInterests = [
+  { id: 'travel', label: 'Travel ✈️' },
+  { id: 'fitness', label: 'Fitness 💪' },
+  { id: 'cooking', label: 'Cooking 🍳' },
+  { id: 'movies', label: 'Movies 🎬' },
+  { id: 'music', label: 'Music 🎵' },
+  { id: 'gaming', label: 'Gaming 🎮' },
+  { id: 'reading', label: 'Reading 📚' },
+  { id: 'art', label: 'Art 🎨' },
+  { id: 'sports', label: 'Sports ⚽' },
+  { id: 'tech', label: 'Tech 💻' },
+  { id: 'fashion', label: 'Fashion 👗' },
+  { id: 'food', label: 'Foodie 🍕' },
+  { id: 'nature', label: 'Nature 🌿' },
+  { id: 'photography', label: 'Photography 📸' },
+  { id: 'dancing', label: 'Dancing 💃' },
+  { id: 'entrepreneurship', label: 'Business 💼' }
+]
+
+const toggleInterest = (interestId: string) => {
+  const index = editForm.interests.indexOf(interestId)
+  if (index === -1) {
+    if (editForm.interests.length < 6) {
+      editForm.interests.push(interestId)
+    }
+  } else {
+    editForm.interests.splice(index, 1)
+  }
+}
 
 const saving = ref(false)
 const saveSuccess = ref(false)
@@ -415,7 +556,12 @@ const saveProfile = async () => {
         genotype: editForm.genotype || null,
         religion: editForm.religion || null,
         height_cm: editForm.height_cm,
-        occupation: editForm.occupation || null
+        occupation: editForm.occupation || null,
+        // New fields
+        about_me: editForm.about_me || null,
+        min_age: editForm.min_age,
+        max_age: editForm.max_age,
+        interests: editForm.interests
       } as any)
       .eq('id', currentUserId.value)
     
@@ -521,6 +667,11 @@ const getVibeSummary = (vibeAnswers: any[]): string => {
   if (!vibeAnswers?.length) return 'Getting to know them...'
   const answers = vibeAnswers.map(a => a.answer_value).join(', ')
   return `Enjoys ${answers}`
+}
+
+const getSharedInterests = (matchInterests: string[] | null): string[] => {
+  if (!matchInterests || !editForm.interests.length) return []
+  return matchInterests.filter(interest => editForm.interests.includes(interest))
 }
 
 const formatEventDate = (dateStr: string | null): string => {
@@ -742,6 +893,11 @@ const fetchProfileById = async (userId: string) => {
       editForm.religion = data.religion || ''
       editForm.height_cm = data.height_cm || null
       editForm.occupation = data.occupation || ''
+      // New fields
+      editForm.about_me = data.about_me || ''
+      editForm.min_age = data.min_age || 18
+      editForm.max_age = data.max_age || 50
+      editForm.interests = data.interests || []
     }
   } catch (err) {
     console.error('[Profile] Exception:', err)

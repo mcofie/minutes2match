@@ -64,7 +64,8 @@ export const personas: Record<string, Persona> = {
 }
 
 export const usePersona = () => {
-    const supabase = useSupabaseClient()
+    // Cast to any to allow schema() method - Supabase types don't include it by default
+    const supabase = useSupabaseClient() as any
 
     /**
      * Calculate persona based on user's vibe answers
@@ -109,6 +110,7 @@ export const usePersona = () => {
      */
     const getPersonaForUser = async (userId: string): Promise<Persona | null> => {
         const { data: vibeAnswers, error } = await supabase
+            .schema('m2m')
             .from('vibe_answers')
             .select('question_key, answer_value')
             .eq('user_id', userId)
@@ -119,7 +121,7 @@ export const usePersona = () => {
         }
 
         const answers: Record<string, string> = {}
-        vibeAnswers.forEach(({ question_key, answer_value }) => {
+        vibeAnswers.forEach(({ question_key, answer_value }: { question_key: string, answer_value: string }) => {
             answers[question_key] = answer_value
         })
 
@@ -131,11 +133,13 @@ export const usePersona = () => {
      */
     const savePersona = async (userId: string, personaId: string) => {
         const { error } = await supabase
+            .schema('m2m')
             .from('profiles')
             .update({ dating_persona: personaId })
             .eq('id', userId)
 
         if (error) {
+            console.error('Failed to save persona:', error)
             throw new Error('Failed to save persona')
         }
     }
