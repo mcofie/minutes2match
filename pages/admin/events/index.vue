@@ -20,7 +20,10 @@
         <div class="relative h-32 bg-stone-100 -mx-6 -mt-6 mb-4 overflow-hidden">
           <img v-if="event.cover_image_url" :src="event.cover_image_url" class="w-full h-full object-cover" />
           <div v-else class="w-full h-full flex items-center justify-center text-stone-300 text-4xl">🎫</div>
-          <div class="absolute top-2 right-2">
+          <div class="absolute top-2 right-2 flex gap-1">
+            <span v-if="!event.is_public" class="badge badge--purple" title="Invite Only">
+              🔒 Invite
+            </span>
             <span class="badge" :class="getStatusClass(event.status)">
               {{ event.status.replace('_', ' ') }}
             </span>
@@ -134,15 +137,26 @@
                 </div>
               </div>
               
-              <div class="form-group">
-                <label class="form-label">Status</label>
-                <select v-model="form.status" class="form-select">
-                  <option value="draft">Draft (Hidden)</option>
-                  <option value="open">Open (Selling tickets)</option>
-                  <option value="waitlist">Waitlist (Full)</option>
-                  <option value="sold_out">Sold Out</option>
-                  <option value="completed">Completed</option>
-                </select>
+              <div class="grid grid-cols-2 gap-4">
+                <div class="form-group">
+                  <label class="form-label">Status</label>
+                  <select v-model="form.status" class="form-select">
+                    <option value="draft">Draft (Hidden)</option>
+                    <option value="open">Open (Selling tickets)</option>
+                    <option value="waitlist">Waitlist (Full)</option>
+                    <option value="sold_out">Sold Out</option>
+                    <option value="completed">Completed</option>
+                  </select>
+                </div>
+                
+                <div class="form-group">
+                  <label class="form-label">Visibility</label>
+                  <select v-model="form.is_public" class="form-select">
+                    <option :value="true">🌍 Public (Everyone)</option>
+                    <option :value="false">🔒 Invite Only (Qualified users)</option>
+                  </select>
+                  <p class="text-xs text-stone-400 mt-1">{{ form.is_public ? 'All users can see this event' : 'Only qualified users can see this event' }}</p>
+                </div>
               </div>
             </form>
           </div>
@@ -169,48 +183,110 @@
             <button class="modal__close" @click="closeQualifyModal">×</button>
           </div>
           
-          <div class="modal__content grid grid-cols-1 md:grid-cols-2 gap-6 h-[60vh]">
+          <!-- Capacity Indicator -->
+          <div class="capacity-bar">
+            <div class="capacity-item">
+              <span class="capacity-label">👨 Male</span>
+              <div class="capacity-progress">
+                <div 
+                  class="capacity-fill capacity-fill--male" 
+                  :style="{ width: maleCapacityPercent + '%' }"
+                ></div>
+              </div>
+              <span class="capacity-count" :class="{ 'text-red-500': qualifiedMaleCount > qualifyingEvent?.male_capacity }">
+                {{ qualifiedMaleCount }}/{{ qualifyingEvent?.male_capacity }}
+              </span>
+            </div>
+            <div class="capacity-item">
+              <span class="capacity-label">👩 Female</span>
+              <div class="capacity-progress">
+                <div 
+                  class="capacity-fill capacity-fill--female" 
+                  :style="{ width: femaleCapacityPercent + '%' }"
+                ></div>
+              </div>
+              <span class="capacity-count" :class="{ 'text-red-500': qualifiedFemaleCount > qualifyingEvent?.female_capacity }">
+                {{ qualifiedFemaleCount }}/{{ qualifyingEvent?.female_capacity }}
+              </span>
+            </div>
+          </div>
+          
+          <div class="modal__content grid grid-cols-1 md:grid-cols-2 gap-6 h-[55vh]">
             <!-- Available Users -->
             <div class="flex flex-col h-full">
-              <div class="form-group mb-4">
+              <!-- Filters Row -->
+              <div class="grid grid-cols-3 gap-2 mb-3">
                 <input
                   type="text"
                   v-model="userSearch"
-                  placeholder="Search to add users..."
-                  class="form-input"
+                  placeholder="Search..."
+                  class="form-input text-sm"
                 />
+                <select v-model="filterGender" class="form-select text-sm">
+                  <option value="">All Genders</option>
+                  <option value="male">Male</option>
+                  <option value="female">Female</option>
+                </select>
+                <select v-model="filterPersona" class="form-select text-sm">
+                  <option value="">All Personas</option>
+                  <option v-for="(p, key) in personas" :key="key" :value="key">{{ p.emoji }} {{ p.name }}</option>
+                </select>
               </div>
               
-              <h4 class="form-label mb-2">Available Users</h4>
+              <div class="flex justify-between items-center mb-2">
+                <h4 class="form-label mb-0">Available ({{ filteredAvailableUsers.length }})</h4>
+                <button 
+                  v-if="filteredAvailableUsers.length > 0"
+                  class="text-xs text-blue-600 font-medium hover:underline"
+                  @click="addAllFiltered"
+                >
+                  + Add All ({{ Math.min(filteredAvailableUsers.length, 50) }})
+                </button>
+              </div>
+              
               <div class="border border-gray-100 rounded-lg flex-1 overflow-y-auto bg-gray-50">
                 <div v-if="loadingUsers" class="text-center py-8 text-muted text-xs">Loading...</div>
                 <div v-else-if="filteredAvailableUsers.length === 0" class="text-center py-8 text-muted text-xs">
-                  No users found
+                  No users match filters
                 </div>
                 <div
                   v-else
                   v-for="user in filteredAvailableUsers"
                   :key="user.id"
-                  class="flex justify-between items-center p-3 border-b border-gray-100 last:border-0 hover:bg-white transition-colors"
+                  class="user-row"
                 >
-                  <div class="flex items-center gap-3">
-                    <span class="w-8 h-8 rounded bg-white border border-gray-200 flex items-center justify-center text-xs font-bold">{{ user.display_name?.charAt(0) || '?' }}</span>
-                    <div>
-                      <strong class="block text-sm font-medium">{{ user.display_name }}</strong>
-                      <small class="text-xs text-muted">{{ user.gender }}</small>
+                  <div class="flex items-center gap-3 flex-1 min-w-0">
+                    <div class="user-avatar-sm" :class="user.gender === 'male' ? 'bg-blue-50 text-blue-600' : 'bg-pink-50 text-pink-600'">
+                      {{ user.display_name?.charAt(0) || '?' }}
+                    </div>
+                    <div class="min-w-0 flex-1">
+                      <div class="flex items-center gap-2">
+                        <strong class="text-sm font-medium truncate">{{ user.display_name }}</strong>
+                        <span v-if="user.dating_persona" class="persona-dot" :style="{ background: getPersona(user.dating_persona)?.color }"></span>
+                      </div>
+                      <div class="text-xs text-muted flex items-center gap-2 flex-wrap">
+                        <span>{{ user.gender }}</span>
+                        <span v-if="user.dating_persona" class="text-stone-400">• {{ getPersona(user.dating_persona)?.name }}</span>
+                      </div>
+                      <div v-if="user.interests?.length" class="flex gap-1 mt-1 flex-wrap">
+                        <span 
+                          v-for="interest in user.interests.slice(0, 2)" 
+                          :key="interest" 
+                          class="interest-chip"
+                        >{{ getInterestEmoji(interest) }}</span>
+                        <span v-if="user.interests.length > 2" class="interest-chip">+{{ user.interests.length - 2 }}</span>
+                      </div>
                     </div>
                   </div>
-                  <button class="btn-secondary py-1 px-2 text-xs" @click="addQualification(user.id)">
-                    Add
-                  </button>
+                  <button class="btn-add" @click="addQualification(user.id)">+</button>
                 </div>
               </div>
             </div>
             
             <!-- Qualified Users -->
             <div class="flex flex-col h-full">
-              <div class="flex justify-between items-center mb-4 min-h-[42px]">
-                 <h4 class="form-label mb-0">Qualified List ({{ qualifiedUsers.length }})</h4>
+              <div class="flex justify-between items-center mb-3 min-h-[32px]">
+                 <h4 class="form-label mb-0">Qualified ({{ qualifiedUsers.length }})</h4>
                  <button class="text-xs text-red-500 font-medium hover:underline" @click="clearQualifications" v-if="qualifiedUsers.length">Clear All</button>
               </div>
          
@@ -223,18 +299,21 @@
                   v-else
                   v-for="user in qualifiedUsers"
                   :key="user.id"
-                  class="flex justify-between items-center p-3 border-b border-gray-100 last:border-0 hover:bg-gray-50"
+                  class="user-row"
                 >
-                  <div class="flex items-center gap-3">
-                    <span class="w-8 h-8 rounded bg-gray-100 flex items-center justify-center text-xs font-bold text-green-700">{{ user.display_name?.charAt(0) || '?' }}</span>
-                    <div>
-                      <strong class="block text-sm font-medium">{{ user.display_name }}</strong>
-                      <small class="text-xs text-muted">{{ user.phone }}</small>
+                  <div class="flex items-center gap-3 flex-1 min-w-0">
+                    <div class="user-avatar-sm" :class="user.gender === 'male' ? 'bg-blue-100 text-blue-700' : 'bg-pink-100 text-pink-700'">
+                      {{ user.display_name?.charAt(0) || '?' }}
+                    </div>
+                    <div class="min-w-0 flex-1">
+                      <div class="flex items-center gap-2">
+                        <strong class="text-sm font-medium truncate">{{ user.display_name }}</strong>
+                        <span v-if="user.dating_persona" class="persona-dot" :style="{ background: getPersona(user.dating_persona)?.color }"></span>
+                      </div>
+                      <div class="text-xs text-muted">{{ user.phone }}</div>
                     </div>
                   </div>
-                  <button class="text-red-400 hover:text-red-600 px-2" @click="removeQualification(user.id)">
-                    ×
-                  </button>
+                  <button class="btn-remove" @click="removeQualification(user.id)">×</button>
                 </div>
               </div>
             </div>
@@ -252,6 +331,8 @@
 </template>
 
 <script setup lang="ts">
+import { personas } from '~/composables/usePersona'
+
 useHead({ title: 'Events' })
 
 definePageMeta({
@@ -260,6 +341,9 @@ definePageMeta({
 })
 
 const supabase = useSupabaseClient()
+
+// Helper: Get persona by ID
+const getPersona = (personaId: string) => personas[personaId] || null
 
 // State
 const loading = ref(true)
@@ -280,7 +364,8 @@ const form = reactive({
   female_capacity: 15,
   ticket_price_male: 100,
   ticket_price_female: 80,
-  status: 'draft'
+  status: 'draft',
+  is_public: true
 })
 
 // Methods
@@ -339,7 +424,8 @@ const closeModal = () => {
     female_capacity: 15,
     ticket_price_male: 100,
     ticket_price_female: 80,
-    status: 'draft'
+    status: 'draft',
+    is_public: true
   })
 }
 
@@ -389,7 +475,8 @@ const saveEvent = async () => {
       female_capacity: form.female_capacity,
       ticket_price_male: form.ticket_price_male,
       ticket_price_female: form.ticket_price_female,
-      status: form.status
+      status: form.status,
+      is_public: form.is_public
     }
     
     if (editingEvent.value) {
@@ -428,26 +515,82 @@ const userSearch = ref('')
 const loadingUsers = ref(false)
 const notifying = ref(false)
 
+// New filter state
+const filterGender = ref('')
+const filterPersona = ref('')
+
 // Computed: Users who are qualified for current event
 const qualifiedUsers = computed(() => {
   return allUsers.value.filter(u => qualifiedUserIds.value.includes(u.id))
 })
 
-// Computed: Users who are NOT qualified (available to add)
+// Computed: Capacity counts
+const qualifiedMaleCount = computed(() => {
+  return qualifiedUsers.value.filter(u => u.gender === 'male').length
+})
+
+const qualifiedFemaleCount = computed(() => {
+  return qualifiedUsers.value.filter(u => u.gender === 'female').length
+})
+
+const maleCapacityPercent = computed(() => {
+  if (!qualifyingEvent.value?.male_capacity) return 0
+  return Math.min(100, (qualifiedMaleCount.value / qualifyingEvent.value.male_capacity) * 100)
+})
+
+const femaleCapacityPercent = computed(() => {
+  if (!qualifyingEvent.value?.female_capacity) return 0
+  return Math.min(100, (qualifiedFemaleCount.value / qualifyingEvent.value.female_capacity) * 100)
+})
+
+// Computed: Users who are NOT qualified (available to add) with filters
 const filteredAvailableUsers = computed(() => {
-  const available = allUsers.value.filter(u => !qualifiedUserIds.value.includes(u.id))
+  let available = allUsers.value.filter(u => !qualifiedUserIds.value.includes(u.id))
   
-  if (!userSearch.value.trim()) {
-    return available.slice(0, 20) // Limit initial display
+  // Apply gender filter
+  if (filterGender.value) {
+    available = available.filter(u => u.gender === filterGender.value)
   }
   
-  const search = userSearch.value.toLowerCase()
-  return available.filter(u => {
-    const name = (u.display_name || '').toLowerCase()
-    const phone = (u.phone || '').toLowerCase()
-    return name.includes(search) || phone.includes(search)
-  }).slice(0, 20)
+  // Apply persona filter
+  if (filterPersona.value) {
+    available = available.filter(u => u.dating_persona === filterPersona.value)
+  }
+  
+  // Apply search filter
+  if (userSearch.value.trim()) {
+    const search = userSearch.value.toLowerCase()
+    available = available.filter(u => {
+      const name = (u.display_name || '').toLowerCase()
+      const phone = (u.phone || '').toLowerCase()
+      return name.includes(search) || phone.includes(search)
+    })
+  }
+  
+  return available.slice(0, 50) // Limit display
 })
+
+// Interest emoji map
+const interestEmojis: Record<string, string> = {
+  travel: '✈️', fitness: '💪', cooking: '🍳', movies: '🎬',
+  music: '🎵', gaming: '🎮', reading: '📚', art: '🎨',
+  sports: '⚽', tech: '💻', fashion: '👗', food: '🍕',
+  nature: '🌿', photography: '📸', dancing: '💃', entrepreneurship: '💼'
+}
+
+const getInterestEmoji = (interestId: string): string => {
+  return interestEmojis[interestId] || '🏷️'
+}
+
+// Bulk add all filtered users
+const addAllFiltered = async () => {
+  const usersToAdd = filteredAvailableUsers.value.slice(0, 50)
+  if (!confirm(`Add ${usersToAdd.length} users to qualified list?`)) return
+  
+  for (const user of usersToAdd) {
+    await addQualification(user.id)
+  }
+}
 
 // Open qualification modal for an event
 const openQualifyModal = async (event: any) => {
@@ -474,7 +617,7 @@ const fetchAllUsers = async () => {
   
   const { data } = await supabase
     .from('profiles')
-    .select('id, display_name, phone, gender')
+    .select('id, display_name, phone, gender, dating_persona, interests')
     .eq('is_verified', true)
     .order('display_name', { ascending: true })
   
@@ -587,5 +730,152 @@ onMounted(() => {
 </script>
 
 <style scoped>
-/* No custom styles needed */
+.badge--purple {
+  background-color: #7C3AED;
+  color: white;
+}
+
+/* Capacity Bar */
+.capacity-bar {
+  display: flex;
+  gap: 1.5rem;
+  padding: 0.75rem 1.5rem;
+  background: #F9FAFB;
+  border-bottom: 1px solid #E5E7EB;
+}
+
+.capacity-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex: 1;
+}
+
+.capacity-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #6B7280;
+  min-width: 60px;
+}
+
+.capacity-progress {
+  flex: 1;
+  height: 8px;
+  background: #E5E7EB;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.capacity-fill {
+  height: 100%;
+  transition: width 0.3s ease;
+}
+
+.capacity-fill--male {
+  background: linear-gradient(90deg, #3B82F6, #60A5FA);
+}
+
+.capacity-fill--female {
+  background: linear-gradient(90deg, #EC4899, #F472B6);
+}
+
+.capacity-count {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: #111827;
+  min-width: 50px;
+  text-align: right;
+}
+
+/* User Row */
+.user-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.625rem 0.75rem;
+  border-bottom: 1px solid #F3F4F6;
+  transition: background 0.15s;
+}
+
+.user-row:last-child {
+  border-bottom: none;
+}
+
+.user-row:hover {
+  background: white;
+}
+
+/* User Avatar Small */
+.user-avatar-sm {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+/* Persona Dot */
+.persona-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* Interest Chip */
+.interest-chip {
+  display: inline-block;
+  font-size: 0.6875rem;
+  background: #F3F4F6;
+  padding: 0.125rem 0.375rem;
+  border-radius: 4px;
+}
+
+/* Action Buttons */
+.btn-add {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  border: 1px solid #E5E7EB;
+  background: white;
+  color: #10B981;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s;
+  flex-shrink: 0;
+}
+
+.btn-add:hover {
+  background: #10B981;
+  color: white;
+  border-color: #10B981;
+}
+
+.btn-remove {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  border: 1px solid #FEE2E2;
+  background: #FEF2F2;
+  color: #EF4444;
+  font-size: 1.125rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s;
+  flex-shrink: 0;
+}
+
+.btn-remove:hover {
+  background: #EF4444;
+  color: white;
+}
+
+.text-red-500 {
+  color: #EF4444;
+}
 </style>

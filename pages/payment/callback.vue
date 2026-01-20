@@ -49,17 +49,18 @@ onMounted(async () => {
     const { verifyPayment } = usePaystack()
     const result = await verifyPayment(reference)
     
-    if (result.status === 'success') {
-      success.value = true
-      
-      if (result.metadata?.purpose === 'event_ticket') {
-        message.value = 'Your event booking has been confirmed! Check your messages for details.'
-      } else if (result.metadata?.purpose === 'match_unlock') {
-        message.value = 'Match unlocked! You can now view their full profile and contact them.'
+      if (result.status === 'success') {
+        success.value = true
+        
+        if (result.metadata?.purpose === 'event_ticket') {
+          message.value = 'Your event booking has been confirmed! Check your messages for details.'
+        } else if (result.metadata?.purpose === 'match_unlock') {
+          // Check if match is fully unlocked or waiting for other user
+          message.value = 'You\'ve unlocked this match! They\'ve been notified via SMS. Once they unlock you back, you\'ll both see each other\'s full profiles.'
+        } else {
+          message.value = 'Your payment was processed successfully.'
+        }
       } else {
-        message.value = 'Your payment was processed successfully.'
-      }
-    } else {
       success.value = false
       message.value = 'Your payment could not be verified. Please contact support if the payment was deducted.'
     }

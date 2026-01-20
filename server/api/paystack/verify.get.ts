@@ -72,7 +72,7 @@ export default defineEventHandler(async (event) => {
                 }
 
             } else if (metadata.purpose === 'match_unlock' && metadata.matchId) {
-                // Get match details
+                // Get match details with user profiles
                 const { data: match } = await supabase
                     .from('matches')
                     .select('user_1_id, user_2_id, user_1_paid, user_2_paid')
@@ -82,26 +82,77 @@ export default defineEventHandler(async (event) => {
                 if (match) {
                     // Determine which user paid
                     const isUser1 = match.user_1_id === metadata.userId
+                    const otherUserId = isUser1 ? match.user_2_id : match.user_1_id
                     const updateData: any = {}
 
                     if (isUser1) {
                         updateData.user_1_paid = true
+                        updateData.user_1_paid_at = new Date().toISOString()
                     } else {
                         updateData.user_2_paid = true
+                        updateData.user_2_paid_at = new Date().toISOString()
                     }
 
                     // Check if both have now paid
                     const bothPaid = (isUser1 && match.user_2_paid) || (!isUser1 && match.user_1_paid)
+
                     if (bothPaid) {
                         updateData.status = 'unlocked'
+                        console.log('[Match Unlock] Both users have paid, unlocking match:', metadata.matchId)
                     } else {
+                        // First payment - set partial payment status and expiration
                         updateData.status = 'partial_payment'
+                        // Set expiration to 72 hours from now
+                        const expirationDate = new Date()
+                        expirationDate.setHours(expirationDate.getHours() + 72)
+                        updateData.expires_at = expirationDate.toISOString()
+                        console.log('[Match Unlock] First payment, setting partial_payment status:', metadata.matchId)
+
+                        // Send SMS nudge to the other user
+                        try {
+                            // Get other user's profile
+                            const { data: otherUser } = await supabase
+                                .from('profiles')
+                                .select('phone, display_name')
+                                .eq('id', otherUserId)
+                                .single()
+
+                            if (otherUser?.phone) {
+                                const smsMessage = `Someone just paid to connect with you on Minutes2Match! 💕 Log in now to see who and unlock them back. Match expires in 72 hours. https://minutes2match.com/me`
+
+                                // Send SMS via our API endpoint
+                                await $fetch('/api/send-sms', {
+                                    method: 'POST',
+                                    baseURL: config.public?.baseUrl || 'http://localhost:3000',
+                                    body: {
+                                        to: otherUser.phone,
+                                        message: smsMessage
+                                    }
+                                }).catch(err => {
+                                    console.error('Failed to send match SMS:', err)
+                                })
+                            }
+                        } catch (smsError) {
+                            console.error('Error sending match notification SMS:', smsError)
+                            // Don't fail the payment if SMS fails
+                        }
                     }
 
-                    await supabase
+                    // ALWAYS update the match record
+                    console.log('[Match Unlock] Updating match:', metadata.matchId, 'with data:', updateData)
+
+                    const { error: updateError } = await supabase
                         .from('matches')
                         .update(updateData)
                         .eq('id', metadata.matchId)
+
+                    if (updateError) {
+                        console.error('[Match Unlock] Failed to update match:', updateError)
+                    } else {
+                        console.log('[Match Unlock] Match updated successfully:', metadata.matchId, 'New status:', updateData.status)
+                    }
+                } else {
+                    console.error('[Match Unlock] Match not found:', metadata.matchId)
                 }
             }
         }

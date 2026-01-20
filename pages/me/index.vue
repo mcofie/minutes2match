@@ -143,6 +143,7 @@
               :bio="match.matchedProfile?.about_me"
               :interests="match.matchedProfile?.interests"
               :sharedInterests="getSharedInterests(match.matchedProfile?.interests)"
+              :expiresAt="match.expires_at"
               @unlock="handleUnlockMatch(match)"
             />
           </div>
@@ -500,19 +501,52 @@ const pendingMatchCount = computed(() => {
   return matches.value.filter(m => m.status === 'pending_payment').length
 })
 
-// Fetch events (doesn't need user ID)
-const fetchEvents = async () => {
+// Fetch events - only show public events OR events user is qualified for
+const fetchEvents = async (userId?: string) => {
   loadingEvents.value = true
   
-  const { data } = await supabase
-    .from('events')
-    .select('*')
-    .in('status', ['open', 'waitlist'])
-    .gte('event_date', new Date().toISOString())
-    .order('event_date', { ascending: true })
+  try {
+    // Get all upcoming open events
+    const { data: allEvents } = await supabase
+      .from('events')
+      .select('*')
+      .in('status', ['open', 'waitlist'])
+      .gte('event_date', new Date().toISOString())
+      .order('event_date', { ascending: true })
+    
+    if (!allEvents || allEvents.length === 0) {
+      events.value = []
+      return
+    }
 
-  events.value = data || []
-  loadingEvents.value = false
+    // If no user, only show public events
+    if (!userId) {
+      events.value = allEvents.filter((e: any) => e.is_public === true)
+      return
+    }
+
+    // Get user's event qualifications
+    const { data: qualifications } = await supabase
+      .from('event_qualifications')
+      .select('event_id')
+      .eq('user_id', userId)
+      .in('status', ['qualified', 'invited'])
+    
+    const qualifiedEventIds = new Set((qualifications || []).map((q: any) => q.event_id))
+
+    // Filter: show public events OR events user is qualified for
+    events.value = allEvents.filter((event: any) => {
+      // Public events are visible to everyone
+      if (event.is_public === true) return true
+      // Private events only visible if user is qualified
+      return qualifiedEventIds.has(event.id)
+    })
+  } catch (error) {
+    console.error('Error fetching events:', error)
+    events.value = []
+  } finally {
+    loadingEvents.value = false
+  }
 }
 
 // Fetch user's event bookings (both confirmed AND pending)
@@ -849,7 +883,7 @@ onMounted(async () => {
     try {
       // Manually set user if it came from session
       await fetchProfileById(userId)
-      await Promise.all([fetchEvents(), fetchMatchesById(userId), fetchUserBookings(userId)])
+      await Promise.all([fetchEvents(userId), fetchMatchesById(userId), fetchUserBookings(userId)])
     } catch (err) {
       console.error('[Profile] Error loading data:', err)
     }

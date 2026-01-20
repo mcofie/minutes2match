@@ -322,6 +322,67 @@
                     </div>
                   </div>
                 </div>
+
+                <!-- Bio / About Me Card -->
+                <div class="info-card info-card--full">
+                  <h4 class="info-card__title">
+                    <svg class="card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                      <polyline points="14 2 14 8 20 8"/>
+                      <line x1="16" y1="13" x2="8" y2="13"/>
+                      <line x1="16" y1="17" x2="8" y2="17"/>
+                    </svg>
+                    About Me
+                  </h4>
+                  <p v-if="selectedUser.about_me" class="bio-text">
+                    "{{ selectedUser.about_me }}"
+                  </p>
+                  <p v-else class="bio-text bio-text--empty">
+                    No bio added yet
+                  </p>
+                </div>
+
+                <!-- Interests Card -->
+                <div class="info-card info-card--full">
+                  <h4 class="info-card__title">
+                    <svg class="card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                    </svg>
+                    Interests
+                  </h4>
+                  <div v-if="selectedUser.interests && selectedUser.interests.length > 0" class="interests-list">
+                    <span 
+                      v-for="interest in selectedUser.interests" 
+                      :key="interest" 
+                      class="interest-tag"
+                    >
+                      {{ getInterestLabel(interest) }}
+                    </span>
+                  </div>
+                  <p v-else class="bio-text--empty">No interests selected</p>
+                </div>
+
+                <!-- Age Preferences Card -->
+                <div class="info-card">
+                  <h4 class="info-card__title">
+                    <svg class="card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <circle cx="12" cy="12" r="10"/>
+                      <polyline points="12 6 12 12 16 14"/>
+                    </svg>
+                    Age Preferences
+                  </h4>
+                  <div class="info-rows">
+                    <div class="info-row">
+                      <span class="info-label">Age Range</span>
+                      <span class="info-value">
+                        <span v-if="selectedUser.min_age || selectedUser.max_age" class="age-range-badge">
+                          {{ selectedUser.min_age || 18 }} - {{ selectedUser.max_age || 50 }} years
+                        </span>
+                        <span v-else class="info-value--muted">Not set</span>
+                      </span>
+                    </div>
+                  </div>
+                </div>
               </div>
 
               <!-- Persona Description -->
@@ -690,6 +751,30 @@ const getEventDay = (dateStr: string) => {
 const getEventMonth = (dateStr: string) => {
   if (!dateStr) return ''
   return new Date(dateStr).toLocaleDateString('en-GB', { month: 'short' })
+}
+
+// Interest labels map
+const interestLabels: Record<string, string> = {
+  travel: 'Travel ✈️',
+  fitness: 'Fitness 💪',
+  cooking: 'Cooking 🍳',
+  movies: 'Movies 🎬',
+  music: 'Music 🎵',
+  gaming: 'Gaming 🎮',
+  reading: 'Reading 📚',
+  art: 'Art 🎨',
+  sports: 'Sports ⚽',
+  tech: 'Tech 💻',
+  fashion: 'Fashion 👗',
+  food: 'Foodie 🍕',
+  nature: 'Nature 🌿',
+  photography: 'Photography 📸',
+  dancing: 'Dancing 💃',
+  entrepreneurship: 'Business 💼'
+}
+
+const getInterestLabel = (interestId: string): string => {
+  return interestLabels[interestId] || interestId
 }
 
 // Initialize
@@ -1575,4 +1660,51 @@ onMounted(() => {
 .mb-4 { margin-bottom: 1rem; }
 .mb-2 { margin-bottom: 0.5rem; }
 .mb-1 { margin-bottom: 0.25rem; }
+
+/* Bio and Interests Styles */
+.info-card--full {
+  grid-column: 1 / -1;
+}
+
+.bio-text {
+  font-style: italic;
+  color: #4B5563;
+  line-height: 1.6;
+  padding: 0.75rem 1rem;
+  background: #F9FAFB;
+  border-radius: 8px;
+  border-left: 3px solid #E5E7EB;
+}
+
+.bio-text--empty {
+  color: #9CA3AF;
+  font-size: 0.875rem;
+}
+
+.interests-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.interest-tag {
+  display: inline-block;
+  padding: 0.375rem 0.75rem;
+  background: #F3F4F6;
+  color: #374151;
+  border-radius: 9999px;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  border: 1px solid #E5E7EB;
+}
+
+.age-range-badge {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  background: #EFF6FF;
+  color: #1E40AF;
+  border-radius: 9999px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
 </style>
