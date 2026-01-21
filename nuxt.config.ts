@@ -55,6 +55,7 @@ export default defineNuxtConfig({
         hubtelClientSecret: process.env.HUBTEL_CLIENT_SECRET,
         paystackSecretKey: process.env.PAYSTACK_SECRET_KEY,
         supabaseServiceKey: process.env.SUPABASE_SERVICE_KEY,
+        cronSecret: process.env.CRON_SECRET,
         // Public keys (available client-side)
         public: {
             paystackPublicKey: process.env.PAYSTACK_PUBLIC_KEY,

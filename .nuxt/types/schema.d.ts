@@ -135,6 +135,8 @@ declare module 'nuxt/schema' {
 
    supabaseServiceKey: string,
 
+   cronSecret: string,
+
    nitro: {
       envPrefix: string,
    },

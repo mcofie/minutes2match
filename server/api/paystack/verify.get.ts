@@ -41,6 +41,23 @@ export default defineEventHandler(async (event) => {
     console.log('[Verify] Processing payment verification for reference:', reference)
 
     try {
+        // IDEMPOTENCY CHECK: Check if payment was already processed
+        const { data: existingPayment } = await supabase
+            .from('payments')
+            .select('id, status')
+            .eq('provider_ref', reference)
+            .single()
+
+        if (existingPayment?.status === 'success') {
+            console.log('[Verify] Payment already processed, returning cached result')
+            return {
+                status: 'success',
+                reference,
+                message: 'Payment already processed',
+                alreadyProcessed: true
+            }
+        }
+
         // Verify with Paystack
         const response = await $fetch<{
             status: boolean
@@ -186,6 +203,19 @@ export default defineEventHandler(async (event) => {
             }
         }
 
+        // Log failed payments for admin alerts
+        if (!paymentSuccess) {
+            await supabase.from('payment_alerts').insert({
+                payment_ref: reference,
+                user_id: metadata.userId,
+                amount: response.data.amount / 100,
+                purpose: metadata.purpose,
+                error_message: response.data.status,
+                alert_type: 'payment_failed',
+                resolved: false
+            }).catch(err => console.error('[Verify] Failed to log payment alert:', err))
+        }
+
         return {
             status: paymentSuccess ? 'success' : 'failed',
             reference: response.data.reference,
@@ -195,6 +225,15 @@ export default defineEventHandler(async (event) => {
         }
     } catch (error: any) {
         console.error('Paystack Verify Error:', error)
+
+        // Log critical errors for admin
+        await supabase.from('payment_alerts').insert({
+            payment_ref: reference,
+            error_message: error.message || 'Unknown error',
+            alert_type: 'verification_error',
+            resolved: false
+        }).catch(() => { })
+
         throw createError({
             statusCode: 500,
             message: 'Failed to verify payment'

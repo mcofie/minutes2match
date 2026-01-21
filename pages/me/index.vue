@@ -61,6 +61,13 @@
         >
           Profile
         </button>
+        <button 
+          @click="activeTab = 'payments'"
+          class="pb-3 text-sm font-bold tracking-wide uppercase transition-all whitespace-nowrap border-b-2"
+          :class="activeTab === 'payments' ? 'text-black border-black' : 'text-stone-400 border-transparent hover:text-stone-600'"
+        >
+          Payments
+        </button>
       </div>
 
       <!-- Content Area -->
@@ -363,6 +370,48 @@
              </div>
           </div>
         </div>
+
+        <!-- Payments Tab -->
+        <div v-if="activeTab === 'payments'" class="animate-in fade-in slide-in-from-bottom-2 duration-500">
+          <div class="flex items-center justify-between mb-6">
+            <h2 class="text-2xl font-bold tracking-tight">Payment History</h2>
+          </div>
+          
+          <div v-if="loadingPayments" class="py-12 text-center text-stone-400">Loading payments...</div>
+          
+          <div v-else-if="userPayments.length === 0" class="py-12 text-center">
+            <p class="text-stone-400">No payments yet</p>
+          </div>
+          
+          <div v-else class="bg-white rounded-2xl border border-stone-200 overflow-hidden">
+            <div 
+              v-for="payment in userPayments" 
+              :key="payment.id" 
+              class="p-4 border-b border-stone-100 last:border-0 hover:bg-stone-50"
+            >
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-4">
+                  <div class="w-10 h-10 rounded-full flex items-center justify-center" :class="payment.purpose === 'event_ticket' ? 'bg-blue-100 text-blue-600' : 'bg-pink-100 text-pink-600'">
+                    {{ payment.purpose === 'event_ticket' ? '🎟️' : '💕' }}
+                  </div>
+                  <div>
+                    <p class="font-semibold text-stone-900">{{ payment.purpose === 'event_ticket' ? 'Event Ticket' : 'Match Unlock' }}</p>
+                    <p class="text-xs text-stone-400">{{ formatPaymentDate(payment.created_at) }}</p>
+                  </div>
+                </div>
+                <div class="text-right">
+                  <p class="font-bold text-stone-900">{{ formatPaymentGHS(payment.amount) }}</p>
+                  <span 
+                    class="text-xs px-2 py-0.5 rounded-full font-semibold"
+                    :class="payment.status === 'success' ? 'bg-emerald-100 text-emerald-700' : payment.status === 'pending' ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-700'"
+                  >
+                    {{ payment.status }}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
     
@@ -421,14 +470,16 @@ const user = useSupabaseUser()
 // State
 const authReady = ref(false)
 const currentUserId = ref<string | null>(null)  // Store user ID to avoid undefined issues
-const activeTab = ref<'events' | 'matches' | 'profile'>('events')
+const activeTab = ref<'events' | 'matches' | 'profile' | 'payments'>('events')
 const profile = ref<any>(null)
 const events = ref<any[]>([])
 const matches = ref<any[]>([])
 const userBookings = ref<Set<string>>(new Set()) // Track user's confirmed bookings
+const userPayments = ref<any[]>([]) // Track user's payments
 const loadingEvents = ref(true)
 const loadingMatches = ref(true)
 const loadingBookings = ref(true) // Track booking fetch status
+const loadingPayments = ref(true) // Track payment fetch status
 const showBookingModal = ref(false)
 const selectedEvent = ref<any>(null)
 const processing = ref(false)
@@ -562,6 +613,23 @@ const fetchUserBookings = async (userId: string) => {
     userBookings.value = new Set((data || []).map((b: any) => b.event_id))
   } finally {
     loadingBookings.value = false
+  }
+}
+
+// Fetch user's payment history
+const fetchUserPayments = async (userId: string) => {
+  loadingPayments.value = true
+  try {
+    const { data } = await supabase
+      .from('payments')
+      .select('*')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false })
+      .limit(50)
+    
+    userPayments.value = data || []
+  } finally {
+    loadingPayments.value = false
   }
 }
 
@@ -718,6 +786,25 @@ const formatEventDate = (dateStr: string | null): string => {
     hour: 'numeric',
     minute: '2-digit'
   })
+}
+
+const formatPaymentDate = (dateStr: string): string => {
+  const date = new Date(dateStr)
+  return date.toLocaleDateString('en-GB', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit'
+  })
+}
+
+const formatPaymentGHS = (amount: number): string => {
+  return new Intl.NumberFormat('en-GH', { 
+    style: 'currency', 
+    currency: 'GHS',
+    minimumFractionDigits: 2 
+  }).format(amount || 0)
 }
 
 const getTicketPrice = (event: any): string => {
@@ -883,7 +970,7 @@ onMounted(async () => {
     try {
       // Manually set user if it came from session
       await fetchProfileById(userId)
-      await Promise.all([fetchEvents(userId), fetchMatchesById(userId), fetchUserBookings(userId)])
+      await Promise.all([fetchEvents(userId), fetchMatchesById(userId), fetchUserBookings(userId), fetchUserPayments(userId)])
     } catch (err) {
       console.error('[Profile] Error loading data:', err)
     }
