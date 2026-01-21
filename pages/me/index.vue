@@ -1023,35 +1023,64 @@ const fetchProfileById = async (userId: string) => {
 const fetchMatchesById = async (userId: string) => {
   loadingMatches.value = true
   
-  const { data } = await supabase
-    .from('matches')
-    .select(`
-      *,
-      user_1:profiles!matches_user_1_id_fkey(*),
-      user_2:profiles!matches_user_2_id_fkey(*)
-    `)
-    .or(`user_1_id.eq.${userId},user_2_id.eq.${userId}`)
-    .in('status', ['pending_payment', 'partial_payment', 'unlocked'])
-    .order('created_at', { ascending: false })
+  try {
+    // 1. Fetch matches list via RLS (Client) - This ensures we respect RLS visibility rules for the match itself
+    const { data } = await supabase
+      .from('matches')
+      .select(`
+        *,
+        user_1:profiles!matches_user_1_id_fkey(*),
+        user_2:profiles!matches_user_2_id_fkey(*)
+      `)
+      .or(`user_1_id.eq.${userId},user_2_id.eq.${userId}`)
+      .in('status', ['pending_payment', 'partial_payment', 'unlocked'])
+      .order('created_at', { ascending: false })
 
-  const processedMatches = await Promise.all((data || []).map(async (match: any) => {
-    const matchedProfile = match.user_1_id === userId ? match.user_2 : match.user_1
-    
-    const { data: vibeAnswers } = await supabase
-      .from('vibe_answers')
-      .select('question_key, answer_value')
-      .eq('user_id', matchedProfile?.id)
-
-    return {
-      ...match,
-      matchedProfile,
-      vibeAnswers: vibeAnswers || [],
-      currentUserPaid: match.user_1_id === userId ? match.user_1_paid : match.user_2_paid
+    if (!data || data.length === 0) {
+      matches.value = []
+      loadingMatches.value = false
+      return
     }
-  }))
 
-  matches.value = processedMatches
-  loadingMatches.value = false
+    // 2. Identify partners and fetch their full details via Server (Bypass RLS for name/photo)
+    const partnerIds = data.map((m: any) => m.user_1_id === userId ? m.user_2_id : m.user_1_id).filter(Boolean)
+    
+    let enrichedProfiles: Record<string, any> = {}
+    
+    if (partnerIds.length > 0) {
+      try {
+        enrichedProfiles = await $fetch('/api/enrich_matches', {
+          method: 'POST',
+          body: { matchUserIds: partnerIds }
+        })
+      } catch (e) {
+        console.error('Failed to enrich matches:', e)
+      }
+    }
+
+    // 3. Merge data
+    const processedMatches = data.map((match: any) => {
+      // Determine partner ID
+      const partnerId = match.user_1_id === userId ? match.user_2_id : match.user_1_id
+      
+      // Get enriched profile or fallback to the partial one from RLS
+      const basicProfile = match.user_1_id === userId ? match.user_2 : match.user_1
+      const fullProfile = enrichedProfiles[partnerId] || basicProfile
+      
+      return {
+        ...match,
+        matchedProfile: fullProfile,
+        vibeAnswers: fullProfile?.vibeAnswers || [],
+        currentUserPaid: match.user_1_id === userId ? match.user_1_paid : match.user_2_paid
+      }
+    })
+
+    matches.value = processedMatches
+  } catch (err) {
+    console.error('Error in match fetch flow:', err)
+  } finally {
+    loadingMatches.value = false
+  }
 }
 </script>
 

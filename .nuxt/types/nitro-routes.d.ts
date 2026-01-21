@@ -15,6 +15,12 @@ declare module "nitropack/types" {
     '/api/cron/match-expiration-reminder': {
       'get': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/cron/match-expiration-reminder.get').default>>>>
     }
+    '/api/enrich_matches': {
+      'post': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/enrich_matches.post').default>>>>
+    }
+    '/api/matches': {
+      'get': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/matches.get').default>>>>
+    }
     '/api/paystack/initialize': {
       'post': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/paystack/initialize.post').default>>>>
     }
