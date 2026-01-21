@@ -2,26 +2,25 @@
   <div>
     <!-- Compact Card -->
     <article 
-      class="group relative bg-white rounded-xl border transition-all duration-300 hover:shadow-md overflow-hidden cursor-pointer"
+      class="group relative bg-white rounded-xl border border-stone-200 transition-all duration-300 hover:border-stone-300 hover:shadow-sm overflow-hidden cursor-pointer"
       :class="cardClasses"
       @click="showModal = true"
     >
       <!-- Celebration Badge -->
       <div 
         v-if="unlocked && showCelebration" 
-        class="absolute top-2 left-2 z-20 bg-gradient-to-r from-emerald-500 to-teal-500 text-white px-2 py-1 rounded-full text-[10px] font-bold shadow-lg animate-pulse"
+        class="absolute top-3 left-3 z-20 bg-black text-white px-2.5 py-1 rounded-md text-[10px] font-bold tracking-wide shadow-sm"
       >
-        🎉 Match!
+        MATCHED
       </div>
 
-      <div class="flex">
+      <div class="flex h-full">
         <!-- Photo (Compact) -->
-        <div class="relative w-24 h-28 flex-shrink-0 bg-stone-100 overflow-hidden">
+        <div class="relative w-32 h-full flex-shrink-0 bg-stone-50 overflow-hidden border-r border-stone-100">
           <!-- Gender Indicator -->
           <div 
             v-if="gender"
-            class="absolute bottom-1 left-1 z-20 w-5 h-5 rounded-full flex items-center justify-center text-[10px] shadow"
-            :class="gender === 'female' ? 'bg-pink-100 text-pink-600' : 'bg-blue-100 text-blue-600'"
+            class="absolute bottom-2 left-2 z-20 w-6 h-6 rounded-full flex items-center justify-center text-[11px] bg-white border border-stone-100 text-stone-900 shadow-sm"
           >
             {{ gender === 'female' ? '♀' : '♂' }}
           </div>
@@ -29,14 +28,14 @@
           <!-- Locked Overlay -->
           <div 
             v-if="!unlocked" 
-            class="absolute inset-0 flex items-center justify-center z-10 bg-stone-100/80 backdrop-blur-sm"
+            class="absolute inset-0 flex items-center justify-center z-10 bg-stone-50"
           >
-            <div class="p-2 rounded-full bg-white shadow">
-              <svg v-if="currentUserPaid" class="w-5 h-5 text-amber-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <div class="p-2 rounded-full bg-white border border-stone-200 shadow-sm">
+              <svg v-if="currentUserPaid" class="w-5 h-5 text-amber-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
                 <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
                 <path d="M7 11V7a5 5 0 0 1 9.9-1"></path>
               </svg>
-              <svg v-else class="w-5 h-5 text-stone-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <svg v-else class="w-5 h-5 text-stone-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
                 <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
                 <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
               </svg>
@@ -45,91 +44,96 @@
 
           <!-- Photo -->
           <template v-if="unlocked">
-            <img v-if="photoUrl" :src="photoUrl" :alt="displayName" class="w-full h-full object-cover" />
-            <div v-else class="w-full h-full flex items-center justify-center bg-gradient-to-br from-stone-100 to-stone-200">
-              <span class="text-2xl font-bold text-stone-300">{{ displayName?.charAt(0) || '?' }}</span>
+            <img v-if="photoUrl" :src="photoUrl" :alt="displayName" class="w-full h-full object-cover grayscale-[10%] group-hover:grayscale-0 transition-all duration-500" />
+            <div v-else class="w-full h-full flex items-center justify-center bg-stone-100">
+              <span class="text-3xl font-bold text-stone-300">{{ displayName?.charAt(0) || '?' }}</span>
             </div>
           </template>
-          <div v-else class="w-full h-full flex items-center justify-center bg-stone-200 text-stone-400 font-bold text-xl">?</div>
+          <div v-else class="w-full h-full flex items-center justify-center bg-stone-100/50 relative overflow-hidden">
+            <!-- Subtle Pattern Background -->
+            <div class="absolute inset-0 opacity-10" style="background-image: radial-gradient(#444 1px, transparent 1px); background-size: 8px 8px;"></div>
+            <span class="text-3xl font-bold text-stone-300 relative z-10">?</span>
+          </div>
         </div>
         
         <!-- Content -->
-        <div class="flex-1 p-3 min-w-0">
-          <!-- Top Row: Name/Age + Compatibility -->
-          <div class="flex items-start justify-between gap-2 mb-1">
-            <div class="min-w-0">
-              <h3 v-if="unlocked" class="font-bold text-stone-900 truncate text-sm flex items-center gap-1">
-                {{ displayName }}
-                <svg class="w-3.5 h-3.5 text-emerald-500 flex-shrink-0" viewBox="0 0 24 24" fill="currentColor">
-                  <path fill-rule="evenodd" d="M8.603 3.799A4.49 4.49 0 0112 2.25c1.357 0 2.573.6 3.397 1.549a4.49 4.49 0 013.498 1.307 4.491 4.491 0 011.307 3.497A4.49 4.49 0 0121.75 12a4.49 4.49 0 01-1.549 3.397 4.491 4.491 0 01-1.307 3.497 4.491 4.491 0 01-3.497 1.307A4.49 4.49 0 0112 21.75a4.49 4.49 0 01-3.397-1.549 4.49 4.49 0 01-3.498-1.306 4.491 4.491 0 01-1.307-3.498A4.49 4.49 0 012.25 12c0-1.357.6-2.573 1.549-3.397a4.49 4.49 0 011.307-3.497 4.49 4.49 0 013.497-1.307zm7.007 6.387a.75.75 0 10-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 00-1.06 1.06l2.25 2.25a.75.75 0 001.14-.094l3.75-5.25z" clip-rule="evenodd" />
-                </svg>
-              </h3>
-              <div class="flex items-center gap-1.5 text-xs text-stone-400">
-                <span>{{ age }}y</span>
-                <span v-if="location" class="flex items-center gap-0.5">
-                  <span>•</span>
-                  <span class="truncate max-w-[80px]">📍{{ location }}</span>
-                </span>
+        <div class="flex-1 p-4 min-w-0 flex flex-col h-full">
+          <div class="flex-1">
+            <!-- Top Row: Name/Age + Compatibility -->
+            <div class="flex items-start justify-between gap-2 mb-2">
+              <div class="min-w-0">
+                <h3 v-if="unlocked" class="font-bold text-stone-900 truncate text-lg flex items-center gap-1.5 tracking-tight leading-tight">
+                  {{ displayName }}
+                  <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 mt-1"></span>
+                </h3>
+                <h3 v-else class="font-bold text-stone-900 truncate text-lg tracking-tight leading-tight">Mystery Match</h3>
+                
+                <div class="flex items-center gap-1.5 text-sm text-stone-500 font-medium">
+                  <span>{{ age }}</span>
+                  <span v-if="location" class="flex items-center gap-1">
+                    <span class="text-stone-300">•</span>
+                    <span class="truncate max-w-[100px] capitalize">{{ location }}</span>
+                  </span>
+                </div>
               </div>
-            </div>
-            <!-- Compatibility / Persona -->
-            <div class="flex flex-col items-end gap-1">
+              
+              <!-- Persona Badge -->
               <span 
-                class="flex-shrink-0 px-2 py-0.5 rounded-full text-[10px] font-bold text-white"
-                :style="{ backgroundColor: personaColor }"
+                class="flex-shrink-0 px-2.5 py-1 rounded-md text-sm font-bold text-stone-900 bg-stone-50 border border-stone-100"
               >
                 {{ personaEmoji }}
               </span>
-              <span v-if="compatibilityScore" class="text-[10px] font-bold" :class="compatibilityColor">
-                {{ compatibilityScore }}% match
-              </span>
             </div>
-          </div>
-          
-          <!-- Bio/Interests Preview -->
-          <p v-if="(currentUserPaid || unlocked) && bio" class="text-xs text-stone-500 line-clamp-1 mb-1.5">
-            "{{ bio }}"
-          </p>
-          <p v-else-if="!currentUserPaid && !unlocked" class="text-xs text-stone-400 italic mb-1.5 line-clamp-1">
-            {{ vibePreview }}
-          </p>
-          
-          <!-- Shared Interests Preview -->
-          <div v-if="(currentUserPaid || unlocked) && sharedInterests && sharedInterests.length > 0" class="flex items-center gap-1 mb-2">
-            <span class="text-[10px] text-emerald-600 font-medium">✨ {{ sharedInterests.length }} in common</span>
+            
+            <!-- Shared Interests Teaser (Visible even if Locked) -->
+            <div v-if="sharedInterests && sharedInterests.length > 0" class="flex items-center gap-1 mb-2">
+               <span class="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-100/50">
+                 ✨ {{ sharedInterests.length }} Shared Interests
+               </span>
+            </div>
+
+            <!-- Bio Preview -->
+            <p v-if="unlocked && bio" class="text-sm text-stone-600 line-clamp-2 leading-relaxed">
+              {{ bio }}
+            </p>
+            <p v-else-if="!unlocked" class="text-sm text-stone-400 italic line-clamp-2 leading-relaxed">
+              Unlock to reveal common interests & bio...
+            </p>
           </div>
           
           <!-- Footer: Status/Action -->
-          <div class="flex items-center justify-between">
+          <div class="flex items-end justify-between mt-3 pt-3 border-t border-stone-50">
             <template v-if="unlocked">
-              <span class="text-[10px] text-stone-400">{{ matchedTimeAgo }}</span>
+              <div class="flex flex-col">
+                <span class="text-[10px] font-bold text-stone-400 uppercase tracking-widest">Matched</span>
+                <span class="text-xs font-bold text-stone-900 mt-0.5 capitalize">{{ matchedTimeAgo }}</span>
+              </div>
               <button 
                 @click.stop="openWhatsApp"
-                class="flex items-center gap-1 px-2 py-1 bg-[#25D366] text-white rounded-md text-[10px] font-bold hover:bg-[#20bd5a]"
+                class="flex items-center gap-2 px-4 py-2 bg-black text-white rounded-lg text-xs font-bold hover:bg-stone-800 transition-all shadow-sm hover:shadow-md active:scale-95"
               >
-                <svg class="w-3 h-3" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
-                </svg>
                 Message
               </button>
             </template>
             <template v-else-if="currentUserPaid">
-              <span class="text-[10px] font-bold text-amber-600 uppercase flex items-center gap-1">
-                <span class="relative flex h-2 w-2">
-                  <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
-                  <span class="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
+              <div class="flex flex-col">
+                <span class="text-[10px] font-bold text-amber-600 uppercase tracking-wide flex items-center gap-1.5">
+                  <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
+                  Pending
                 </span>
-                Waiting...
-              </span>
-              <span v-if="expiresAt" class="text-[10px] text-stone-400">{{ formatTimeRemaining }}</span>
+                <span v-if="expiresAt" class="text-xs text-stone-500 font-medium mt-0.5">{{ formatTimeRemaining }} left</span>
+              </div>
             </template>
             <template v-else>
-              <span class="text-sm font-bold text-stone-900">{{ formattedPrice }}</span>
+              <div class="flex flex-col">
+                <span class="text-[10px] font-bold text-stone-400 uppercase tracking-widest">Unlock</span>
+                <span class="text-sm font-bold text-stone-900 tracking-tight mt-0.5">{{ formattedPrice }}</span>
+              </div>
               <button 
                 @click.stop="$emit('unlock')"
-                class="px-3 py-1 bg-black text-white rounded-lg text-xs font-bold hover:bg-stone-800"
+                class="px-5 py-2 bg-stone-100 text-stone-900 border border-stone-200 rounded-lg text-xs font-bold hover:bg-stone-200 transition-colors"
               >
-                Unlock
+                View
               </button>
             </template>
           </div>
@@ -141,214 +145,204 @@
     <Teleport to="body">
       <div 
         v-if="showModal" 
-        class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
+        class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-stone-900/40 backdrop-blur-sm transition-all duration-300"
         @click.self="showModal = false"
       >
-        <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-hidden animate-in zoom-in-95 duration-200">
+        <div class="bg-white rounded-2xl shadow-xl max-w-md w-full max-h-[90vh] overflow-hidden animate-in zoom-in-95 duration-200 flex flex-col border border-stone-200">
           <!-- Header Image -->
-          <div class="relative h-72 bg-stone-100">
+          <div class="relative h-48 bg-stone-100 flex-shrink-0 border-b border-stone-100">
             <button 
               @click="showModal = false"
-              class="absolute top-4 right-4 z-10 w-8 h-8 bg-white/90 backdrop-blur rounded-full flex items-center justify-center text-stone-600 hover:bg-white"
+              class="absolute top-4 right-4 z-20 w-8 h-8 bg-black/50 hover:bg-black/70 backdrop-blur-sm rounded-full flex items-center justify-center text-white transition-all hover:scale-105"
             >
-              ✕
+              <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
             </button>
             
             <!-- Compatibility Badge -->
             <div 
               v-if="compatibilityScore"
-              class="absolute top-4 left-4 z-10 px-3 py-1.5 bg-white/90 backdrop-blur rounded-full"
+              class="absolute top-4 left-4 z-20 px-3 py-1.5 bg-white/90 backdrop-blur-sm rounded-lg shadow-sm border border-stone-200"
             >
-              <span class="text-sm font-bold" :class="compatibilityColor">{{ compatibilityScore }}% Compatible</span>
-            </div>
-            
-            <!-- Locked Overlay -->
-            <div 
-              v-if="!unlocked" 
-              class="absolute inset-0 flex flex-col items-center justify-center z-10 bg-stone-100/80 backdrop-blur-sm"
-            >
-              <div class="p-4 rounded-full bg-white shadow-lg mb-3">
-                <svg v-if="currentUserPaid" class="w-10 h-10 text-amber-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-                  <path d="M7 11V7a5 5 0 0 1 9.9-1"></path>
-                </svg>
-                <svg v-else class="w-10 h-10 text-stone-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-                  <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
-                </svg>
-              </div>
-              <p v-if="currentUserPaid" class="text-sm font-bold text-amber-600">Waiting for them to unlock</p>
-              <p v-else class="text-sm font-bold text-stone-500">Private Profile</p>
-            </div>
-
-            <template v-if="unlocked">
-              <img v-if="photoUrl" :src="photoUrl" :alt="displayName" class="w-full h-full object-cover" />
-              <div v-else class="w-full h-full flex items-center justify-center bg-gradient-to-br from-stone-100 to-stone-200">
-                <span class="text-6xl font-bold text-stone-300">{{ displayName?.charAt(0) || '?' }}</span>
-              </div>
-            </template>
-            <div v-else class="w-full h-full flex items-center justify-center bg-stone-200 text-stone-400 font-bold text-5xl">?</div>
-          </div>
-          
-          <!-- Content -->
-          <div class="p-6 overflow-y-auto max-h-[calc(90vh-18rem)]">
-            <!-- Header -->
-            <div class="flex items-start justify-between mb-4">
-              <div>
-                <h2 v-if="unlocked" class="text-2xl font-bold text-stone-900 flex items-center gap-2">
-                  {{ displayName }}
-                  <svg class="w-5 h-5 text-emerald-500" viewBox="0 0 24 24" fill="currentColor">
-                    <path fill-rule="evenodd" d="M8.603 3.799A4.49 4.49 0 0112 2.25c1.357 0 2.573.6 3.397 1.549a4.49 4.49 0 013.498 1.307 4.491 4.491 0 011.307 3.497A4.49 4.49 0 0121.75 12a4.49 4.49 0 01-1.549 3.397 4.491 4.491 0 01-1.307 3.497 4.491 4.491 0 01-3.497 1.307A4.49 4.49 0 0112 21.75a4.49 4.49 0 01-3.397-1.549 4.49 4.49 0 01-3.498-1.306 4.491 4.491 0 01-1.307-3.498A4.49 4.49 0 012.25 12c0-1.357.6-2.573 1.549-3.397a4.49 4.49 0 011.307-3.497 4.49 4.49 0 013.497-1.307zm7.007 6.387a.75.75 0 10-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 00-1.06 1.06l2.25 2.25a.75.75 0 001.14-.094l3.75-5.25z" clip-rule="evenodd" />
-                  </svg>
-                </h2>
-                <h2 v-else class="text-2xl font-bold text-stone-400">Mystery Match</h2>
-                <div class="flex items-center gap-2 text-stone-500 mt-1">
-                  <span>{{ age }} years</span>
-                  <span v-if="gender" class="flex items-center gap-1">
-                    •
-                    <span :class="gender === 'female' ? 'text-pink-500' : 'text-blue-500'">
-                      {{ gender === 'female' ? '♀ Female' : '♂ Male' }}
-                    </span>
-                  </span>
-                </div>
-                <p v-if="location" class="text-sm text-stone-400 mt-1">📍 {{ location }}</p>
-                <p v-if="matchedAt" class="text-xs text-stone-400 mt-1">Matched {{ matchedTimeAgo }}</p>
-              </div>
-              <span 
-                class="px-3 py-1.5 rounded-full text-xs font-bold text-white"
-                :style="{ backgroundColor: personaColor }"
-              >
-                {{ personaEmoji }} {{ personaName }}
+              <span class="text-xs font-bold text-stone-900 flex items-center gap-1.5">
+                <span class="w-2 h-2 rounded-full" :class="compatibilityScore >= 80 ? 'bg-emerald-500' : 'bg-stone-900'"></span>
+                {{ compatibilityScore }}% Match
               </span>
             </div>
             
-            <!-- Bio -->
-            <div v-if="(currentUserPaid || unlocked)" class="mb-6">
-              <h3 class="text-xs font-bold text-stone-400 uppercase tracking-wide mb-2">About</h3>
-              <p v-if="bio" class="text-stone-600 leading-relaxed">"{{ bio }}"</p>
-              <p v-else class="text-stone-400 italic text-sm">They haven't added a bio yet</p>
-            </div>
-            <div v-else class="mb-6">
-              <h3 class="text-xs font-bold text-stone-400 uppercase tracking-wide mb-2">Vibe Check</h3>
-              <p class="text-stone-600 italic">"{{ vibePreview }}"</p>
-              <p class="text-xs text-stone-400 mt-2">💡 Unlock to see their full profile</p>
-            </div>
-            
-            <!-- Shared Interests -->
-            <div v-if="(currentUserPaid || unlocked) && sharedInterests && sharedInterests.length > 0" class="mb-6">
-              <h3 class="text-xs font-bold text-emerald-600 uppercase tracking-wide mb-2 flex items-center gap-1">
-                <span>✨</span> {{ sharedInterests.length }} Things in Common
-              </h3>
-              <div class="flex flex-wrap gap-2">
-                <span 
-                  v-for="interest in sharedInterests" 
-                  :key="interest"
-                  class="px-3 py-1.5 bg-emerald-50 text-emerald-700 rounded-full text-sm font-medium border border-emerald-100"
-                >
-                  {{ getInterestLabel(interest) }}
-                </span>
-              </div>
-            </div>
-            
-            <!-- Their Interests -->
-            <div v-if="(currentUserPaid || unlocked) && interests && interests.length > 0" class="mb-6">
-              <h3 class="text-xs font-bold text-stone-400 uppercase tracking-wide mb-2">Their Interests</h3>
-              <div class="flex flex-wrap gap-2">
-                <span 
-                  v-for="interest in interests" 
-                  :key="interest"
-                  class="px-3 py-1.5 bg-stone-100 text-stone-600 rounded-full text-sm font-medium"
-                >
-                  {{ getInterestLabel(interest) }}
-                </span>
-              </div>
-            </div>
-            
-            <!-- Icebreaker Suggestions -->
-            <div v-if="unlocked && icebreakers.length > 0" class="mb-6">
-              <h3 class="text-xs font-bold text-blue-600 uppercase tracking-wide mb-2 flex items-center gap-1">
-                💬 Conversation Starters
-              </h3>
-              <div class="space-y-2">
-                <button 
-                  v-for="(icebreaker, idx) in icebreakers" 
-                  :key="idx"
-                  @click="copyIcebreaker(icebreaker)"
-                  class="w-full text-left p-3 bg-blue-50 hover:bg-blue-100 rounded-lg text-sm text-blue-800 transition-colors border border-blue-100"
-                >
-                  "{{ icebreaker }}"
-                  <span class="text-[10px] text-blue-500 block mt-1">Tap to copy</span>
-                </button>
-              </div>
-            </div>
-            
-            <!-- Expiration (if waiting) -->
-            <div v-if="currentUserPaid && !unlocked && expiresAt" class="mb-6 p-4 bg-amber-50 rounded-xl border border-amber-100">
-              <div class="flex items-center justify-between">
-                <span class="text-sm text-amber-700">Match expires in:</span>
-                <span class="font-bold text-amber-600">⏱️ {{ formatTimeRemaining }}</span>
-              </div>
-              <p class="text-xs text-amber-600 mt-2">They've been notified via SMS. Hang tight!</p>
+            <!-- Photo Layer -->
+            <div class="absolute inset-0">
+              <template v-if="unlocked">
+                <img v-if="photoUrl" :src="photoUrl" :alt="displayName" class="w-full h-full object-cover" />
+                <div v-else class="w-full h-full flex items-center justify-center bg-stone-50">
+                  <span class="text-6xl font-bold text-stone-200 tracking-tighter">{{ displayName?.charAt(0) || '?' }}</span>
+                </div>
+              </template>
+              <template v-else>
+                <div class="w-full h-full flex items-center justify-center bg-stone-100/50 overflow-hidden relative">
+                   <!-- Subtle Pattern Background -->
+                  <div class="absolute inset-0 opacity-10" style="background-image: radial-gradient(#444 1px, transparent 1px); background-size: 12px 12px;"></div>
+                  <span class="text-6xl font-black text-stone-200 relative z-10">?</span>
+                </div>
+                <!-- Locked Overlay -->
+                <div class="absolute inset-0 flex flex-col items-center justify-center bg-stone-50/40 backdrop-blur-[3px]">
+                  <div class="p-3 rounded-full bg-white border border-stone-100 shadow-sm mb-3">
+                    <svg v-if="currentUserPaid" class="w-6 h-6 text-amber-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                      <path d="M7 11V7a5 5 0 0 1 9.9-1"></path>
+                    </svg>
+                    <svg v-else class="w-6 h-6 text-stone-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                      <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                    </svg>
+                  </div>
+                  <p v-if="currentUserPaid" class="text-xs font-bold text-amber-600 tracking-wider uppercase bg-amber-50 px-3 py-1 rounded-md border border-amber-100">Waiting for Reveal</p>
+                  <p v-else class="text-xs font-bold text-stone-500 tracking-wider uppercase bg-white px-3 py-1 rounded-md shadow-sm border border-stone-200">Private Profile</p>
+                </div>
+              </template>
             </div>
           </div>
           
-          <!-- Footer Actions -->
-          <div class="p-4 border-t border-stone-100 bg-stone-50">
-            <template v-if="unlocked && phone">
-              <!-- Phone Display -->
-              <div class="flex items-center gap-2 text-stone-700 font-medium p-3 bg-white rounded-lg border border-stone-200 mb-3">
-                <svg class="w-4 h-4 text-emerald-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
-                </svg>
-                <span class="flex-1">{{ phone }}</span>
-                <button @click="copyPhone" class="text-xs text-emerald-600 hover:text-emerald-700 font-bold">
-                  {{ copied ? '✓ Copied' : 'Copy' }}
-                </button>
+          <!-- Content Container -->
+          <div class="px-6 pb-6 flex-1 overflow-y-auto min-h-0 relative bg-white">
+            <!-- Profile Header -->
+            <div class="pt-6 mb-6">
+              <div class="flex items-start justify-between">
+                <div>
+                  <h2 v-if="unlocked" class="text-2xl font-bold text-stone-900 flex items-center gap-2 tracking-tight">
+                    {{ displayName }}
+                    <svg class="w-5 h-5 text-blue-500" viewBox="0 0 24 24" fill="currentColor">
+                      <path fill-rule="evenodd" d="M8.603 3.799A4.49 4.49 0 0112 2.25c1.357 0 2.573.6 3.397 1.549a4.49 4.49 0 013.498 1.307 4.491 4.491 0 011.307 3.497A4.49 4.49 0 0121.75 12a4.49 4.49 0 01-1.549 3.397 4.491 4.491 0 01-1.307 3.497 4.491 4.491 0 01-3.497 1.307A4.49 4.49 0 0112 21.75a4.49 4.49 0 01-3.397-1.549 4.49 4.49 0 01-3.498-1.306 4.491 4.491 0 01-1.307-3.498A4.49 4.49 0 012.25 12c0-1.357.6-2.573 1.549-3.397a4.49 4.49 0 011.307-3.497 4.49 4.49 0 013.497-1.307zm7.007 6.387a.75.75 0 10-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 00-1.06 1.06l2.25 2.25a.75.75 0 001.14-.094l3.75-5.25z" clip-rule="evenodd" />
+                    </svg>
+                  </h2>
+                  <h2 v-else class="text-2xl font-bold text-stone-300 tracking-tight">Mystery Match</h2>
+                  
+                  <div class="flex items-center gap-3 text-stone-500 mt-1 text-sm font-medium">
+                    <span>{{ age }} years</span>
+                    <span v-if="gender" class="flex items-center gap-1 before:content-['•'] before:mr-3 before:text-stone-300">
+                      {{ gender === 'female' ? 'Female' : 'Male' }}
+                    </span>
+                    <span v-if="location" class="flex items-center gap-1 before:content-['•'] before:mr-3 before:text-stone-300">
+                      {{ location }}
+                    </span>
+                  </div>
+                </div>
+                <div 
+                  class="flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-lg bg-stone-50 border border-stone-100"
+                >
+                  <span class="text-xl">{{ personaEmoji }}</span>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Unified Content Sections -->
+            <div class="space-y-6">
+              <!-- Bio -->
+              <div v-if="(currentUserPaid || unlocked)">
+                <h3 class="text-xs font-bold text-stone-900 uppercase tracking-widest mb-2">About</h3>
+                <p v-if="bio" class="text-stone-600 leading-relaxed text-[15px]">"{{ bio }}"</p>
+                <p v-else class="text-stone-400 italic text-sm">No bio shared yet.</p>
+              </div>
+              <div v-else>
+                <h3 class="text-xs font-bold text-stone-900 uppercase tracking-widest mb-2">The Vibe</h3>
+                <div class="p-4 bg-stone-50 rounded-lg border border-stone-100">
+                  <p class="italic text-stone-600 leading-relaxed">"{{ vibePreview }}"</p>
+                </div>
+                <p class="text-xs text-stone-400 mt-2 font-medium flex items-center gap-1">
+                  � Unlock to see full profile & contact info
+                </p>
               </div>
               
-              <!-- Action Buttons -->
-              <div class="flex gap-2">
-                <a 
-                  :href="whatsappLink" 
-                  target="_blank"
-                  class="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-[#25D366] text-white rounded-xl font-bold hover:bg-[#20bd5a] transition-colors"
-                >
-                  <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
-                  </svg>
-                  WhatsApp
-                </a>
-                <a 
-                  :href="`tel:${phone}`"
-                  class="flex items-center justify-center gap-2 px-4 py-3 bg-stone-900 text-white rounded-xl font-bold hover:bg-stone-800 transition-colors"
-                >
-                  <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
-                  </svg>
-                  Call
-                </a>
+              <!-- Interests (Visible Teaser) -->
+              <div v-if="sharedInterests && sharedInterests.length > 0">
+                <h3 class="text-xs font-bold text-stone-900 uppercase tracking-widest mb-3 flex items-center gap-2">
+                  <span class="text-emerald-500">✨</span> In Common
+                </h3>
+                <div class="flex flex-wrap gap-2">
+                  <span 
+                    v-for="interest in sharedInterests" 
+                    :key="interest"
+                    class="px-3 py-1.5 bg-emerald-50 text-emerald-800 rounded-md text-xs font-bold border border-emerald-100"
+                  >
+                    {{ getInterestLabel(interest) }}
+                  </span>
+                </div>
+              </div>
+              
+              <!-- Icebreakers -->
+              <div v-if="unlocked && icebreakers.length > 0">
+                <h3 class="text-xs font-bold text-stone-900 uppercase tracking-widest mb-3">
+                  Icebreakers
+                </h3>
+                <div class="space-y-2">
+                  <button 
+                    v-for="(icebreaker, idx) in icebreakers" 
+                    :key="idx"
+                    @click="copyIcebreaker(icebreaker, idx)"
+                    class="w-full text-left p-3 bg-stone-50 hover:bg-stone-100 rounded-lg text-sm text-stone-600 transition-colors border border-stone-100 flex gap-3 group items-center"
+                  >
+                    <span class="text-stone-300 group-hover:text-stone-400">💬</span>
+                    <span class="flex-1">"{{ icebreaker }}"</span>
+                    <span v-if="copiedIndex === idx" class="text-emerald-500 text-xs font-bold animate-in fade-in zoom-in">Copied!</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Sticky Footer Actions -->
+          <div class="p-4 border-t border-stone-100 bg-white z-20">
+            <template v-if="unlocked && phone">
+              <div class="space-y-3">
+                <div class="flex items-center gap-3 p-3 rounded-lg border border-stone-200">
+                  <span class="flex-1 font-mono text-stone-600 text-sm pl-2">{{ phone }}</span>
+                  <button @click="copyPhone" class="px-3 py-1 bg-stone-100 text-[10px] font-bold text-stone-600 rounded hover:bg-stone-200 uppercase tracking-wide">
+                    {{ copied ? 'Copied' : 'Copy' }}
+                  </button>
+                </div>
+                
+                <div class="flex gap-3">
+                  <a 
+                    :href="whatsappLink" 
+                    target="_blank"
+                    class="flex-[2] flex items-center justify-center gap-2 px-6 py-3 bg-[#1C1917] text-white rounded-lg font-bold hover:bg-black transition-colors"
+                  >
+                    <span>WhatsApp</span>
+                  </a>
+                  <a 
+                    :href="`tel:${phone}`"
+                    class="flex-1 flex items-center justify-center px-6 py-3 bg-stone-100 text-stone-900 border border-stone-200 rounded-lg font-bold hover:bg-stone-200 transition-colors"
+                  >
+                    Call
+                  </a>
+                </div>
               </div>
             </template>
             
             <template v-else-if="!unlocked && !currentUserPaid">
-              <div class="flex items-center justify-between">
+              <div class="flex items-center justify-between gap-4">
                 <div>
-                  <span class="text-2xl font-bold text-stone-900">{{ formattedPrice }}</span>
-                  <p class="text-xs text-stone-400">to unlock this connection</p>
+                  <p class="text-2xl font-bold text-stone-900 tracking-tight">{{ formattedPrice }}</p>
+                  <p class="text-xs text-stone-500 font-medium">One-time unlock fee</p>
                 </div>
                 <button 
-                  @click="$emit('unlock'); showModal = false"
-                  class="px-6 py-3 bg-black text-white rounded-xl font-bold hover:bg-stone-800 transition-colors"
+                  @click="handleUnlock"
+                  :disabled="isUnlocking"
+                  class="flex-1 py-3 bg-[#1C1917] text-white rounded-lg font-bold hover:bg-black transition-colors shadow-sm disabled:opacity-70 disabled:cursor-wait flex items-center justify-center gap-2"
                 >
-                  🔓 Unlock Now
+                  <span v-if="isUnlocking" class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
+                  {{ isUnlocking ? 'Unlocking...' : 'Unlock Profile' }}
                 </button>
               </div>
             </template>
             
             <template v-else>
-              <p class="text-center text-stone-500 text-sm">
-                Waiting for them to unlock...
-              </p>
+              <div class="p-4 bg-amber-50 rounded-lg border border-amber-100 flex items-center gap-3">
+                <div class="text-xl">⏳</div>
+                <div>
+                  <p class="text-sm font-bold text-amber-900">Waiting for them...</p>
+                  <p class="text-xs text-amber-700/80">We've nudged them via SMS.</p>
+                </div>
+              </div>
             </template>
           </div>
         </div>
@@ -382,7 +376,7 @@ interface Props {
 
 const props = defineProps<Props>()
 
-defineEmits<{
+const emit = defineEmits<{
   unlock: []
   message: []
 }>()
@@ -390,6 +384,8 @@ defineEmits<{
 // Local state
 const showModal = ref(false)
 const copied = ref(false)
+const isUnlocking = ref(false)
+const copiedIndex = ref<number | null>(null)
 const showCelebration = ref(false)
 
 onMounted(() => {
@@ -402,9 +398,20 @@ onMounted(() => {
 watch(() => props.unlocked, (newVal) => {
   if (newVal) {
     showCelebration.value = true
+    isUnlocking.value = false // Reset loading on success
     setTimeout(() => { showCelebration.value = false }, 5000)
   }
 })
+
+const handleUnlock = async () => {
+  isUnlocking.value = true
+  // Emit the event to parent
+  emit('unlock')
+  // We don't close modal immediately, wait for parent to update props.unlocked or handle error
+  // If we wanted to fake it for UI feel:
+  // setTimeout(() => { showModal.value = false }, 1000) 
+  // But better to wait for prop change or let parent handle route.
+}
 
 // Compatibility Score (based on shared interests)
 const compatibilityScore = computed(() => {
@@ -520,9 +527,10 @@ const copyPhone = () => {
   }
 }
 
-const copyIcebreaker = (text: string) => {
+const copyIcebreaker = (text: string, index: number) => {
   navigator.clipboard.writeText(text)
-  alert('Copied to clipboard! 📋')
+  copiedIndex.value = index
+  setTimeout(() => { copiedIndex.value = null }, 2000)
 }
 
 const hoursRemaining = computed(() => {
@@ -537,6 +545,7 @@ const formatTimeRemaining = computed(() => {
   if (hours < 24) return `${hours}h`
   return `${Math.floor(hours / 24)}d ${hours % 24}h`
 })
+
 </script>
 
 <style scoped>
@@ -545,14 +554,45 @@ const formatTimeRemaining = computed(() => {
   -webkit-line-clamp: 1;
   -webkit-box-orient: vertical;
   overflow: hidden;
+  line-clamp: 1;
 }
 
+/* Modal Entry Animation */
 .animate-in {
-  animation: animate-in 0.2s ease-out;
+  animation: premium-modal-enter 0.5s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-@keyframes animate-in {
-  from { opacity: 0; transform: scale(0.95); }
-  to { opacity: 1; transform: scale(1); }
+@keyframes premium-modal-enter {
+  from { 
+    opacity: 0; 
+    transform: scale(0.92) translateY(30px); 
+    filter: blur(10px);
+  }
+  to { 
+    opacity: 1; 
+    transform: scale(1) translateY(0); 
+    filter: blur(0);
+  }
+}
+
+/* Modal Content Scrollbar */
+.overflow-y-auto::-webkit-scrollbar {
+  width: 5px;
+}
+.overflow-y-auto::-webkit-scrollbar-track {
+  background: transparent;
+}
+.overflow-y-auto::-webkit-scrollbar-thumb {
+  background: #f1f5f9;
+  border-radius: 10px;
+}
+.overflow-y-auto::-webkit-scrollbar-thumb:hover {
+  background: #e2e8f0;
+}
+
+/* Prevent layout shift on hover */
+article {
+  backface-visibility: hidden;
+  transform: translateZ(0);
 }
 </style>

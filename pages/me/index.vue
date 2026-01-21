@@ -217,9 +217,9 @@
           <!-- Edit Form -->
           <div class="md:col-span-2 space-y-6">
              <!-- Basic Info -->
-             <div class="bg-white p-8 rounded-2xl border border-stone-200 shadow-sm">
+             <div class="bg-white p-6 md:p-8 rounded-2xl border border-stone-200 shadow-sm">
                 <h3 class="text-xl font-bold text-stone-900 mb-6">Basic Info</h3>
-                <div class="grid grid-cols-2 gap-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                    <div class="space-y-2">
                       <label class="text-xs font-bold uppercase text-stone-500 tracking-wide">Display Name</label>
                       <input type="text" v-model="editForm.display_name" class="w-full px-4 py-3 rounded-xl border border-stone-200 bg-stone-50 focus:bg-white focus:ring-2 focus:ring-black outline-none transition-all font-medium" />
@@ -244,9 +244,9 @@
              </div>
 
              <!-- Preferences -->
-             <div class="bg-white p-8 rounded-2xl border border-stone-200 shadow-sm">
+             <div class="bg-white p-6 md:p-8 rounded-2xl border border-stone-200 shadow-sm">
                 <h3 class="text-xl font-bold text-stone-900 mb-6">Preferences & Details</h3>
-                <div class="grid grid-cols-2 gap-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                    <div class="space-y-2">
                       <label class="text-xs font-bold uppercase text-stone-500 tracking-wide">Considering</label>
                        <select v-model="editForm.intent" class="w-full px-4 py-3 rounded-xl border border-stone-200 bg-stone-50 focus:bg-white focus:ring-2 focus:ring-black outline-none transition-all font-medium">
@@ -307,7 +307,7 @@
              </div>
 
              <!-- Bio / About Me -->
-             <div class="bg-white p-8 rounded-2xl border border-stone-200 shadow-sm">
+             <div class="bg-white p-6 md:p-8 rounded-2xl border border-stone-200 shadow-sm">
                 <div class="flex items-center justify-between mb-6">
                    <h3 class="text-xl font-bold text-stone-900">About Me</h3>
                    <span class="text-xs font-medium" :class="editForm.about_me.length > 250 ? 'text-red-500' : 'text-stone-400'">
@@ -325,7 +325,7 @@
              </div>
 
              <!-- Interests -->
-             <div class="bg-white p-8 rounded-2xl border border-stone-200 shadow-sm">
+             <div class="bg-white p-6 md:p-8 rounded-2xl border border-stone-200 shadow-sm">
                 <div class="flex items-center justify-between mb-6">
                    <h3 class="text-xl font-bold text-stone-900">Your Interests</h3>
                    <span class="text-xs font-medium text-stone-400">{{ editForm.interests.length }}/6 selected</span>
@@ -347,11 +347,11 @@
              </div>
 
              <!-- Deal Breakers / Age Preferences -->
-             <div class="bg-white p-8 rounded-2xl border border-stone-200 shadow-sm">
+             <div class="bg-white p-6 md:p-8 rounded-2xl border border-stone-200 shadow-sm">
                 <h3 class="text-xl font-bold text-stone-900 mb-2">Match Preferences</h3>
                 <p class="text-sm text-stone-500 mb-6">Help us find people in your preferred age range</p>
                 
-                <div class="grid grid-cols-2 gap-6 mb-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                    <div class="space-y-2">
                       <label class="text-xs font-bold uppercase text-stone-500 tracking-wide">Minimum Age</label>
                       <div class="flex items-center gap-3">
