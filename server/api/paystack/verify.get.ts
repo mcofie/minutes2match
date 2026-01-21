@@ -22,7 +22,7 @@ export default defineEventHandler(async (event) => {
     const config = useRuntimeConfig()
 
     // Use service role client to bypass RLS for payment updates
-    const supabaseUrl = process.env.SUPABASE_URL
+    const supabaseUrl = config.supabaseUrl
     const supabaseServiceKey = config.supabaseServiceKey
 
     if (!supabaseUrl || !supabaseServiceKey) {
@@ -83,21 +83,57 @@ export default defineEventHandler(async (event) => {
 
         console.log('[Verify] Metadata:', JSON.stringify(metadata))
 
-        // Update payment record in database
-        const { data: paymentRecord, error: paymentError } = await supabase
+        // First check if payment record exists (for upsert)
+        const { data: paymentRecord, error: fetchError } = await supabase
             .from('payments')
-            .update({
-                status: paymentSuccess ? 'success' : 'failed',
-                provider_response: response.data
-            })
+            .select('id, status')
             .eq('provider_ref', reference)
-            .select()
-            .single()
+            .maybeSingle()
 
-        if (paymentError) {
-            console.error('[Verify] Failed to update payment record:', paymentError)
+        if (fetchError) {
+            console.error('[Verify] Error fetching payment record:', fetchError)
+        }
+
+        let paymentRecordId = paymentRecord?.id
+
+        if (paymentRecord) {
+            // Update existing record
+            const { error: updateError } = await supabase
+                .from('payments')
+                .update({
+                    status: paymentSuccess ? 'success' : 'failed'
+                })
+                .eq('id', paymentRecord.id)
+
+            if (updateError) {
+                console.error('[Verify] Failed to update payment record:', updateError)
+            } else {
+                console.log('[Verify] Payment record updated:', paymentRecord.id)
+            }
         } else {
-            console.log('[Verify] Payment record updated:', paymentRecord?.id)
+            // Create new record if it doesn't exist
+            console.log('[Verify] No existing payment record found, creating one')
+            const { data: newPayment, error: insertError } = await supabase
+                .from('payments')
+                .insert({
+                    user_id: metadata.userId,
+                    amount: response.data.amount / 100, // Convert from pesewas to cedis
+                    currency: response.data.currency || 'GHS',
+                    provider: 'paystack',
+                    provider_ref: reference,
+                    purpose: metadata.purpose || 'match_unlock',
+                    status: paymentSuccess ? 'success' : 'failed',
+                    metadata: { ...metadata, paystack_response: response.data }
+                })
+                .select()
+                .single()
+
+            if (insertError) {
+                console.error('[Verify] Failed to create payment record:', insertError)
+            } else {
+                paymentRecordId = newPayment?.id
+                console.log('[Verify] Payment record CREATED:', paymentRecordId)
+            }
         }
 
         // If payment successful, handle the purpose-specific logic

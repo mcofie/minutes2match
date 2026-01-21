@@ -80,38 +80,43 @@ export default defineEventHandler(async (event) => {
         }
 
         // Create pending payment record immediately using service role
-        const supabaseUrl = process.env.SUPABASE_URL
+        // This MUST succeed before user is redirected to Paystack
+        const supabaseUrl = config.supabaseUrl
         const supabaseServiceKey = config.supabaseServiceKey
 
-        if (supabaseUrl && supabaseServiceKey) {
-            const supabase = createClient(supabaseUrl, supabaseServiceKey, {
-                db: { schema: 'm2m' }
+        if (!supabaseUrl || !supabaseServiceKey) {
+            console.error('[Paystack] Missing Supabase configuration - supabaseUrl:', !!supabaseUrl, 'supabaseServiceKey:', !!supabaseServiceKey)
+            throw createError({
+                statusCode: 500,
+                message: 'Server configuration error: Supabase not configured'
+            })
+        }
+
+        const supabase = createClient(supabaseUrl, supabaseServiceKey, {
+            db: { schema: 'm2m' }
+        })
+
+        const { error: insertError } = await supabase
+            .from('payments')
+            .insert({
+                user_id: body.metadata?.userId,
+                amount: body.amount,
+                currency: 'GHS',
+                provider: 'paystack',
+                provider_ref: paymentData.reference,
+                purpose: body.metadata?.purpose || 'match_unlock',
+                status: 'pending',
+                metadata: body.metadata
             })
 
-            const { error: insertError } = await supabase
-                .from('payments')
-                .insert({
-                    user_id: body.metadata?.userId,
-                    amount: body.amount,
-                    currency: 'GHS',
-                    provider: 'paystack',
-                    provider_ref: paymentData.reference,
-                    purpose: body.metadata?.purpose || 'match_unlock',
-                    status: 'pending',
-                    metadata: body.metadata
-                })
-
-            if (insertError) {
-                console.error('[Paystack] Failed to create payment record:', insertError)
-                throw createError({
-                    statusCode: 500,
-                    message: 'Failed to create payment record'
-                })
-            }
-            console.log('[Paystack] Created pending payment record:', paymentData.reference)
-        } else {
-            console.error('[Paystack] Missing Supabase config, skipping payment record creation')
+        if (insertError) {
+            console.error('[Paystack] Failed to create payment record:', insertError)
+            throw createError({
+                statusCode: 500,
+                message: 'Failed to create payment record'
+            })
         }
+        console.log('[Paystack] Created pending payment record:', paymentData.reference)
 
         return paymentData
     } catch (error: any) {

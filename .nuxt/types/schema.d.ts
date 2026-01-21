@@ -127,6 +127,8 @@ declare module 'nuxt/schema' {
       cdnURL: string,
    },
 
+   supabaseUrl: string,
+
    hubtelClientId: string,
 
    hubtelClientSecret: string,
@@ -136,6 +138,8 @@ declare module 'nuxt/schema' {
    supabaseServiceKey: string,
 
    cronSecret: string,
+
+   discordWebhookUrl: string,
 
    nitro: {
       envPrefix: string,

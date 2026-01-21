@@ -14,6 +14,7 @@
 
 import { createClient } from '@supabase/supabase-js'
 import crypto from 'crypto'
+import { notifyPaymentSuccess, notifyMatchUnlocked, notifyEventBooking } from '~/server/utils/discord'
 
 export default defineEventHandler(async (event) => {
     const config = useRuntimeConfig()
@@ -87,35 +88,80 @@ export default defineEventHandler(async (event) => {
     console.log('[Webhook] Metadata:', JSON.stringify(metadata))
 
     // Initialize Supabase with service role for bypassing RLS
-    const supabaseUrl = process.env.SUPABASE_URL
+    const supabaseUrl = config.supabaseUrl
     const supabaseServiceKey = config.supabaseServiceKey
 
+    console.log('[Webhook] Supabase config check - URL exists:', !!supabaseUrl, 'ServiceKey exists:', !!supabaseServiceKey)
+
     if (!supabaseUrl || !supabaseServiceKey) {
-        console.error('[Webhook] Missing Supabase configuration')
+        console.error('[Webhook] Missing Supabase configuration - URL:', supabaseUrl, 'Key length:', supabaseServiceKey?.length)
         throw createError({
             statusCode: 500,
             message: 'Server configuration error'
         })
     }
+
+    console.log('[Webhook] Creating Supabase client with URL:', supabaseUrl.substring(0, 30) + '...')
+
     // Create client with m2m schema
     const supabase = createClient(supabaseUrl, supabaseServiceKey, {
         db: { schema: 'm2m' }
     })
 
     try {
-        // Update payment record
-        const { error: paymentError } = await supabase
-            .from('payments')
-            .update({
-                status: 'success',
-                provider_response: data
-            })
-            .eq('provider_ref', data.reference)
+        // First, try to find existing payment record
+        console.log('[Webhook] Searching for payment with provider_ref:', data.reference)
 
-        if (paymentError) {
-            console.error('[Webhook] Failed to update payment:', paymentError)
+        const { data: existingPayment, error: fetchError } = await supabase
+            .from('payments')
+            .select('id, status')
+            .eq('provider_ref', data.reference)
+            .maybeSingle()
+
+        console.log('[Webhook] Fetch result - Found:', !!existingPayment, 'Error:', fetchError?.message || 'none')
+
+        if (fetchError) {
+            console.error('[Webhook] Error fetching payment record:', JSON.stringify(fetchError))
+        }
+
+        if (existingPayment) {
+            console.log('[Webhook] Found existing payment record:', existingPayment.id, 'status:', existingPayment.status)
+            // Record exists, update it
+            const { error: updateError } = await supabase
+                .from('payments')
+                .update({
+                    status: 'success'
+                })
+                .eq('id', existingPayment.id)
+
+            if (updateError) {
+                console.error('[Webhook] Failed to update payment:', updateError)
+            } else {
+                console.log('[Webhook] Payment record updated to success, id:', existingPayment.id)
+            }
         } else {
-            console.log('[Webhook] Payment record updated to success')
+            // Record doesn't exist - CREATE it with success status
+            // This handles cases where initialize.post.ts failed to create the record
+            console.log('[Webhook] No existing payment record found, creating one')
+
+            const { error: insertError } = await supabase
+                .from('payments')
+                .insert({
+                    user_id: metadata.userId,
+                    amount: data.amount / 100, // Convert from pesewas to cedis
+                    currency: data.currency || 'GHS',
+                    provider: 'paystack',
+                    provider_ref: data.reference,
+                    purpose: metadata.purpose || 'match_unlock',
+                    status: 'success',
+                    metadata: { ...metadata, paystack_response: data }
+                })
+
+            if (insertError) {
+                console.error('[Webhook] Failed to create payment record:', insertError)
+            } else {
+                console.log('[Webhook] Payment record CREATED with success status for reference:', data.reference)
+            }
         }
 
         // Handle based on purpose
@@ -128,6 +174,15 @@ export default defineEventHandler(async (event) => {
         } else {
             console.log('[Webhook] Unknown or missing purpose:', metadata.purpose)
         }
+
+        // Send Discord notification for payment
+        await notifyPaymentSuccess({
+            amount: data.amount / 100,
+            currency: data.currency || 'GHS',
+            purpose: metadata.purpose || 'unknown',
+            userEmail: data.customer?.email,
+            reference: data.reference
+        })
 
         console.log('[Webhook] Processing complete, returning success')
         return { received: true, processed: true }
@@ -158,6 +213,26 @@ async function handleEventTicketPayment(supabase: any, metadata: any) {
         console.error('[Webhook] Failed to confirm booking:', bookingError)
     } else {
         console.log('[Webhook] Booking confirmed successfully, rows updated:', data?.length || 0)
+
+        // Fetch event and user details for Discord notification
+        const { data: eventData } = await supabase
+            .from('events')
+            .select('name')
+            .eq('id', metadata.eventId)
+            .single()
+
+        const { data: userData } = await supabase
+            .from('profiles')
+            .select('display_name')
+            .eq('id', metadata.userId)
+            .single()
+
+        // Send Discord notification
+        await notifyEventBooking({
+            eventName: eventData?.name || 'Unknown Event',
+            userName: userData?.display_name || 'Unknown User',
+            ticketCount: 1
+        })
     }
 
     // Note: Ticket count increment is handled by database trigger
@@ -241,6 +316,14 @@ async function handleMatchUnlockPayment(supabase: any, metadata: any, config: an
         console.error('[Webhook] Failed to update match:', matchError)
     } else {
         console.log('[Webhook] Match updated successfully')
+
+        // Send Discord notification for match unlock
+        await notifyMatchUnlocked({
+            user1Name: match.user_1?.display_name || 'User 1',
+            user2Name: match.user_2?.display_name || 'User 2',
+            matchId: matchId,
+            fullyUnlocked: otherUserPaid // If other user already paid, it's now fully unlocked
+        })
     }
 }
 

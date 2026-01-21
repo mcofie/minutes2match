@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js'
 import { enforceRateLimit } from '~/server/utils/rateLimiter'
+import { notifyNewSignup } from '~/server/utils/discord'
 
 export default defineEventHandler(async (event) => {
     // Rate limit: 3 signup attempts per 5 minutes per IP
@@ -147,6 +148,13 @@ export default defineEventHandler(async (event) => {
                 .from('vibe_answers')
                 .upsert(vibeEntries, { onConflict: 'user_id,question_key' })
         }
+
+        // Send Discord notification for new signup
+        await notifyNewSignup({
+            email,
+            phone,
+            displayName
+        })
 
         // Return credentials for client to sign in
         return {
