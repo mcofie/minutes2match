@@ -2,35 +2,46 @@
   <div>
     <!-- Compact Card -->
     <article 
-      class="group relative bg-white rounded-xl border border-stone-200 transition-all duration-300 hover:border-stone-300 hover:shadow-sm overflow-hidden cursor-pointer"
-      :class="cardClasses"
+      class="group relative bg-white rounded-2xl overflow-hidden cursor-pointer transition-all duration-300"
+      :class="[
+        cardClasses,
+        'hover:shadow-xl hover:-translate-y-0.5'
+      ]"
       @click="showModal = true"
     >
-      <!-- Celebration Badge -->
-      <div 
-        v-if="unlocked && showCelebration" 
-        class="absolute top-3 left-3 z-20 bg-black text-white px-2.5 py-1 rounded-md text-[10px] font-bold tracking-wide shadow-sm"
-      >
-        MATCHED
-      </div>
-
-      <div class="flex h-full">
-        <!-- Photo (Compact) -->
-        <div class="relative w-32 h-full flex-shrink-0 bg-stone-50 overflow-hidden border-r border-stone-100">
-          <!-- Gender Indicator -->
+      <!-- Full Card Layout -->
+      <div class="flex">
+        <!-- Photo Section -->
+        <div class="relative w-36 aspect-[3/4] flex-shrink-0 overflow-hidden bg-stone-100 flex items-center justify-center">
+          <!-- Gender Badge - Top Left -->
           <div 
             v-if="gender"
-            class="absolute bottom-2 left-2 z-20 w-6 h-6 rounded-full flex items-center justify-center text-[11px] bg-white border border-stone-100 text-stone-900 shadow-sm"
+            class="absolute top-2 left-2 z-20 w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold bg-white/90 backdrop-blur-sm shadow-sm border border-stone-200"
+            :class="gender === 'female' ? 'text-pink-600' : 'text-blue-600'"
           >
             {{ gender === 'female' ? '♀' : '♂' }}
           </div>
           
-          <!-- Locked Overlay -->
-          <div 
-            v-if="!unlocked" 
-            class="absolute inset-0 flex items-center justify-center z-10 bg-stone-50"
-          >
-            <div class="p-2 rounded-full bg-white border border-stone-200 shadow-sm">
+          <!-- Unlocked Photo -->
+          <template v-if="unlocked">
+            <img 
+              v-if="photoUrl" 
+              :src="photoUrl" 
+              :alt="displayName" 
+              class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" 
+            />
+            <div v-else class="w-full h-full flex items-center justify-center bg-stone-200">
+              <span class="text-4xl font-black text-stone-300">{{ displayName?.charAt(0) || '?' }}</span>
+            </div>
+          </template>
+          
+          <!-- Locked State - Clean & Minimal -->
+          <div v-else class="w-full h-full flex flex-col items-center justify-center relative overflow-hidden bg-stone-50">
+            <!-- Subtle Dot Pattern -->
+             <div class="absolute inset-0 opacity-[0.15]" style="background-image: radial-gradient(#9ca3af 1px, transparent 1px); background-size: 10px 10px;"></div>
+            
+            <!-- Lock Icon -->
+            <div class="relative z-10 w-10 h-10 rounded-full bg-white shadow-sm border border-stone-200 flex items-center justify-center mb-2">
               <svg v-if="currentUserPaid" class="w-5 h-5 text-amber-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
                 <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
                 <path d="M7 11V7a5 5 0 0 1 9.9-1"></path>
@@ -40,105 +51,110 @@
                 <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
               </svg>
             </div>
-          </div>
-
-          <!-- Photo -->
-          <template v-if="unlocked">
-            <img v-if="photoUrl" :src="photoUrl" :alt="displayName" class="w-full h-full object-cover grayscale-[10%] group-hover:grayscale-0 transition-all duration-500" />
-            <div v-else class="w-full h-full flex items-center justify-center bg-stone-100">
-              <span class="text-3xl font-bold text-stone-300">{{ displayName?.charAt(0) || '?' }}</span>
-            </div>
-          </template>
-          <div v-else class="w-full h-full flex items-center justify-center bg-stone-100/50 relative overflow-hidden">
-            <!-- Subtle Pattern Background -->
-            <div class="absolute inset-0 opacity-10" style="background-image: radial-gradient(#444 1px, transparent 1px); background-size: 8px 8px;"></div>
-            <span class="text-3xl font-bold text-stone-300 relative z-10">?</span>
+            
+            <span class="text-[9px] font-bold text-stone-400 uppercase tracking-widest relative z-10">Private</span>
           </div>
         </div>
         
-        <!-- Content -->
-        <div class="flex-1 p-4 min-w-0 flex flex-col h-full">
-          <div class="flex-1">
-            <!-- Top Row: Name/Age + Compatibility -->
-            <div class="flex items-start justify-between gap-2 mb-2">
+        <!-- Content Section -->
+        <div class="flex-1 p-4 min-w-0 flex flex-col justify-between">
+          <!-- Header -->
+          <div>
+            <!-- Name Row -->
+            <div class="flex items-start justify-between gap-2 mb-1">
               <div class="min-w-0">
-                <h3 v-if="unlocked" class="font-bold text-stone-900 truncate text-lg flex items-center gap-1.5 tracking-tight leading-tight">
-                  {{ displayName }}
-                  <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 mt-1"></span>
-                </h3>
-                <h3 v-else class="font-bold text-stone-900 truncate text-lg tracking-tight leading-tight">Mystery Match</h3>
-                
-                <div class="flex items-center gap-1.5 text-sm text-stone-500 font-medium">
-                  <span>{{ age }}</span>
-                  <span v-if="location" class="flex items-center gap-1">
-                    <span class="text-stone-300">•</span>
-                    <span class="truncate max-w-[100px] capitalize">{{ location }}</span>
+                <h3 class="font-bold text-stone-900 truncate text-[17px] tracking-tight flex items-center gap-2">
+                  {{ unlocked ? displayName : 'Mystery Match' }}
+                  <span v-if="unlocked" class="flex-shrink-0 w-3.5 h-3.5 rounded-full bg-blue-500 flex items-center justify-center">
+                    <svg class="w-2 h-2 text-white" viewBox="0 0 20 20" fill="currentColor">
+                      <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                    </svg>
                   </span>
-                </div>
+                </h3>
               </div>
               
-              <!-- Persona Badge -->
-              <span 
-                class="flex-shrink-0 px-2.5 py-1 rounded-md text-sm font-bold text-stone-900 bg-stone-50 border border-stone-100"
-              >
+              <!-- Persona Emoji -->
+              <span class="flex-shrink-0 text-lg opacity-80 filter grayscale-[20%]" :title="personaName">
                 {{ personaEmoji }}
               </span>
             </div>
             
-            <!-- Shared Interests Teaser (Visible even if Locked) -->
-            <div v-if="sharedInterests && sharedInterests.length > 0" class="flex items-center gap-1 mb-2">
-               <span class="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-100/50">
-                 ✨ {{ sharedInterests.length }} Shared Interests
-               </span>
+            <!-- Meta Info -->
+            <div class="flex items-center gap-1.5 text-xs font-medium text-stone-500 mb-2.5">
+              <span class="text-stone-700">{{ age }}</span>
+              <span v-if="location" class="flex items-center gap-1.5">
+                <span class="w-0.5 h-0.5 rounded-full bg-stone-300"></span>
+                <span class="capitalize truncate max-w-[120px]">{{ location }}</span>
+              </span>
+            </div>
+            
+            <!-- Shared Interests -->
+            <div v-if="sharedInterests && sharedInterests.length > 0" class="mb-2">
+              <div class="inline-flex items-center gap-1.5 py-0.5">
+                <span class="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-100/50">
+                  ✨ {{ sharedInterests.length }} shared interests
+                </span>
+              </div>
             </div>
 
-            <!-- Bio Preview -->
-            <p v-if="unlocked && bio" class="text-sm text-stone-600 line-clamp-2 leading-relaxed">
+            <!-- Bio/Teaser -->
+            <p v-if="unlocked && bio" class="text-xs text-stone-600 line-clamp-2 leading-relaxed">
               {{ bio }}
             </p>
-            <p v-else-if="!unlocked" class="text-sm text-stone-400 italic line-clamp-2 leading-relaxed">
+            <p v-else-if="!unlocked" class="text-xs text-stone-400 line-clamp-2 leading-relaxed italic">
               Unlock to reveal common interests & bio...
             </p>
           </div>
           
-          <!-- Footer: Status/Action -->
-          <div class="flex items-end justify-between mt-3 pt-3 border-t border-stone-50">
+          <!-- Footer Actions -->
+          <div class="flex items-center justify-between mt-3 pt-3 border-t border-stone-50">
             <template v-if="unlocked">
               <div class="flex flex-col">
-                <span class="text-[10px] font-bold text-stone-400 uppercase tracking-widest">Matched</span>
-                <span class="text-xs font-bold text-stone-900 mt-0.5 capitalize">{{ matchedTimeAgo }}</span>
+                <span class="text-[9px] font-bold text-stone-400 uppercase tracking-wider">Status</span>
+                <span class="text-[10px] font-bold text-emerald-600 flex items-center gap-1 mt-0.5">
+                  Matched
+                </span>
               </div>
               <button 
                 @click.stop="openWhatsApp"
-                class="flex items-center gap-2 px-4 py-2 bg-black text-white rounded-lg text-xs font-bold hover:bg-stone-800 transition-all shadow-sm hover:shadow-md active:scale-95"
+                class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-black text-white rounded-lg text-xs font-bold hover:bg-stone-800 transition-all shadow-sm"
               >
                 Message
               </button>
             </template>
+            
             <template v-else-if="currentUserPaid">
               <div class="flex flex-col">
-                <span class="text-[10px] font-bold text-amber-600 uppercase tracking-wide flex items-center gap-1.5">
-                  <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
-                  Pending
+                <span class="text-[9px] font-bold text-amber-500 uppercase tracking-wider flex items-center gap-1">
+                   Pending Match
                 </span>
-                <span v-if="expiresAt" class="text-xs text-stone-500 font-medium mt-0.5">{{ formatTimeRemaining }} left</span>
+                <span v-if="expiresAt" class="text-[10px] text-stone-400 font-medium mt-0.5">
+                  Expires in {{ formatTimeRemaining }}
+                </span>
+              </div>
+              <div class="w-6 h-6 flex items-center justify-center rounded-full bg-amber-50 text-amber-500">
+                <svg class="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
               </div>
             </template>
+            
             <template v-else>
               <div class="flex flex-col">
-                <span class="text-[10px] font-bold text-stone-400 uppercase tracking-widest">Unlock</span>
-                <span class="text-sm font-bold text-stone-900 tracking-tight mt-0.5">{{ formattedPrice }}</span>
+                <span class="text-[9px] font-bold text-stone-400 uppercase tracking-wider">Unlock Fee</span>
+                <span class="text-sm font-bold text-stone-900 mt-0.5">{{ formattedPrice }}</span>
               </div>
               <button 
                 @click.stop="$emit('unlock')"
-                class="px-5 py-2 bg-stone-100 text-stone-900 border border-stone-200 rounded-lg text-xs font-bold hover:bg-stone-200 transition-colors"
+                class="px-4 py-1.5 bg-stone-900 text-white rounded-lg text-xs font-bold hover:bg-black transition-colors shadow-sm"
               >
-                View
+                Unlock
               </button>
             </template>
           </div>
         </div>
       </div>
+      
+      <!-- Hover Glow Effect -->
+      <div class="absolute inset-0 rounded-2xl ring-1 ring-inset ring-black/5 pointer-events-none"></div>
     </article>
 
     <!-- Detail Modal -->

@@ -852,7 +852,7 @@ const processEventPayment = async () => {
       return
     }
 
-    const { initializePayment, createPaymentRecord } = usePaystack()
+    const { initializePayment } = usePaystack()
     
     const price = profile.value.gender === 'female'
       ? selectedEvent.value.ticket_price_female
@@ -885,13 +885,14 @@ const processEventPayment = async () => {
       throw bookingError
     }
 
-    await createPaymentRecord(
-      currentUserId.value,
-      price,
-      'event_ticket',
-      paymentData.reference,
-      { eventId: selectedEvent.value.id }
-    )
+    // Payment record now created server-side in initializePayment
+    // await createPaymentRecord(
+    //   currentUserId.value,
+    //   price,
+    //   'event_ticket',
+    //   paymentData.reference,
+    //   { eventId: selectedEvent.value.id }
+    // )
 
     // Update local bookings immediately
     userBookings.value.add(selectedEvent.value.id)
@@ -910,7 +911,7 @@ const handleUnlockMatch = async (match: any) => {
   if (!currentUserId.value || !profile.value) return
   
   try {
-    const { initializePayment, createPaymentRecord } = usePaystack()
+    const { initializePayment } = usePaystack()
 
     const paymentData = await initializePayment(
       profile.value.phone ? `${profile.value.phone.replace(/\+/g, '')}@m2match.com` : 'user@m2match.com',
@@ -919,13 +920,14 @@ const handleUnlockMatch = async (match: any) => {
       { userId: currentUserId.value, matchId: match.id }
     )
 
-    await createPaymentRecord(
-      currentUserId.value,
-      match.unlock_price,
-      'match_unlock',
-      paymentData.reference,
-      { matchId: match.id }
-    )
+    // Payment record now created server-side in initializePayment
+    // await createPaymentRecord(
+    //   currentUserId.value,
+    //   match.unlock_price,
+    //   'match_unlock',
+    //   paymentData.reference,
+    //   { matchId: match.id }
+    // )
 
     window.location.href = paymentData.authorization_url
   } catch (error) {
