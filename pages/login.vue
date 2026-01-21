@@ -196,8 +196,15 @@ const verifyOtp = async () => {
       const currentUser = useSupabaseUser()
       console.log('[Login] User after wait:', currentUser.value?.id)
       
-      // Use window.location for a full page reload to ensure session is detected
-      window.location.href = '/me'
+      // Redirect based on vibe check completion status
+      if (result.hasCompletedVibeCheck) {
+        // User has completed vibe check, go to dashboard
+        window.location.href = '/me'
+      } else {
+        // User hasn't completed vibe check, redirect to complete it
+        console.log('[Login] User needs to complete vibe check')
+        window.location.href = '/vibe-check?returnUser=true'
+      }
     }
   } catch (err: any) {
     console.error('Login error:', err)

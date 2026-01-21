@@ -1,6 +1,14 @@
 import { createClient } from '@supabase/supabase-js'
+import { enforceRateLimit } from '~/server/utils/rateLimiter'
 
 export default defineEventHandler(async (event) => {
+    // Rate limit: 3 signup attempts per 5 minutes per IP
+    enforceRateLimit(event, {
+        maxRequests: 3,
+        windowSeconds: 300,
+        prefix: 'signup'
+    })
+
     const body = await readBody(event)
     const config = useRuntimeConfig()
 

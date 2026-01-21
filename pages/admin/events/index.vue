@@ -53,6 +53,17 @@
         </div>
       </div>
     </div>
+    
+    <!-- Pagination -->
+    <Pagination 
+      v-if="!loading && events.length > 0"
+      class="mt-6"
+      :current-page="currentPage" 
+      :total-pages="Math.ceil(totalEvents / pageSize)" 
+      :total-items="totalEvents"
+      :page-size="pageSize"
+      @page-change="handlePageChange"
+    />
 
     <!-- Create/Edit Modal -->
     <Teleport to="body">
@@ -345,7 +356,10 @@ const supabase = useSupabaseClient()
 // Helper: Get persona by ID
 const getPersona = (personaId: string) => personas[personaId] || null
 
-// State
+// Pagination
+const currentPage = ref(1)
+const pageSize = ref(9) // 9 cards per page
+const totalEvents = ref(0)
 const loading = ref(true)
 const saving = ref(false)
 const uploading = ref(false)
@@ -368,17 +382,31 @@ const form = reactive({
   is_public: true
 })
 
-// Methods
 const fetchEvents = async () => {
   loading.value = true
   
-  const { data } = await supabase
+  let query = supabase
     .from('events')
-    .select('*')
+    .select('*', { count: 'exact' })
+  
+  // Apply Pagination
+  const from = (currentPage.value - 1) * pageSize.value
+  const to = from + pageSize.value - 1
+  
+  const { data, count, error } = await query
     .order('event_date', { ascending: false })
+    .range(from, to)
+
+  if (error) console.error('Error fetching events:', error)
   
   events.value = data || []
+  totalEvents.value = count || 0
   loading.value = false
+}
+
+const handlePageChange = (page: number) => {
+  currentPage.value = page
+  fetchEvents()
 }
 
 const formatDate = (dateStr: string) => {

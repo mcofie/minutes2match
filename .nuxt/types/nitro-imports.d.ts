@@ -11,6 +11,7 @@ declare global {
   const cachedEventHandler: typeof import('../../node_modules/nitropack/dist/runtime/internal/cache').cachedEventHandler
   const cachedFunction: typeof import('../../node_modules/nitropack/dist/runtime/internal/cache').cachedFunction
   const callNodeListener: typeof import('../../node_modules/h3').callNodeListener
+  const checkRateLimit: typeof import('../../server/utils/rateLimiter').checkRateLimit
   const clearResponseHeaders: typeof import('../../node_modules/h3').clearResponseHeaders
   const clearSession: typeof import('../../node_modules/h3').clearSession
   const createApp: typeof import('../../node_modules/h3').createApp
@@ -38,11 +39,13 @@ declare global {
   const defineWebSocketHandler: typeof import('../../node_modules/h3').defineWebSocketHandler
   const deleteCookie: typeof import('../../node_modules/h3').deleteCookie
   const dynamicEventHandler: typeof import('../../node_modules/h3').dynamicEventHandler
+  const enforceRateLimit: typeof import('../../server/utils/rateLimiter').enforceRateLimit
   const eventHandler: typeof import('../../node_modules/h3').eventHandler
   const fetchWithEvent: typeof import('../../node_modules/h3').fetchWithEvent
   const fromNodeMiddleware: typeof import('../../node_modules/h3').fromNodeMiddleware
   const fromPlainHandler: typeof import('../../node_modules/h3').fromPlainHandler
   const fromWebHandler: typeof import('../../node_modules/h3').fromWebHandler
+  const getClientIP: typeof import('../../server/utils/rateLimiter').getClientIP
   const getCookie: typeof import('../../node_modules/h3').getCookie
   const getHeader: typeof import('../../node_modules/h3').getHeader
   const getHeaders: typeof import('../../node_modules/h3').getHeaders
@@ -125,6 +128,12 @@ declare global {
   const useStorage: typeof import('../../node_modules/nitropack/dist/runtime/internal/storage').useStorage
   const writeEarlyHints: typeof import('../../node_modules/h3').writeEarlyHints
 }
+// for type re-export
+declare global {
+  // @ts-ignore
+  export type { RateLimitConfig, RateLimitResult } from '../../server/utils/rateLimiter'
+  import('../../server/utils/rateLimiter')
+}
 export { useNitroApp } from 'nitropack/runtime/internal/app';
 export { useRuntimeConfig, useAppConfig } from 'nitropack/runtime/internal/config';
 export { defineNitroPlugin, nitroPlugin } from 'nitropack/runtime/internal/plugin';
@@ -139,3 +148,4 @@ export { defineNitroErrorHandler } from 'nitropack/runtime/internal/error/utils'
 export { appendCorsHeaders, appendCorsPreflightHeaders, appendHeader, appendHeaders, appendResponseHeader, appendResponseHeaders, assertMethod, callNodeListener, clearResponseHeaders, clearSession, createApp, createAppEventHandler, createError, createEvent, createEventStream, createRouter, defaultContentType, defineEventHandler, defineLazyEventHandler, defineNodeListener, defineNodeMiddleware, defineRequestMiddleware, defineResponseMiddleware, defineWebSocket, defineWebSocketHandler, deleteCookie, dynamicEventHandler, eventHandler, fetchWithEvent, fromNodeMiddleware, fromPlainHandler, fromWebHandler, getCookie, getHeader, getHeaders, getMethod, getProxyRequestHeaders, getQuery, getRequestFingerprint, getRequestHeader, getRequestHeaders, getRequestHost, getRequestIP, getRequestPath, getRequestProtocol, getRequestURL, getRequestWebStream, getResponseHeader, getResponseHeaders, getResponseStatus, getResponseStatusText, getRouterParam, getRouterParams, getSession, getValidatedQuery, getValidatedRouterParams, handleCacheHeaders, handleCors, isCorsOriginAllowed, isError, isEvent, isEventHandler, isMethod, isPreflightRequest, isStream, isWebResponse, lazyEventHandler, parseCookies, promisifyNodeListener, proxyRequest, readBody, readFormData, readMultipartFormData, readRawBody, readValidatedBody, removeResponseHeader, sanitizeStatusCode, sanitizeStatusMessage, sealSession, send, sendError, sendIterable, sendNoContent, sendProxy, sendRedirect, sendStream, sendWebResponse, serveStatic, setCookie, setHeader, setHeaders, setResponseHeader, setResponseHeaders, setResponseStatus, splitCookiesString, toEventHandler, toNodeListener, toPlainHandler, toWebHandler, toWebRequest, unsealSession, updateSession, useBase, useSession, writeEarlyHints } from 'h3';
 export { buildAssetsURL as __buildAssetsURL, publicAssetsURL as __publicAssetsURL } from '/Users/maxwellcofie/WebstormProjects/minutes2match/node_modules/@nuxt/nitro-server/dist/runtime/utils/paths';
 export { defineAppConfig } from '/Users/maxwellcofie/WebstormProjects/minutes2match/node_modules/@nuxt/nitro-server/dist/runtime/utils/config';
+export { checkRateLimit, getClientIP, enforceRateLimit } from '/Users/maxwellcofie/WebstormProjects/minutes2match/server/utils/rateLimiter';

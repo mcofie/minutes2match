@@ -1,6 +1,14 @@
 import { createClient } from '@supabase/supabase-js'
+import { enforceRateLimit } from '~/server/utils/rateLimiter'
 
 export default defineEventHandler(async (event) => {
+    // Rate limit: 5 login attempts per minute per IP
+    enforceRateLimit(event, {
+        maxRequests: 5,
+        windowSeconds: 60,
+        prefix: 'login'
+    })
+
     const body = await readBody(event)
     const config = useRuntimeConfig()
 
@@ -46,11 +54,11 @@ export default defineEventHandler(async (event) => {
             .update({ used: true })
             .eq('id', otpData.id)
 
-        // 3. Find profile by phone
+        // 3. Find profile by phone (fetch key fields to check vibe check completion)
         const { data: profile, error: profileError } = await supabaseAdmin
             .schema('m2m')
             .from('profiles')
-            .select('id, phone, display_name')
+            .select('id, phone, display_name, gender, intent, interested_in')
             .eq('phone', phone)
             .single()
 
@@ -60,6 +68,21 @@ export default defineEventHandler(async (event) => {
                 statusMessage: 'No account found with this phone number. Please sign up first.'
             })
         }
+
+        // 4. Check if user has completed vibe check (has vibe answers)
+        const { count: vibeAnswerCount } = await supabaseAdmin
+            .schema('m2m')
+            .from('vibe_answers')
+            .select('id', { count: 'exact', head: true })
+            .eq('user_id', profile.id)
+
+        // User has completed vibe check if they have key profile fields AND some vibe answers
+        const hasCompletedVibeCheck = !!(
+            profile.gender &&
+            profile.intent &&
+            profile.interested_in &&
+            vibeAnswerCount && vibeAnswerCount > 0
+        )
 
         // 4. Get the auth user and generate a session
         const { data: authData, error: authError } = await supabaseAdmin.auth.admin.getUserById(profile.id)
@@ -97,7 +120,8 @@ export default defineEventHandler(async (event) => {
             success: true,
             email: authData.user.email,
             password: tempPassword,
-            displayName: profile.display_name
+            displayName: profile.display_name,
+            hasCompletedVibeCheck
         }
     } catch (error: any) {
         console.error('Login error:', error)

@@ -140,6 +140,15 @@
       </table>
     </div>
 
+    <!-- Pagination -->
+    <Pagination 
+      :current-page="currentPage" 
+      :total-pages="Math.ceil(totalPayments / pageSize)" 
+      :total-items="totalPayments"
+      :page-size="pageSize"
+      @page-change="handlePageChange"
+    />
+
     <!-- Payment Detail Modal -->
     <Teleport to="body">
       <div v-if="selectedPayment" class="modal-overlay" @click.self="selectedPayment = null">
@@ -196,6 +205,10 @@ definePageMeta({
 
 const supabase = useSupabaseClient()
 
+// Pagination
+const currentPage = ref(1)
+const pageSize = ref(15)
+const totalPayments = ref(0)
 const loading = ref(true)
 const payments = ref<any[]>([])
 const alerts = ref<any[]>([])
@@ -267,19 +280,41 @@ const fetchPayments = async () => {
   
   let query = supabase
     .from('payments')
-    .select('*, user:profiles!payments_user_id_fkey(id, display_name, phone)')
-    .order('created_at', { ascending: false })
-    .limit(100)
+    .select('*, user:profiles!payments_user_id_fkey(id, display_name, phone)', { count: 'exact' })
   
+  // Apply filters
   if (filters.status) query = query.eq('status', filters.status)
   if (filters.purpose) query = query.eq('purpose', filters.purpose)
   if (filters.dateFrom) query = query.gte('created_at', filters.dateFrom)
   if (filters.dateTo) query = query.lte('created_at', filters.dateTo + 'T23:59:59')
   
-  const { data } = await query
+  // Apply Pagination
+  const from = (currentPage.value - 1) * pageSize.value
+  const to = from + pageSize.value - 1
+
+  const { data, count, error } = await query
+    .order('created_at', { ascending: false })
+    .range(from, to)
+  
+  if (error) {
+    console.error('Error fetching payments:', error)
+  }
+
   payments.value = data || []
+  totalPayments.value = count || 0
   loading.value = false
 }
+
+const handlePageChange = (page: number) => {
+  currentPage.value = page
+  fetchPayments()
+}
+
+// Watch filters
+watch(filters, () => {
+  currentPage.value = 1
+  fetchPayments()
+}, { deep: true })
 
 const fetchAlerts = async () => {
   const { data } = await supabase

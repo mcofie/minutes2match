@@ -5,7 +5,16 @@
  * SECURITY: This route keeps Hubtel API keys server-side only
  */
 
+import { enforceRateLimit } from '~/server/utils/rateLimiter'
+
 export default defineEventHandler(async (event) => {
+    // Rate limit: 3 SMS per minute per IP to prevent abuse
+    enforceRateLimit(event, {
+        maxRequests: 3,
+        windowSeconds: 60,
+        prefix: 'sms'
+    })
+
     const { to, message } = await readBody(event)
 
     if (!to || !message) {

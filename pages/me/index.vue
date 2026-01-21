@@ -61,13 +61,6 @@
         >
           Profile
         </button>
-        <button 
-          @click="activeTab = 'payments'"
-          class="pb-3 text-sm font-bold tracking-wide uppercase transition-all whitespace-nowrap border-b-2"
-          :class="activeTab === 'payments' ? 'text-black border-black' : 'text-stone-400 border-transparent hover:text-stone-600'"
-        >
-          Payments
-        </button>
       </div>
 
       <!-- Content Area -->
@@ -179,6 +172,42 @@
              <div class="bg-white p-6 rounded-2xl border border-stone-200 shadow-sm">
                 <h3 class="font-bold text-stone-900 mb-4">Account</h3>
                 <UiButton variant="outline" size="sm" @click="handleLogout" class="w-full">Sign Out</UiButton>
+             </div>
+             
+             <!-- Payment History -->
+             <div class="bg-white p-6 rounded-2xl border border-stone-200 shadow-sm">
+                <h3 class="font-bold text-stone-900 mb-4">Payment History</h3>
+                
+                <div v-if="loadingPayments" class="text-center text-stone-400 text-sm py-4">Loading...</div>
+                
+                <div v-else-if="userPayments.length === 0" class="text-center text-stone-400 text-sm py-4">
+                  No payments yet
+                </div>
+                
+                <div v-else class="space-y-3 max-h-64 overflow-y-auto">
+                  <div 
+                    v-for="payment in userPayments.slice(0, 10)" 
+                    :key="payment.id" 
+                    class="flex items-center justify-between py-2 border-b border-stone-100 last:border-0"
+                  >
+                    <div class="flex items-center gap-2">
+                      <span class="text-lg">{{ payment.purpose === 'event_ticket' ? '🎟️' : '💕' }}</span>
+                      <div>
+                        <p class="text-sm font-medium text-stone-900">{{ payment.purpose === 'event_ticket' ? 'Event' : 'Match' }}</p>
+                        <p class="text-xs text-stone-400">{{ formatPaymentDate(payment.created_at) }}</p>
+                      </div>
+                    </div>
+                    <div class="text-right">
+                      <p class="text-sm font-bold text-stone-900">{{ formatPaymentGHS(payment.amount) }}</p>
+                      <span 
+                        class="text-[10px] px-1.5 py-0.5 rounded-full font-semibold"
+                        :class="payment.status === 'success' ? 'bg-emerald-100 text-emerald-700' : payment.status === 'pending' ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-700'"
+                      >
+                        {{ payment.status }}
+                      </span>
+                    </div>
+                  </div>
+                </div>
              </div>
           </div>
 
@@ -370,48 +399,6 @@
              </div>
           </div>
         </div>
-
-        <!-- Payments Tab -->
-        <div v-if="activeTab === 'payments'" class="animate-in fade-in slide-in-from-bottom-2 duration-500">
-          <div class="flex items-center justify-between mb-6">
-            <h2 class="text-2xl font-bold tracking-tight">Payment History</h2>
-          </div>
-          
-          <div v-if="loadingPayments" class="py-12 text-center text-stone-400">Loading payments...</div>
-          
-          <div v-else-if="userPayments.length === 0" class="py-12 text-center">
-            <p class="text-stone-400">No payments yet</p>
-          </div>
-          
-          <div v-else class="bg-white rounded-2xl border border-stone-200 overflow-hidden">
-            <div 
-              v-for="payment in userPayments" 
-              :key="payment.id" 
-              class="p-4 border-b border-stone-100 last:border-0 hover:bg-stone-50"
-            >
-              <div class="flex items-center justify-between">
-                <div class="flex items-center gap-4">
-                  <div class="w-10 h-10 rounded-full flex items-center justify-center" :class="payment.purpose === 'event_ticket' ? 'bg-blue-100 text-blue-600' : 'bg-pink-100 text-pink-600'">
-                    {{ payment.purpose === 'event_ticket' ? '🎟️' : '💕' }}
-                  </div>
-                  <div>
-                    <p class="font-semibold text-stone-900">{{ payment.purpose === 'event_ticket' ? 'Event Ticket' : 'Match Unlock' }}</p>
-                    <p class="text-xs text-stone-400">{{ formatPaymentDate(payment.created_at) }}</p>
-                  </div>
-                </div>
-                <div class="text-right">
-                  <p class="font-bold text-stone-900">{{ formatPaymentGHS(payment.amount) }}</p>
-                  <span 
-                    class="text-xs px-2 py-0.5 rounded-full font-semibold"
-                    :class="payment.status === 'success' ? 'bg-emerald-100 text-emerald-700' : payment.status === 'pending' ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-700'"
-                  >
-                    {{ payment.status }}
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
       </div>
     </div>
     
@@ -470,7 +457,7 @@ const user = useSupabaseUser()
 // State
 const authReady = ref(false)
 const currentUserId = ref<string | null>(null)  // Store user ID to avoid undefined issues
-const activeTab = ref<'events' | 'matches' | 'profile' | 'payments'>('events')
+const activeTab = ref<'events' | 'matches' | 'profile'>('events')
 const profile = ref<any>(null)
 const events = ref<any[]>([])
 const matches = ref<any[]>([])
@@ -524,14 +511,21 @@ const availableInterests = [
 ]
 
 const toggleInterest = (interestId: string) => {
-  const index = editForm.interests.indexOf(interestId)
+  const currentInterests = [...editForm.interests]
+  const index = currentInterests.indexOf(interestId)
+  
   if (index === -1) {
-    if (editForm.interests.length < 6) {
-      editForm.interests.push(interestId)
+    // Add interest if not already at max
+    if (currentInterests.length < 6) {
+      currentInterests.push(interestId)
     }
   } else {
-    editForm.interests.splice(index, 1)
+    // Remove interest
+    currentInterests.splice(index, 1)
   }
+  
+  // Reassign to trigger reactivity
+  editForm.interests = currentInterests
 }
 
 const saving = ref(false)
@@ -1018,7 +1012,7 @@ const fetchProfileById = async (userId: string) => {
       editForm.about_me = data.about_me || ''
       editForm.min_age = data.min_age || 18
       editForm.max_age = data.max_age || 50
-      editForm.interests = data.interests || []
+      editForm.interests = [...(data.interests || [])]
     }
   } catch (err) {
     console.error('[Profile] Exception:', err)

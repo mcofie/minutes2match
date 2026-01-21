@@ -48,10 +48,10 @@
           <tr v-if="loading">
             <td colspan="8" class="text-center py-8 text-muted">Loading users...</td>
           </tr>
-          <tr v-else-if="filteredUsers.length === 0">
+          <tr v-else-if="users.length === 0">
             <td colspan="8" class="text-center py-8 text-muted">No users found</td>
           </tr>
-          <tr v-for="user in filteredUsers" :key="user.id">
+          <tr v-for="user in users" :key="user.id">
             <td>
               <div class="user-cell cursor-pointer" @click="viewUser(user)">
                 <div class="user-avatar">{{ user.display_name?.charAt(0) || '?' }}</div>
@@ -86,6 +86,15 @@
         </tbody>
       </table>
     </div>
+    
+    <!-- Pagination -->
+    <Pagination 
+      :current-page="currentPage" 
+      :total-pages="Math.ceil(totalUsers / pageSize)" 
+      :total-items="totalUsers"
+      :page-size="pageSize"
+      @page-change="handlePageChange"
+    />
 
     <!-- User Details Modal -->
     <Teleport to="body">
@@ -474,6 +483,11 @@ const filters = reactive({
   search: ''
 })
 
+// Pagination State
+const currentPage = ref(1)
+const pageSize = ref(15)
+const totalUsers = ref(0) // Will be set by fetch
+
 // Modal State
 const showModal = ref(false)
 const selectedUser = ref<any>(null)
@@ -492,32 +506,60 @@ const userActivity = reactive({
   payments: [] as any[]
 })
 
-// Computed
-const filteredUsers = computed(() => {
-  return users.value.filter(user => {
-    if (filters.gender && user.gender !== filters.gender) return false
-    if (filters.persona && user.dating_persona !== filters.persona) return false
-    if (filters.verified && String(user.is_verified) !== filters.verified) return false
-    if (filters.search) {
-      const search = filters.search.toLowerCase()
-      const name = (user.display_name || '').toLowerCase()
-      const phone = (user.phone || '').toLowerCase()
-      if (!name.includes(search) && !phone.includes(search)) return false
-    }
-    return true
-  })
-})
-
-// Fetch users
+// Fetch users with Server-Side Filtering & Pagination
 const fetchUsers = async () => {
   loading.value = true
-  const { data } = await supabase
+  
+  let query = supabase
     .from('profiles')
-    .select('*')
+    .select('*', { count: 'exact' })
+  
+  // Apply Filters
+  if (filters.gender) {
+    query = query.eq('gender', filters.gender)
+  }
+  
+  if (filters.persona) {
+    query = query.eq('dating_persona', filters.persona)
+  }
+  
+  if (filters.verified) {
+    query = query.eq('is_verified', filters.verified === 'true')
+  }
+  
+  if (filters.search) {
+    // Simple search on display_name or phone
+    const searchTerm = `%${filters.search}%`
+    query = query.or(`display_name.ilike.${searchTerm},phone.ilike.${searchTerm}`)
+  }
+  
+  // Apply Pagination
+  const from = (currentPage.value - 1) * pageSize.value
+  const to = from + pageSize.value - 1
+  
+  const { data, count, error } = await query
     .order('created_at', { ascending: false })
+    .range(from, to)
+
+  if (error) {
+    console.error('Error fetching users:', error)
+  }
+
   users.value = data || []
+  totalUsers.value = count || 0
   loading.value = false
 }
+
+const handlePageChange = (page: number) => {
+  currentPage.value = page
+  fetchUsers()
+}
+
+// Watch filters to reset pagination
+watch(filters, () => {
+  currentPage.value = 1
+  fetchUsers()
+}, { deep: true })
 
 // Fetch helper: Questions map
 const fetchQuestionsMap = async () => {

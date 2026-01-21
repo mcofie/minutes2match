@@ -375,13 +375,21 @@ useHead({
 const showRetakeModal = ref(false)
 const isRetakeMode = ref(false)
 const isCheckingAuth = ref(true)
+const isReturningUser = ref(false) // User who logged in but hasn't completed vibe check
 
 // Check if user is already logged in
 onMounted(async () => {
   const isRetakeRequest = route.query.retake === 'true'
+  const isReturnUser = route.query.returnUser === 'true'
   
   if (user.value) {
-    if (isRetakeRequest) {
+    if (isReturnUser) {
+      // User is logged in but needs to complete vibe check
+      // Let them proceed without modal
+      console.log('[VibeCheck] Returning user needs to complete vibe check')
+      isReturningUser.value = true
+      isCheckingAuth.value = false
+    } else if (isRetakeRequest) {
       // User wants to retake - show confirmation modal
       showRetakeModal.value = true
       isCheckingAuth.value = false
@@ -569,8 +577,14 @@ const selectInterest = (interest: 'male' | 'female' | 'everyone') => {
   }, 400)
 }
 
-const nextStep = () => {
+const nextStep = async () => {
   if (currentStep.value < totalSteps) {
+    // If going to step 10 (Phone) and is returning user, skip to processing
+    if (currentStep.value === 9 && isReturningUser.value) {
+        await handleReturningUserCompletion()
+        return
+    }
+    
     showEncouragementToast()
     currentStep.value++
   }
@@ -634,6 +648,73 @@ const handleVerifyOtp = async () => {
 }
 
 const isCreatingProfile = ref(false)
+
+// Handle completion for users who are already logged in
+const handleReturningUserCompletion = async () => {
+  isCreatingProfile.value = true
+  try {
+    // Calculate persona first
+    const { calculatePersona, savePersona } = usePersona()
+    assignedPersona.value = calculatePersona(vibeAnswers)
+    
+    // Update profile and save vibe answers
+    await updateUserProfile()
+    
+    // Save persona to database
+    if (user.value && assignedPersona.value) {
+       await savePersona(user.value.id, assignedPersona.value.id)
+    }
+    
+    // Move to results step
+    currentStep.value = 11
+  } catch (error) {
+    console.error('Error completing profile:', error)
+    alert('Failed to save profile. Please try again.')
+  } finally {
+    isCreatingProfile.value = false
+  }
+}
+
+const updateUserProfile = async () => {
+  const supabase = useSupabaseClient<Database>()
+  
+  if (!user.value) return
+
+  // Update profile fields
+  const { error: profileError } = await supabase
+    .from('profiles')
+    .update({
+      display_name: form.displayName.trim(),
+      gender: form.gender,
+      birth_date: form.birthDate,
+      location: form.location,
+      interested_in: form.interestedIn,
+      intent: form.intent,
+      genotype: form.genotype || null,
+      religion: form.religion || null,
+      height_cm: form.height,
+      occupation: form.occupation || null,
+      is_verified: true
+    })
+    .eq('id', user.value.id)
+
+  if (profileError) throw profileError
+
+  // Save/Update Vibe Answers
+  if (vibeAnswers && Object.keys(vibeAnswers).length > 0) {
+    const vibeEntries = Object.entries(vibeAnswers).map(([key, value]) => ({
+        user_id: user.value!.id,
+        question_key: key,
+        answer_value: value
+    }))
+
+    const { error: vibeError } = await supabase
+        .from('vibe_answers')
+        .upsert(vibeEntries, { onConflict: 'user_id,question_key' })
+        
+    if (vibeError) throw vibeError
+  }
+}
 
 const createUserProfile = async () => {
   if (isCreatingProfile.value) return
