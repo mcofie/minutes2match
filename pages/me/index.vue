@@ -124,7 +124,7 @@
             <p class="text-sm text-stone-500">We'll SMS you when you get matched!</p>
           </div>
 
-          <div v-else class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div v-else class="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
             <BlindProfileCard
               v-for="match in matches"
               :key="match.id"
@@ -144,6 +144,9 @@
               :interests="match.matchedProfile?.interests"
               :sharedInterests="getSharedInterests(match.matchedProfile?.interests)"
               :expiresAt="match.expires_at"
+              :matchedAt="match.created_at"
+              :location="match.matchedProfile?.location"
+              :gender="match.matchedProfile?.gender"
               @unlock="handleUnlockMatch(match)"
             />
           </div>
