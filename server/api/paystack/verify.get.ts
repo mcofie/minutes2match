@@ -3,9 +3,10 @@
  * GET /api/paystack/verify?reference=xxx
  * 
  * Verifies a payment status and updates database records
+ * Uses service role client to bypass RLS
  */
 
-import { serverSupabaseClient } from '#supabase/server'
+import { createClient } from '@supabase/supabase-js'
 
 export default defineEventHandler(async (event) => {
     const query = getQuery(event)
@@ -19,7 +20,25 @@ export default defineEventHandler(async (event) => {
     }
 
     const config = useRuntimeConfig()
-    const supabase = await serverSupabaseClient(event)
+
+    // Use service role client to bypass RLS for payment updates
+    const supabaseUrl = process.env.SUPABASE_URL
+    const supabaseServiceKey = config.supabaseServiceKey
+
+    if (!supabaseUrl || !supabaseServiceKey) {
+        console.error('[Verify] Missing Supabase configuration')
+        throw createError({
+            statusCode: 500,
+            message: 'Server configuration error'
+        })
+    }
+
+    // Create client with m2m schema
+    const supabase = createClient(supabaseUrl, supabaseServiceKey, {
+        db: { schema: 'm2m' }
+    })
+
+    console.log('[Verify] Processing payment verification for reference:', reference)
 
     try {
         // Verify with Paystack
@@ -40,11 +59,15 @@ export default defineEventHandler(async (event) => {
             }
         })
 
+        console.log('[Verify] Paystack response:', response.data.status, 'Amount:', response.data.amount)
+
         const paymentSuccess = response.data.status === 'success'
         const metadata = response.data.metadata || {}
 
+        console.log('[Verify] Metadata:', JSON.stringify(metadata))
+
         // Update payment record in database
-        const { data: paymentRecord } = await supabase
+        const { data: paymentRecord, error: paymentError } = await supabase
             .from('payments')
             .update({
                 status: paymentSuccess ? 'success' : 'failed',
@@ -53,6 +76,12 @@ export default defineEventHandler(async (event) => {
             .eq('provider_ref', reference)
             .select()
             .single()
+
+        if (paymentError) {
+            console.error('[Verify] Failed to update payment record:', paymentError)
+        } else {
+            console.log('[Verify] Payment record updated:', paymentRecord?.id)
+        }
 
         // If payment successful, handle the purpose-specific logic
         if (paymentSuccess && metadata.purpose) {

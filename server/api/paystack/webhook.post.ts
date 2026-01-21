@@ -97,8 +97,10 @@ export default defineEventHandler(async (event) => {
             message: 'Server configuration error'
         })
     }
-
-    const supabase = createClient(supabaseUrl, supabaseServiceKey)
+    // Create client with m2m schema
+    const supabase = createClient(supabaseUrl, supabaseServiceKey, {
+        db: { schema: 'm2m' }
+    })
 
     try {
         // Update payment record
