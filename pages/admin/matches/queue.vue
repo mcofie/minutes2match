@@ -69,16 +69,16 @@
 
       <div v-else class="divide-y divide-stone-100">
         <div 
-          v-for="(user, index) in filteredQueue" 
+          v-for="(user, index) in paginatedQueue" 
           :key="user.id"
           class="p-5 hover:bg-stone-50/50 transition-colors flex items-center gap-5"
         >
           <!-- Priority Rank -->
           <div 
             class="w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm flex-shrink-0"
-            :class="getPriorityClass(index)"
+            :class="getPriorityClass((currentPage - 1) * pageSize + index)"
           >
-            {{ index + 1 }}
+            {{ (currentPage - 1) * pageSize + index + 1 }}
           </div>
 
           <!-- Avatar -->
@@ -148,6 +148,16 @@
         </div>
       </div>
     </div>
+    <!-- Pagination -->
+    <Pagination 
+      v-if="!loading && filteredQueue.length > 0"
+      class="mt-6 border-t border-stone-100"
+      :current-page="currentPage" 
+      :total-pages="Math.ceil(filteredQueue.length / pageSize)" 
+      :total-items="filteredQueue.length"
+      :page-size="pageSize"
+      @page-change="handlePageChange"
+    />
 
     <!-- User Profile Modal -->
     <Teleport to="body">
@@ -254,6 +264,10 @@ const queue = ref<any[]>([])
 const selectedUser = ref<any>(null)
 const activeTab = ref('all')
 
+// Pagination State
+const currentPage = ref(1)
+const pageSize = ref(10)
+
 const tabs = computed(() => [
   { id: 'all', label: 'All', count: queue.value.length },
   { id: 'urgent', label: 'Urgent (14+ days)', count: queue.value.filter(u => u.waitDays >= 14).length },
@@ -269,17 +283,37 @@ const queueStats = computed(() => ({
 }))
 
 const filteredQueue = computed(() => {
+  let result = []
   switch (activeTab.value) {
     case 'urgent':
-      return queue.value.filter(u => u.waitDays >= 14)
+      result = queue.value.filter(u => u.waitDays >= 14)
+      break
     case 'new':
-      return queue.value.filter(u => u.waitDays < 3)
+      result = queue.value.filter(u => u.waitDays < 3)
+      break
     case 'high-match':
-      return queue.value.filter(u => u.potentialMatches >= 5)
+      result = queue.value.filter(u => u.potentialMatches >= 5)
+      break
     default:
-      return queue.value
+      result = queue.value
   }
+  return result
 })
+
+const paginatedQueue = computed(() => {
+  const start = (currentPage.value - 1) * pageSize.value
+  const end = start + pageSize.value
+  return filteredQueue.value.slice(start, end)
+})
+
+watch(activeTab, () => {
+  currentPage.value = 1
+})
+
+const handlePageChange = (page: number) => {
+  currentPage.value = page
+  window.scrollTo({ top: 0, behavior: 'smooth' })
+}
 
 // Fetch queue
 const fetchQueue = async () => {
