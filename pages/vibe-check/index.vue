@@ -1,37 +1,45 @@
 <template>
-  <main class="min-h-screen bg-white flex flex-col font-sans text-stone-900 relative overflow-hidden">
+  <main class="min-h-screen bg-[#FFFCF8] flex flex-col font-sans text-stone-900 relative overflow-hidden">
+    <!-- Fonts -->
+    <Head>
+      <Link rel="preconnect" href="https://fonts.googleapis.com" />
+      <Link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="" />
+      <Link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+    </Head>
+
+    <!-- Dot Pattern Background -->
+    <div class="absolute inset-0 opacity-[0.03] pointer-events-none" style="background-image: radial-gradient(#000 1px, transparent 1px); background-size: 24px 24px;"></div>
+
     <!-- Retake Confirmation Modal -->
     <Transition name="modal">
       <div v-if="showRetakeModal" class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-        <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8 animate-in zoom-in-95 duration-300">
+        <div class="bg-white rounded-xl shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] border-2 border-black max-w-md w-full p-8 animate-in zoom-in-95 duration-300">
           <div class="text-center space-y-4">
-            <span class="text-5xl block">🔄</span>
-            <h2 class="text-2xl font-bold text-stone-900">Retake Vibe Test?</h2>
-            <p class="text-stone-500 leading-relaxed">
-              You've already completed the vibe test. Retaking it will <strong class="text-stone-700">replace your current answers</strong> and may affect your matches.
+            <span class="text-5xl block animate-spin-slow">🔄</span>
+            <h2 class="text-3xl font-serif font-bold text-black">Retake Vibe Test?</h2>
+            <p class="text-stone-600 leading-relaxed font-light">
+              You've already completed the vibe test. Retaking it will <strong class="text-black font-bold">replace your current answers</strong> and may affect your matches.
             </p>
-            <div class="bg-amber-50 border border-amber-200 rounded-xl p-4 text-left">
+            <div class="bg-rose-50 border-2 border-rose-100 rounded-lg p-4 text-left">
               <div class="flex items-start gap-3">
-                <span class="text-amber-500 text-xl">⚠️</span>
-                <div class="text-sm text-amber-800">
-                  <p class="font-semibold">This action cannot be undone</p>
-                  <p class="text-amber-700 mt-1">Your persona and compatibility scores will be recalculated.</p>
+                <span class="text-rose-500 text-xl font-bold">⚠️</span>
+                <div class="text-sm text-rose-900">
+                  <p class="font-bold uppercase tracking-wider text-xs">This action cannot be undone</p>
+                  <p class="text-rose-700 mt-1 font-mono text-xs">Your persona and compatibility scores will be recalculated.</p>
                 </div>
               </div>
             </div>
           </div>
           <div class="mt-8 flex flex-col gap-3">
-            <UiButton
-              variant="primary"
-              size="lg"
+            <button
               @click="confirmRetake"
-              class="w-full"
+              class="w-full bg-black text-white py-3 rounded-lg font-bold uppercase tracking-widest text-sm hover:bg-rose-500 hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,0.2)] hover:-translate-y-[1px] transition-all border-2 border-black"
             >
               Yes, Retake Test 🎯
-            </UiButton>
+            </button>
             <button
               @click="cancelRetake"
-              class="w-full py-3 text-stone-500 font-medium hover:text-stone-700 transition-colors"
+              class="w-full py-3 text-stone-500 font-bold uppercase tracking-widest text-xs hover:text-black transition-colors"
             >
               No, Go Back to Dashboard
             </button>
@@ -41,57 +49,57 @@
     </Transition>
 
     <!-- Progress Bar -->
-    <div class="fixed top-0 left-0 right-0 h-1 bg-stone-100 z-50">
-      <div class="h-full bg-black transition-all duration-500 ease-out" :style="{ width: progressPercentage + '%' }"></div>
+    <div class="fixed top-0 left-0 right-0 h-2 bg-stone-100 z-50 border-b border-black">
+      <div class="h-full bg-rose-500 transition-all duration-500 ease-out" :style="{ width: progressPercentage + '%' }"></div>
     </div>
 
     <!-- Encouragement Toast -->
     <Transition name="toast">
-      <div v-if="showEncouragement" class="fixed top-6 left-1/2 -translate-x-1/2 bg-black text-white px-6 py-2 rounded-full font-medium text-sm shadow-xl z-50 flex items-center gap-2">
+      <div v-if="showEncouragement" class="fixed top-8 left-1/2 -translate-x-1/2 bg-black text-white px-6 py-3 rounded-full font-bold uppercase tracking-widest text-xs shadow-[4px_4px_0px_0px_rgba(244,63,94,1)] border border-black z-50 flex items-center gap-2">
         <span>{{ encouragementMessage }}</span>
       </div>
     </Transition>
 
     <!-- Content Container -->
-    <div class="flex-1 flex flex-col items-center justify-center p-6 w-full max-w-lg mx-auto min-h-[600px]">
+    <div class="flex-1 flex flex-col items-center justify-center p-6 w-full max-w-lg mx-auto min-h-[600px] relative z-10">
       
       <!-- Step 1: Quick Intro -->
-      <div v-if="currentStep === 1" class="w-full animate-fade-in space-y-8">
+      <div v-if="currentStep === 1" class="w-full animate-fade-in space-y-10">
         <div class="text-center space-y-2">
-          <span class="text-4xl block mb-4 animate-bounce-slow">👋</span>
-          <h1 class="text-3xl font-bold tracking-tight">Let's meet you!</h1>
-          <p class="text-stone-500">This takes about 90 seconds</p>
+          <span class="text-5xl block mb-6 animate-bounce-slow">👋</span>
+          <h1 class="text-4xl md:text-5xl font-serif font-bold text-black tracking-tight">Let's meet you!</h1>
+          <p class="text-stone-500 font-light font-serif italic text-lg">This takes about 90 seconds</p>
         </div>
 
-        <div class="space-y-6">
-          <div class="space-y-2">
-            <label class="block text-xs font-bold uppercase tracking-wide text-stone-500">What should we call you?</label>
+        <div class="space-y-8">
+          <div class="space-y-3">
+            <label class="block text-xs font-bold uppercase tracking-widest text-stone-900 border-b border-black pb-1 mb-2 inline-block">What should we call you?</label>
             <input
               type="text"
               v-model="form.displayName"
-              placeholder="Your first name"
-              class="w-full px-4 py-4 rounded-xl border border-stone-200 bg-white text-xl font-semibold text-center placeholder-stone-300 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition-all"
+              placeholder="YOUR FIRST NAME"
+              class="w-full px-4 py-4 bg-transparent text-2xl md:text-3xl font-serif font-bold text-center placeholder-stone-200 focus:outline-none focus:placeholder-stone-100 transition-colors border-b-2 border-stone-200 focus:border-black rounded-none"
               maxlength="20"
               @keyup.enter="form.displayName.length >= 2 && nextStep()"
             />
           </div>
 
-          <div class="space-y-3 animate-in fade-in slide-in-from-bottom-4 duration-500" v-if="form.displayName.length >= 2">
-            <label class="block text-xs font-bold uppercase tracking-wide text-stone-500">I am</label>
+          <div class="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500" v-if="form.displayName.length >= 2">
+            <label class="block text-xs font-bold uppercase tracking-widest text-stone-900 border-b border-black pb-1 mb-2 inline-block">I am</label>
             <div class="grid grid-cols-2 gap-4">
               <VibeCard text="A Guy" icon="🙋‍♂️" :selected="form.gender === 'male'" @select="selectGender('male')" />
               <VibeCard text="A Lady" icon="🙋‍♀️" :selected="form.gender === 'female'" @select="selectGender('female')" />
             </div>
           </div>
 
-          <div class="space-y-3 animate-in fade-in slide-in-from-bottom-4 duration-500 delay-100" v-if="form.gender">
-            <label class="block text-xs font-bold uppercase tracking-wide text-stone-500">Looking for</label>
+          <div class="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500 delay-100" v-if="form.gender">
+            <label class="block text-xs font-bold uppercase tracking-widest text-stone-900 border-b border-black pb-1 mb-2 inline-block">Looking for</label>
             <div class="grid grid-cols-2 gap-4">
               <VibeCard text="Men" icon="🧔" :selected="form.interestedIn === 'male'" @select="selectInterest('male')" />
               <VibeCard text="Women" icon="👩" :selected="form.interestedIn === 'female'" @select="selectInterest('female')" />
             </div>
             <button 
-              class="w-full text-stone-400 text-sm font-medium hover:text-black transition-colors py-2"
+              class="w-full text-stone-400 text-xs font-bold uppercase tracking-widest hover:text-rose-500 transition-colors py-3 hover:underline underline-offset-4"
               @click="selectInterest('everyone')"
             >
               I'm open to everyone ✨
@@ -101,16 +109,16 @@
       </div>
 
       <!-- Step 2: Quick Details -->
-      <div v-else-if="currentStep === 2" class="w-full animate-fade-in space-y-8">
+      <div v-else-if="currentStep === 2" class="w-full animate-fade-in space-y-10">
         <div class="text-center space-y-2">
-          <span class="text-4xl block mb-4">📋</span>
-          <h1 class="text-3xl font-bold tracking-tight">Almost there, {{ form.displayName }}!</h1>
-          <p class="text-stone-500">Just a few quick details</p>
+          <span class="text-5xl block mb-6">📋</span>
+          <h1 class="text-3xl md:text-4xl font-serif font-bold text-black tracking-tight">Almost there, {{ form.displayName }}!</h1>
+          <p class="text-stone-500 font-light font-serif italic">Just a few quick details</p>
         </div>
 
-        <div class="space-y-6">
-          <div class="space-y-2">
-            <label class="block text-xs font-bold uppercase tracking-wide text-stone-500">What are you looking for?</label>
+        <div class="space-y-8">
+          <div class="space-y-4">
+            <label class="block text-xs font-bold uppercase tracking-widest text-stone-900 border-b border-black pb-1 mb-2 inline-block">What are you looking for?</label>
             <div class="grid grid-cols-2 gap-3">
               <VibeCard text="Marriage" icon="💍" size="sm" :selected="form.intent === 'marriage'" @select="form.intent = 'marriage'" />
               <VibeCard text="Relationship" icon="❤️" size="sm" :selected="form.intent === 'serious'" @select="form.intent = 'serious'" />
@@ -119,31 +127,35 @@
             </div>
           </div>
 
-          <div class="grid grid-cols-2 gap-4">
+          <div class="grid grid-cols-2 gap-6">
             <div class="space-y-2">
-              <label class="block text-xs font-bold uppercase tracking-wide text-stone-500">Birthday</label>
+              <label class="block text-xs font-bold uppercase tracking-widest text-stone-900">Birthday</label>
               <UiDatePicker 
                 v-model="form.birthDate" 
-                placeholder="Select your birthday"
+                placeholder="Select date"
+                class="font-mono text-sm"
               />
             </div>
             <div class="space-y-2">
-              <label class="block text-xs font-bold uppercase tracking-wide text-stone-500">City</label>
-              <select v-model="form.location" class="w-full px-4 py-3 rounded-xl border border-stone-200 bg-white focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition-all">
-                <option value="">Select...</option>
-                <option value="accra">Accra</option>
-                <option value="kumasi">Kumasi</option>
-                <option value="tamale">Tamale</option>
-                <option value="takoradi">Takoradi</option>
-                <option value="other">Other</option>
-              </select>
+              <label class="block text-xs font-bold uppercase tracking-widest text-stone-900">City</label>
+              <div class="relative">
+                <select v-model="form.location" class="w-full px-4 py-3 rounded-lg border-2 border-stone-200 bg-white focus:outline-none focus:border-black transition-all appearance-none font-bold text-sm">
+                  <option value="">Select...</option>
+                  <option value="accra">Accra</option>
+                  <option value="kumasi">Kumasi</option>
+                  <option value="tamale">Tamale</option>
+                  <option value="takoradi">Takoradi</option>
+                  <option value="other">Other</option>
+                </select>
+                <div class="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-xs">▼</div>
+              </div>
             </div>
           </div>
 
           <!-- Collapsible Extras -->
-          <button class="w-full text-stone-500 text-sm font-medium hover:text-black transition-colors flex items-center justify-center gap-2 py-2" @click="showExtras = !showExtras">
-            <span>{{ showExtras ? 'Less details' : 'Add more details (optional)' }}</span>
-            <span class="text-xs transform transition-transform" :class="{ 'rotate-180': showExtras }">▼</span>
+          <button class="w-full text-stone-400 text-xs font-bold uppercase tracking-widest hover:text-black transition-colors flex items-center justify-center gap-2 py-2 border-b border-dashed border-stone-300 pb-1" @click="showExtras = !showExtras">
+            <span>{{ showExtras ? 'Show Less' : 'Add Optional Details' }}</span>
+            <span class="text-[10px] transform transition-transform" :class="{ 'rotate-180': showExtras }">▼</span>
           </button>
           
           <Transition
@@ -154,11 +166,11 @@
             leave-from-class="transform scale-100 opacity-100 translate-y-0"
             leave-to-class="transform scale-95 opacity-0 -translate-y-2"
           >
-            <div v-if="showExtras" class="bg-stone-50 p-6 rounded-2xl border border-stone-100">
+            <div v-if="showExtras" class="bg-white p-6 rounded-xl border-2 border-stone-100 shadow-sm">
               <div class="grid grid-cols-2 gap-4">
                 <div class="space-y-2">
-                  <label class="block text-xs font-bold uppercase tracking-wide text-stone-500">Genotype</label>
-                  <select v-model="form.genotype" class="w-full px-3 py-2 rounded-lg border border-stone-200 bg-white text-sm focus:ring-black focus:ring-2 outline-none">
+                  <label class="block text-[10px] font-bold uppercase tracking-widest text-stone-500">Genotype</label>
+                  <select v-model="form.genotype" class="w-full px-3 py-2 rounded border-2 border-stone-100 bg-white text-xs font-bold focus:border-black outline-none font-mono">
                     <option value="">Skip</option>
                     <option value="AA">AA</option>
                     <option value="AS">AS</option>
@@ -167,8 +179,8 @@
                   </select>
                 </div>
                 <div class="space-y-2">
-                  <label class="block text-xs font-bold uppercase tracking-wide text-stone-500">Religion</label>
-                  <select v-model="form.religion" class="w-full px-3 py-2 rounded-lg border border-stone-200 bg-white text-sm focus:ring-black focus:ring-2 outline-none">
+                  <label class="block text-[10px] font-bold uppercase tracking-widest text-stone-500">Religion</label>
+                  <select v-model="form.religion" class="w-full px-3 py-2 rounded border-2 border-stone-100 bg-white text-xs font-bold focus:border-black outline-none font-mono">
                     <option value="">Skip</option>
                     <option value="Christian">Christian</option>
                     <option value="Muslim">Muslim</option>
@@ -177,123 +189,120 @@
                   </select>
                 </div>
                 <div class="space-y-2">
-                  <label class="block text-xs font-bold uppercase tracking-wide text-stone-500">Height (cm)</label>
-                  <input type="number" v-model.number="form.height" placeholder="175" class="w-full px-3 py-2 rounded-lg border border-stone-200 bg-white text-sm focus:ring-black focus:ring-2 outline-none" />
+                  <label class="block text-[10px] font-bold uppercase tracking-widest text-stone-500">Height (cm)</label>
+                  <input type="number" v-model.number="form.height" placeholder="175" class="w-full px-3 py-2 rounded border-2 border-stone-100 bg-white text-xs font-bold focus:border-black outline-none font-mono placeholder-stone-300" />
                 </div>
                 <div class="space-y-2">
-                  <label class="block text-xs font-bold uppercase tracking-wide text-stone-500">Occupation</label>
-                  <input type="text" v-model="form.occupation" placeholder="e.g. Engineer" class="w-full px-3 py-2 rounded-lg border border-stone-200 bg-white text-sm focus:ring-black focus:ring-2 outline-none" />
+                  <label class="block text-[10px] font-bold uppercase tracking-widest text-stone-500">Occupation</label>
+                  <input type="text" v-model="form.occupation" placeholder="Engineer" class="w-full px-3 py-2 rounded border-2 border-stone-100 bg-white text-xs font-bold focus:border-black outline-none font-mono placeholder-stone-300" />
                 </div>
               </div>
             </div>
           </Transition>
 
-          <UiButton
-            variant="primary"
-            size="lg"
+          <button
             :disabled="!canProceedStep2"
             @click="nextStep"
-            class="w-full"
+            class="w-full bg-black text-white py-4 rounded-lg font-bold uppercase tracking-widest text-sm hover:bg-rose-500 hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,0.2)] hover:-translate-y-[1px] transition-all disabled:opacity-50 disabled:cursor-not-allowed border-2 border-black"
           >
             Let's vibe check! 🎯
-          </UiButton>
+          </button>
         </div>
       </div>
 
       <!-- Steps 3-9: Vibe Questions (5 core + 2 bonus = 7 total) -->
-      <div v-else-if="currentStep >= 3 && currentStep <= 9" class="w-full animate-fade-in space-y-8">
-        <div class="text-center space-y-2">
-          <span class="text-4xl block mb-4">{{ getVibeEmoji() }}</span>
-          <div class="flex items-center justify-center gap-2 mb-2">
-            <span v-if="currentStep <= 7" class="text-[10px] font-bold uppercase tracking-wide text-orange-500 bg-orange-50 px-2 py-1 rounded-full">Core</span>
-            <span v-else class="text-[10px] font-bold uppercase tracking-wide text-blue-500 bg-blue-50 px-2 py-1 rounded-full">Bonus</span>
+      <div v-else-if="currentStep >= 3 && currentStep <= 9" class="w-full animate-fade-in space-y-10">
+        <div class="text-center space-y-4">
+          <span class="text-5xl block mb-4">{{ getVibeEmoji() }}</span>
+          <div class="flex items-center justify-center gap-3 mb-2">
+            <span v-if="currentStep <= 7" class="text-[10px] font-bold uppercase tracking-widest text-black bg-stone-100 border border-black px-3 py-1 rounded-full">Core Vibe</span>
+            <span v-else class="text-[10px] font-bold uppercase tracking-widest text-white bg-rose-500 border border-black px-3 py-1 rounded-full shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">Bonus</span>
           </div>
-          <p class="text-xs font-bold uppercase tracking-wide text-stone-400">Question {{ currentStep - 2 }} of {{ totalQuestions }}</p>
+          <p class="text-[10px] font-mono font-bold text-stone-400 uppercase tracking-widest">Question {{ currentStep - 2 }} / {{ totalQuestions }}</p>
         </div>
 
         <div v-if="loadingQuestions" class="text-center py-12">
-          <div class="w-10 h-10 rounded-full border-4 border-stone-200 border-t-black animate-spin mx-auto mb-4"></div>
-          <p class="text-stone-500">Loading vibes...</p>
+          <div class="w-12 h-12 rounded-full border-4 border-stone-200 border-t-black animate-spin mx-auto mb-6"></div>
+          <p class="text-stone-500 font-serif italic">Curating vibes...</p>
         </div>
 
         <template v-else-if="currentQuestion">
-          <h1 class="text-2xl font-bold text-center leading-tight mb-8">{{ currentQuestion.question }}</h1>
+          <h1 class="text-2xl md:text-4xl font-serif font-bold text-center leading-tight mb-8 text-black">{{ currentQuestion.question }}</h1>
 
-          <div class="space-y-3">
+          <div class="space-y-4">
             <button
               v-for="(option, idx) in currentQuestion.options"
               :key="idx"
-              class="group w-full flex items-center gap-4 p-5 rounded-xl border text-left transition-all duration-200 hover:scale-[1.02]"
-              :class="vibeAnswers[currentQuestion.key] === option ? 'bg-stone-50 border-black ring-1 ring-black' : 'bg-white border-stone-200 hover:border-black'"
+              class="group w-full flex items-center gap-6 p-6 rounded-xl border-2 text-left transition-all duration-200 hover:-translate-y-[2px] relative overflow-hidden"
+              :class="vibeAnswers[currentQuestion.key] === option ? 'bg-black border-black text-white shadow-[4px_4px_0px_0px_rgba(244,63,94,1)]' : 'bg-white border-stone-200 hover:border-black hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,0.1)]'"
               @click="handleVibeSelect(currentQuestion.key, option)"
             >
-              <span class="text-2xl group-hover:scale-110 transition-transform">{{ getCategoryIcon(currentQuestion.category, idx) }}</span>
-              <span class="font-medium text-lg" :class="vibeAnswers[currentQuestion.key] === option ? 'text-black' : 'text-stone-700'">{{ option }}</span>
+               <!-- Selection Indicator for Active Item -->
+               <div v-if="vibeAnswers[currentQuestion.key] === option" class="absolute left-0 top-0 bottom-0 w-2 bg-rose-500"></div>
+
+              <span class="text-3xl group-hover:scale-110 transition-transform duration-300">{{ getCategoryIcon(currentQuestion.category, idx) }}</span>
+              <span class="font-bold text-lg md:text-xl font-sans" :class="vibeAnswers[currentQuestion.key] === option ? 'text-white' : 'text-stone-800'">{{ option }}</span>
             </button>
           </div>
         </template>
       </div>
 
       <!-- Step 10: Phone Verification -->
-      <div v-else-if="currentStep === 10" class="w-full animate-fade-in space-y-8">
+      <div v-else-if="currentStep === 10" class="w-full animate-fade-in space-y-10">
         <div class="text-center space-y-2">
-          <span class="text-4xl block mb-4">📱</span>
-          <h1 class="text-3xl font-bold tracking-tight">Last step!</h1>
-          <p class="text-stone-500">Verify your number to save your profile</p>
+          <span class="text-5xl block mb-6">📱</span>
+          <h1 class="text-3xl md:text-4xl font-serif font-bold text-black tracking-tight">Last step!</h1>
+          <p class="text-stone-500 font-light font-serif italic">Verify your number to save your profile</p>
         </div>
 
         <div class="space-y-6" v-if="!otpSent">
           <div class="space-y-2">
-            <label class="block text-xs font-bold uppercase tracking-wide text-stone-500">Phone Number</label>
-            <div class="flex items-center w-full px-4 py-1 rounded-xl border border-stone-200 bg-white focus-within:ring-2 focus-within:ring-black focus-within:border-transparent transition-all">
-              <span class="font-bold text-stone-500 select-none mr-3">+233</span>
+            <label class="block text-xs font-bold uppercase tracking-widest text-stone-900 border-b border-black pb-1 mb-2 inline-block">Phone Number</label>
+            <div class="flex items-center w-full px-4 py-3 rounded-lg border-2 border-stone-200 bg-white focus-within:ring-0 focus-within:border-black transition-all group hover:border-stone-400">
+              <span class="font-bold text-stone-900 select-none mr-3 border-r-2 border-stone-200 pr-3 font-mono">+233</span>
               <input
                 type="tel"
                 v-model="form.phone"
-                placeholder="XX XXX XXXX"
-                class="flex-1 py-3 text-lg font-medium outline-none bg-transparent placeholder-stone-300"
+                placeholder="20 123 4567"
+                class="flex-1 text-lg font-bold outline-none bg-transparent placeholder-stone-300 text-stone-900 font-mono tracking-wide"
                 maxlength="10"
               />
             </div>
           </div>
           
-          <UiButton
-            variant="primary"
-            size="lg"
+          <button
             :disabled="!isValidPhone || sendingOtp"
             @click="handleSendOtp"
-            class="w-full"
+            class="w-full bg-black text-white py-4 rounded-lg font-bold uppercase tracking-widest text-sm hover:bg-rose-500 hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,0.2)] hover:-translate-y-[1px] transition-all disabled:opacity-50 disabled:cursor-not-allowed border-2 border-black"
           >
             {{ sendingOtp ? 'Sending...' : 'Send Code 📨' }}
-          </UiButton>
+          </button>
         </div>
 
         <div class="space-y-6" v-else>
-          <div class="space-y-2">
-            <label class="block text-xs font-bold uppercase tracking-wide text-stone-500 w-full text-center">Enter the 6-digit code</label>
+          <div class="space-y-4">
+            <label class="block text-xs font-bold uppercase tracking-widest text-stone-900 w-full text-center">Enter the 6-digit code</label>
             <input
               type="text"
               v-model="otpCode"
               placeholder="000000"
-              class="w-full py-4 text-4xl font-bold tracking-[0.5em] text-center outline-none bg-transparent border-b-2 border-stone-200 focus:border-black transition-colors placeholder-stone-200"
+              class="w-full py-4 text-4xl font-bold tracking-[0.5em] text-center outline-none bg-transparent border-b-4 border-stone-200 focus:border-black transition-colors placeholder-stone-200 font-mono"
               maxlength="6"
               @keyup.enter="otpCode.length === 6 && handleVerifyOtp()"
             />
           </div>
 
-          <p v-if="otpError" class="text-red-500 text-sm text-center font-medium">{{ otpError }}</p>
+          <p v-if="otpError" class="text-rose-500 text-sm text-center font-bold bg-rose-50 py-2 rounded border border-rose-200">{{ otpError }}</p>
 
-          <UiButton
-            variant="primary"
-            size="lg"
+          <button
             :disabled="otpCode.length !== 6 || verifyingOtp"
             @click="handleVerifyOtp"
-            class="w-full"
+            class="w-full bg-black text-white py-4 rounded-lg font-bold uppercase tracking-widest text-sm hover:bg-rose-500 hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,0.2)] hover:-translate-y-[1px] transition-all disabled:opacity-50 disabled:cursor-not-allowed border-2 border-black"
           >
             {{ verifyingOtp ? 'Verifying...' : 'Verify & Continue ✨' }}
-          </UiButton>
+          </button>
 
-          <button @click="otpSent = false" class="w-full text-stone-400 text-sm hover:text-black transition-colors py-2">
+          <button @click="otpSent = false" class="w-full text-stone-400 text-xs font-bold uppercase tracking-widest hover:text-black transition-colors py-2">
             ← Change number
           </button>
         </div>
@@ -306,50 +315,46 @@
             <span v-for="i in 20" :key="i" class="confetti" :style="{ '--delay': i * 0.1 + 's', '--x': (Math.random() * 200 - 100) + 'px' }">🎉</span>
           </div>
           
-          <div class="relative w-40 h-40 mx-auto mb-8 flex items-center justify-center">
-            <div class="absolute inset-0 bg-stone-100 rounded-full animate-pulse"></div>
-            <div class="absolute inset-0 bg-gradient-to-tr from-orange-100 to-transparent rounded-full opacity-50 blur-xl"></div>
-            <span class="text-6xl relative z-10">{{ assignedPersona?.emoji }}</span>
+          <div class="relative w-48 h-48 mx-auto mb-10 flex items-center justify-center">
+            <div class="absolute inset-0 bg-white border-2 border-black rounded-full animate-pulse shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]"></div>
+            <div class="absolute inset-0 bg-stone-50 rounded-full opacity-50 blur-xl"></div>
+            <span class="text-7xl relative z-10">{{ assignedPersona?.emoji }}</span>
           </div>
           
-          <h1 class="text-4xl font-bold text-stone-900 mb-4">You're {{ assignedPersona?.name }}!</h1>
-          <p class="text-lg text-stone-500 max-w-sm mx-auto mb-10 leading-relaxed">{{ assignedPersona?.description }}</p>
+          <h1 class="text-4xl md:text-5xl font-serif font-bold text-black mb-6">You're {{ assignedPersona?.name }}!</h1>
+          <p class="text-xl text-stone-600 max-w-md mx-auto mb-12 leading-relaxed font-light">{{ assignedPersona?.description }}</p>
           
-          <div class="bg-stone-50 rounded-2xl p-6 mb-8 border border-stone-100">
-            <p class="text-xs font-bold uppercase tracking-wide text-stone-400 mb-4">What happens next?</p>
-            <div class="flex gap-4 justify-center">
-              <div class="flex-1 bg-white p-4 rounded-xl shadow-sm border border-stone-100">
-                <span class="text-2xl block mb-2">💕</span>
-                <p class="text-xs text-stone-500 font-medium">We find your matches</p>
+          <div class="bg-white rounded-xl p-8 mb-10 border-2 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
+            <p class="text-xs font-bold uppercase tracking-widest text-stone-400 mb-6 border-b border-stone-100 pb-2">What happens next?</p>
+            <div class="flex gap-6 justify-center">
+              <div class="flex-1 text-center">
+                <div class="w-12 h-12 bg-rose-100 rounded-full flex items-center justify-center text-2xl mb-3 mx-auto border-2 border-black">💕</div>
+                <p class="text-xs font-bold uppercase tracking-wide text-black">We find matches</p>
               </div>
-              <div class="flex-1 bg-white p-4 rounded-xl shadow-sm border border-stone-100">
-                <span class="text-2xl block mb-2">📱</span>
-                <p class="text-xs text-stone-500 font-medium">SMS when matched</p>
+              <div class="flex-1 text-center">
+                 <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center text-2xl mb-3 mx-auto border-2 border-black">📱</div>
+                 <p class="text-xs font-bold uppercase tracking-wide text-black">SMS when matched</p>
               </div>
             </div>
           </div>
           
-          <UiButton
-            variant="primary"
-            size="lg"
+          <button
             @click="finishOnboarding"
-            class="w-full"
+            class="w-full bg-black text-white py-5 rounded-lg font-bold uppercase tracking-widest text-lg hover:bg-rose-500 hover:shadow-[6px_6px_0px_0px_rgba(0,0,0,0.2)] hover:-translate-y-[1px] transition-all border-2 border-black shadow-[6px_6px_0px_0px_rgba(244,63,94,1)]"
           >
             Go to Account ✨
-          </UiButton>
+          </button>
         </div>
       </div>
 
       <!-- Footer Navigation (only for manual steps) -->
       <div v-if="currentStep === 1 && form.interestedIn" class="w-full mt-8 animate-fade-in">
-        <UiButton
-          variant="primary"
-          size="lg"
+        <button
           @click="nextStep"
-          class="w-full"
+          class="w-full bg-black text-white py-4 rounded-lg font-bold uppercase tracking-widest text-sm hover:bg-stone-800 transition-all border-2 border-black"
         >
           Continue
-        </UiButton>
+        </button>
       </div>
     </div>
   </main>

@@ -7,28 +7,37 @@
     </div>
   </div>
   
-  <main v-else class="min-h-screen bg-stone-50 text-stone-900 pb-24">
+  <main v-else class="min-h-screen bg-[#FFFCF8] text-stone-900 pb-24 font-sans relative">
+    <!-- Fonts -->
+    <Head>
+      <Link rel="preconnect" href="https://fonts.googleapis.com" />
+      <Link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="" />
+      <Link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+    </Head>
+
+    <!-- Dot Pattern Background -->
+    <div class="absolute inset-0 opacity-[0.03] pointer-events-none" style="background-image: radial-gradient(#000 1px, transparent 1px); background-size: 24px 24px;"></div>
+
     <!-- Navbar / Header -->
-    <nav class="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-stone-200">
-      <div class="max-w-5xl mx-auto px-4 h-16 flex items-center justify-between">
-        <div class="flex items-center gap-2">
-          <div class="w-8 h-8 rounded-lg bg-black text-white flex items-center justify-center font-bold text-lg">m</div>
-          <span class="font-bold tracking-tight">minutes2match</span>
+    <nav class="sticky top-0 z-[60] bg-[#FFFCF8] border-b border-black">
+      <div class="max-w-6xl mx-auto px-4 h-20 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="text-3xl font-serif font-black italic tracking-tighter hover:text-rose-500 transition-colors cursor-pointer">minutes2match.</div>
         </div>
         
-        <div class="flex items-center gap-4">
+        <div class="flex items-center gap-6">
           <div class="text-right hidden sm:block">
-            <p class="text-sm font-bold text-stone-900 leading-none">{{ profile?.display_name }}</p>
-            <p class="text-xs text-stone-500 mt-1">
+            <p class="text-sm font-bold text-black uppercase tracking-widest">{{ profile?.display_name }}</p>
+            <p class="text-[10px] font-mono font-bold text-rose-500 mt-0.5 uppercase tracking-wider">
               {{ personaData ? `${personaData.emoji} ${personaData.name}` : 'New Member' }}
             </p>
           </div>
           <div 
-             class="w-10 h-10 rounded-full border border-stone-200 bg-stone-100 overflow-hidden cursor-pointer hover:ring-2 hover:ring-black transition-all"
+             class="w-12 h-12 rounded-full border-2 border-black bg-white overflow-hidden cursor-pointer hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all"
              @click="activeTab = 'profile'"
           >
             <img v-if="profile?.photo_url" :src="profile.photo_url" class="w-full h-full object-cover" />
-            <div v-else class="w-full h-full flex items-center justify-center text-stone-400 font-bold">
+            <div v-else class="w-full h-full flex items-center justify-center text-stone-400 font-bold text-xl font-serif italic">
               {{ profile?.display_name?.charAt(0) || '?' }}
             </div>
           </div>
@@ -36,28 +45,28 @@
       </div>
     </nav>
     
-    <div class="max-w-5xl mx-auto px-4 py-8">
+    <div class="max-w-6xl mx-auto px-4 py-8 relative z-10">
       <!-- Tabs -->
-      <div class="flex gap-8 border-b border-stone-200 mb-8 overflow-x-auto no-scrollbar">
+      <div class="flex flex-wrap gap-4 mb-12">
         <button 
           @click="activeTab = 'matches'"
-          class="pb-3 text-sm font-bold tracking-wide uppercase transition-all whitespace-nowrap border-b-2 relative"
-          :class="activeTab === 'matches' ? 'text-black border-black' : 'text-stone-400 border-transparent hover:text-stone-600'"
+          class="px-6 py-3 rounded-lg text-xs font-bold uppercase tracking-widest transition-all border-2"
+          :class="activeTab === 'matches' ? 'bg-black text-white border-black shadow-[4px_4px_0px_0px_rgba(244,63,94,1)]' : 'bg-white text-stone-500 border-stone-200 hover:border-black hover:text-black'"
         >
           Matches
-          <span v-if="pendingMatchCount > 0" class="ml-2 px-1.5 py-0.5 bg-orange-500 text-white rounded-full text-[10px]">{{ pendingMatchCount }}</span>
+          <span v-if="pendingMatchCount > 0" class="ml-2 px-1.5 py-0.5 bg-rose-500 text-white rounded-md text-[10px] border border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">{{ pendingMatchCount }}</span>
         </button>
         <button 
           @click="activeTab = 'events'"
-          class="pb-3 text-sm font-bold tracking-wide uppercase transition-all whitespace-nowrap border-b-2"
-          :class="activeTab === 'events' ? 'text-black border-black' : 'text-stone-400 border-transparent hover:text-stone-600'"
+          class="px-6 py-3 rounded-lg text-xs font-bold uppercase tracking-widest transition-all border-2"
+          :class="activeTab === 'events' ? 'bg-black text-white border-black shadow-[4px_4px_0px_0px_rgba(244,63,94,1)]' : 'bg-white text-stone-500 border-stone-200 hover:border-black hover:text-black'"
         >
           Events
         </button>
         <button 
           @click="activeTab = 'profile'"
-          class="pb-3 text-sm font-bold tracking-wide uppercase transition-all whitespace-nowrap border-b-2"
-          :class="activeTab === 'profile' ? 'text-black border-black' : 'text-stone-400 border-transparent hover:text-stone-600'"
+          class="px-6 py-3 rounded-lg text-xs font-bold uppercase tracking-widest transition-all border-2"
+          :class="activeTab === 'profile' ? 'bg-black text-white border-black shadow-[4px_4px_0px_0px_rgba(244,63,94,1)]' : 'bg-white text-stone-500 border-stone-200 hover:border-black hover:text-black'"
         >
           Profile
         </button>
@@ -159,66 +168,71 @@
         <div v-if="activeTab === 'profile'" class="grid md:grid-cols-3 gap-8 animate-in fade-in slide-in-from-bottom-2 duration-500">
           <!-- Sidebar / Photo -->
           <div class="md:col-span-1 space-y-6">
-             <div class="bg-white p-6 rounded-2xl border border-stone-200 shadow-sm text-center">
+             <div class="bg-white p-6 rounded-xl border-2 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] text-center">
                 <div class="relative w-32 h-32 mx-auto mb-6 group cursor-pointer" @click="triggerPhotoUpload">
-                  <div class="w-full h-full rounded-full overflow-hidden bg-stone-100 border-4 border-white shadow-md relative">
+                  <div class="w-full h-full rounded-full overflow-hidden bg-stone-100 border-2 border-black relative">
                      <img v-if="photoPreview || profile?.photo_url" :src="photoPreview || profile?.photo_url" class="w-full h-full object-cover" />
                      <div v-else class="w-full h-full flex items-center justify-center text-4xl text-stone-300">📷</div>
                      
                      <div class="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                        <span class="text-white text-xs font-bold uppercase tracking-wider">{{ uploadingPhoto ? 'Uploading...' : 'Change' }}</span>
+                        <span class="text-white text-xs font-bold uppercase tracking-widest">{{ uploadingPhoto ? 'Wait...' : 'Update' }}</span>
                      </div>
                   </div>
                   <input type="file" ref="photoInput" accept="image/*" @change="handlePhotoUpload" class="hidden" />
                 </div>
-                <p class="text-xs font-bold text-stone-400 uppercase tracking-wider mb-2">Pro Tip</p>
-                <p class="text-sm text-stone-500">Profiles with photos get 80% more matches.</p>
+                <p class="text-[10px] font-bold text-stone-400 uppercase tracking-widest mb-2 border-b border-stone-100 pb-2 inline-block">Pro Tip</p>
+                <p class="text-xs font-medium text-stone-500">Profiles with photos get <span class="text-black font-bold">80% more matches</span>.</p>
              </div>
              
-             <div class="bg-white p-6 rounded-2xl border border-stone-200 shadow-sm">
-                <h3 class="font-bold text-stone-900 mb-4">Account</h3>
-                <UiButton variant="outline" size="sm" @click="handleLogout" class="w-full">Sign Out</UiButton>
-             </div>
+             <button @click="handleLogout" class="w-full py-3 bg-white border-2 border-stone-200 text-stone-500 font-bold uppercase tracking-widest text-xs rounded-lg hover:border-black hover:text-black transition-all">
+                Sign Out
+             </button>
              
 
           </div>
 
           <!-- Edit Form -->
-          <div class="md:col-span-2 space-y-6 md:row-span-[20]">
+          <div class="md:col-span-2 space-y-8 md:row-span-[20]">
              <!-- Basic Info -->
-             <div class="bg-white p-6 md:p-8 rounded-2xl border border-stone-200 shadow-sm">
-                <h3 class="text-xl font-bold text-stone-900 mb-6">Basic Info</h3>
+             <div class="bg-white p-6 md:p-8 rounded-xl border-2 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
+                <h3 class="text-2xl font-serif font-bold text-black mb-8 flex items-center gap-2">
+                  <span>Basic Info</span>
+                  <div class="h-px flex-1 bg-stone-100"></div>
+                </h3>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                    <div class="space-y-2">
-                      <label class="text-xs font-bold uppercase text-stone-500 tracking-wide">Display Name</label>
-                      <input type="text" v-model="editForm.display_name" class="w-full px-4 py-3 rounded-xl border border-stone-200 bg-stone-50 focus:bg-white focus:ring-2 focus:ring-black outline-none transition-all font-medium" />
+                      <label class="text-[10px] font-bold uppercase text-stone-500 tracking-widest">Display Name</label>
+                      <input type="text" v-model="editForm.display_name" class="w-full px-4 py-3 rounded-lg border-2 border-stone-200 bg-white focus:border-black focus:shadow-[4px_4px_0px_0px_rgba(0,0,0,0.1)] outline-none transition-all font-bold font-serif text-lg" />
                    </div>
                    <div class="space-y-2">
-                       <label class="text-xs font-bold uppercase text-stone-500 tracking-wide">Phone (Locked)</label>
-                       <input type="text" :value="profile?.phone" disabled class="w-full px-4 py-3 rounded-xl border border-stone-200 bg-stone-100 text-stone-500 font-medium cursor-not-allowed" />
+                       <label class="text-[10px] font-bold uppercase text-stone-500 tracking-widest">Phone (Locked)</label>
+                       <input type="text" :value="profile?.phone" disabled class="w-full px-4 py-3 rounded-lg border-2 border-stone-100 bg-stone-50 text-stone-400 font-mono font-medium cursor-not-allowed" />
                    </div>
                    <div class="space-y-2">
-                      <label class="text-xs font-bold uppercase text-stone-500 tracking-wide">Gender</label>
-                      <select v-model="editForm.gender" class="w-full px-4 py-3 rounded-xl border border-stone-200 bg-stone-50 focus:bg-white focus:ring-2 focus:ring-black outline-none transition-all font-medium">
+                      <label class="text-[10px] font-bold uppercase text-stone-500 tracking-widest">Gender</label>
+                      <select v-model="editForm.gender" class="w-full px-4 py-3 rounded-lg border-2 border-stone-200 bg-white focus:border-black outline-none transition-all font-bold">
                          <option value="">Select gender</option>
                          <option value="male">Male</option>
                          <option value="female">Female</option>
                       </select>
                    </div>
                    <div class="space-y-2">
-                      <label class="text-xs font-bold uppercase text-stone-500 tracking-wide">Birthday</label>
+                      <label class="text-[10px] font-bold uppercase text-stone-500 tracking-widest">Birthday</label>
                       <UiDatePicker v-model="editForm.birth_date" placeholder="Select your birthday" />
                    </div>
                 </div>
              </div>
 
              <!-- Preferences -->
-             <div class="bg-white p-6 md:p-8 rounded-2xl border border-stone-200 shadow-sm">
-                <h3 class="text-xl font-bold text-stone-900 mb-6">Preferences & Details</h3>
+             <div class="bg-white p-6 md:p-8 rounded-xl border-2 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
+                <h3 class="text-2xl font-serif font-bold text-black mb-8 flex items-center gap-2">
+                   <span>Preferences</span>
+                   <div class="h-px flex-1 bg-stone-100"></div>
+                </h3>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                    <div class="space-y-2">
-                      <label class="text-xs font-bold uppercase text-stone-500 tracking-wide">Considering</label>
-                       <select v-model="editForm.intent" class="w-full px-4 py-3 rounded-xl border border-stone-200 bg-stone-50 focus:bg-white focus:ring-2 focus:ring-black outline-none transition-all font-medium">
+                      <label class="text-[10px] font-bold uppercase text-stone-500 tracking-widest">Considering</label>
+                       <select v-model="editForm.intent" class="w-full px-4 py-3 rounded-lg border-2 border-stone-200 bg-white focus:border-black outline-none transition-all font-bold">
                         <option value="marriage">Marriage</option>
                         <option value="serious">Serious Relationship</option>
                         <option value="casual">Casual Dating</option>
@@ -226,16 +240,16 @@
                       </select>
                    </div>
                    <div class="space-y-2">
-                      <label class="text-xs font-bold uppercase text-stone-500 tracking-wide">Interested In</label>
-                      <select v-model="editForm.interested_in" class="w-full px-4 py-3 rounded-xl border border-stone-200 bg-stone-50 focus:bg-white focus:ring-2 focus:ring-black outline-none transition-all font-medium">
+                      <label class="text-[10px] font-bold uppercase text-stone-500 tracking-widest">Interested In</label>
+                      <select v-model="editForm.interested_in" class="w-full px-4 py-3 rounded-lg border-2 border-stone-200 bg-white focus:border-black outline-none transition-all font-bold">
                         <option value="male">Men</option>
                         <option value="female">Women</option>
                         <option value="everyone">Everyone</option>
                       </select>
                    </div>
                     <div class="space-y-2">
-                      <label class="text-xs font-bold uppercase text-stone-500 tracking-wide">Location</label>
-                      <select v-model="editForm.location" class="w-full px-4 py-3 rounded-xl border border-stone-200 bg-stone-50 focus:bg-white focus:ring-2 focus:ring-black outline-none transition-all font-medium">
+                      <label class="text-[10px] font-bold uppercase text-stone-500 tracking-widest">Location</label>
+                      <select v-model="editForm.location" class="w-full px-4 py-3 rounded-lg border-2 border-stone-200 bg-white focus:border-black outline-none transition-all font-bold">
                         <option value="accra">Accra</option>
                         <option value="kumasi">Kumasi</option>
                         <option value="tamale">Tamale</option>
@@ -245,8 +259,8 @@
                       </select>
                    </div>
                    <div class="space-y-2">
-                       <label class="text-xs font-bold uppercase text-stone-500 tracking-wide">Religion</label>
-                       <select v-model="editForm.religion" class="w-full px-4 py-3 rounded-xl border border-stone-200 bg-stone-50 focus:bg-white focus:ring-2 focus:ring-black outline-none transition-all font-medium">
+                       <label class="text-[10px] font-bold uppercase text-stone-500 tracking-widest">Religion</label>
+                       <select v-model="editForm.religion" class="w-full px-4 py-3 rounded-lg border-2 border-stone-200 bg-white focus:border-black outline-none transition-all font-bold">
                          <option value="">Prefer not to say</option>
                          <option value="Christian">Christian</option>
                          <option value="Muslim">Muslim</option>
@@ -255,8 +269,8 @@
                        </select>
                    </div>
                    <div class="space-y-2">
-                       <label class="text-xs font-bold uppercase text-stone-500 tracking-wide">Genotype</label>
-                       <select v-model="editForm.genotype" class="w-full px-4 py-3 rounded-xl border border-stone-200 bg-stone-50 focus:bg-white focus:ring-2 focus:ring-black outline-none transition-all font-medium">
+                       <label class="text-[10px] font-bold uppercase text-stone-500 tracking-widest">Genotype</label>
+                       <select v-model="editForm.genotype" class="w-full px-4 py-3 rounded-lg border-2 border-stone-200 bg-white focus:border-black outline-none transition-all font-bold font-mono">
                          <option value="">Prefer not to say</option>
                          <option value="AA">AA</option>
                          <option value="AS">AS</option>
@@ -265,21 +279,21 @@
                        </select>
                    </div>
                    <div class="space-y-2">
-                       <label class="text-xs font-bold uppercase text-stone-500 tracking-wide">Height (cm)</label>
-                       <input type="number" v-model.number="editForm.height_cm" class="w-full px-4 py-3 rounded-xl border border-stone-200 bg-stone-50 focus:bg-white focus:ring-2 focus:ring-black outline-none transition-all font-medium" placeholder="e.g. 175" min="100" max="250" />
+                       <label class="text-[10px] font-bold uppercase text-stone-500 tracking-widest">Height (cm)</label>
+                       <input type="number" v-model.number="editForm.height_cm" class="w-full px-4 py-3 rounded-lg border-2 border-stone-200 bg-white focus:border-black outline-none transition-all font-bold font-mono" placeholder="e.g. 175" min="100" max="250" />
                    </div>
                    <div class="space-y-2">
-                       <label class="text-xs font-bold uppercase text-stone-500 tracking-wide">Occupation</label>
-                       <input type="text" v-model="editForm.occupation" class="w-full px-4 py-3 rounded-xl border border-stone-200 bg-stone-50 focus:bg-white focus:ring-2 focus:ring-black outline-none transition-all font-medium" placeholder="e.g. Software Engineer" />
+                       <label class="text-[10px] font-bold uppercase text-stone-500 tracking-widest">Occupation</label>
+                       <input type="text" v-model="editForm.occupation" class="w-full px-4 py-3 rounded-lg border-2 border-stone-200 bg-white focus:border-black outline-none transition-all font-bold" placeholder="e.g. Software Engineer" />
                    </div>
                 </div>
              </div>
 
              <!-- Bio / About Me -->
-             <div class="bg-white p-6 md:p-8 rounded-2xl border border-stone-200 shadow-sm">
+             <div class="bg-white p-6 md:p-8 rounded-xl border-2 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
                 <div class="flex items-center justify-between mb-6">
-                   <h3 class="text-xl font-bold text-stone-900">About Me</h3>
-                   <span class="text-xs font-medium" :class="editForm.about_me.length > 250 ? 'text-red-500' : 'text-stone-400'">
+                   <h3 class="text-2xl font-serif font-bold text-black">About Me</h3>
+                   <span class="text-xs font-mono font-bold" :class="editForm.about_me.length > 250 ? 'text-rose-500' : 'text-stone-400'">
                       {{ editForm.about_me.length }}/300
                    </span>
                 </div>
@@ -287,120 +301,124 @@
                    v-model="editForm.about_me" 
                    rows="4"
                    maxlength="300"
-                   class="w-full px-4 py-3 rounded-xl border border-stone-200 bg-stone-50 focus:bg-white focus:ring-2 focus:ring-black outline-none transition-all font-medium resize-none"
-                   placeholder="Share a little about yourself... What makes you unique? What are you passionate about?"
+                   class="w-full px-4 py-3 rounded-lg border-2 border-stone-200 bg-white focus:border-black outline-none transition-all font-serif italic text-lg resize-none placeholder-stone-300"
+                   placeholder="Share a little about yourself..."
                 ></textarea>
-                <p class="text-xs text-stone-400 mt-2">💡 Profiles with bios get 40% more matches</p>
+                <p class="text-[10px] uppercase tracking-widest font-bold text-stone-400 mt-3">💡 Profiles with bios get 40% more matches</p>
              </div>
 
              <!-- Interests -->
-             <div class="bg-white p-6 md:p-8 rounded-2xl border border-stone-200 shadow-sm">
+             <div class="bg-white p-6 md:p-8 rounded-xl border-2 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
                 <div class="flex items-center justify-between mb-6">
-                   <h3 class="text-xl font-bold text-stone-900">Your Interests</h3>
-                   <span class="text-xs font-medium text-stone-400">{{ editForm.interests.length }}/6 selected</span>
+                   <h3 class="text-2xl font-serif font-bold text-black">Interests</h3>
+                   <span class="text-xs font-mono font-bold text-stone-400">{{ editForm.interests.length }}/6 selected</span>
                 </div>
                 <div class="flex flex-wrap gap-2">
                    <button 
                       v-for="interest in availableInterests" 
                       :key="interest.id"
                       @click="toggleInterest(interest.id)"
-                      class="px-4 py-2 rounded-full text-sm font-medium transition-all duration-200"
+                      class="px-4 py-2 rounded-full text-xs font-bold uppercase tracking-widest transition-all duration-200 border-2"
                       :class="editForm.interests.includes(interest.id) 
-                         ? 'bg-black text-white' 
-                         : 'bg-stone-100 text-stone-600 hover:bg-stone-200'"
+                         ? 'bg-black text-white border-black' 
+                         : 'bg-white text-stone-500 border-stone-200 hover:border-black'"
                    >
                       {{ interest.label }}
                    </button>
                 </div>
-                <p class="text-xs text-stone-400 mt-4">Choose up to 6 interests to help find common ground with matches</p>
              </div>
 
              <!-- Deal Breakers / Age Preferences -->
-             <div class="bg-white p-6 md:p-8 rounded-2xl border border-stone-200 shadow-sm">
-                <h3 class="text-xl font-bold text-stone-900 mb-2">Match Preferences</h3>
-                <p class="text-sm text-stone-500 mb-6">Help us find people in your preferred age range</p>
+             <div class="bg-white p-6 md:p-8 rounded-xl border-2 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
+                <h3 class="text-2xl font-serif font-bold text-black mb-2">Age Range</h3>
+                <p class="text-[10px] font-bold uppercase tracking-widest text-stone-400 mb-8">Who do you want to meet?</p>
                 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                   <div class="space-y-2">
-                      <label class="text-xs font-bold uppercase text-stone-500 tracking-wide">Minimum Age</label>
-                      <div class="flex items-center gap-3">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-6">
+                   <div class="space-y-4">
+                      <label class="text-[10px] font-bold uppercase text-stone-500 tracking-widest">Minimum Age</label>
+                      <div class="flex items-center gap-4">
                          <input 
                             type="range" 
                             v-model.number="editForm.min_age" 
                             min="18" 
                             max="60" 
-                            class="flex-1 accent-black"
+                            class="flex-1 h-2 bg-stone-100 rounded-lg appearance-none cursor-pointer border border-black accent-black"
                          />
-                         <span class="text-lg font-bold text-stone-900 w-10 text-center">{{ editForm.min_age }}</span>
+                         <span class="text-2xl font-mono font-bold text-black w-12 text-center">{{ editForm.min_age }}</span>
                       </div>
                    </div>
-                   <div class="space-y-2">
-                      <label class="text-xs font-bold uppercase text-stone-500 tracking-wide">Maximum Age</label>
-                      <div class="flex items-center gap-3">
+                   <div class="space-y-4">
+                      <label class="text-[10px] font-bold uppercase text-stone-500 tracking-widest">Maximum Age</label>
+                      <div class="flex items-center gap-4">
                          <input 
                             type="range" 
                             v-model.number="editForm.max_age" 
                             min="18" 
                             max="70" 
-                            class="flex-1 accent-black"
+                            class="flex-1 h-2 bg-stone-100 rounded-lg appearance-none cursor-pointer border border-black accent-black"
                          />
-                         <span class="text-lg font-bold text-stone-900 w-10 text-center">{{ editForm.max_age }}</span>
+                         <span class="text-2xl font-mono font-bold text-black w-12 text-center">{{ editForm.max_age }}</span>
                       </div>
                    </div>
                 </div>
                 
                 <!-- Genotype Warning -->
-                <div v-if="editForm.genotype === 'AS'" class="bg-amber-50 border border-amber-200 rounded-xl p-4">
-                   <div class="flex items-start gap-3">
-                      <span class="text-amber-500 text-xl">⚠️</span>
+                <div v-if="editForm.genotype === 'AS'" class="bg-rose-50 border-2 border-rose-100 rounded-xl p-4">
+                   <div class="flex items-start gap-4">
+                      <span class="text-rose-500 text-2xl font-bold">⚠️</span>
                       <div>
-                         <p class="font-semibold text-amber-800">Genotype Awareness</p>
-                         <p class="text-sm text-amber-700 mt-1">
+                         <p class="font-bold text-rose-900 uppercase tracking-widest text-xs mb-1">Genotype Awareness</p>
+                         <p class="text-xs text-rose-800 leading-relaxed">
                             You have AS genotype. We'll notify you if a potential match also has AS genotype so you can make informed decisions.
                          </p>
                       </div>
                    </div>
                 </div>
              </div>
-             
-             <div class="flex items-center gap-4">
-                <UiButton size="lg" :disabled="saving" @click="saveProfile" class="flex-1">
-                   {{ saving ? 'Saving...' : 'Save Changes' }}
-                </UiButton>
-                <span v-if="saveSuccess" class="text-emerald-600 font-bold text-sm animate-in fade-in">✓ Saved!</span>
-             </div>
+                          <div class="flex items-center gap-6 pt-4">
+                 <button 
+                  :disabled="saving" 
+                  @click="saveProfile" 
+                  class="flex-1 bg-black text-white py-4 rounded-lg font-bold uppercase tracking-widest text-sm hover:bg-rose-500 hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,0.2)] hover:-translate-y-[1px] transition-all disabled:opacity-50 disabled:cursor-not-allowed border-2 border-black"
+                 >
+                    {{ saving ? 'Saving...' : 'Save Changes' }}
+                 </button>
+                 <span v-if="saveSuccess" class="text-emerald-600 font-bold text-xs uppercase tracking-widest animate-in fade-in flex items-center gap-2">
+                   <span class="text-xl">✓</span> Saved
+                 </span>
+              </div>
           </div>
 
           <!-- Secondary Sidebar Items (Mobile: Bottom, Desktop: Left Column under Photo) -->
           <div class="md:col-span-1 md:col-start-1 space-y-6">
              <!-- Payment History -->
-             <div class="bg-white p-6 rounded-2xl border border-stone-200 shadow-sm">
-                <h3 class="font-bold text-stone-900 mb-4">Payment History</h3>
+             <div class="bg-white p-6 rounded-xl border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+                <h3 class="font-bold font-serif text-xl text-black mb-6">Payment History</h3>
                 
-                <div v-if="loadingPayments" class="text-center text-stone-400 text-sm py-4">Loading...</div>
+                <div v-if="loadingPayments" class="text-center text-stone-400 text-xs font-bold uppercase tracking-widest py-4">Loading...</div>
                 
-                <div v-else-if="userPayments.length === 0" class="text-center text-stone-400 text-sm py-4">
+                <div v-else-if="userPayments.length === 0" class="text-center text-stone-400 text-xs font-bold uppercase tracking-widest py-8">
                   No payments yet
                 </div>
                 
-                <div v-else class="space-y-3 max-h-64 overflow-y-auto">
+                <div v-else class="space-y-4 max-h-64 overflow-y-auto">
                   <div 
                     v-for="payment in userPayments.slice(0, 10)" 
                     :key="payment.id" 
-                    class="flex items-center justify-between py-2 border-b border-stone-100 last:border-0"
+                    class="flex items-center justify-between py-2 border-b border-stone-50 last:border-0"
                   >
-                    <div class="flex items-center gap-2">
-                      <span class="text-lg">{{ payment.purpose === 'event_ticket' ? '🎟️' : '💕' }}</span>
+                    <div class="flex items-center gap-3">
+                      <span class="text-lg bg-stone-50 w-8 h-8 flex items-center justify-center rounded-full border border-stone-200">{{ payment.purpose === 'event_ticket' ? '🎟️' : '💕' }}</span>
                       <div>
-                        <p class="text-sm font-medium text-stone-900">{{ payment.purpose === 'event_ticket' ? 'Event' : 'Match' }}</p>
-                        <p class="text-xs text-stone-400">{{ formatPaymentDate(payment.created_at) }}</p>
+                        <p class="text-[10px] font-bold uppercase tracking-widest text-black">{{ payment.purpose === 'event_ticket' ? 'Event' : 'Match' }}</p>
+                        <p class="text-[10px] font-mono text-stone-400">{{ formatPaymentDate(payment.created_at) }}</p>
                       </div>
                     </div>
                     <div class="text-right">
-                      <p class="text-sm font-bold text-stone-900">{{ formatPaymentGHS(payment.amount) }}</p>
+                      <p class="text-sm font-bold font-mono text-black">{{ formatPaymentGHS(payment.amount) }}</p>
                       <span 
-                        class="text-[10px] px-1.5 py-0.5 rounded-full font-semibold"
-                        :class="payment.status === 'success' ? 'bg-emerald-100 text-emerald-700' : payment.status === 'pending' ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-700'"
+                        class="text-[9px] uppercase tracking-widest font-bold"
+                        :class="payment.status === 'success' ? 'text-emerald-600' : payment.status === 'pending' ? 'text-amber-600' : 'text-rose-600'"
                       >
                         {{ payment.status }}
                       </span>

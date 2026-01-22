@@ -2,11 +2,7 @@
   <div>
     <!-- Compact Card -->
     <article 
-      class="group relative bg-white rounded-2xl overflow-hidden cursor-pointer transition-all duration-300"
-      :class="[
-        cardClasses,
-        'hover:shadow-xl hover:-translate-y-0.5'
-      ]"
+      class="group relative bg-white rounded-xl overflow-hidden cursor-pointer transition-all duration-300 border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:-translate-y-1 hover:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]"
       @click="navigateToConnection"
     >
       <!-- Full Card Layout -->
@@ -35,25 +31,25 @@
             </div>
           </template>
           
-          <!-- Locked State - Clean & Minimal -->
-          <div v-else class="w-full h-full flex flex-col items-center justify-center relative overflow-hidden bg-stone-50">
-            <!-- Subtle Dot Pattern -->
-             <div class="absolute inset-0 opacity-[0.15]" style="background-image: radial-gradient(#9ca3af 1px, transparent 1px); background-size: 10px 10px;"></div>
-            
-            <!-- Lock Icon -->
-            <div class="relative z-10 w-10 h-10 rounded-full bg-white shadow-sm border border-stone-200 flex items-center justify-center mb-2">
-              <svg v-if="currentUserPaid" class="w-5 h-5 text-amber-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-                <path d="M7 11V7a5 5 0 0 1 9.9-1"></path>
-              </svg>
-              <svg v-else class="w-5 h-5 text-stone-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-                <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
-              </svg>
+            <!-- Locked State - Clean & Minimal -->
+            <div v-else class="w-full h-full flex flex-col items-center justify-center relative overflow-hidden bg-stone-50">
+              <!-- Subtle Dot Pattern -->
+               <div class="absolute inset-0 opacity-[0.1]" style="background-image: radial-gradient(#000 1px, transparent 1px); background-size: 8px 8px;"></div>
+              
+              <!-- Lock Icon -->
+              <div class="relative z-10 w-10 h-10 rounded-full bg-white border-2 border-black flex items-center justify-center mb-2 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+                <svg v-if="currentUserPaid" class="w-5 h-5 text-black" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                  <path d="M7 11V7a5 5 0 0 1 9.9-1"></path>
+                </svg>
+                <svg v-else class="w-5 h-5 text-black" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                  <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                </svg>
+              </div>
+              
+              <span class="text-[9px] font-bold text-black uppercase tracking-widest relative z-10 bg-white px-2 py-0.5 border border-black rounded shadow-[2px_2px_0px_0px_rgba(0,0,0,0.1)]">Private</span>
             </div>
-            
-            <span class="text-[9px] font-bold text-stone-400 uppercase tracking-widest relative z-10">Private</span>
-          </div>
         </div>
         
         <!-- Content Section -->
@@ -63,10 +59,10 @@
             <!-- Name Row -->
             <div class="flex items-start justify-between gap-2 mb-1">
               <div class="min-w-0">
-                <h3 class="font-bold text-stone-900 truncate text-[17px] tracking-tight flex items-center gap-2">
-                  {{ unlocked ? displayName : 'Mystery Match' }}
-                  <span v-if="unlocked" class="flex-shrink-0 w-3.5 h-3.5 rounded-full bg-blue-500 flex items-center justify-center">
-                    <svg class="w-2 h-2 text-white" viewBox="0 0 20 20" fill="currentColor">
+                <h3 class="font-serif font-black text-xl text-black truncate tracking-tight flex items-center gap-2">
+                  <span :class="unlocked ? 'italic' : ''">{{ unlocked ? displayName : 'Mystery Match' }}</span>
+                  <span v-if="unlocked" class="flex-shrink-0 w-4 h-4 rounded-full bg-blue-500 border border-black flex items-center justify-center shadow-[1px_1px_0px_0px_rgba(0,0,0,1)]">
+                    <svg class="w-2.5 h-2.5 text-white" viewBox="0 0 20 20" fill="currentColor">
                       <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
                     </svg>
                   </span>
@@ -139,12 +135,12 @@
             
             <template v-else>
               <div class="flex flex-col">
-                <span class="text-[9px] font-bold text-stone-400 uppercase tracking-wider">Unlock Fee</span>
-                <span class="text-sm font-bold text-stone-900 mt-0.5">{{ formattedPrice }}</span>
+                <span class="text-[9px] font-bold text-stone-400 uppercase tracking-widest">Unlock Fee</span>
+                <span class="text-sm font-bold font-mono text-black mt-0.5">{{ formattedPrice }}</span>
               </div>
               <button 
                 @click.stop="$emit('unlock')"
-                class="px-4 py-1.5 bg-stone-900 text-white rounded-lg text-xs font-bold hover:bg-black transition-colors shadow-sm"
+                class="px-4 py-1.5 bg-black text-white rounded-md text-[10px] font-bold uppercase tracking-widest hover:bg-rose-500 transition-all shadow-[2px_2px_0px_0px_rgba(0,0,0,0.2)] hover:shadow-[3px_3px_0px_0px_rgba(0,0,0,0.3)] hover:-translate-y-[1px] border border-black"
               >
                 Unlock
               </button>
@@ -164,7 +160,7 @@
         class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-stone-900/40 backdrop-blur-sm transition-all duration-300"
         @click.self="showModal = false"
       >
-        <div class="bg-white rounded-2xl shadow-xl max-w-md w-full max-h-[90vh] overflow-hidden animate-in zoom-in-95 duration-200 flex flex-col border border-stone-200">
+        <div class="bg-white rounded-xl shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] max-w-md w-full max-h-[90vh] overflow-hidden animate-in zoom-in-95 duration-200 flex flex-col border-2 border-black">
           <!-- Header Image -->
           <div class="relative h-48 bg-stone-100 flex-shrink-0 border-b border-stone-100">
             <button 
@@ -224,13 +220,13 @@
             <div class="pt-6 mb-6">
               <div class="flex items-start justify-between">
                 <div>
-                  <h2 v-if="unlocked" class="text-2xl font-bold text-stone-900 flex items-center gap-2 tracking-tight">
+                  <h2 v-if="unlocked" class="text-3xl font-serif font-black italic text-black flex items-center gap-2 tracking-tight">
                     {{ displayName }}
                     <svg class="w-5 h-5 text-blue-500" viewBox="0 0 24 24" fill="currentColor">
                       <path fill-rule="evenodd" d="M8.603 3.799A4.49 4.49 0 0112 2.25c1.357 0 2.573.6 3.397 1.549a4.49 4.49 0 013.498 1.307 4.491 4.491 0 011.307 3.497A4.49 4.49 0 0121.75 12a4.49 4.49 0 01-1.549 3.397 4.491 4.491 0 01-1.307 3.497 4.491 4.491 0 01-3.497 1.307A4.49 4.49 0 0112 21.75a4.49 4.49 0 01-3.397-1.549 4.49 4.49 0 01-3.498-1.306 4.491 4.491 0 01-1.307-3.498A4.49 4.49 0 012.25 12c0-1.357.6-2.573 1.549-3.397a4.49 4.49 0 011.307-3.497 4.49 4.49 0 013.497-1.307zm7.007 6.387a.75.75 0 10-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 00-1.06 1.06l2.25 2.25a.75.75 0 001.14-.094l3.75-5.25z" clip-rule="evenodd" />
                     </svg>
                   </h2>
-                  <h2 v-else class="text-2xl font-bold text-stone-300 tracking-tight">Mystery Match</h2>
+                  <h2 v-else class="text-3xl font-serif font-black italic text-stone-300 tracking-tight">Mystery Match</h2>
                   
                   <div class="flex items-center gap-3 text-stone-500 mt-1 text-sm font-medium">
                     <span>{{ age }} years</span>
@@ -343,7 +339,7 @@
                 <button 
                   @click="handleUnlock"
                   :disabled="isUnlocking"
-                  class="flex-1 py-3 bg-[#1C1917] text-white rounded-lg font-bold hover:bg-black transition-colors shadow-sm disabled:opacity-70 disabled:cursor-wait flex items-center justify-center gap-2"
+                  class="flex-1 py-4 bg-black text-white rounded-lg font-bold uppercase tracking-widest text-sm hover:bg-rose-500 transition-all shadow-[4px_4px_0px_0px_rgba(0,0,0,0.2)] hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,0.3)] hover:-translate-y-[1px] shadow-sm disabled:opacity-70 disabled:cursor-wait flex items-center justify-center gap-2 border-2 border-black"
                 >
                   <span v-if="isUnlocking" class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
                   {{ isUnlocking ? 'Unlocking...' : 'Unlock Profile' }}

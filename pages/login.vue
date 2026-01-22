@@ -1,49 +1,59 @@
 <template>
-  <main class="min-h-screen bg-stone-50 flex items-center justify-center p-4 font-sans text-stone-900">
-    <div class="w-full max-w-md">
+  <main class="min-h-screen bg-[#FFFCF8] flex items-center justify-center p-4 font-sans text-stone-900 relative overflow-hidden">
+    <!-- Fonts -->
+    <Head>
+      <Link rel="preconnect" href="https://fonts.googleapis.com" />
+      <Link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="" />
+      <Link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+    </Head>
+
+    <!-- Dot Pattern Background -->
+    <div class="absolute inset-0 opacity-[0.03] pointer-events-none" style="background-image: radial-gradient(#000 1px, transparent 1px); background-size: 24px 24px;"></div>
+
+    <div class="w-full max-w-md relative z-10">
       <!-- Logo/Brand -->
-      <div class="text-center mb-8">
-        <div class="w-12 h-12 bg-black rounded-xl text-white flex items-center justify-center font-bold text-xl mx-auto mb-4 tracking-tight shadow-md">m</div>
-        <h1 class="text-2xl font-bold tracking-tight text-stone-900">Welcome Back</h1>
-        <p class="text-stone-500 mt-2">Sign in to your account</p>
+      <div class="text-center mb-10">
+        <NuxtLink to="/" class="inline-block text-3xl font-serif italic font-bold tracking-tight mb-2 hover:text-rose-500 transition-colors">
+           minutes2match.
+        </NuxtLink>
+        <h1 class="text-3xl font-serif font-bold tracking-tight text-black mt-4">Welcome Back</h1>
+        <p class="text-stone-500 mt-2 font-light">Sign in to your account</p>
       </div>
 
       <!-- Card -->
-      <div class="bg-white rounded-2xl shadow-sm border border-stone-200 p-8">
+      <div class="bg-white rounded-xl shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] border-2 border-black p-8 md:p-10 relative">
         
         <!-- Phone Input Step -->
         <div v-if="!otpSent" class="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
           <div class="space-y-2">
-            <label class="block text-xs font-bold uppercase tracking-wide text-stone-500">Phone Number</label>
-            <div class="flex items-center w-full px-4 py-2 rounded-xl border border-stone-200 bg-white focus-within:ring-2 focus-within:ring-black focus-within:border-transparent transition-all group hover:border-stone-300">
-              <span class="font-bold text-stone-500 select-none mr-3 border-r border-stone-100 pr-3">+233</span>
+            <label class="block text-xs font-bold uppercase tracking-widest text-stone-900">Phone Number</label>
+            <div class="flex items-center w-full px-4 py-3 rounded-lg border-2 border-stone-200 bg-white focus-within:ring-0 focus-within:border-black transition-all group hover:border-stone-400">
+              <span class="font-bold text-stone-900 select-none mr-3 border-r-2 border-stone-200 pr-3 font-mono">+233</span>
               <input
                 type="tel"
                 v-model="phone"
-                placeholder="XX XXX XXXX"
-                class="flex-1 py-2 text-lg font-medium outline-none bg-transparent placeholder-stone-300 text-stone-900"
+                placeholder="20 123 4567"
+                class="flex-1 text-lg font-bold outline-none bg-transparent placeholder-stone-300 text-stone-900 font-mono tracking-wide"
                 maxlength="10"
                 @keyup.enter="isValidPhone && sendOtp()"
               />
             </div>
           </div>
 
-          <UiButton 
-            variant="primary"
-            size="lg"
+          <button 
             :disabled="!isValidPhone || sending"
             @click="sendOtp"
-            class="w-full"
+            class="w-full bg-black text-white py-4 rounded-lg font-bold uppercase tracking-widest text-sm hover:bg-rose-500 hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,0.2)] hover:-translate-y-[1px] transition-all disabled:opacity-50 disabled:cursor-not-allowed border-2 border-black"
           >
-            {{ sending ? 'Sending Code...' : 'Continue with Phone' }}
-          </UiButton>
+            {{ sending ? 'Sending Code...' : 'Continue' }}
+          </button>
 
-          <p v-if="error" class="text-red-500 text-sm text-center font-medium bg-red-50 py-2 rounded-lg">{{ error }}</p>
+          <p v-if="error" class="text-rose-500 text-sm text-center font-bold bg-rose-50 py-2 rounded border border-rose-200">{{ error }}</p>
 
-          <div class="border-t border-stone-100 pt-6 mt-6 text-center">
-            <p class="text-sm text-stone-400 mb-3">New to minutes2match?</p>
-            <NuxtLink to="/vibe-check" class="text-black font-semibold hover:underline text-sm">
-              Take the Vibe Check →
+          <div class="border-t-2 border-stone-100 pt-6 mt-6 text-center">
+            <p class="text-sm text-stone-500 mb-3">New to minutes2match?</p>
+            <NuxtLink to="/vibe-check" class="text-black font-bold uppercase tracking-wider text-xs border-b-2 border-rose-500 hover:text-rose-500 transition-colors pb-0.5">
+              Take the Vibe Check
             </NuxtLink>
           </div>
         </div>
@@ -51,52 +61,51 @@
         <!-- OTP Verification Step -->
         <div v-else class="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
           <div class="text-center">
-             <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-stone-100 text-xs font-medium text-stone-600 mb-4">
+             <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-black bg-stone-100 text-xs font-bold text-stone-900 mb-6 font-mono">
                 <span>Sent to +233 {{ phone }}</span>
              </div>
           </div>
 
-          <div class="space-y-2">
-            <label class="block text-xs font-bold uppercase tracking-wide text-stone-500 text-center">Verification Code</label>
+          <div class="space-y-4">
+            <label class="block text-xs font-bold uppercase tracking-widest text-stone-900 text-center">Verification Code</label>
             <input
               type="text"
               v-model="otpCode"
               placeholder="000000"
-              class="w-full py-4 text-3xl font-bold tracking-[0.5em] text-center outline-none bg-transparent border-b-2 border-stone-200 focus:border-black transition-colors placeholder-stone-200"
+              class="w-full py-4 text-4xl font-bold tracking-[0.5em] text-center outline-none bg-transparent border-b-4 border-stone-200 focus:border-black transition-colors placeholder-stone-200 font-mono"
               maxlength="6"
               @keyup.enter="otpCode.length === 6 && verifyOtp()"
               id="otp-input"
             />
           </div>
 
-          <UiButton 
-            variant="primary"
-            size="lg"
+          <button 
             :disabled="otpCode.length !== 6 || verifying"
             @click="verifyOtp"
-            class="w-full"
+            class="w-full bg-black text-white py-4 rounded-lg font-bold uppercase tracking-widest text-sm hover:bg-rose-500 hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,0.2)] hover:-translate-y-[1px] transition-all disabled:opacity-50 disabled:cursor-not-allowed border-2 border-black mt-8"
           >
             {{ verifying ? 'Verifying...' : 'Sign In' }}
-          </UiButton>
+          </button>
 
-          <p v-if="error" class="text-red-500 text-sm text-center font-medium bg-red-50 py-2 rounded-lg">{{ error }}</p>
+          <p v-if="error" class="text-rose-500 text-sm text-center font-bold bg-rose-50 py-2 rounded border border-rose-200">{{ error }}</p>
 
-          <button class="w-full text-stone-400 text-sm hover:text-black transition-colors py-2 font-medium" @click="resetForm">
+          <button class="w-full text-stone-400 text-xs uppercase tracking-widest hover:text-black transition-colors py-2 font-bold" @click="resetForm">
             ← Use different number
           </button>
         </div>
       </div>
       
       <!-- Footer details -->
-      <div class="text-center mt-8 text-xs text-stone-400">
-        <p>&copy; {{ new Date().getFullYear() }} Minutes 2 Match. All rights reserved.</p>
+      <div class="text-center mt-12 text-xs font-mono text-stone-400">
+        <p>&copy; {{ new Date().getFullYear() }} Minutes 2 Match. <br/>Made with ❤️ in Accra.</p>
       </div>
     </div>
   </main>
 </template>
 
 <script setup lang="ts">
-import UiButton from '~/components/ui/Button.vue'
+// UiButton is replaced by standard html button with tailwind for style consistency
+
 
 useHead({
   title: 'Sign In',
