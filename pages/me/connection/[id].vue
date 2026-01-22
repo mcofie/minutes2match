@@ -6,8 +6,8 @@
     <nav class="sticky top-0 z-50 bg-[#FFFCF8] border-b border-black">
       <div class="max-w-6xl mx-auto px-4 h-20 flex items-center justify-between">
         <!-- Logo -->
-        <NuxtLink to="/me" class="flex items-center gap-2 group">
-           <span class="text-3xl font-serif font-black italic tracking-tighter hover:text-rose-500 transition-colors">minutes2match.</span>
+        <NuxtLink to="/me" class="flex items-center">
+           <img src="/logo-full.png" alt="minutes2match" class="h-20 w-auto object-contain hover:opacity-80 transition-opacity" />
         </NuxtLink>
         
         <!-- User Info -->
@@ -85,7 +85,7 @@
               </div>
             </div>
 
-            <h2 class="text-2xl font-serif font-black italic text-black mb-1 mt-2">
+            <h2 class="text-2xl font-serif font-black text-black mb-1 mt-2">
               {{ match?.unlocked ? matchProfile?.display_name : (personaData?.name || 'Your Match') }}
             </h2>
             <p class="text-xs text-stone-500 mb-8 font-bold uppercase tracking-wide">
@@ -117,8 +117,9 @@
                 v-else
                 @click="handleUnlock"
                 :disabled="unlocking"
-                class="w-full py-4 bg-black text-white rounded-lg font-bold text-xs uppercase tracking-widest shadow-[4px_4px_0px_0px_rgba(0,0,0,0.2)] hover:shadow-[6px_6px_0px_0px_rgba(244,63,94,1)] hover:bg-rose-500 hover:-translate-y-0.5 transition-all disabled:opacity-50 border-2 border-black"
+                class="w-full py-4 bg-black text-white rounded-lg font-bold text-xs uppercase tracking-widest shadow-[4px_4px_0px_0px_rgba(0,0,0,0.2)] hover:shadow-[6px_6px_0px_0px_rgba(244,63,94,1)] hover:bg-rose-500 hover:-translate-y-0.5 transition-all disabled:opacity-50 border-2 border-black flex items-center justify-center gap-2"
               >
+                <span v-if="unlocking" class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
                 {{ unlocking ? 'Processing...' : `Unlock for GH₵${match?.unlock_price || 10}` }}
               </button>
             </div>
@@ -196,7 +197,7 @@
                  <h3 class="text-2xl font-serif font-bold text-black">About Me</h3>
                  <span class="text-[10px] font-bold font-mono text-stone-400">{{ matchProfile.about_me?.length || 0 }}/300</span>
              </div>
-             <div class="w-full p-6 bg-white rounded-lg border-2 border-stone-100 text-stone-700 min-h-[100px] leading-relaxed font-serif italic text-lg">
+             <div class="w-full p-6 bg-white rounded-lg border-2 border-stone-100 text-stone-700 min-h-[100px] leading-relaxed font-serif text-lg">
                 "{{ matchProfile.about_me || 'No bio available yet.' }}"
              </div>
           </div>

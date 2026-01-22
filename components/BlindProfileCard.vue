@@ -139,10 +139,12 @@
                 <span class="text-sm font-bold font-mono text-black mt-0.5">{{ formattedPrice }}</span>
               </div>
               <button 
-                @click.stop="$emit('unlock')"
-                class="px-4 py-1.5 bg-black text-white rounded-md text-[10px] font-bold uppercase tracking-widest hover:bg-rose-500 transition-all shadow-[2px_2px_0px_0px_rgba(0,0,0,0.2)] hover:shadow-[3px_3px_0px_0px_rgba(0,0,0,0.3)] hover:-translate-y-[1px] border border-black"
+                @click.stop="handleUnlock"
+                :disabled="isUnlocking"
+                class="px-4 py-1.5 bg-black text-white rounded-md text-[10px] font-bold uppercase tracking-widest hover:bg-rose-500 transition-all shadow-[2px_2px_0px_0px_rgba(0,0,0,0.2)] hover:shadow-[3px_3px_0px_0px_rgba(0,0,0,0.3)] hover:-translate-y-[1px] border border-black flex items-center gap-2"
               >
-                Unlock
+                <span v-if="isUnlocking" class="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
+                {{ isUnlocking ? '...' : 'Unlock' }}
               </button>
             </template>
           </div>

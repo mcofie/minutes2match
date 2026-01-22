@@ -13,8 +13,8 @@
     <div class="w-full max-w-md relative z-10">
       <!-- Logo/Brand -->
       <div class="text-center mb-10">
-        <NuxtLink to="/" class="inline-block text-3xl font-serif italic font-bold tracking-tight mb-2 hover:text-rose-500 transition-colors">
-           minutes2match.
+        <NuxtLink to="/" class="inline-block mb-6">
+           <img src="/logo-full.png" alt="minutes2match" class="h-20 w-auto object-contain hover:opacity-80 transition-opacity" />
         </NuxtLink>
         <h1 class="text-3xl font-serif font-bold tracking-tight text-black mt-4">Welcome Back</h1>
         <p class="text-stone-500 mt-2 font-light">Sign in to your account</p>

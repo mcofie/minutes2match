@@ -1,5 +1,5 @@
-/// <reference types="@nuxtjs/supabase" />
 /// <reference types="@nuxt/fonts" />
+/// <reference types="@nuxtjs/supabase" />
 /// <reference types="@pinia/nuxt" />
 /// <reference types="@nuxt/devtools" />
 /// <reference types="@nuxt/telemetry" />

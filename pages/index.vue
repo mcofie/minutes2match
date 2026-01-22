@@ -11,8 +11,8 @@
     <nav class="fixed top-0 inset-x-0 z-50 bg-[#FFFCF8] border-b border-black">
       <div class="max-w-[1440px] mx-auto px-6 h-24 flex items-center justify-between">
         <!-- Logo -->
-        <NuxtLink to="/" class="text-3xl font-serif italic font-bold tracking-tight z-50 hover:text-rose-500 transition-colors">
-           minutes2match.
+        <NuxtLink to="/" class="flex items-center z-50">
+           <img src="/logo-full.png" alt="minutes2match" class="h-20 w-auto object-contain hover:opacity-80 transition-opacity" />
         </NuxtLink>
 
         <!-- Center Links -->
@@ -418,9 +418,9 @@
 
           <!-- Bottom Watermark -->
           <div class="flex flex-col md:flex-row justify-between items-end">
-             <div class="text-[12vw] leading-none font-serif font-bold italic text-stone-900 select-none">
-                minutes2match.
-             </div>
+          <div class="flex items-end">
+             <img src="/logo-full.png" alt="minutes2match" class="h-24 w-auto object-contain brightness-0 invert opacity-90" />
+          </div>
              <div class="text-xs font-mono text-stone-600 mb-4 md:mb-8 text-right">
                 © 2024 Minutes2Match Inc. • Accra, GH <br/>
                 All Rights Reserved.

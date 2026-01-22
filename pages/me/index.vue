@@ -21,8 +21,8 @@
     <!-- Navbar / Header -->
     <nav class="sticky top-0 z-[60] bg-[#FFFCF8] border-b border-black">
       <div class="max-w-6xl mx-auto px-4 h-20 flex items-center justify-between">
-        <div class="flex items-center gap-3">
-          <div class="text-3xl font-serif font-black italic tracking-tighter hover:text-rose-500 transition-colors cursor-pointer">minutes2match.</div>
+        <div class="flex items-center">
+           <img src="/logo-full.png" alt="minutes2match" class="h-20 w-auto object-contain hover:opacity-80 transition-opacity cursor-pointer" />
         </div>
         
         <div class="flex items-center gap-6">
@@ -301,7 +301,7 @@
                    v-model="editForm.about_me" 
                    rows="4"
                    maxlength="300"
-                   class="w-full px-4 py-3 rounded-lg border-2 border-stone-200 bg-white focus:border-black outline-none transition-all font-serif italic text-lg resize-none placeholder-stone-300"
+                   class="w-full px-4 py-3 rounded-lg border-2 border-stone-200 bg-white focus:border-black outline-none transition-all font-serif text-lg resize-none placeholder-stone-300"
                    placeholder="Share a little about yourself..."
                 ></textarea>
                 <p class="text-[10px] uppercase tracking-widest font-bold text-stone-400 mt-3">💡 Profiles with bios get 40% more matches</p>
@@ -427,8 +427,7 @@
                 </div>
              </div>
              
-             <!-- Referral Program -->
-             <ReferralCard />
+             <!-- Referral Program removed as per request -->
           </div>
         </div>
       </div>
