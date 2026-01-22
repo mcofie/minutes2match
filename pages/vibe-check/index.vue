@@ -132,8 +132,9 @@
               <label class="block text-xs font-bold uppercase tracking-widest text-stone-900">Birthday</label>
               <UiDatePicker 
                 v-model="form.birthDate" 
-                placeholder="Select date"
+                placeholder="Select your birthday"
                 class="font-mono text-sm"
+                forBirthday
               />
             </div>
             <div class="space-y-2">
@@ -227,21 +228,21 @@
         </div>
 
         <template v-else-if="currentQuestion">
-          <h1 class="text-2xl md:text-4xl font-serif font-bold text-center leading-tight mb-8 text-black">{{ currentQuestion.question }}</h1>
+          <h1 class="text-xl md:text-4xl font-serif font-bold text-center leading-tight mb-6 text-black">{{ currentQuestion.question }}</h1>
 
-          <div class="space-y-4">
+          <div class="space-y-2 md:space-y-3">
             <button
               v-for="(option, idx) in currentQuestion.options"
               :key="idx"
-              class="group w-full flex items-center gap-6 p-6 rounded-xl border-2 text-left transition-all duration-200 hover:-translate-y-[2px] relative overflow-hidden"
-              :class="vibeAnswers[currentQuestion.key] === option ? 'bg-black border-black text-white shadow-[4px_4px_0px_0px_rgba(244,63,94,1)]' : 'bg-white border-stone-200 hover:border-black hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,0.1)]'"
+              class="group w-full flex items-center gap-3 md:gap-6 p-3 md:p-5 rounded-xl border-2 text-left transition-all duration-200 active:scale-[0.98] relative overflow-hidden"
+              :class="vibeAnswers[currentQuestion.key] === option ? 'bg-black border-black text-white shadow-[3px_3px_0px_0px_rgba(244,63,94,1)]' : 'bg-white border-stone-200 hover:border-black hover:shadow-[3px_3px_0px_0px_rgba(0,0,0,0.1)]'"
               @click="handleVibeSelect(currentQuestion.key, option)"
             >
                <!-- Selection Indicator for Active Item -->
-               <div v-if="vibeAnswers[currentQuestion.key] === option" class="absolute left-0 top-0 bottom-0 w-2 bg-rose-500"></div>
+               <div v-if="vibeAnswers[currentQuestion.key] === option" class="absolute left-0 top-0 bottom-0 w-1.5 md:w-2 bg-rose-500"></div>
 
-              <span class="text-3xl group-hover:scale-110 transition-transform duration-300">{{ getCategoryIcon(currentQuestion.category, idx) }}</span>
-              <span class="font-bold text-lg md:text-xl font-sans" :class="vibeAnswers[currentQuestion.key] === option ? 'text-white' : 'text-stone-800'">{{ option }}</span>
+              <span class="text-2xl md:text-3xl group-hover:scale-110 transition-transform duration-300 flex-shrink-0">{{ getCategoryIcon(currentQuestion.category, idx) }}</span>
+              <span class="font-bold text-sm md:text-lg font-sans leading-tight" :class="vibeAnswers[currentQuestion.key] === option ? 'text-white' : 'text-stone-800'">{{ option }}</span>
             </button>
           </div>
         </template>

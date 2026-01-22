@@ -24,8 +24,66 @@
       v-if="isOpen" 
       class="absolute top-full left-0 mt-2 bg-white rounded-xl shadow-xl border border-stone-100 p-4 z-50 w-[320px] animate-in fade-in slide-in-from-top-2 duration-200"
     >
-      <!-- Date Picker Mode -->
-      <div v-if="mode !== 'time'">
+      <!-- Birthday Mode: Simple Dropdowns -->
+      <div v-if="forBirthday" class="space-y-4">
+        <p class="text-xs font-bold uppercase tracking-widest text-stone-500 text-center">Select your birthday</p>
+        
+        <div class="grid grid-cols-3 gap-2">
+          <!-- Month -->
+          <div>
+            <label class="block text-[10px] font-bold uppercase text-stone-400 mb-1">Month</label>
+            <select 
+              v-model="selectedMonth" 
+              @change="updateBirthday"
+              class="w-full px-2 py-2 rounded-lg border border-stone-200 bg-white text-sm font-medium focus:outline-none focus:ring-2 focus:ring-black"
+            >
+              <option v-for="(month, idx) in months" :key="idx" :value="idx">{{ month }}</option>
+            </select>
+          </div>
+          
+          <!-- Day -->
+          <div>
+            <label class="block text-[10px] font-bold uppercase text-stone-400 mb-1">Day</label>
+            <select 
+              v-model="selectedDay" 
+              @change="updateBirthday"
+              class="w-full px-2 py-2 rounded-lg border border-stone-200 bg-white text-sm font-medium focus:outline-none focus:ring-2 focus:ring-black"
+            >
+              <option v-for="day in daysInSelectedMonth" :key="day" :value="day">{{ day }}</option>
+            </select>
+          </div>
+          
+          <!-- Year -->
+          <div>
+            <label class="block text-[10px] font-bold uppercase text-stone-400 mb-1">Year</label>
+            <select 
+              v-model="selectedYear" 
+              @change="updateBirthday"
+              class="w-full px-2 py-2 rounded-lg border border-stone-200 bg-white text-sm font-medium focus:outline-none focus:ring-2 focus:ring-black"
+            >
+              <option v-for="year in yearOptions" :key="year" :value="year">{{ year }}</option>
+            </select>
+          </div>
+        </div>
+        
+        <!-- Age Preview -->
+        <div v-if="calculatedAge" class="text-center py-2 bg-stone-50 rounded-lg">
+          <span class="text-sm text-stone-600">You'll be </span>
+          <span class="font-bold text-stone-900">{{ calculatedAge }} years old</span>
+        </div>
+        
+        <!-- Done Button -->
+        <button 
+          @click="confirmBirthday"
+          :disabled="!isValidBirthday"
+          class="w-full py-3 bg-black text-white rounded-lg font-bold text-sm hover:bg-stone-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          Confirm
+        </button>
+      </div>
+
+      <!-- Standard Date Picker Mode -->
+      <div v-else-if="mode !== 'time'">
         <!-- Header -->
         <div class="flex items-center justify-between mb-4">
           <button @click.stop="changeMonth(-1)" class="p-1 hover:bg-stone-100 rounded-lg transition-colors">
@@ -81,7 +139,7 @@
       </div>
 
       <!-- Time Picker Section (Optional or Standalone) -->
-      <div v-if="enableTime" class="mt-4 pt-4 border-t border-stone-100">
+      <div v-if="enableTime && !forBirthday" class="mt-4 pt-4 border-t border-stone-100">
         <div class="flex items-center justify-center gap-2">
           <div class="flex flex-col items-center">
             <label class="text-[10px] uppercase font-bold text-stone-400 mb-1">Hour</label>
@@ -117,8 +175,8 @@
 import { onClickOutside } from '@vueuse/core'
 
 /**
- * Custom DatePicker adapted for Loops.so design
- * Handles Date only, or Date + Time logic if needed
+ * Custom DatePicker with special Birthday mode
+ * Birthday mode shows simple month/day/year dropdowns
  */
 
 const props = defineProps({
@@ -137,6 +195,10 @@ const props = defineProps({
   enableTime: {
     type: Boolean,
     default: false
+  },
+  forBirthday: {
+    type: Boolean,
+    default: false
   }
 })
 
@@ -147,10 +209,48 @@ const container = ref(null)
 
 // Calendar State
 const now = new Date()
-const viewDate = ref(new Date()) // The month currently being viewed
+const viewDate = ref(new Date())
 const currentYear = computed({
   get: () => viewDate.value.getFullYear(),
   set: (val) => viewDate.value.setFullYear(val)
+})
+
+// Birthday dropdowns state
+const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+const selectedMonth = ref(0)
+const selectedDay = ref(1)
+const selectedYear = ref(now.getFullYear() - 25) // Default to ~25 years ago
+
+// Generate year options (18-80 years ago)
+const yearOptions = computed(() => {
+  const currentYear = now.getFullYear()
+  const years: number[] = []
+  for (let y = currentYear - 18; y >= currentYear - 80; y--) {
+    years.push(y)
+  }
+  return years
+})
+
+// Days in selected month for birthday picker
+const daysInSelectedMonth = computed(() => {
+  const days = new Date(selectedYear.value, selectedMonth.value + 1, 0).getDate()
+  return Array.from({ length: days }, (_, i) => i + 1)
+})
+
+// Calculated age for preview
+const calculatedAge = computed(() => {
+  const today = new Date()
+  const birthDate = new Date(selectedYear.value, selectedMonth.value, selectedDay.value)
+  let age = today.getFullYear() - birthDate.getFullYear()
+  const monthDiff = today.getMonth() - birthDate.getMonth()
+  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+    age--
+  }
+  return age >= 0 && age < 120 ? age : null
+})
+
+const isValidBirthday = computed(() => {
+  return calculatedAge.value !== null && calculatedAge.value >= 18 && calculatedAge.value < 120
 })
 
 // Time State
@@ -161,10 +261,17 @@ const selectedMinute = ref(0)
 watch(() => props.modelValue, (val) => {
   if (val) {
     const d = new Date(val)
-    viewDate.value = new Date(d) // create copy
-    if (props.enableTime || props.mode === 'time') {
-      selectedHour.value = d.getHours()
-      selectedMinute.value = d.getMinutes()
+    if (!isNaN(d.getTime())) {
+      viewDate.value = new Date(d)
+      if (props.forBirthday) {
+        selectedMonth.value = d.getMonth()
+        selectedDay.value = d.getDate()
+        selectedYear.value = d.getFullYear()
+      }
+      if (props.enableTime || props.mode === 'time') {
+        selectedHour.value = d.getHours()
+        selectedMinute.value = d.getMinutes()
+      }
     }
   }
 }, { immediate: true })
@@ -175,6 +282,25 @@ onClickOutside(container, () => {
 
 const togglePopover = () => {
   isOpen.value = !isOpen.value
+}
+
+// Birthday functions
+const updateBirthday = () => {
+  // Keep day in valid range if month changes
+  const maxDays = daysInSelectedMonth.value.length
+  if (selectedDay.value > maxDays) {
+    selectedDay.value = maxDays
+  }
+}
+
+const confirmBirthday = () => {
+  if (!isValidBirthday.value) return
+  
+  const year = selectedYear.value
+  const month = String(selectedMonth.value + 1).padStart(2, '0')
+  const day = String(selectedDay.value).padStart(2, '0')
+  emit('update:modelValue', `${year}-${month}-${day}`)
+  isOpen.value = false
 }
 
 // Calendar Logic
@@ -205,7 +331,6 @@ const changeMonth = (delta: number) => {
 const isSelected = (day: number) => {
   if (!props.modelValue) return false
   const d = new Date(props.modelValue)
-  // Check if year, month, and day match viewDate
   return d.getDate() === day && 
          d.getMonth() === viewDate.value.getMonth() && 
          d.getFullYear() === viewDate.value.getFullYear()
@@ -218,10 +343,8 @@ const selectDate = (day: number) => {
   if (props.enableTime) {
     d.setHours(selectedHour.value)
     d.setMinutes(selectedMinute.value)
-    emit('update:modelValue', d.toISOString()) // send full ISO for datetime
+    emit('update:modelValue', d.toISOString())
   } else {
-    // Return YYYY-MM-DD for simple date
-    // ensure we don't have timezone offset issues by using local YYYY-MM-DD construction
     const year = d.getFullYear()
     const month = String(d.getMonth() + 1).padStart(2, '0')
     const dayStr = String(day).padStart(2, '0')
@@ -242,6 +365,8 @@ const updateTime = () => {
 const formattedValue = computed(() => {
   if (!props.modelValue) return ''
   const d = new Date(props.modelValue)
+  
+  if (isNaN(d.getTime())) return ''
   
   if (props.mode === 'time') {
     return d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })
