@@ -20,10 +20,10 @@
 
     <!-- Navbar / Header -->
     <nav class="sticky top-0 z-[60] bg-[#FFFCF8] border-b border-black">
-      <div class="max-w-6xl mx-auto px-4 h-20 flex items-center justify-between">
-        <div class="flex items-center">
-           <img src="/logo-full.png" alt="minutes2match" class="h-20 w-auto object-contain hover:opacity-80 transition-opacity cursor-pointer" />
-        </div>
+      <div class="max-w-6xl mx-auto px-4 h-16 md:h-20 flex items-center justify-between">
+        <NuxtLink to="/" class="flex items-center -ml-2">
+           <img src="/logo-full.png" alt="minutes2match" class="h-14 md:h-20 w-auto object-contain hover:opacity-80 transition-opacity" />
+        </NuxtLink>
         
         <div class="flex items-center gap-6">
           <div class="text-right hidden sm:block">
@@ -47,26 +47,26 @@
     
     <div class="max-w-6xl mx-auto px-4 py-8 relative z-10">
       <!-- Tabs -->
-      <div class="flex flex-wrap gap-4 mb-12">
+      <div class="grid grid-cols-3 gap-2 md:flex md:flex-wrap md:gap-4 mb-8 md:mb-12">
         <button 
           @click="activeTab = 'matches'"
-          class="px-6 py-3 rounded-lg text-xs font-bold uppercase tracking-widest transition-all border-2"
-          :class="activeTab === 'matches' ? 'bg-black text-white border-black shadow-[4px_4px_0px_0px_rgba(244,63,94,1)]' : 'bg-white text-stone-500 border-stone-200 hover:border-black hover:text-black'"
+          class="px-3 md:px-6 py-2.5 md:py-3 rounded-lg text-[10px] md:text-xs font-bold uppercase tracking-wider md:tracking-widest transition-all border-2"
+          :class="activeTab === 'matches' ? 'bg-black text-white border-black shadow-[3px_3px_0px_0px_rgba(244,63,94,1)] md:shadow-[4px_4px_0px_0px_rgba(244,63,94,1)]' : 'bg-white text-stone-500 border-stone-200 hover:border-black hover:text-black'"
         >
           Matches
-          <span v-if="pendingMatchCount > 0" class="ml-2 px-1.5 py-0.5 bg-rose-500 text-white rounded-md text-[10px] border border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">{{ pendingMatchCount }}</span>
+          <span v-if="pendingMatchCount > 0" class="ml-1 md:ml-2 px-1 md:px-1.5 py-0.5 bg-rose-500 text-white rounded text-[8px] md:text-[10px] border border-black">{{ pendingMatchCount }}</span>
         </button>
         <button 
           @click="activeTab = 'events'"
-          class="px-6 py-3 rounded-lg text-xs font-bold uppercase tracking-widest transition-all border-2"
-          :class="activeTab === 'events' ? 'bg-black text-white border-black shadow-[4px_4px_0px_0px_rgba(244,63,94,1)]' : 'bg-white text-stone-500 border-stone-200 hover:border-black hover:text-black'"
+          class="px-3 md:px-6 py-2.5 md:py-3 rounded-lg text-[10px] md:text-xs font-bold uppercase tracking-wider md:tracking-widest transition-all border-2"
+          :class="activeTab === 'events' ? 'bg-black text-white border-black shadow-[3px_3px_0px_0px_rgba(244,63,94,1)] md:shadow-[4px_4px_0px_0px_rgba(244,63,94,1)]' : 'bg-white text-stone-500 border-stone-200 hover:border-black hover:text-black'"
         >
           Events
         </button>
         <button 
           @click="activeTab = 'profile'"
-          class="px-6 py-3 rounded-lg text-xs font-bold uppercase tracking-widest transition-all border-2"
-          :class="activeTab === 'profile' ? 'bg-black text-white border-black shadow-[4px_4px_0px_0px_rgba(244,63,94,1)]' : 'bg-white text-stone-500 border-stone-200 hover:border-black hover:text-black'"
+          class="px-3 md:px-6 py-2.5 md:py-3 rounded-lg text-[10px] md:text-xs font-bold uppercase tracking-wider md:tracking-widest transition-all border-2"
+          :class="activeTab === 'profile' ? 'bg-black text-white border-black shadow-[3px_3px_0px_0px_rgba(244,63,94,1)] md:shadow-[4px_4px_0px_0px_rgba(244,63,94,1)]' : 'bg-white text-stone-500 border-stone-200 hover:border-black hover:text-black'"
         >
           Profile
         </button>
@@ -183,44 +183,6 @@
                 <p class="text-[10px] font-bold text-stone-400 uppercase tracking-widest mb-2 border-b border-stone-100 pb-2 inline-block">Pro Tip</p>
                 <p class="text-xs font-medium text-stone-500">Profiles with photos get <span class="text-black font-bold">80% more matches</span>.</p>
              </div>
-             
-             <!-- Pause Matching Toggle -->
-             <div class="bg-white p-4 rounded-xl border-2 border-stone-200">
-                <div class="flex items-start gap-4">
-                   <div class="flex-1">
-                      <h4 class="font-bold text-sm text-black mb-1">Pause Account</h4>
-                      <p class="text-xs text-stone-500 leading-relaxed">When paused, you won't appear in matches or be selected for events.</p>
-                   </div>
-                   <button 
-                      @click="toggleAccountActive"
-                      :disabled="togglingActive"
-                      :class="[
-                         'relative w-14 h-8 rounded-full border-2 transition-all duration-300 flex-shrink-0',
-                         editForm.is_active ? 'bg-black border-black' : 'bg-amber-400 border-black'
-                      ]"
-                   >
-                      <span 
-                         :class="[
-                            'absolute top-0.5 w-6 h-6 bg-white rounded-full shadow-md transition-all duration-300 flex items-center justify-center text-xs',
-                            editForm.is_active ? 'left-6' : 'left-0.5'
-                         ]"
-                      >
-                         {{ editForm.is_active ? '✓' : '⏸' }}
-                      </span>
-                   </button>
-                </div>
-                <div v-if="!editForm.is_active" class="mt-3 p-2 bg-amber-50 rounded-lg border border-amber-200">
-                   <p class="text-[10px] font-bold text-amber-700 uppercase tracking-widest flex items-center gap-1">
-                      <span>⚠️</span> Account Paused
-                   </p>
-                </div>
-             </div>
-             
-             <button @click="handleLogout" class="w-full py-3 bg-white border-2 border-stone-200 text-stone-500 font-bold uppercase tracking-widest text-xs rounded-lg hover:border-black hover:text-black transition-all">
-                Sign Out
-             </button>
-             
-
           </div>
 
           <!-- Edit Form -->
@@ -419,44 +381,109 @@
                    <span class="text-xl">✓</span> Saved
                  </span>
               </div>
+
+               <!-- Account Actions (at bottom of profile tab) -->
+               <div class="mt-12 pt-8 border-t-2 border-stone-100 space-y-4">
+                  <h3 class="text-lg font-bold text-stone-400 uppercase tracking-widest mb-4">Account Settings</h3>
+                  
+                  <!-- Pause Matching Toggle -->
+                  <div class="bg-white p-5 rounded-xl border-2 border-stone-200 hover:border-stone-300 transition-colors">
+                     <div class="flex items-start gap-4">
+                        <div class="flex-1">
+                           <h4 class="font-bold text-sm text-black mb-1">Pause Account</h4>
+                           <p class="text-xs text-stone-500 leading-relaxed">When paused, you won't appear in matches or be selected for events.</p>
+                        </div>
+                        <button 
+                           @click="toggleAccountActive"
+                           :disabled="togglingActive"
+                           :class="[
+                              'relative w-14 h-8 rounded-full border-2 transition-all duration-300 flex-shrink-0',
+                              editForm.is_active ? 'bg-black border-black' : 'bg-amber-400 border-black'
+                           ]"
+                        >
+                           <span 
+                              :class="[
+                                 'absolute top-0.5 w-6 h-6 bg-white rounded-full shadow-md transition-all duration-300 flex items-center justify-center text-xs',
+                                 editForm.is_active ? 'left-6' : 'left-0.5'
+                              ]"
+                           >
+                              {{ editForm.is_active ? '✓' : '⏸' }}
+                           </span>
+                        </button>
+                     </div>
+                     <div v-if="!editForm.is_active" class="mt-3 p-2 bg-amber-50 rounded-lg border border-amber-200">
+                        <p class="text-[10px] font-bold text-amber-700 uppercase tracking-widest flex items-center gap-1">
+                           <span>⚠️</span> Account Paused
+                        </p>
+                     </div>
+                  </div>
+                  
+                  <!-- Sign Out Button -->
+                  <button @click="handleLogout" class="w-full py-4 bg-white border-2 border-rose-200 text-rose-500 font-bold uppercase tracking-widest text-sm rounded-xl hover:bg-rose-50 hover:border-rose-300 transition-all">
+                     Sign Out
+                  </button>
+               </div>
           </div>
 
           <!-- Secondary Sidebar Items (Mobile: Bottom, Desktop: Left Column under Photo) -->
           <div class="md:col-span-1 md:col-start-1 space-y-6">
-             <!-- Payment History -->
-             <div class="bg-white p-6 rounded-xl border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
-                <h3 class="font-bold font-serif text-xl text-black mb-6">Payment History</h3>
-                
-                <div v-if="loadingPayments" class="text-center text-stone-400 text-xs font-bold uppercase tracking-widest py-4">Loading...</div>
-                
-                <div v-else-if="userPayments.length === 0" class="text-center text-stone-400 text-xs font-bold uppercase tracking-widest py-8">
-                  No payments yet
-                </div>
-                
-                <div v-else class="space-y-4 max-h-64 overflow-y-auto">
-                  <div 
-                    v-for="payment in userPayments.slice(0, 10)" 
-                    :key="payment.id" 
-                    class="flex items-center justify-between py-2 border-b border-stone-50 last:border-0"
-                  >
-                    <div class="flex items-center gap-3">
-                      <span class="text-lg bg-stone-50 w-8 h-8 flex items-center justify-center rounded-full border border-stone-200">{{ payment.purpose === 'event_ticket' ? '🎟️' : '💕' }}</span>
-                      <div>
-                        <p class="text-[10px] font-bold uppercase tracking-widest text-black">{{ payment.purpose === 'event_ticket' ? 'Event' : 'Match' }}</p>
-                        <p class="text-[10px] font-mono text-stone-400">{{ formatPaymentDate(payment.created_at) }}</p>
-                      </div>
-                    </div>
-                    <div class="text-right">
-                      <p class="text-sm font-bold font-mono text-black">{{ formatPaymentGHS(payment.amount) }}</p>
+             <!-- Payment History (Collapsible) -->
+             <div class="bg-white rounded-xl border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] overflow-hidden">
+                <button 
+                   @click="showPaymentHistory = !showPaymentHistory"
+                   class="w-full p-4 md:p-6 flex items-center justify-between hover:bg-stone-50 transition-colors"
+                >
+                   <h3 class="font-bold font-serif text-lg md:text-xl text-black">Payment History</h3>
+                   <div class="flex items-center gap-2">
+                      <span v-if="userPayments.length > 0" class="text-xs font-bold text-stone-400">{{ userPayments.length }}</span>
                       <span 
-                        class="text-[9px] uppercase tracking-widest font-bold"
-                        :class="payment.status === 'success' ? 'text-emerald-600' : payment.status === 'pending' ? 'text-amber-600' : 'text-rose-600'"
-                      >
-                        {{ payment.status }}
-                      </span>
-                    </div>
-                  </div>
-                </div>
+                         class="text-stone-400 transition-transform duration-300"
+                         :class="showPaymentHistory ? 'rotate-180' : ''"
+                      >▼</span>
+                   </div>
+                </button>
+                
+                <Transition
+                   enter-active-class="transition-all duration-300 ease-out"
+                   enter-from-class="max-h-0 opacity-0"
+                   enter-to-class="max-h-96 opacity-100"
+                   leave-active-class="transition-all duration-200 ease-in"
+                   leave-from-class="max-h-96 opacity-100"
+                   leave-to-class="max-h-0 opacity-0"
+                >
+                   <div v-show="showPaymentHistory" class="px-4 md:px-6 pb-4 md:pb-6 overflow-hidden">
+                      <div v-if="loadingPayments" class="text-center text-stone-400 text-xs font-bold uppercase tracking-widest py-4">Loading...</div>
+                      
+                      <div v-else-if="userPayments.length === 0" class="text-center text-stone-400 text-xs font-bold uppercase tracking-widest py-6">
+                        No payments yet
+                      </div>
+                      
+                      <div v-else class="space-y-3 max-h-64 overflow-y-auto">
+                        <div 
+                          v-for="payment in userPayments.slice(0, 10)" 
+                          :key="payment.id" 
+                          class="flex items-center justify-between py-2 border-b border-stone-50 last:border-0"
+                        >
+                          <div class="flex items-center gap-3">
+                            <span class="text-lg bg-stone-50 w-8 h-8 flex items-center justify-center rounded-full border border-stone-200">{{ payment.purpose === 'event_ticket' ? '🎟️' : '💕' }}</span>
+                            <div>
+                              <p class="text-[10px] font-bold uppercase tracking-widest text-black">{{ payment.purpose === 'event_ticket' ? 'Event' : 'Match' }}</p>
+                              <p class="text-[10px] font-mono text-stone-400">{{ formatPaymentDate(payment.created_at) }}</p>
+                            </div>
+                          </div>
+                          <div class="text-right">
+                            <p class="text-sm font-bold font-mono text-black">{{ formatPaymentGHS(payment.amount) }}</p>
+                            <span 
+                              class="text-[9px] uppercase tracking-widest font-bold"
+                              :class="payment.status === 'success' ? 'text-emerald-600' : payment.status === 'pending' ? 'text-amber-600' : 'text-rose-600'"
+                            >
+                              {{ payment.status }}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                   </div>
+                </Transition>
              </div>
              
              <!-- Referral Program removed as per request -->
@@ -534,6 +561,7 @@ const showBookingModal = ref(false)
 const selectedEvent = ref<any>(null)
 const processing = ref(false)
 const togglingActive = ref(false)
+const showPaymentHistory = ref(false) // Collapsed by default
 
 // Profile editing
 const editForm = reactive({
