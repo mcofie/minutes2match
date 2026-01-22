@@ -160,3 +160,23 @@ export async function notifyError(error: {
         ]
     })
 }
+
+export async function notifyUserLogin(user: {
+    phone: string
+    displayName?: string | null
+    isNewUser: boolean
+}) {
+    const emoji = user.isNewUser ? '🆕' : '👋'
+    const title = user.isNewUser ? `${emoji} New User Login!` : `${emoji} User Logged In`
+    const color = user.isNewUser ? DiscordColors.signup : DiscordColors.info
+
+    await notifyDiscord({
+        title,
+        color,
+        fields: [
+            { name: 'Phone', value: user.phone, inline: true },
+            { name: 'Name', value: user.displayName || 'Not set', inline: true },
+            { name: 'Type', value: user.isNewUser ? '🌟 First Login' : 'Returning User', inline: true },
+        ]
+    })
+}

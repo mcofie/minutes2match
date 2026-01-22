@@ -115,6 +115,20 @@ export default defineEventHandler(async (event) => {
             })
         }
 
+        // Send Discord notification for login
+        // New user = hasn't completed vibe check yet (first time logging in after signup)
+        try {
+            const { notifyUserLogin } = await import('~/server/utils/discord')
+            await notifyUserLogin({
+                phone: phone,
+                displayName: profile.display_name,
+                isNewUser: !hasCompletedVibeCheck
+            })
+        } catch (discordError) {
+            // Don't fail login if Discord notification fails
+            console.error('[Login] Discord notification error:', discordError)
+        }
+
         // Return credentials for client-side sign in
         return {
             success: true,

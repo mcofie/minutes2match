@@ -9,9 +9,9 @@
 
     <!-- Navigation -->
     <nav class="fixed top-0 inset-x-0 z-50 bg-[#FFFCF8] border-b border-black">
-      <div class="max-w-[1440px] mx-auto px-6 h-28 flex items-center justify-between">
+      <div class="max-w-[1440px] mx-auto px-4 md:px-6 h-28 flex items-center justify-between">
         <!-- Logo -->
-        <NuxtLink to="/" class="flex items-center z-50">
+        <NuxtLink to="/" class="flex items-center z-50 -ml-2 md:ml-0">
            <img src="/logo-full.png" alt="minutes2match" class="h-24 w-auto object-contain hover:opacity-80 transition-opacity" />
         </NuxtLink>
 
@@ -138,7 +138,7 @@
             <div class="animate-marquee flex gap-12 text-sm font-mono font-bold uppercase tracking-widest items-center">
                <span>Next Event: Accra</span>
                <span class="w-2 h-2 rounded-full bg-green-600"></span>
-               <span>Dec 12</span>
+               <span>Feb 20</span>
                <span class="w-2 h-2 rounded-full bg-green-600"></span>
                <span>Limited Spots</span>
                <span class="w-2 h-2 rounded-full bg-green-600"></span>
@@ -146,7 +146,7 @@
                <span class="w-2 h-2 rounded-full bg-green-600"></span>
                <span>Next Event: Accra</span>
                <span class="w-2 h-2 rounded-full bg-green-600"></span>
-               <span>Dec 12</span>
+               <span>Feb 20</span>
                <span class="w-2 h-2 rounded-full bg-green-600"></span>
                <span>Limited Spots</span>
                <span class="w-2 h-2 rounded-full bg-green-600"></span>
@@ -338,7 +338,7 @@
                   <div class="w-6 h-6 rounded-full bg-stone-300 border border-white"></div>
                   <div class="w-6 h-6 rounded-full bg-stone-400 border border-white"></div>
                </div>
-               <span>Join 2,400+ others in Accra</span>
+               <span>Join 500+ others in Accra</span>
             </div>
          </div>
       </section>
@@ -379,7 +379,7 @@
           <!-- Top Section -->
           <div class="grid md:grid-cols-2 gap-16 mb-24 border-b border-white/20 pb-24">
              <div>
-                <h2 class="text-5xl md:text-7xl font-serif mb-8 leading-none">
+                <h2 class="text-5xl md:text-7xl font-serif mb-8 leading-none text-white">
                    Ready to find <br/><span class="italic text-rose-500">your person?</span>
                 </h2>
                 <NuxtLink to="/vibe-check" class="inline-block bg-white text-black px-12 py-5 rounded-md text-lg font-bold uppercase tracking-widest hover:bg-rose-500 hover:text-white transition-all shadow-[6px_6px_0px_0px_rgba(255,255,255,0.3)] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px]">
@@ -389,8 +389,8 @@
              
              <div class="grid grid-cols-2 md:grid-cols-3 gap-8">
                 <div>
-                   <h4 class="font-bold uppercase tracking-widest text-stone-500 mb-6 text-xs">Company</h4>
-                   <ul class="space-y-4 text-sm font-medium">
+                   <h4 class="font-bold uppercase tracking-widest text-white mb-6 text-xs">Company</h4>
+                   <ul class="space-y-4 text-sm font-medium text-gray-300">
                       <li><a href="#" class="hover:text-rose-500 transition-colors">Manifesto</a></li>
                       <li><a href="#" class="hover:text-rose-500 transition-colors">How it Works</a></li>
                       <li><a href="#" class="hover:text-rose-500 transition-colors">Stories</a></li>
@@ -398,16 +398,16 @@
                    </ul>
                 </div>
                 <div>
-                   <h4 class="font-bold uppercase tracking-widest text-stone-500 mb-6 text-xs">Social</h4>
-                   <ul class="space-y-4 text-sm font-medium">
+                   <h4 class="font-bold uppercase tracking-widest text-white mb-6 text-xs">Social</h4>
+                   <ul class="space-y-4 text-sm font-medium text-gray-300">
                       <li><a href="#" class="hover:text-rose-500 transition-colors">Instagram</a></li>
                       <li><a href="#" class="hover:text-rose-500 transition-colors">Twitter / X</a></li>
                       <li><a href="#" class="hover:text-rose-500 transition-colors">TikTok</a></li>
                    </ul>
                 </div>
                 <div>
-                   <h4 class="font-bold uppercase tracking-widest text-stone-500 mb-6 text-xs">Legal</h4>
-                   <ul class="space-y-4 text-sm font-medium">
+                   <h4 class="font-bold uppercase tracking-widest text-white mb-6 text-xs">Legal</h4>
+                   <ul class="space-y-4 text-sm font-medium text-gray-300">
                       <li><a href="#" class="hover:text-rose-500 transition-colors">Terms</a></li>
                       <li><a href="#" class="hover:text-rose-500 transition-colors">Privacy</a></li>
                       <li><a href="#" class="hover:text-rose-500 transition-colors">Safety</a></li>
@@ -421,7 +421,7 @@
           <div class="flex items-end">
              <img src="/logo-full.png" alt="minutes2match" class="h-24 w-auto object-contain brightness-0 invert opacity-90" />
           </div>
-             <div class="text-xs font-mono text-stone-600 mb-4 md:mb-8 text-right">
+             <div class="text-xs font-mono text-gray-400 mb-4 md:mb-8 text-right">
                 © 2024 Minutes2Match Inc. • Accra, GH <br/>
                 All Rights Reserved.
              </div>
