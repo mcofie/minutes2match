@@ -40,19 +40,19 @@
       <!-- Tabs -->
       <div class="flex gap-8 border-b border-stone-200 mb-8 overflow-x-auto no-scrollbar">
         <button 
-          @click="activeTab = 'events'"
-          class="pb-3 text-sm font-bold tracking-wide uppercase transition-all whitespace-nowrap border-b-2"
-          :class="activeTab === 'events' ? 'text-black border-black' : 'text-stone-400 border-transparent hover:text-stone-600'"
-        >
-          Events
-        </button>
-        <button 
           @click="activeTab = 'matches'"
           class="pb-3 text-sm font-bold tracking-wide uppercase transition-all whitespace-nowrap border-b-2 relative"
           :class="activeTab === 'matches' ? 'text-black border-black' : 'text-stone-400 border-transparent hover:text-stone-600'"
         >
           Matches
           <span v-if="pendingMatchCount > 0" class="ml-2 px-1.5 py-0.5 bg-orange-500 text-white rounded-full text-[10px]">{{ pendingMatchCount }}</span>
+        </button>
+        <button 
+          @click="activeTab = 'events'"
+          class="pb-3 text-sm font-bold tracking-wide uppercase transition-all whitespace-nowrap border-b-2"
+          :class="activeTab === 'events' ? 'text-black border-black' : 'text-stone-400 border-transparent hover:text-stone-600'"
+        >
+          Events
         </button>
         <button 
           @click="activeTab = 'profile'"
@@ -124,31 +124,34 @@
             <p class="text-sm text-stone-500">We'll SMS you when you get matched!</p>
           </div>
 
-          <div v-else class="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-            <BlindProfileCard
-              v-for="match in matches"
-              :key="match.id"
-              :age="getAge(match.matchedProfile?.birth_date)"
-              :personaName="getPersonaData(match.matchedProfile?.dating_persona)?.name || 'Mystery'"
-              :personaEmoji="getPersonaData(match.matchedProfile?.dating_persona)?.emoji || '✨'"
-              :personaColor="getPersonaData(match.matchedProfile?.dating_persona)?.color || '#1a1a2e'"
-              :vibePreview="getVibePreview(match.vibeAnswers)"
-              :vibeSummary="getVibeSummary(match.vibeAnswers)"
-              :unlockPrice="match.unlock_price"
-              :unlocked="match.status === 'unlocked'"
-              :currentUserPaid="match.currentUserPaid"
-              :displayName="match.matchedProfile?.display_name"
-              :photoUrl="match.matchedProfile?.photo_url"
-              :phone="match.status === 'unlocked' ? match.matchedProfile?.phone : undefined"
-              :bio="match.matchedProfile?.about_me"
-              :interests="match.matchedProfile?.interests"
-              :sharedInterests="getSharedInterests(match.matchedProfile?.interests)"
-              :expiresAt="match.expires_at"
-              :matchedAt="match.created_at"
-              :location="match.matchedProfile?.location"
-              :gender="match.matchedProfile?.gender"
-              @unlock="handleUnlockMatch(match)"
-            />
+          <div v-else class="space-y-8">
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <BlindProfileCard
+                v-for="match in matches"
+                :key="match.id"
+                :matchId="match.id"
+                :age="getAge(match.matchedProfile?.birth_date)"
+                :personaName="getPersonaData(match.matchedProfile?.dating_persona)?.name || 'Mystery'"
+                :personaEmoji="getPersonaData(match.matchedProfile?.dating_persona)?.emoji || '✨'"
+                :personaColor="getPersonaData(match.matchedProfile?.dating_persona)?.color || '#1a1a2e'"
+                :vibePreview="getVibePreview(match.vibeAnswers)"
+                :vibeSummary="getVibeSummary(match.vibeAnswers)"
+                :unlockPrice="match.unlock_price"
+                :unlocked="match.status === 'unlocked'"
+                :currentUserPaid="match.currentUserPaid"
+                :displayName="match.matchedProfile?.display_name"
+                :photoUrl="match.matchedProfile?.photo_url"
+                :phone="match.status === 'unlocked' ? match.matchedProfile?.phone : undefined"
+                :bio="match.matchedProfile?.about_me"
+                :interests="match.matchedProfile?.interests"
+                :sharedInterests="getSharedInterests(match.matchedProfile?.interests)"
+                :expiresAt="match.expires_at"
+                :matchedAt="match.created_at"
+                :location="match.matchedProfile?.location"
+                :gender="match.matchedProfile?.gender"
+                @unlock="handleUnlockMatch(match)"
+              />
+            </div>
           </div>
         </div>
 
@@ -177,45 +180,11 @@
                 <UiButton variant="outline" size="sm" @click="handleLogout" class="w-full">Sign Out</UiButton>
              </div>
              
-             <!-- Payment History -->
-             <div class="bg-white p-6 rounded-2xl border border-stone-200 shadow-sm">
-                <h3 class="font-bold text-stone-900 mb-4">Payment History</h3>
-                
-                <div v-if="loadingPayments" class="text-center text-stone-400 text-sm py-4">Loading...</div>
-                
-                <div v-else-if="userPayments.length === 0" class="text-center text-stone-400 text-sm py-4">
-                  No payments yet
-                </div>
-                
-                <div v-else class="space-y-3 max-h-64 overflow-y-auto">
-                  <div 
-                    v-for="payment in userPayments.slice(0, 10)" 
-                    :key="payment.id" 
-                    class="flex items-center justify-between py-2 border-b border-stone-100 last:border-0"
-                  >
-                    <div class="flex items-center gap-2">
-                      <span class="text-lg">{{ payment.purpose === 'event_ticket' ? '🎟️' : '💕' }}</span>
-                      <div>
-                        <p class="text-sm font-medium text-stone-900">{{ payment.purpose === 'event_ticket' ? 'Event' : 'Match' }}</p>
-                        <p class="text-xs text-stone-400">{{ formatPaymentDate(payment.created_at) }}</p>
-                      </div>
-                    </div>
-                    <div class="text-right">
-                      <p class="text-sm font-bold text-stone-900">{{ formatPaymentGHS(payment.amount) }}</p>
-                      <span 
-                        class="text-[10px] px-1.5 py-0.5 rounded-full font-semibold"
-                        :class="payment.status === 'success' ? 'bg-emerald-100 text-emerald-700' : payment.status === 'pending' ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-700'"
-                      >
-                        {{ payment.status }}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-             </div>
+
           </div>
 
           <!-- Edit Form -->
-          <div class="md:col-span-2 space-y-6">
+          <div class="md:col-span-2 space-y-6 md:row-span-[20]">
              <!-- Basic Info -->
              <div class="bg-white p-6 md:p-8 rounded-2xl border border-stone-200 shadow-sm">
                 <h3 class="text-xl font-bold text-stone-900 mb-6">Basic Info</h3>
@@ -401,6 +370,48 @@
                 <span v-if="saveSuccess" class="text-emerald-600 font-bold text-sm animate-in fade-in">✓ Saved!</span>
              </div>
           </div>
+
+          <!-- Secondary Sidebar Items (Mobile: Bottom, Desktop: Left Column under Photo) -->
+          <div class="md:col-span-1 md:col-start-1 space-y-6">
+             <!-- Payment History -->
+             <div class="bg-white p-6 rounded-2xl border border-stone-200 shadow-sm">
+                <h3 class="font-bold text-stone-900 mb-4">Payment History</h3>
+                
+                <div v-if="loadingPayments" class="text-center text-stone-400 text-sm py-4">Loading...</div>
+                
+                <div v-else-if="userPayments.length === 0" class="text-center text-stone-400 text-sm py-4">
+                  No payments yet
+                </div>
+                
+                <div v-else class="space-y-3 max-h-64 overflow-y-auto">
+                  <div 
+                    v-for="payment in userPayments.slice(0, 10)" 
+                    :key="payment.id" 
+                    class="flex items-center justify-between py-2 border-b border-stone-100 last:border-0"
+                  >
+                    <div class="flex items-center gap-2">
+                      <span class="text-lg">{{ payment.purpose === 'event_ticket' ? '🎟️' : '💕' }}</span>
+                      <div>
+                        <p class="text-sm font-medium text-stone-900">{{ payment.purpose === 'event_ticket' ? 'Event' : 'Match' }}</p>
+                        <p class="text-xs text-stone-400">{{ formatPaymentDate(payment.created_at) }}</p>
+                      </div>
+                    </div>
+                    <div class="text-right">
+                      <p class="text-sm font-bold text-stone-900">{{ formatPaymentGHS(payment.amount) }}</p>
+                      <span 
+                        class="text-[10px] px-1.5 py-0.5 rounded-full font-semibold"
+                        :class="payment.status === 'success' ? 'bg-emerald-100 text-emerald-700' : payment.status === 'pending' ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-700'"
+                      >
+                        {{ payment.status }}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+             </div>
+             
+             <!-- Referral Program -->
+             <ReferralCard />
+          </div>
         </div>
       </div>
     </div>
@@ -460,7 +471,7 @@ const user = useSupabaseUser()
 // State
 const authReady = ref(false)
 const currentUserId = ref<string | null>(null)  // Store user ID to avoid undefined issues
-const activeTab = ref<'events' | 'matches' | 'profile'>('events')
+const activeTab = ref<'events' | 'matches' | 'profile'>('matches')
 const profile = ref<any>(null)
 const events = ref<any[]>([])
 const matches = ref<any[]>([])

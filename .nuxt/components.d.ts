@@ -18,6 +18,7 @@ export const BlindProfileCard: typeof import("../components/BlindProfileCard.vue
 export const CompatibilityBreakdown: typeof import("../components/CompatibilityBreakdown.vue").default
 export const EventCard: typeof import("../components/EventCard.vue").default
 export const Pagination: typeof import("../components/Pagination.vue").default
+export const ReferralCard: typeof import("../components/ReferralCard.vue").default
 export const UserActivityTimeline: typeof import("../components/UserActivityTimeline.vue").default
 export const VibeCard: typeof import("../components/VibeCard.vue").default
 export const UiButton: typeof import("../components/ui/Button.vue").default
@@ -53,6 +54,7 @@ export const LazyBlindProfileCard: LazyComponent<typeof import("../components/Bl
 export const LazyCompatibilityBreakdown: LazyComponent<typeof import("../components/CompatibilityBreakdown.vue").default>
 export const LazyEventCard: LazyComponent<typeof import("../components/EventCard.vue").default>
 export const LazyPagination: LazyComponent<typeof import("../components/Pagination.vue").default>
+export const LazyReferralCard: LazyComponent<typeof import("../components/ReferralCard.vue").default>
 export const LazyUserActivityTimeline: LazyComponent<typeof import("../components/UserActivityTimeline.vue").default>
 export const LazyVibeCard: LazyComponent<typeof import("../components/VibeCard.vue").default>
 export const LazyUiButton: LazyComponent<typeof import("../components/ui/Button.vue").default>

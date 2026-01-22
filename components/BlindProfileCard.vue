@@ -7,7 +7,7 @@
         cardClasses,
         'hover:shadow-xl hover:-translate-y-0.5'
       ]"
-      @click="showModal = true"
+      @click="navigateToConnection"
     >
       <!-- Full Card Layout -->
       <div class="flex">
@@ -369,6 +369,7 @@
 
 <script setup lang="ts">
 interface Props {
+  matchId: string  // Required for navigation
   age: number
   personaName: string
   personaEmoji: string
@@ -385,9 +386,9 @@ interface Props {
   interests?: string[]
   sharedInterests?: string[]
   expiresAt?: string
-  matchedAt?: string  // NEW: When the match was created
-  location?: string   // NEW: Where they're from
-  gender?: 'male' | 'female'  // NEW: Gender indicator
+  matchedAt?: string
+  location?: string
+  gender?: 'male' | 'female'
 }
 
 const props = defineProps<Props>()
@@ -397,12 +398,19 @@ const emit = defineEmits<{
   message: []
 }>()
 
+const router = useRouter()
+
 // Local state
 const showModal = ref(false)
 const copied = ref(false)
 const isUnlocking = ref(false)
 const copiedIndex = ref<number | null>(null)
 const showCelebration = ref(false)
+
+// Navigate to dedicated connection page
+const navigateToConnection = () => {
+  router.push(`/me/connection/${props.matchId}`)
+}
 
 onMounted(() => {
   if (props.unlocked) {

@@ -34,6 +34,7 @@ export { useCompatibility, VibeAnswer, UserProfile, CompatibilityResult } from '
 export { useHubtel } from '../composables/useHubtel';
 export { usePaystack, PaymentMetadata } from '../composables/usePaystack';
 export { personas, usePersona, Persona } from '../composables/usePersona';
+export { useSeo, useEventSeo } from '../composables/useSeo';
 export { useSupabaseClient } from '../node_modules/@nuxtjs/supabase/dist/runtime/composables/useSupabaseClient';
 export { useSupabaseCookieRedirect } from '../node_modules/@nuxtjs/supabase/dist/runtime/composables/useSupabaseCookieRedirect';
 export { useSupabaseSession } from '../node_modules/@nuxtjs/supabase/dist/runtime/composables/useSupabaseSession';

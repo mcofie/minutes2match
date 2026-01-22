@@ -3,6 +3,9 @@ import type { Serialize, Simplify } from "nitropack/types";
 declare module "nitropack/types" {
   type Awaited<T> = T extends PromiseLike<infer U> ? Awaited<U> : T
   interface InternalApi {
+    '/api/admin/analytics': {
+      'get': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/admin/analytics.get').default>>>>
+    }
     '/api/admin/seed-users': {
       'post': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/admin/seed-users.post').default>>>>
     }
@@ -36,8 +39,17 @@ declare module "nitropack/types" {
     '/api/profiles/create': {
       'post': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/profiles/create.post').default>>>>
     }
+    '/api/referrals': {
+      'get': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/referrals/index.get').default>>>>
+    }
+    '/api/referrals/track': {
+      'post': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/referrals/track.post').default>>>>
+    }
     '/api/send-sms': {
       'post': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/send-sms.post').default>>>>
+    }
+    '/api/sitemap.xml': {
+      'get': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/sitemap.xml.get').default>>>>
     }
     '/api/verify-admin-login': {
       'post': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/verify-admin-login.post').default>>>>

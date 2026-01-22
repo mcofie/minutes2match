@@ -1,1 +1,26 @@
+# Allow all crawlers
+User-agent: *
+Allow: /
 
+# Disallow admin pages
+Disallow: /admin/
+Disallow: /admin/*
+
+# Disallow user profile pages (private)
+Disallow: /me
+Disallow: /me/
+
+# Disallow payment pages
+Disallow: /payment/
+Disallow: /payment/*
+
+# Allow important pages
+Allow: /
+Allow: /vibe-check
+Allow: /events
+
+# Sitemap location
+Sitemap: https://minutes2match.com/sitemap.xml
+
+# Crawl-delay for polite crawling
+Crawl-delay: 1

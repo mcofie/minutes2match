@@ -25,7 +25,8 @@ export default defineEventHandler(async (event) => {
         religion,
         heightCm,
         occupation,
-        vibeAnswers
+        vibeAnswers,
+        referralCode // Optional referral code from URL
     } = body
 
     if (!phone) {
@@ -155,6 +156,44 @@ export default defineEventHandler(async (event) => {
             phone,
             displayName
         })
+
+        // Track referral if a code was provided
+        if (referralCode) {
+            try {
+                // Find the referrer
+                const { data: referrer } = await supabaseAdmin
+                    .schema('m2m')
+                    .from('profiles')
+                    .select('id')
+                    .eq('referral_code', referralCode.toUpperCase())
+                    .single()
+
+                if (referrer && referrer.id !== userId) {
+                    // Update profile with referred_by
+                    await supabaseAdmin
+                        .schema('m2m')
+                        .from('profiles')
+                        .update({ referred_by: referrer.id })
+                        .eq('id', userId)
+
+                    // Create referral record
+                    await supabaseAdmin
+                        .schema('m2m')
+                        .from('referrals')
+                        .insert({
+                            referrer_id: referrer.id,
+                            referred_id: userId,
+                            referral_code: referralCode.toUpperCase(),
+                            status: 'signed_up'
+                        })
+
+                    console.log(`[Referral] Tracked: User ${userId} was referred by ${referrer.id}`)
+                }
+            } catch (refError) {
+                console.error('[Referral] Failed to track:', refError)
+                // Don't fail signup if referral tracking fails
+            }
+        }
 
         // Return credentials for client to sign in
         return {
