@@ -7,7 +7,7 @@
     </div>
   </div>
   
-  <main v-else class="min-h-screen bg-[#FFFCF8] text-stone-900 pb-24 font-sans relative">
+  <main v-else class="min-h-screen bg-[#FFFCF8] text-stone-900 font-sans relative flex flex-col">
     <!-- Fonts -->
     <Head>
       <Link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -45,7 +45,7 @@
       </div>
     </nav>
     
-    <div class="max-w-6xl mx-auto px-4 py-8 relative z-10">
+    <div class="flex-1 max-w-6xl mx-auto px-4 py-8 pb-16 relative z-10 w-full">
       <!-- Tabs -->
       <div class="grid grid-cols-3 gap-2 md:flex md:flex-wrap md:gap-4 mb-8 md:mb-12">
         <button 
@@ -520,6 +520,22 @@
           </div>
        </div>
     </Teleport>
+    
+    <!-- Footer (Sticky to bottom) -->
+    <footer class="border-t border-stone-200 bg-white/80 backdrop-blur-sm mt-auto">
+      <div class="max-w-6xl mx-auto px-4 py-5">
+        <div class="flex flex-col md:flex-row items-center justify-between gap-3">
+          <p class="text-xs text-stone-400 font-medium">
+            © {{ new Date().getFullYear() }} Minutes 2 Match. All rights reserved.
+          </p>
+          <div class="flex items-center gap-6">
+            <NuxtLink to="/terms" class="text-xs text-stone-400 hover:text-black transition-colors font-medium">Terms</NuxtLink>
+            <NuxtLink to="/privacy" class="text-xs text-stone-400 hover:text-black transition-colors font-medium">Privacy</NuxtLink>
+            <span class="text-xs text-stone-300">Made with ❤️ in Accra</span>
+          </div>
+        </div>
+      </div>
+    </footer>
   </main>
 </template>
 
