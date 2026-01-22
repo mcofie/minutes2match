@@ -296,7 +296,6 @@ definePageMeta({
 
 const supabase = useSupabaseClient()
 const user = useSupabaseUser()
-const { sendSMS } = useHubtel()
 
 // State
 const loading = ref(true)
@@ -399,20 +398,48 @@ const sendMessages = async () => {
   const broadcastId = crypto.randomUUID()
   
   try {
+    // Get the current session for auth
+    const { data: sessionData } = await supabase.auth.getSession()
+    const token = sessionData?.session?.access_token
+    
+    if (!token) {
+      throw new Error('Not authenticated')
+    }
+
+    // Prepare recipients for bulk API
+    const recipients = selectedUsers.value
+      .filter(u => u.phone)
+      .map(u => ({
+        phone: u.phone,
+        name: u.display_name || 'there'
+      }))
+
+    // Call bulk SMS API (no rate limiting)
+    const result = await $fetch<{
+      success: boolean
+      summary: { total: number; sent: number; failed: number }
+      results: Array<{ phone: string; success: boolean; error?: string }>
+    }>('/api/admin/bulk-sms', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`
+      },
+      body: {
+        recipients,
+        message: message.value
+      }
+    })
+
+    sentCount.value = result.summary.sent
+    const failedCount = result.summary.failed
+
+    // Log each message to SMS history
     for (const recipient of selectedUsers.value) {
       if (recipient.phone) {
+        const smsResult = result.results.find(r => r.phone.includes(recipient.phone.replace(/^\+233/, '')))
+        const status = smsResult?.success ? 'sent' : 'failed'
         const personalizedMessage = message.value.replace('{name}', recipient.display_name || 'there')
-        let status = 'sent'
         
-        try {
-          await sendSMS(recipient.phone, personalizedMessage)
-          sentCount.value++
-        } catch (e) {
-          console.error('Failed to send to:', recipient.phone, e)
-          status = 'failed'
-        }
-        
-        // Save to database
         try {
           // @ts-ignore
           await supabase.from('sms_history').insert({
@@ -438,8 +465,12 @@ const sendMessages = async () => {
       sent_at: new Date().toISOString()
     })
     
-    // Show success
-    successMessage.value = `Sent ${sentCount.value} messages successfully!`
+    // Show success/partial success message
+    if (failedCount > 0) {
+      successMessage.value = `Sent ${sentCount.value} messages (${failedCount} failed)`
+    } else {
+      successMessage.value = `Sent ${sentCount.value} messages successfully!`
+    }
     showSuccess.value = true
     setTimeout(() => { showSuccess.value = false }, 4000)
     
@@ -448,9 +479,9 @@ const sendMessages = async () => {
     selectedUserIds.value = []
     activeFilter.value = 'all'
     
-  } catch (error) {
+  } catch (error: any) {
     console.error('Broadcast error:', error)
-    alert('Some messages may have failed to send.')
+    alert(error.data?.message || 'Failed to send messages. Please try again.')
   } finally {
     sending.value = false
     sentCount.value = 0

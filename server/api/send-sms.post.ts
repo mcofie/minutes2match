@@ -3,12 +3,14 @@
  * POST /api/send-sms
  * 
  * SECURITY: This route keeps Hubtel API keys server-side only
+ * Rate limited for OTP/user-facing use. Admins should use /api/admin/bulk-sms
  */
 
 import { enforceRateLimit } from '~/server/utils/rateLimiter'
 
 export default defineEventHandler(async (event) => {
-    // Rate limit: 3 SMS per minute per IP to prevent abuse
+    // Rate limit: 3 SMS per minute per IP to prevent OTP abuse
+    // For bulk messaging, use /api/admin/bulk-sms which has no rate limit
     enforceRateLimit(event, {
         maxRequests: 3,
         windowSeconds: 60,

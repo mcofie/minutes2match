@@ -6,6 +6,9 @@ declare module "nitropack/types" {
     '/api/admin/analytics': {
       'get': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/admin/analytics.get').default>>>>
     }
+    '/api/admin/bulk-sms': {
+      'post': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/admin/bulk-sms.post').default>>>>
+    }
     '/api/admin/seed-users': {
       'post': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/admin/seed-users.post').default>>>>
     }
