@@ -175,8 +175,12 @@ export default defineEventHandler(async (event) => {
                         updateData.user_2_paid_at = new Date().toISOString()
                     }
 
-                    // Check if both have now paid
-                    const bothPaid = (isUser1 && match.user_2_paid) || (!isUser1 && match.user_1_paid)
+                    // Check if both have now paid (including current payment)
+                    // isUser1 means we're setting user_1_paid = true now
+                    // So bothPaid = (we're user1 AND user2 already paid) OR (we're user2 AND user1 already paid)
+                    const user1WillBePaid = isUser1 ? true : match.user_1_paid
+                    const user2WillBePaid = isUser1 ? match.user_2_paid : true
+                    const bothPaid = user1WillBePaid && user2WillBePaid
 
                     if (bothPaid) {
                         updateData.status = 'unlocked'

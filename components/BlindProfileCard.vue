@@ -199,18 +199,24 @@
                 </div>
                 <!-- Locked Overlay -->
                 <div class="absolute inset-0 flex flex-col items-center justify-center bg-stone-50/40 backdrop-blur-[3px]">
-                  <div class="p-3 rounded-full bg-white border border-stone-100 shadow-sm mb-3">
-                    <svg v-if="currentUserPaid" class="w-6 h-6 text-amber-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-                      <path d="M7 11V7a5 5 0 0 1 9.9-1"></path>
-                    </svg>
-                    <svg v-else class="w-6 h-6 text-stone-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-                      <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
-                    </svg>
-                  </div>
-                  <p v-if="currentUserPaid" class="text-xs font-bold text-amber-600 tracking-wider uppercase bg-amber-50 px-3 py-1 rounded-md border border-amber-100">Waiting for Reveal</p>
-                  <p v-else class="text-xs font-bold text-stone-500 tracking-wider uppercase bg-white px-3 py-1 rounded-md shadow-sm border border-stone-200">Private Profile</p>
+                   <template v-if="currentUserPaid">
+                      <div class="p-4 rounded-full bg-amber-50 border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] mb-3">
+                         <svg class="w-8 h-8 text-amber-500 animate-pulse" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <path d="M12 6v6l4 2"></path>
+                         </svg>
+                      </div>
+                      <p class="text-xs font-bold text-black tracking-wider uppercase bg-amber-400 px-4 py-1.5 rounded-lg border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">Pending</p>
+                   </template>
+                   <template v-else>
+                      <div class="p-4 rounded-full bg-white border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] mb-3 transition-transform hover:scale-110 duration-200">
+                         <svg class="w-8 h-8 text-black" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2" fill="none"></rect>
+                            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                         </svg>
+                      </div>
+                      <p class="text-xs font-bold text-black tracking-widest uppercase bg-white px-4 py-1.5 rounded-lg border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">Private</p>
+                   </template>
                 </div>
               </template>
             </div>

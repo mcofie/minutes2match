@@ -9,10 +9,10 @@
 
     <!-- Navigation -->
     <nav class="fixed top-0 inset-x-0 z-50 bg-[#FFFCF8] border-b border-black">
-      <div class="max-w-[1440px] mx-auto px-6 h-24 flex items-center justify-between">
+      <div class="max-w-[1440px] mx-auto px-6 h-28 flex items-center justify-between">
         <!-- Logo -->
         <NuxtLink to="/" class="flex items-center z-50">
-           <img src="/logo-full.png" alt="minutes2match" class="h-20 w-auto object-contain hover:opacity-80 transition-opacity" />
+           <img src="/logo-full.png" alt="minutes2match" class="h-24 w-auto object-contain hover:opacity-80 transition-opacity" />
         </NuxtLink>
 
         <!-- Center Links -->

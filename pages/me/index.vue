@@ -184,6 +184,38 @@
                 <p class="text-xs font-medium text-stone-500">Profiles with photos get <span class="text-black font-bold">80% more matches</span>.</p>
              </div>
              
+             <!-- Pause Matching Toggle -->
+             <div class="bg-white p-4 rounded-xl border-2 border-stone-200">
+                <div class="flex items-start gap-4">
+                   <div class="flex-1">
+                      <h4 class="font-bold text-sm text-black mb-1">Pause Account</h4>
+                      <p class="text-xs text-stone-500 leading-relaxed">When paused, you won't appear in matches or be selected for events.</p>
+                   </div>
+                   <button 
+                      @click="toggleAccountActive"
+                      :disabled="togglingActive"
+                      :class="[
+                         'relative w-14 h-8 rounded-full border-2 transition-all duration-300 flex-shrink-0',
+                         editForm.is_active ? 'bg-black border-black' : 'bg-amber-400 border-black'
+                      ]"
+                   >
+                      <span 
+                         :class="[
+                            'absolute top-0.5 w-6 h-6 bg-white rounded-full shadow-md transition-all duration-300 flex items-center justify-center text-xs',
+                            editForm.is_active ? 'left-6' : 'left-0.5'
+                         ]"
+                      >
+                         {{ editForm.is_active ? '✓' : '⏸' }}
+                      </span>
+                   </button>
+                </div>
+                <div v-if="!editForm.is_active" class="mt-3 p-2 bg-amber-50 rounded-lg border border-amber-200">
+                   <p class="text-[10px] font-bold text-amber-700 uppercase tracking-widest flex items-center gap-1">
+                      <span>⚠️</span> Account Paused
+                   </p>
+                </div>
+             </div>
+             
              <button @click="handleLogout" class="w-full py-3 bg-white border-2 border-stone-200 text-stone-500 font-bold uppercase tracking-widest text-xs rounded-lg hover:border-black hover:text-black transition-all">
                 Sign Out
              </button>
@@ -501,6 +533,7 @@ const loadingPayments = ref(true) // Track payment fetch status
 const showBookingModal = ref(false)
 const selectedEvent = ref<any>(null)
 const processing = ref(false)
+const togglingActive = ref(false)
 
 // Profile editing
 const editForm = reactive({
@@ -518,7 +551,8 @@ const editForm = reactive({
   about_me: '',
   min_age: 18 as number,
   max_age: 50 as number,
-  interests: [] as string[]
+  interests: [] as string[],
+  is_active: true
 })
 
 // Available interests for selection
@@ -702,6 +736,38 @@ const saveProfile = async () => {
     alert('Failed to save profile')
   } finally {
     saving.value = false
+  }
+}
+
+// Toggle account active status (pause/unpause matching)
+const toggleAccountActive = async () => {
+  if (!currentUserId.value) return
+  
+  togglingActive.value = true
+  
+  try {
+    const newStatus = !editForm.is_active
+    
+    const { error } = await supabase
+      .from('profiles')
+      .update({ is_active: newStatus } as any)
+      .eq('id', currentUserId.value)
+    
+    if (error) throw error
+    
+    editForm.is_active = newStatus
+    
+    // Show feedback
+    if (newStatus) {
+      alert('Your profile is now active! You can receive matches and event invitations.')
+    } else {
+      alert('Your profile is now paused. You won\'t appear in matches or events until you reactivate.')
+    }
+  } catch (err) {
+    console.error('Toggle active error:', err)
+    alert('Failed to update account status')
+  } finally {
+    togglingActive.value = false
   }
 }
 
@@ -1046,6 +1112,7 @@ const fetchProfileById = async (userId: string) => {
       editForm.min_age = data.min_age || 18
       editForm.max_age = data.max_age || 50
       editForm.interests = [...(data.interests || [])]
+      editForm.is_active = data.is_active !== false // Default to true if not set
     }
   } catch (err) {
     console.error('[Profile] Exception:', err)

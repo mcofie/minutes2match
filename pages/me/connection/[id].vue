@@ -13,11 +13,11 @@
         <!-- User Info -->
         <div class="flex items-center gap-4">
           <div class="text-right hidden sm:block">
-            <p class="text-sm font-bold text-black uppercase tracking-widest">{{ matchProfile?.display_name || 'Connection' }}</p>
+            <p class="text-sm font-bold text-black uppercase tracking-widest">{{ match?.unlocked ? matchProfile?.display_name : (personaData?.name || 'Mystery Match') }}</p>
             <p class="text-[10px] text-rose-500 font-bold uppercase tracking-wider">Your Match</p>
           </div>
           <div class="w-12 h-12 rounded-full overflow-hidden bg-white border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
-            <img v-if="matchProfile?.photo_url" :src="matchProfile.photo_url" class="w-full h-full object-cover" />
+            <img v-if="match?.unlocked && matchProfile?.photo_url" :src="matchProfile.photo_url" class="w-full h-full object-cover" />
             <div v-else class="w-full h-full flex items-center justify-center text-lg font-serif italic">{{ personaData?.emoji || '✨' }}</div>
           </div>
         </div>
@@ -113,6 +113,11 @@
                 </a>
               </div>
               
+              <div v-else-if="match?.currentUserPaid" class="w-full py-4 bg-amber-100 text-amber-900 rounded-lg font-bold text-xs uppercase tracking-widest border-2 border-amber-200 flex items-center justify-center gap-2 cursor-wait">
+                <span class="w-4 h-4 border-2 border-amber-300 border-t-amber-600 rounded-full animate-spin"></span>
+                Waiting for Match...
+              </div>
+
               <button 
                 v-else
                 @click="handleUnlock"
@@ -134,6 +139,7 @@
         <div class="md:col-span-8 lg:col-span-9 space-y-6">
           
           <!-- Basic Details -->
+          <!-- Basic Details (Unlocked) -->
           <div v-if="match?.unlocked && matchProfile" class="bg-white p-6 md:p-8 rounded-xl border-2 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
              <h3 class="text-2xl font-serif font-bold text-black mb-8 flex items-center gap-2">
                <span>Basic Info</span>
@@ -144,9 +150,19 @@
                  <!-- Display Name -->
                  <div class="space-y-2">
                     <label class="text-[10px] font-bold uppercase text-stone-500 tracking-widest">Display Name</label>
-                    <div class="w-full px-4 py-3 bg-stone-50 rounded-lg border-2 border-stone-100 text-stone-900 font-bold font-serif text-lg">
-                        {{ matchProfile.display_name }}
-                    </div>
+                    <div class="font-serif text-lg font-bold">{{ matchProfile.display_name }}</div>
+                 </div>
+                 
+                 <!-- Age -->
+                 <div class="space-y-2">
+                     <label class="text-[10px] font-bold uppercase text-stone-500 tracking-widest">Age</label>
+                     <div class="font-serif text-lg font-bold">{{ getAge(matchProfile.birth_date) }} years</div>
+                 </div>
+                 
+                 <!-- Location -->
+                 <div class="space-y-2">
+                     <label class="text-[10px] font-bold uppercase text-stone-500 tracking-widest">Location</label>
+                     <div class="font-serif text-lg font-bold">{{ matchProfile.location }}</div>
                  </div>
 
                  <!-- Phone -->
@@ -160,36 +176,70 @@
                  <!-- Occupation -->
                  <div class="space-y-2">
                     <label class="text-[10px] font-bold uppercase text-stone-500 tracking-widest">Occupation 💼</label>
-                    <div class="w-full px-4 py-3 bg-stone-50 rounded-lg border-2 border-stone-100 text-stone-900 font-medium">
-                        {{ matchProfile.occupation || 'Not specified' }}
-                    </div>
+                    <div class="font-serif text-lg font-bold">{{ matchProfile.occupation || 'Not specified' }}</div>
                  </div>
 
                  <!-- Religion -->
                  <div class="space-y-2">
                     <label class="text-[10px] font-bold uppercase text-stone-500 tracking-widest">Religion ⛪️</label>
-                    <div class="w-full px-4 py-3 bg-stone-50 rounded-lg border-2 border-stone-100 text-stone-900 font-medium">
-                        {{ matchProfile.religion || 'Not specified' }}
-                    </div>
+                    <div class="font-serif text-lg font-bold">{{ matchProfile.religion || 'Not specified' }}</div>
                  </div>
                  
                  <!-- Height -->
                  <div class="space-y-2">
                     <label class="text-[10px] font-bold uppercase text-stone-500 tracking-widest">Height 📏</label>
-                     <div class="w-full px-4 py-3 bg-stone-50 rounded-lg border-2 border-stone-100 text-stone-900 font-medium">
-                        {{ matchProfile.height_cm ? `${matchProfile.height_cm} cm` : 'Not specified' }}
-                    </div>
+                     <div class="font-serif text-lg font-bold">{{ matchProfile.height_cm ? `${matchProfile.height_cm} cm` : 'Not specified' }}</div>
                  </div>
 
                  <!-- Intent -->
                  <div class="space-y-2">
                     <label class="text-[10px] font-bold uppercase text-stone-500 tracking-widest">Looking For 💍</label>
-                     <div class="w-full px-4 py-3 bg-stone-50 rounded-lg border-2 border-stone-100 text-stone-900 font-medium capitalize">
-                        {{ matchProfile.intent || 'Friendship' }}
-                    </div>
+                     <div class="font-serif text-lg font-bold capitalize">{{ matchProfile.intent || 'Friendship' }}</div>
                  </div>
+              </div>
+           </div>
+           
+           <!-- Partial Unlock / Waiting State -->
+           <div v-else-if="match?.currentUserPaid" class="bg-amber-50 p-8 rounded-xl border-2 border-amber-200">
+             <div class="flex items-start gap-4">
+                <div class="w-12 h-12 bg-amber-100 rounded-lg flex items-center justify-center text-3xl flex-shrink-0 border border-amber-200">⏳</div>
+                <div>
+                   <h3 class="text-xl font-bold font-serif text-amber-900 mb-2">Waiting for Match</h3>
+                   <p class="text-amber-800 leading-relaxed text-sm">
+                      You've unlocked this profile, but we're waiting for them to unlock yours. We've sent them a notification!
+                   </p>
+                   <div class="mt-4 flex flex-col gap-2">
+                      <div class="flex justify-between text-xs font-bold uppercase tracking-widest text-amber-700">
+                         <span>Status</span>
+                         <span>Expires in {{ formatTimeRemaining(match.expires_at) }}</span>
+                      </div>
+                      <div class="w-full h-2 bg-amber-200 rounded-full overflow-hidden">
+                         <div class="h-full bg-amber-500 w-1/2 animate-pulse"></div>
+                      </div>
+                   </div>
+                </div>
              </div>
-          </div>
+           </div>
+           
+           <!-- Locked / Blind Details -->
+           <div v-else class="bg-white p-6 md:p-8 rounded-xl border-2 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] opacity-70">
+              <div class="flex items-center justify-between mb-8 opacity-50">
+                 <h3 class="text-2xl font-serif font-bold text-black flex items-center gap-2">
+                   <span>Basic Info</span>
+                   <div class="h-px flex-1 bg-stone-100"></div>
+                 </h3>
+                 <span class="text-xs font-bold uppercase tracking-widest bg-stone-100 px-3 py-1 rounded">Locked</span>
+              </div>
+              
+              <div class="flex flex-col items-center justify-center py-12 text-center text-stone-400">
+                 <svg class="w-12 h-12 mb-4 text-stone-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                 </svg>
+                 <p class="font-serif italic text-lg mb-2 text-stone-500">Details Hidden</p>
+                 <p class="text-sm max-w-xs mx-auto">Unlock this profile to view their full details, phone number, and bio.</p>
+              </div>
+           </div>
           
           <!-- About Section -->
           <div v-if="match?.unlocked && matchProfile" class="bg-white p-6 md:p-8 rounded-xl border-2 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
@@ -345,6 +395,22 @@ const getAge = (birthDate: string | null) => {
     age--
   }
   return age
+}
+
+const formatTimeRemaining = (expiresAt: string) => {
+  if (!expiresAt) return '24h'
+  const now = new Date().getTime()
+  const end = new Date(expiresAt).getTime()
+  const diff = end - now
+  
+  if (diff <= 0) return 'Expired'
+  
+  const hours = Math.floor(diff / (1000 * 60 * 60))
+  if (hours > 24) {
+     const days = Math.floor(hours / 24)
+     return `${days}d left`
+  }
+  return `${hours}h left`
 }
 
 const copyStarter = async (text: string, index: number) => {

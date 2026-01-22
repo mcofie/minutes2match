@@ -36,6 +36,7 @@ export interface Database {
                     religion: string | null
                     height_cm: number | null
                     occupation: string | null
+                    is_active: boolean
                     created_at: string
                     updated_at: string
                 }
@@ -55,6 +56,7 @@ export interface Database {
                     religion?: string | null
                     height_cm?: number | null
                     occupation?: string | null
+                    is_active?: boolean
                     created_at?: string
                     updated_at?: string
                 }
@@ -74,6 +76,7 @@ export interface Database {
                     religion?: string | null
                     height_cm?: number | null
                     occupation?: string | null
+                    is_active?: boolean
                     updated_at?: string
                 }
             }
