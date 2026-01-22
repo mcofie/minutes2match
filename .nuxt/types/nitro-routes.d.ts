@@ -12,6 +12,9 @@ declare module "nitropack/types" {
     '/api/admin/seed-users': {
       'post': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/admin/seed-users.post').default>>>>
     }
+    '/api/auth/check-existing-user': {
+      'post': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/auth/check-existing-user.post').default>>>>
+    }
     '/api/auth/login': {
       'post': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/auth/login.post').default>>>>
     }

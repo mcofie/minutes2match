@@ -613,8 +613,49 @@ const handleSendOtp = async () => {
   otpError.value = ''
   
   try {
-    const { sendOTP } = useHubtel()
     const fullPhone = '+233' + form.phone.replace(/\D/g, '').replace(/^0+/, '')
+    
+    // First check if this is a seeded/verified user who can skip OTP
+    const checkResult = await $fetch('/api/auth/check-existing-user', {
+      method: 'POST',
+      body: { phone: fullPhone }
+    })
+    
+    if (checkResult.exists && !checkResult.requiresOtp && checkResult.email && checkResult.password) {
+      // Seeded user! Auto-authenticate them
+      const supabase = useSupabaseClient()
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: checkResult.email,
+        password: checkResult.password
+      })
+      
+      if (!signInError) {
+        // Successfully auto-authenticated! Skip OTP
+        console.log('[Vibe Check] Seeded user auto-authenticated:', checkResult.displayName)
+        
+        // Wait for session to be established
+        await new Promise(resolve => setTimeout(resolve, 500))
+        
+        // Use updateUserProfile (not createUserProfile) since we're already signed in
+        isReturningUser.value = true
+        await updateUserProfile()
+        
+        const { calculatePersona, savePersona } = usePersona()
+        assignedPersona.value = calculatePersona(vibeAnswers)
+        
+        // Save persona
+        const { data: { user: currentUser } } = await supabase.auth.getUser()
+        if (currentUser && assignedPersona.value) {
+          await savePersona(currentUser.id, assignedPersona.value.id)
+        }
+        
+        currentStep.value = 11
+        return
+      }
+    }
+    
+    // Normal flow: send OTP
+    const { sendOTP } = useHubtel()
     await sendOTP(fullPhone)
     otpSent.value = true
   } catch (error) {

@@ -137,6 +137,9 @@ export default defineEventHandler(async (event) => {
                 console.error(`Failed to create/update profile for ${email}:`, profileError.message)
                 results.push({ email, status: 'profile_error', error: profileError.message })
             } else {
+                // Don't insert vibe_answers - we want seeded users to complete the REAL vibe check
+                // This ensures they get redirected to /vibe-check?returnUser=true on login
+                // where they can provide accurate answers for better matching
                 results.push({ email, status: 'processed', id: userId })
             }
 

@@ -114,7 +114,20 @@ export default defineEventHandler(async (event) => {
             userId = newUser.user.id
         }
 
-        // 2. Create/Update Profile (Bypass RLS)
+        // 2. Check for existing profile to preserve seeded data (like about_me)
+        let existingAboutMe: string | null = null
+        const { data: existingProfile } = await supabaseAdmin
+            .schema('m2m')
+            .from('profiles')
+            .select('about_me')
+            .eq('id', userId)
+            .single()
+
+        if (existingProfile?.about_me) {
+            existingAboutMe = existingProfile.about_me
+        }
+
+        // 3. Create/Update Profile (Bypass RLS) - preserve seeded about_me
         const { error: profileError } = await supabaseAdmin
             .schema('m2m')
             .from('profiles')
@@ -131,7 +144,9 @@ export default defineEventHandler(async (event) => {
                 religion: religion || null,
                 height_cm: heightCm || null,
                 occupation: occupation || null,
-                is_verified: true
+                is_verified: true,
+                // Preserve seeded about_me if it exists
+                about_me: existingAboutMe || null
             })
 
         if (profileError) throw profileError
