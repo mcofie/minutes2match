@@ -30,6 +30,9 @@ declare module "nitropack/types" {
     '/api/matches': {
       'get': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/matches.get').default>>>>
     }
+    '/api/me/notifications': {
+      'get': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/me/notifications.get').default>>>>
+    }
     '/api/paystack/initialize': {
       'post': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/paystack/initialize.post').default>>>>
     }

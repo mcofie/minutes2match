@@ -42,10 +42,10 @@
         
         <div class="flex items-center gap-3 md:gap-6">
           <!-- Notification Bell -->
-          <button class="relative p-2 hover:bg-stone-100 dark:hover:bg-stone-800 rounded-full transition-colors active:scale-95 text-stone-600 dark:text-stone-300" @click="activeTab = 'matches'">
+          <NuxtLink to="/me/notifications" class="relative p-2 hover:bg-stone-100 dark:hover:bg-stone-800 rounded-full transition-colors active:scale-95 text-stone-600 dark:text-stone-300">
              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
-             <span v-if="pendingMatchCount > 0" class="absolute top-1.5 right-2 w-2 h-2 bg-rose-500 rounded-full border border-white dark:border-stone-950 animate-pulse"></span>
-          </button>
+             <!-- <span v-if="pendingMatchCount > 0" class="absolute top-1.5 right-2 w-2 h-2 bg-rose-500 rounded-full border border-white dark:border-stone-950 animate-pulse"></span> -->
+          </NuxtLink>
 
           <div class="text-right flex flex-col items-end">
             <p class="text-xs md:text-sm font-bold text-black dark:text-stone-100 uppercase tracking-widest">{{ profile?.display_name }}</p>
