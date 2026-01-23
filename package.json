@@ -23,6 +23,7 @@
   },
   "devDependencies": {
     "@types/youtube": "^0.1.0",
+    "@vite-pwa/nuxt": "^1.1.0",
     "nuxi": "^3.32.0"
   }
 }

@@ -5,7 +5,7 @@ import tailwindcss from "@tailwindcss/vite";
 export default defineNuxtConfig({
     compatibilityDate: '2024-11-01',
     devtools: { enabled: true },
-    modules: ['@nuxt/fonts', '@nuxtjs/supabase', '@pinia/nuxt'],
+    modules: ['@nuxt/fonts', '@nuxtjs/supabase', '@pinia/nuxt', '@vite-pwa/nuxt'],
     css: [
         '~/assets/css/main.css',
         '~/assets/css/admin.css'
@@ -18,6 +18,42 @@ export default defineNuxtConfig({
     devServer: {
         host: "0.0.0.0"
     },
+    pwa: {
+        registerType: 'autoUpdate',
+        manifest: {
+            name: 'Minutes 2 Match',
+            short_name: 'M2M',
+            description: 'Find your perfect match through curated speed dating events.',
+            theme_color: '#FFFCF8',
+            background_color: '#FFFCF8',
+            display: 'standalone',
+            orientation: 'portrait',
+            icons: [
+                {
+                    src: 'logo-icon.png',
+                    sizes: '192x192',
+                    type: 'image/png'
+                },
+                {
+                    src: 'logo-icon.png',
+                    sizes: '512x512',
+                    type: 'image/png'
+                }
+            ],
+            start_url: "/"
+        },
+        workbox: {
+            navigateFallback: '/',
+            globPatterns: ['**/*.{js,css,html,png,svg,ico}']
+        },
+        client: {
+            installPrompt: true,
+        },
+        devOptions: {
+            enabled: true,
+            type: 'module'
+        }
+    },
     app: {
         head: {
             title: 'Minutes 2 Match',
@@ -27,6 +63,7 @@ export default defineNuxtConfig({
                 { name: 'viewport', content: 'width=device-width, initial-scale=1' },
                 { name: 'description', content: 'Find your perfect match through curated speed dating events. Science-backed compatibility matching for meaningful connections.' },
                 { name: 'theme-color', content: '#FFFCF8' },
+                // Apple Mobile Config - PWA Module handles standard manifest, but keeping apple specific meta is good
                 { name: 'apple-mobile-web-app-capable', content: 'yes' },
                 { name: 'apple-mobile-web-app-status-bar-style', content: 'black-translucent' },
                 { name: 'apple-mobile-web-app-title', content: 'M2M' },
@@ -43,10 +80,8 @@ export default defineNuxtConfig({
             ],
             link: [
                 { rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' },
-                { rel: 'icon', type: 'image/png', sizes: '32x32', href: '/favicon-32x32.png' },
-                { rel: 'icon', type: 'image/png', sizes: '16x16', href: '/favicon-16x16.png' },
-                { rel: 'apple-touch-icon', sizes: '180x180', href: '/apple-touch-icon.png' },
-                { rel: 'manifest', href: '/site.webmanifest' },
+                { rel: 'icon', type: 'image/png', sizes: '32x32', href: '/logo-icon.png' },
+                { rel: 'apple-touch-icon', sizes: '180x180', href: '/logo-icon.png' },
                 { rel: 'mask-icon', href: '/safari-pinned-tab.svg', color: '#000000' },
             ],
         }

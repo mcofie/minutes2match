@@ -107,14 +107,22 @@
 
                <div 
                  v-scroll-animate="{ animation: 'fade-up', delay: 200 }"
-                 class="flex flex-col sm:flex-row items-center lg:justify-start justify-center gap-6"
+                 class="flex flex-col gap-4"
                >
-                  <NuxtLink to="/vibe-check" class="bg-black dark:bg-stone-100 text-white dark:text-black px-12 py-5 rounded-md text-lg font-medium hover:bg-stone-800 dark:hover:bg-white transition-all w-full sm:w-auto min-w-[200px] text-center shadow-[6px_6px_0px_0px_rgba(244,63,94,1)] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] border border-black dark:border-stone-100">
-                     Start Vibe Check
-                  </NuxtLink>
-                  <button @click="scrollToSection('process')" class="text-black dark:text-stone-300 font-bold uppercase tracking-widest text-sm hover:text-rose-500 dark:hover:text-rose-400 transition-colors">
-                     How does it work?
-                  </button>
+                  <div class="flex flex-col sm:flex-row items-center lg:justify-start justify-center gap-6">
+                    <NuxtLink to="/vibe-check" class="bg-black dark:bg-stone-100 text-white dark:text-black px-12 py-5 rounded-md text-lg font-medium hover:bg-stone-800 dark:hover:bg-white transition-all w-full sm:w-auto min-w-[200px] text-center shadow-[6px_6px_0px_0px_rgba(244,63,94,1)] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] border border-black dark:border-stone-100">
+                       Start Vibe Check
+                    </NuxtLink>
+                    <button @click="scrollToSection('process')" class="text-black dark:text-stone-300 font-bold uppercase tracking-widest text-sm hover:text-rose-500 dark:hover:text-rose-400 transition-colors">
+                       How does it work?
+                    </button>
+                  </div>
+                  
+                  <div class="text-center lg:text-left pl-1">
+                    <NuxtLink to="/login" class="text-xs font-bold uppercase tracking-widest text-stone-400 hover:text-black dark:hover:text-white transition-colors">
+                       Already a member? <span class="underline decoration-2 underline-offset-4 text-stone-600 dark:text-stone-300">Login here</span>
+                    </NuxtLink>
+                  </div>
                </div>
             </div>
 
@@ -492,10 +500,14 @@
           </div>
        </div>
     </footer>
+    <!-- Social Proof Pulse -->
+    <LivePulse />
   </div>
 </template>
 
 <script setup lang="ts">
+import LivePulse from '~/components/LivePulse.vue'
+// ... existing script content ...
 import { ref } from 'vue'
 
 useHead({

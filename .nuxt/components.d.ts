@@ -17,6 +17,7 @@ type LazyComponent<T> = DefineComponent<HydrationStrategies, {}, {}, {}, {}, {},
 export const BlindProfileCard: typeof import("../components/BlindProfileCard.vue").default
 export const CompatibilityBreakdown: typeof import("../components/CompatibilityBreakdown.vue").default
 export const EventCard: typeof import("../components/EventCard.vue").default
+export const LivePulse: typeof import("../components/LivePulse.vue").default
 export const Pagination: typeof import("../components/Pagination.vue").default
 export const ReferralCard: typeof import("../components/ReferralCard.vue").default
 export const UserActivityTimeline: typeof import("../components/UserActivityTimeline.vue").default
@@ -45,6 +46,14 @@ export const NuxtTime: typeof import("../node_modules/nuxt/dist/app/components/n
 export const NuxtRouteAnnouncer: typeof import("../node_modules/nuxt/dist/app/components/nuxt-route-announcer").default
 export const NuxtImg: typeof import("../node_modules/nuxt/dist/app/components/nuxt-stubs").NuxtImg
 export const NuxtPicture: typeof import("../node_modules/nuxt/dist/app/components/nuxt-stubs").NuxtPicture
+export const VitePwaManifest: typeof import("../node_modules/@vite-pwa/nuxt/dist/runtime/components/VitePwaManifest").default
+export const NuxtPwaManifest: typeof import("../node_modules/@vite-pwa/nuxt/dist/runtime/components/VitePwaManifest").default
+export const NuxtPwaAssets: typeof import("../node_modules/@vite-pwa/nuxt/dist/runtime/components/NuxtPwaAssets").default
+export const PwaAppleImage: typeof import("../node_modules/@vite-pwa/nuxt/dist/runtime/components/PwaAppleImage.vue").default
+export const PwaAppleSplashScreenImage: typeof import("../node_modules/@vite-pwa/nuxt/dist/runtime/components/PwaAppleSplashScreenImage.vue").default
+export const PwaFaviconImage: typeof import("../node_modules/@vite-pwa/nuxt/dist/runtime/components/PwaFaviconImage.vue").default
+export const PwaMaskableImage: typeof import("../node_modules/@vite-pwa/nuxt/dist/runtime/components/PwaMaskableImage.vue").default
+export const PwaTransparentImage: typeof import("../node_modules/@vite-pwa/nuxt/dist/runtime/components/PwaTransparentImage.vue").default
 export const NuxtPage: typeof import("../node_modules/nuxt/dist/pages/runtime/page").default
 export const NoScript: typeof import("../node_modules/nuxt/dist/head/runtime/components").NoScript
 export const Link: typeof import("../node_modules/nuxt/dist/head/runtime/components").Link
@@ -59,6 +68,7 @@ export const NuxtIsland: typeof import("../node_modules/nuxt/dist/app/components
 export const LazyBlindProfileCard: LazyComponent<typeof import("../components/BlindProfileCard.vue").default>
 export const LazyCompatibilityBreakdown: LazyComponent<typeof import("../components/CompatibilityBreakdown.vue").default>
 export const LazyEventCard: LazyComponent<typeof import("../components/EventCard.vue").default>
+export const LazyLivePulse: LazyComponent<typeof import("../components/LivePulse.vue").default>
 export const LazyPagination: LazyComponent<typeof import("../components/Pagination.vue").default>
 export const LazyReferralCard: LazyComponent<typeof import("../components/ReferralCard.vue").default>
 export const LazyUserActivityTimeline: LazyComponent<typeof import("../components/UserActivityTimeline.vue").default>
@@ -87,6 +97,14 @@ export const LazyNuxtTime: LazyComponent<typeof import("../node_modules/nuxt/dis
 export const LazyNuxtRouteAnnouncer: LazyComponent<typeof import("../node_modules/nuxt/dist/app/components/nuxt-route-announcer").default>
 export const LazyNuxtImg: LazyComponent<typeof import("../node_modules/nuxt/dist/app/components/nuxt-stubs").NuxtImg>
 export const LazyNuxtPicture: LazyComponent<typeof import("../node_modules/nuxt/dist/app/components/nuxt-stubs").NuxtPicture>
+export const LazyVitePwaManifest: LazyComponent<typeof import("../node_modules/@vite-pwa/nuxt/dist/runtime/components/VitePwaManifest").default>
+export const LazyNuxtPwaManifest: LazyComponent<typeof import("../node_modules/@vite-pwa/nuxt/dist/runtime/components/VitePwaManifest").default>
+export const LazyNuxtPwaAssets: LazyComponent<typeof import("../node_modules/@vite-pwa/nuxt/dist/runtime/components/NuxtPwaAssets").default>
+export const LazyPwaAppleImage: LazyComponent<typeof import("../node_modules/@vite-pwa/nuxt/dist/runtime/components/PwaAppleImage.vue").default>
+export const LazyPwaAppleSplashScreenImage: LazyComponent<typeof import("../node_modules/@vite-pwa/nuxt/dist/runtime/components/PwaAppleSplashScreenImage.vue").default>
+export const LazyPwaFaviconImage: LazyComponent<typeof import("../node_modules/@vite-pwa/nuxt/dist/runtime/components/PwaFaviconImage.vue").default>
+export const LazyPwaMaskableImage: LazyComponent<typeof import("../node_modules/@vite-pwa/nuxt/dist/runtime/components/PwaMaskableImage.vue").default>
+export const LazyPwaTransparentImage: LazyComponent<typeof import("../node_modules/@vite-pwa/nuxt/dist/runtime/components/PwaTransparentImage.vue").default>
 export const LazyNuxtPage: LazyComponent<typeof import("../node_modules/nuxt/dist/pages/runtime/page").default>
 export const LazyNoScript: LazyComponent<typeof import("../node_modules/nuxt/dist/head/runtime/components").NoScript>
 export const LazyLink: LazyComponent<typeof import("../node_modules/nuxt/dist/head/runtime/components").Link>

@@ -99,6 +99,8 @@ declare global {
   const unref: typeof import('vue').unref
   const updateAppConfig: typeof import('../../node_modules/nuxt/dist/app/config').updateAppConfig
   const useAppConfig: typeof import('../../node_modules/nuxt/dist/app/config').useAppConfig
+  const useApplePwaIcon: typeof import('../../node_modules/@vite-pwa/nuxt/dist/runtime/composables/index').useApplePwaIcon
+  const useAppleSplashScreenPwaIcon: typeof import('../../node_modules/@vite-pwa/nuxt/dist/runtime/composables/index').useAppleSplashScreenPwaIcon
   const useAsyncData: typeof import('../../node_modules/nuxt/dist/app/composables/asyncData').useAsyncData
   const useAttrs: typeof import('vue').useAttrs
   const useCompatibility: typeof import('../../composables/useCompatibility').useCompatibility
@@ -108,6 +110,7 @@ declare global {
   const useCssVars: typeof import('vue').useCssVars
   const useError: typeof import('../../node_modules/nuxt/dist/app/composables/error').useError
   const useEventSeo: typeof import('../../composables/useSeo').useEventSeo
+  const useFaviconPwaIcon: typeof import('../../node_modules/@vite-pwa/nuxt/dist/runtime/composables/index').useFaviconPwaIcon
   const useFetch: typeof import('../../node_modules/nuxt/dist/app/composables/fetch').useFetch
   const useFormValidation: typeof import('../../composables/useFormValidation').useFormValidation
   const useHead: typeof import('../../node_modules/nuxt/dist/app/composables/head').useHead
@@ -119,10 +122,12 @@ declare global {
   const useLazyFetch: typeof import('../../node_modules/nuxt/dist/app/composables/fetch').useLazyFetch
   const useLink: typeof import('vue-router').useLink
   const useLoadingIndicator: typeof import('../../node_modules/nuxt/dist/app/composables/loading-indicator').useLoadingIndicator
+  const useMaskablePwaIcon: typeof import('../../node_modules/@vite-pwa/nuxt/dist/runtime/composables/index').useMaskablePwaIcon
   const useModel: typeof import('vue').useModel
   const useNuxtApp: typeof import('../../node_modules/nuxt/dist/app/nuxt').useNuxtApp
   const useNuxtData: typeof import('../../node_modules/nuxt/dist/app/composables/asyncData').useNuxtData
   const useNuxtDevTools: typeof import('../../node_modules/@nuxt/devtools/dist/runtime/use-nuxt-devtools').useNuxtDevTools
+  const usePWA: typeof import('../../node_modules/@vite-pwa/nuxt/dist/runtime/composables/index').usePWA
   const usePaystack: typeof import('../../composables/usePaystack').usePaystack
   const usePersona: typeof import('../../composables/usePersona').usePersona
   const usePinia: typeof import('../../node_modules/@pinia/nuxt/dist/runtime/composables').usePinia
@@ -184,6 +189,7 @@ declare global {
   const useTemplateRef: typeof import('vue').useTemplateRef
   const useToast: typeof import('../../composables/useToast').useToast
   const useTransitionState: typeof import('vue').useTransitionState
+  const useTransparentPwaIcon: typeof import('../../node_modules/@vite-pwa/nuxt/dist/runtime/composables/index').useTransparentPwaIcon
   const vScrollAnimate: typeof import('../../composables/useScrollAnimation').vScrollAnimate
   const watch: typeof import('vue').watch
   const watchEffect: typeof import('vue').watchEffect
@@ -322,6 +328,8 @@ declare module 'vue' {
     readonly unref: UnwrapRef<typeof import('vue')['unref']>
     readonly updateAppConfig: UnwrapRef<typeof import('../../node_modules/nuxt/dist/app/config')['updateAppConfig']>
     readonly useAppConfig: UnwrapRef<typeof import('../../node_modules/nuxt/dist/app/config')['useAppConfig']>
+    readonly useApplePwaIcon: UnwrapRef<typeof import('../../node_modules/@vite-pwa/nuxt/dist/runtime/composables/index')['useApplePwaIcon']>
+    readonly useAppleSplashScreenPwaIcon: UnwrapRef<typeof import('../../node_modules/@vite-pwa/nuxt/dist/runtime/composables/index')['useAppleSplashScreenPwaIcon']>
     readonly useAsyncData: UnwrapRef<typeof import('../../node_modules/nuxt/dist/app/composables/asyncData')['useAsyncData']>
     readonly useAttrs: UnwrapRef<typeof import('vue')['useAttrs']>
     readonly useCompatibility: UnwrapRef<typeof import('../../composables/useCompatibility')['useCompatibility']>
@@ -331,6 +339,7 @@ declare module 'vue' {
     readonly useCssVars: UnwrapRef<typeof import('vue')['useCssVars']>
     readonly useError: UnwrapRef<typeof import('../../node_modules/nuxt/dist/app/composables/error')['useError']>
     readonly useEventSeo: UnwrapRef<typeof import('../../composables/useSeo')['useEventSeo']>
+    readonly useFaviconPwaIcon: UnwrapRef<typeof import('../../node_modules/@vite-pwa/nuxt/dist/runtime/composables/index')['useFaviconPwaIcon']>
     readonly useFetch: UnwrapRef<typeof import('../../node_modules/nuxt/dist/app/composables/fetch')['useFetch']>
     readonly useFormValidation: UnwrapRef<typeof import('../../composables/useFormValidation')['useFormValidation']>
     readonly useHead: UnwrapRef<typeof import('../../node_modules/nuxt/dist/app/composables/head')['useHead']>
@@ -342,10 +351,12 @@ declare module 'vue' {
     readonly useLazyFetch: UnwrapRef<typeof import('../../node_modules/nuxt/dist/app/composables/fetch')['useLazyFetch']>
     readonly useLink: UnwrapRef<typeof import('vue-router')['useLink']>
     readonly useLoadingIndicator: UnwrapRef<typeof import('../../node_modules/nuxt/dist/app/composables/loading-indicator')['useLoadingIndicator']>
+    readonly useMaskablePwaIcon: UnwrapRef<typeof import('../../node_modules/@vite-pwa/nuxt/dist/runtime/composables/index')['useMaskablePwaIcon']>
     readonly useModel: UnwrapRef<typeof import('vue')['useModel']>
     readonly useNuxtApp: UnwrapRef<typeof import('../../node_modules/nuxt/dist/app/nuxt')['useNuxtApp']>
     readonly useNuxtData: UnwrapRef<typeof import('../../node_modules/nuxt/dist/app/composables/asyncData')['useNuxtData']>
     readonly useNuxtDevTools: UnwrapRef<typeof import('../../node_modules/@nuxt/devtools/dist/runtime/use-nuxt-devtools')['useNuxtDevTools']>
+    readonly usePWA: UnwrapRef<typeof import('../../node_modules/@vite-pwa/nuxt/dist/runtime/composables/index')['usePWA']>
     readonly usePaystack: UnwrapRef<typeof import('../../composables/usePaystack')['usePaystack']>
     readonly usePersona: UnwrapRef<typeof import('../../composables/usePersona')['usePersona']>
     readonly usePinia: UnwrapRef<typeof import('../../node_modules/@pinia/nuxt/dist/runtime/composables')['usePinia']>
@@ -407,6 +418,7 @@ declare module 'vue' {
     readonly useTemplateRef: UnwrapRef<typeof import('vue')['useTemplateRef']>
     readonly useToast: UnwrapRef<typeof import('../../composables/useToast')['useToast']>
     readonly useTransitionState: UnwrapRef<typeof import('vue')['useTransitionState']>
+    readonly useTransparentPwaIcon: UnwrapRef<typeof import('../../node_modules/@vite-pwa/nuxt/dist/runtime/composables/index')['useTransparentPwaIcon']>
     readonly vScrollAnimate: UnwrapRef<typeof import('../../composables/useScrollAnimation')['vScrollAnimate']>
     readonly watch: UnwrapRef<typeof import('vue')['watch']>
     readonly watchEffect: UnwrapRef<typeof import('vue')['watchEffect']>
