@@ -625,7 +625,7 @@ const handleSendOtp = async () => {
     if (checkResult.exists && !checkResult.requiresOtp && checkResult.email && checkResult.password) {
       // Seeded user! Auto-authenticate them
       const supabase = useSupabaseClient()
-      const { error: signInError } = await supabase.auth.signInWithPassword({
+      const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
         email: checkResult.email,
         password: checkResult.password
       })
@@ -639,7 +639,9 @@ const handleSendOtp = async () => {
         
         // Use updateUserProfile (not createUserProfile) since we're already signed in
         isReturningUser.value = true
-        await updateUserProfile()
+        if (signInData.user) {
+            await updateUserProfile(signInData.user.id)
+        }
         
         const { calculatePersona, savePersona } = usePersona()
         assignedPersona.value = calculatePersona(vibeAnswers)
@@ -706,7 +708,9 @@ const handleReturningUserCompletion = async () => {
     assignedPersona.value = calculatePersona(vibeAnswers)
     
     // Update profile and save vibe answers
-    await updateUserProfile()
+    if (user.value?.id) {
+        await updateUserProfile(user.value.id)
+    }
     
     // Save persona to database
     if (user.value && assignedPersona.value) {
@@ -723,10 +727,16 @@ const handleReturningUserCompletion = async () => {
   }
 }
 
-const updateUserProfile = async () => {
+const updateUserProfile = async (explicitUserId?: string) => {
   const supabase = useSupabaseClient<Database>()
   
-  if (!user.value) return
+  const userId = explicitUserId || user.value?.id
+  console.log('[VibeCheck] updateUserProfile called with ID:', userId)
+  
+  if (!userId || userId === 'undefined' || userId === 'null' || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(userId)) {
+    console.warn('[VibeCheck] Cannot update profile: Invalid User ID format:', userId)
+    return
+  }
 
   // Update profile fields
   const { error: profileError } = await supabase
@@ -744,14 +754,14 @@ const updateUserProfile = async () => {
       occupation: form.occupation || null,
       is_verified: true
     })
-    .eq('id', user.value.id)
+    .eq('id', userId)
 
   if (profileError) throw profileError
 
   // Save/Update Vibe Answers
   if (vibeAnswers && Object.keys(vibeAnswers).length > 0) {
     const vibeEntries = Object.entries(vibeAnswers).map(([key, value]) => ({
-        user_id: user.value!.id,
+        user_id: userId,
         question_key: key,
         answer_value: value
     }))

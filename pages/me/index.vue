@@ -67,6 +67,25 @@
     </nav>
     
     <div class="flex-1 max-w-6xl mx-auto px-4 py-8 pb-16 relative z-10 w-full">
+      <!-- Incomplete Profile Nudge -->
+      <div v-if="isProfileIncomplete && activeTab !== 'profile'" class="mb-8 p-4 md:p-6 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-stone-900 dark:to-stone-800 border-2 border-amber-200 dark:border-stone-700 rounded-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-sm animate-in fade-in slide-in-from-top-4 duration-500">
+        <div class="flex items-start gap-4">
+          <div class="w-12 h-12 bg-amber-100 dark:bg-amber-900/30 rounded-full flex items-center justify-center text-2xl border-2 border-amber-200 dark:border-amber-700/50 flex-shrink-0">
+             ⚡
+          </div>
+          <div>
+             <h3 class="text-lg font-bold text-stone-900 dark:text-stone-100 mb-1">Your profile needs some love!</h3>
+             <p class="text-xs md:text-sm text-stone-600 dark:text-stone-400 font-medium">Complete your vibe check and add a photo to start matching.</p>
+          </div>
+        </div>
+        <button 
+           @click="activeTab = 'profile'"
+           class="w-full md:w-auto px-6 py-3 bg-black dark:bg-white text-white dark:text-black font-bold uppercase tracking-widest text-xs rounded-lg hover:bg-amber-500 dark:hover:bg-amber-400 hover:text-white dark:hover:text-black transition-all shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.2)]"
+        >
+           Complete Profile →
+        </button>
+      </div>
+
       <!-- Tabs -->
       <div class="hidden md:flex md:flex-wrap md:gap-4 mb-8 md:mb-12">
         <button 
@@ -791,6 +810,18 @@ const fetchUserPayments = async (userId: string) => {
 const hasBookedEvent = (eventId: string) => {
   return userBookings.value.has(eventId)
 }
+
+// Check if profile is incomplete
+const isProfileIncomplete = computed(() => {
+  if (!profile.value) return false
+  
+  // Check for critical missing info
+  const missingPhoto = !profile.value.photo_url || profile.value.photo_url.includes('placeholder')
+  const missingVibe = !profile.value.dating_persona
+  const missingBasic = !profile.value.gender || !profile.value.birth_date || !profile.value.location
+  
+  return missingPhoto || missingVibe || missingBasic
+})
 
 // Profile save
 const saveProfile = async () => {
