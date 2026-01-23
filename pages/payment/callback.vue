@@ -76,6 +76,9 @@
 
 <script setup lang="ts">
 import UiButton from '~/components/ui/Button.vue'
+import { useConfetti } from '~/composables/useConfetti'
+
+const { burst } = useConfetti()
 
 const route = useRoute()
 const loading = ref(true)
@@ -100,6 +103,11 @@ onMounted(async () => {
       if (result.status === 'success') {
         success.value = true
         paymentPurpose.value = result.metadata?.purpose || null
+        
+        // Trigger confetti celebration
+        setTimeout(() => {
+          burst()
+        }, 500)
         
         if (result.metadata?.purpose === 'event_ticket') {
           message.value = 'Your event booking has been confirmed! We\'ve sent the details to your inbox.'

@@ -7,7 +7,22 @@
     </div>
   </div>
   
-  <main v-else class="min-h-screen bg-[#FFFCF8] text-stone-900 font-sans relative flex flex-col">
+  <main 
+    v-else 
+    ref="mainContainer"
+    @touchstart="handleTouchStart"
+    @touchmove="handleTouchMove" 
+    @touchend="handleTouchEnd"
+    class="min-h-screen bg-[#FFFCF8] dark:bg-stone-950 text-stone-900 dark:text-stone-100 font-sans relative flex flex-col transition-colors duration-300 pb-24 md:pb-0"
+  >
+    <!-- Pull to Refresh Spinner -->
+    <div 
+      class="fixed z-[70] left-1/2 -translate-x-1/2 transition-all duration-200 flex items-center justify-center w-10 h-10 rounded-full bg-white dark:bg-stone-800 shadow-xl border border-stone-200 dark:border-stone-700"
+      :style="{ top: isRefreshing ? '100px' : (pullDistance > 10 ? (pullDistance * 0.4 + 70) + 'px' : '-60px'), opacity: pullDistance > 0 || isRefreshing ? 1 : 0 }"
+    >
+      <div v-if="isRefreshing" class="w-5 h-5 border-2 border-stone-200 dark:border-stone-600 border-t-rose-500 rounded-full animate-spin"></div>
+      <span v-else class="text-stone-400 dark:text-stone-200 text-sm transform transition-transform" :class="{ 'rotate-180': pullDistance > 50 }">↓</span>
+    </div>
     <!-- Fonts -->
     <Head>
       <Link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -16,24 +31,30 @@
     </Head>
 
     <!-- Dot Pattern Background -->
-    <div class="absolute inset-0 opacity-[0.03] pointer-events-none" style="background-image: radial-gradient(#000 1px, transparent 1px); background-size: 24px 24px;"></div>
+    <div class="absolute inset-0 opacity-[0.03] dark:opacity-[0.1] pointer-events-none" style="background-image: radial-gradient(#000 1px, transparent 1px); background-size: 24px 24px;"></div>
 
     <!-- Navbar / Header -->
-    <nav class="sticky top-0 z-[60] bg-[#FFFCF8] border-b border-black">
+    <nav class="sticky top-0 z-[60] bg-[#FFFCF8]/90 dark:bg-stone-950/90 backdrop-blur-md border-b border-stone-200 dark:border-stone-800 transition-colors duration-300 shadow-sm">
       <div class="max-w-6xl mx-auto px-4 h-16 md:h-20 flex items-center justify-between">
         <NuxtLink to="/" class="flex items-center -ml-2">
-           <img src="/logo-full.png" alt="minutes2match" class="h-14 md:h-20 w-auto object-contain hover:opacity-80 transition-opacity" />
+           <img src="/logo-full.png" alt="minutes2match" class="h-14 md:h-20 w-auto object-contain hover:opacity-80 transition-opacity dark:invert" />
         </NuxtLink>
         
-        <div class="flex items-center gap-6">
-          <div class="text-right hidden sm:block">
-            <p class="text-sm font-bold text-black uppercase tracking-widest">{{ profile?.display_name }}</p>
-            <p class="text-[10px] font-mono font-bold text-rose-500 mt-0.5 uppercase tracking-wider">
+        <div class="flex items-center gap-3 md:gap-6">
+          <!-- Notification Bell -->
+          <button class="relative p-2 hover:bg-stone-100 dark:hover:bg-stone-800 rounded-full transition-colors active:scale-95 text-stone-600 dark:text-stone-300" @click="activeTab = 'matches'">
+             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
+             <span v-if="pendingMatchCount > 0" class="absolute top-1.5 right-2 w-2 h-2 bg-rose-500 rounded-full border border-white dark:border-stone-950 animate-pulse"></span>
+          </button>
+
+          <div class="text-right flex flex-col items-end">
+            <p class="text-xs md:text-sm font-bold text-black dark:text-stone-100 uppercase tracking-widest">{{ profile?.display_name }}</p>
+            <p class="hidden md:block text-[10px] font-mono font-bold text-rose-500 md:text-rose-400 mt-0.5 uppercase tracking-wider">
               {{ personaData ? `${personaData.emoji} ${personaData.name}` : 'New Member' }}
             </p>
           </div>
           <div 
-             class="w-12 h-12 rounded-full border-2 border-black bg-white overflow-hidden cursor-pointer hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all"
+             class="w-10 h-10 md:w-12 md:h-12 rounded-full border-2 border-black dark:border-stone-500 bg-white dark:bg-stone-800 overflow-hidden cursor-pointer hover:scale-105 transition-transform shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.1)]"
              @click="activeTab = 'profile'"
           >
             <img v-if="profile?.photo_url" :src="profile.photo_url" class="w-full h-full object-cover" />
@@ -47,11 +68,11 @@
     
     <div class="flex-1 max-w-6xl mx-auto px-4 py-8 pb-16 relative z-10 w-full">
       <!-- Tabs -->
-      <div class="grid grid-cols-3 gap-2 md:flex md:flex-wrap md:gap-4 mb-8 md:mb-12">
+      <div class="hidden md:flex md:flex-wrap md:gap-4 mb-8 md:mb-12">
         <button 
           @click="activeTab = 'matches'"
           class="px-3 md:px-6 py-2.5 md:py-3 rounded-lg text-[10px] md:text-xs font-bold uppercase tracking-wider md:tracking-widest transition-all border-2"
-          :class="activeTab === 'matches' ? 'bg-black text-white border-black shadow-[3px_3px_0px_0px_rgba(244,63,94,1)] md:shadow-[4px_4px_0px_0px_rgba(244,63,94,1)]' : 'bg-white text-stone-500 border-stone-200 hover:border-black hover:text-black'"
+          :class="activeTab === 'matches' ? 'bg-black dark:bg-stone-100 text-white dark:text-black border-black dark:border-stone-100 shadow-[3px_3px_0px_0px_rgba(244,63,94,1)] md:shadow-[4px_4px_0px_0px_rgba(244,63,94,1)]' : 'bg-white dark:bg-stone-900 text-stone-500 dark:text-stone-400 border-stone-200 dark:border-stone-700 hover:border-black dark:hover:border-stone-500 hover:text-black dark:hover:text-stone-200'"
         >
           Matches
           <span v-if="pendingMatchCount > 0" class="ml-1 md:ml-2 px-1 md:px-1.5 py-0.5 bg-rose-500 text-white rounded text-[8px] md:text-[10px] border border-black">{{ pendingMatchCount }}</span>
@@ -59,14 +80,14 @@
         <button 
           @click="activeTab = 'events'"
           class="px-3 md:px-6 py-2.5 md:py-3 rounded-lg text-[10px] md:text-xs font-bold uppercase tracking-wider md:tracking-widest transition-all border-2"
-          :class="activeTab === 'events' ? 'bg-black text-white border-black shadow-[3px_3px_0px_0px_rgba(244,63,94,1)] md:shadow-[4px_4px_0px_0px_rgba(244,63,94,1)]' : 'bg-white text-stone-500 border-stone-200 hover:border-black hover:text-black'"
+          :class="activeTab === 'events' ? 'bg-black dark:bg-stone-100 text-white dark:text-black border-black dark:border-stone-100 shadow-[3px_3px_0px_0px_rgba(244,63,94,1)] md:shadow-[4px_4px_0px_0px_rgba(244,63,94,1)]' : 'bg-white dark:bg-stone-900 text-stone-500 dark:text-stone-400 border-stone-200 dark:border-stone-700 hover:border-black dark:hover:border-stone-500 hover:text-black dark:hover:text-stone-200'"
         >
           Events
         </button>
         <button 
           @click="activeTab = 'profile'"
           class="px-3 md:px-6 py-2.5 md:py-3 rounded-lg text-[10px] md:text-xs font-bold uppercase tracking-wider md:tracking-widest transition-all border-2"
-          :class="activeTab === 'profile' ? 'bg-black text-white border-black shadow-[3px_3px_0px_0px_rgba(244,63,94,1)] md:shadow-[4px_4px_0px_0px_rgba(244,63,94,1)]' : 'bg-white text-stone-500 border-stone-200 hover:border-black hover:text-black'"
+          :class="activeTab === 'profile' ? 'bg-black dark:bg-stone-100 text-white dark:text-black border-black dark:border-stone-100 shadow-[3px_3px_0px_0px_rgba(244,63,94,1)] md:shadow-[4px_4px_0px_0px_rgba(244,63,94,1)]' : 'bg-white dark:bg-stone-900 text-stone-500 dark:text-stone-400 border-stone-200 dark:border-stone-700 hover:border-black dark:hover:border-stone-500 hover:text-black dark:hover:text-stone-200'"
         >
           Profile
         </button>
@@ -77,19 +98,19 @@
         <!-- Events Tab -->
         <div v-if="activeTab === 'events'" class="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-500">
           <div class="flex items-center justify-between">
-             <h2 class="text-2xl font-bold tracking-tight">Upcoming Sessions</h2>
-             <span class="text-sm font-medium text-stone-500 bg-stone-100 px-3 py-1 rounded-full">{{ events.length }} available</span>
+             <h2 class="text-2xl font-bold tracking-tight dark:text-white">Upcoming Sessions</h2>
+             <span class="text-sm font-medium text-stone-500 dark:text-stone-400 bg-stone-100 dark:bg-stone-800 px-3 py-1 rounded-full">{{ events.length }} available</span>
           </div>
 
-          <div v-if="loadingEvents" class="py-12 text-center">
-            <div class="w-8 h-8 rounded-full border-2 border-stone-200 border-t-black animate-spin mx-auto mb-3"></div>
-            <p class="text-stone-400 text-sm">Finding events...</p>
+          <!-- Skeleton Loaders -->
+          <div v-if="loadingEvents" class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <SkeletonEventCard v-for="i in 3" :key="i" />
           </div>
 
-          <div v-else-if="events.length === 0" class="py-16 text-center border-2 border-dashed border-stone-200 rounded-2xl bg-white">
+          <div v-else-if="events.length === 0" class="py-16 text-center border-2 border-dashed border-stone-200 dark:border-stone-700 rounded-2xl bg-white dark:bg-stone-900">
             <span class="text-4xl block mb-4 grayscale opacity-50">🌱</span>
-            <p class="font-bold text-stone-900 mb-1">No events scheduled yet</p>
-            <p class="text-sm text-stone-500">Check back soon for new gatherings</p>
+            <p class="font-bold text-stone-900 dark:text-stone-100 mb-1">No events scheduled yet</p>
+            <p class="text-sm text-stone-500 dark:text-stone-400">Check back soon for new gatherings</p>
           </div>
 
           <div v-else class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -118,19 +139,19 @@
         <!-- Matches Tab -->
         <div v-if="activeTab === 'matches'" class="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-500">
           <div class="flex items-center justify-between">
-             <h2 class="text-2xl font-bold tracking-tight">Your Connections</h2>
-             <span class="text-sm font-medium text-stone-500 bg-stone-100 px-3 py-1 rounded-full">{{ matches.length }} matches</span>
+             <h2 class="text-2xl font-bold tracking-tight dark:text-white">Your Connections</h2>
+             <span class="text-sm font-medium text-stone-500 dark:text-stone-400 bg-stone-100 dark:bg-stone-800 px-3 py-1 rounded-full">{{ matches.length }} matches</span>
           </div>
 
-          <div v-if="loadingMatches" class="py-12 text-center">
-             <div class="w-8 h-8 rounded-full border-2 border-stone-200 border-t-black animate-spin mx-auto mb-3"></div>
-             <p class="text-stone-400 text-sm">Loading matches...</p>
+          <!-- Skeleton Loaders -->
+          <div v-if="loadingMatches" class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <SkeletonMatchCard v-for="i in 3" :key="i" />
           </div>
 
-          <div v-else-if="matches.length === 0" class="py-16 text-center border-2 border-dashed border-stone-200 rounded-2xl bg-white">
+          <div v-else-if="matches.length === 0" class="py-16 text-center border-2 border-dashed border-stone-200 dark:border-stone-700 rounded-2xl bg-white dark:bg-stone-900">
             <span class="text-4xl block mb-4 grayscale opacity-50">✨</span>
-            <p class="font-bold text-stone-900 mb-1">Your connections are brewing</p>
-            <p class="text-sm text-stone-500">We'll SMS you when you get matched!</p>
+            <p class="font-bold text-stone-900 dark:text-stone-100 mb-1">Your connections are brewing</p>
+            <p class="text-sm text-stone-500 dark:text-stone-400">We'll SMS you when you get matched!</p>
           </div>
 
           <div v-else class="space-y-8">
@@ -168,11 +189,11 @@
         <div v-if="activeTab === 'profile'" class="grid md:grid-cols-3 gap-8 animate-in fade-in slide-in-from-bottom-2 duration-500">
           <!-- Sidebar / Photo -->
           <div class="md:col-span-1 space-y-6">
-             <div class="bg-white p-6 rounded-xl border-2 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] text-center">
+             <div class="bg-white dark:bg-stone-900 p-6 rounded-xl border-2 border-black dark:border-stone-700 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] dark:shadow-[8px_8px_0px_0px_rgba(255,255,255,0.05)] text-center">
                 <div class="relative w-32 h-32 mx-auto mb-6 group cursor-pointer" @click="triggerPhotoUpload">
-                  <div class="w-full h-full rounded-full overflow-hidden bg-stone-100 border-2 border-black relative">
+                  <div class="w-full h-full rounded-full overflow-hidden bg-stone-100 dark:bg-stone-800 border-2 border-black dark:border-stone-600 relative">
                      <img v-if="photoPreview || profile?.photo_url" :src="photoPreview || profile?.photo_url" class="w-full h-full object-cover" />
-                     <div v-else class="w-full h-full flex items-center justify-center text-4xl text-stone-300">📷</div>
+                     <div v-else class="w-full h-full flex items-center justify-center text-4xl text-stone-300 dark:text-stone-600">📷</div>
                      
                      <div class="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                         <span class="text-white text-xs font-bold uppercase tracking-widest">{{ uploadingPhoto ? 'Wait...' : 'Update' }}</span>
@@ -180,8 +201,8 @@
                   </div>
                   <input type="file" ref="photoInput" accept="image/*" @change="handlePhotoUpload" class="hidden" />
                 </div>
-                <p class="text-[10px] font-bold text-stone-400 uppercase tracking-widest mb-2 border-b border-stone-100 pb-2 inline-block">Pro Tip</p>
-                <p class="text-xs font-medium text-stone-500">Profiles with photos get <span class="text-black font-bold">80% more matches</span>.</p>
+                <p class="text-[10px] font-bold text-stone-400 dark:text-stone-500 uppercase tracking-widest mb-2 border-b border-stone-100 dark:border-stone-800 pb-2 inline-block">Pro Tip</p>
+                <p class="text-xs font-medium text-stone-500 dark:text-stone-400">Profiles with photos get <span class="text-black dark:text-white font-bold">80% more matches</span>.</p>
              </div>
           </div>
 
@@ -284,10 +305,10 @@
              </div>
 
              <!-- Bio / About Me -->
-             <div class="bg-white p-6 md:p-8 rounded-xl border-2 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
+             <div class="bg-white dark:bg-stone-900 p-6 md:p-8 rounded-xl border-2 border-black dark:border-stone-700 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] dark:shadow-[8px_8px_0px_0px_rgba(255,255,255,0.05)]">
                 <div class="flex items-center justify-between mb-6">
-                   <h3 class="text-2xl font-serif font-bold text-black">About Me</h3>
-                   <span class="text-xs font-mono font-bold" :class="editForm.about_me.length > 250 ? 'text-rose-500' : 'text-stone-400'">
+                   <h3 class="text-2xl font-serif font-bold text-black dark:text-white">About Me</h3>
+                   <span class="text-xs font-mono font-bold" :class="editForm.about_me.length > 250 ? 'text-rose-500 md:text-rose-400' : 'text-stone-400 dark:text-stone-500'">
                       {{ editForm.about_me.length }}/300
                    </span>
                 </div>
@@ -295,17 +316,17 @@
                    v-model="editForm.about_me" 
                    rows="4"
                    maxlength="300"
-                   class="w-full px-4 py-3 rounded-lg border-2 border-stone-200 bg-white focus:border-black outline-none transition-all font-serif text-lg resize-none placeholder-stone-300"
+                   class="w-full px-4 py-3 rounded-lg border-2 border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-950 dark:text-white focus:border-black dark:focus:border-stone-500 outline-none transition-all font-serif text-lg resize-none placeholder-stone-300 dark:placeholder-stone-600"
                    placeholder="Share a little about yourself..."
                 ></textarea>
-                <p class="text-[10px] uppercase tracking-widest font-bold text-stone-400 mt-3">💡 Profiles with bios get 40% more matches</p>
+                <p class="text-[10px] uppercase tracking-widest font-bold text-stone-400 dark:text-stone-500 mt-3">💡 Profiles with bios get 40% more matches</p>
              </div>
 
              <!-- Interests -->
-             <div class="bg-white p-6 md:p-8 rounded-xl border-2 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
+             <div class="bg-white dark:bg-stone-900 p-6 md:p-8 rounded-xl border-2 border-black dark:border-stone-700 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] dark:shadow-[8px_8px_0px_0px_rgba(255,255,255,0.05)]">
                 <div class="flex items-center justify-between mb-6">
-                   <h3 class="text-2xl font-serif font-bold text-black">Interests</h3>
-                   <span class="text-xs font-mono font-bold text-stone-400">{{ editForm.interests.length }}/6 selected</span>
+                   <h3 class="text-2xl font-serif font-bold text-black dark:text-white">Interests</h3>
+                   <span class="text-xs font-mono font-bold text-stone-400 dark:text-stone-500">{{ editForm.interests.length }}/6 selected</span>
                 </div>
                 <div class="flex flex-wrap gap-2">
                    <button 
@@ -314,8 +335,8 @@
                       @click="toggleInterest(interest.id)"
                       class="px-4 py-2 rounded-full text-xs font-bold uppercase tracking-widest transition-all duration-200 border-2"
                       :class="editForm.interests.includes(interest.id) 
-                         ? 'bg-black text-white border-black' 
-                         : 'bg-white text-stone-500 border-stone-200 hover:border-black'"
+                         ? 'bg-black dark:bg-stone-100 text-white dark:text-black border-black dark:border-stone-100' 
+                         : 'bg-white dark:bg-stone-950 text-stone-500 dark:text-stone-400 border-stone-200 dark:border-stone-700 hover:border-black dark:hover:border-stone-500 hover:text-black dark:hover:text-stone-200'"
                    >
                       {{ interest.label }}
                    </button>
@@ -323,46 +344,46 @@
              </div>
 
              <!-- Deal Breakers / Age Preferences -->
-             <div class="bg-white p-6 md:p-8 rounded-xl border-2 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
-                <h3 class="text-2xl font-serif font-bold text-black mb-2">Age Range</h3>
-                <p class="text-[10px] font-bold uppercase tracking-widest text-stone-400 mb-8">Who do you want to meet?</p>
+             <div class="bg-white dark:bg-stone-900 p-6 md:p-8 rounded-xl border-2 border-black dark:border-stone-700 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] dark:shadow-[8px_8px_0px_0px_rgba(255,255,255,0.05)]">
+                <h3 class="text-2xl font-serif font-bold text-black dark:text-white mb-2">Age Range</h3>
+                <p class="text-[10px] font-bold uppercase tracking-widest text-stone-400 dark:text-stone-500 mb-8">Who do you want to meet?</p>
                 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-6">
                    <div class="space-y-4">
-                      <label class="text-[10px] font-bold uppercase text-stone-500 tracking-widest">Minimum Age</label>
+                      <label class="text-[10px] font-bold uppercase text-stone-500 dark:text-stone-400 tracking-widest">Minimum Age</label>
                       <div class="flex items-center gap-4">
                          <input 
                             type="range" 
                             v-model.number="editForm.min_age" 
                             min="18" 
                             max="60" 
-                            class="flex-1 h-2 bg-stone-100 rounded-lg appearance-none cursor-pointer border border-black accent-black"
+                            class="flex-1 h-2 bg-stone-100 dark:bg-stone-800 rounded-lg appearance-none cursor-pointer border border-black dark:border-stone-600 accent-black dark:accent-stone-100"
                          />
-                         <span class="text-2xl font-mono font-bold text-black w-12 text-center">{{ editForm.min_age }}</span>
+                         <span class="text-2xl font-mono font-bold text-black dark:text-white w-12 text-center">{{ editForm.min_age }}</span>
                       </div>
                    </div>
                    <div class="space-y-4">
-                      <label class="text-[10px] font-bold uppercase text-stone-500 tracking-widest">Maximum Age</label>
+                      <label class="text-[10px] font-bold uppercase text-stone-500 dark:text-stone-400 tracking-widest">Maximum Age</label>
                       <div class="flex items-center gap-4">
                          <input 
                             type="range" 
                             v-model.number="editForm.max_age" 
                             min="18" 
                             max="70" 
-                            class="flex-1 h-2 bg-stone-100 rounded-lg appearance-none cursor-pointer border border-black accent-black"
+                            class="flex-1 h-2 bg-stone-100 dark:bg-stone-800 rounded-lg appearance-none cursor-pointer border border-black dark:border-stone-600 accent-black dark:accent-stone-100"
                          />
-                         <span class="text-2xl font-mono font-bold text-black w-12 text-center">{{ editForm.max_age }}</span>
+                         <span class="text-2xl font-mono font-bold text-black dark:text-white w-12 text-center">{{ editForm.max_age }}</span>
                       </div>
                    </div>
                 </div>
                 
                 <!-- Genotype Warning -->
-                <div v-if="editForm.genotype === 'AS'" class="bg-rose-50 border-2 border-rose-100 rounded-xl p-4">
+                <div v-if="editForm.genotype === 'AS'" class="bg-rose-50 dark:bg-rose-950/30 border-2 border-rose-100 dark:border-rose-900 rounded-xl p-4">
                    <div class="flex items-start gap-4">
                       <span class="text-rose-500 text-2xl font-bold">⚠️</span>
                       <div>
-                         <p class="font-bold text-rose-900 uppercase tracking-widest text-xs mb-1">Genotype Awareness</p>
-                         <p class="text-xs text-rose-800 leading-relaxed">
+                         <p class="font-bold text-rose-900 dark:text-rose-200 uppercase tracking-widest text-xs mb-1">Genotype Awareness</p>
+                         <p class="text-xs text-rose-800 dark:text-rose-300 leading-relaxed">
                             You have AS genotype. We'll notify you if a potential match also has AS genotype so you can make informed decisions.
                          </p>
                       </div>
@@ -383,22 +404,22 @@
               </div>
 
                <!-- Account Actions (at bottom of profile tab) -->
-               <div class="mt-12 pt-8 border-t-2 border-stone-100 space-y-4">
-                  <h3 class="text-lg font-bold text-stone-400 uppercase tracking-widest mb-4">Account Settings</h3>
+               <div class="mt-12 pt-8 border-t-2 border-stone-100 dark:border-stone-800 space-y-6">
+                  <h3 class="text-2xl font-serif font-bold text-black dark:text-white mb-6">Account Settings</h3>
                   
                   <!-- Pause Matching Toggle -->
-                  <div class="bg-white p-5 rounded-xl border-2 border-stone-200 hover:border-stone-300 transition-colors">
+                  <div class="bg-white dark:bg-stone-900 p-5 rounded-xl border-2 border-black dark:border-stone-700 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,0.05)]">
                      <div class="flex items-start gap-4">
                         <div class="flex-1">
-                           <h4 class="font-bold text-sm text-black mb-1">Pause Account</h4>
-                           <p class="text-xs text-stone-500 leading-relaxed">When paused, you won't appear in matches or be selected for events.</p>
+                           <h4 class="font-bold text-sm text-black dark:text-white mb-1">Active Status</h4>
+                           <p class="text-xs text-stone-500 dark:text-stone-400 leading-relaxed">Turn off to pause matching. You won't appear in new matches or events.</p>
                         </div>
                         <button 
                            @click="toggleAccountActive"
                            :disabled="togglingActive"
                            :class="[
-                              'relative w-14 h-8 rounded-full border-2 transition-all duration-300 flex-shrink-0',
-                              editForm.is_active ? 'bg-black border-black' : 'bg-amber-400 border-black'
+                              'relative w-14 h-8 rounded-full border-2 border-black dark:border-stone-500 transition-all duration-300 flex-shrink-0 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]',
+                              editForm.is_active ? 'bg-emerald-400' : 'bg-stone-200 dark:bg-stone-700'
                            ]"
                         >
                            <span 
@@ -407,19 +428,19 @@
                                  editForm.is_active ? 'left-6' : 'left-0.5'
                               ]"
                            >
-                              {{ editForm.is_active ? '✓' : '⏸' }}
+                              {{ editForm.is_active ? '✓' : '✕' }}
                            </span>
                         </button>
                      </div>
-                     <div v-if="!editForm.is_active" class="mt-3 p-2 bg-amber-50 rounded-lg border border-amber-200">
-                        <p class="text-[10px] font-bold text-amber-700 uppercase tracking-widest flex items-center gap-1">
-                           <span>⚠️</span> Account Paused
+                     <div v-if="!editForm.is_active" class="mt-3 p-3 bg-stone-100 dark:bg-stone-800 rounded-lg border-2 border-stone-200 dark:border-stone-700">
+                        <p class="text-[10px] font-bold text-stone-600 dark:text-stone-300 uppercase tracking-widest flex items-center gap-2">
+                           <span>😴</span> Account Paused - Invisible
                         </p>
                      </div>
                   </div>
                   
                   <!-- Sign Out Button -->
-                  <button @click="handleLogout" class="w-full py-4 bg-white border-2 border-rose-200 text-rose-500 font-bold uppercase tracking-widest text-sm rounded-xl hover:bg-rose-50 hover:border-rose-300 transition-all">
+                  <button @click="handleLogout" class="w-full py-4 bg-white dark:bg-stone-900 border-2 border-black dark:border-stone-700 text-black dark:text-white font-bold uppercase tracking-widest text-sm rounded-xl hover:bg-rose-500 hover:text-white dark:hover:bg-rose-500 dark:hover:text-white hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:hover:shadow-[4px_4px_0px_0px_rgba(255,255,255,0.05)] hover:-translate-y-0.5 transition-all">
                      Sign Out
                   </button>
                </div>
@@ -521,8 +542,34 @@
        </div>
     </Teleport>
     
+    <!-- Mobile Bottom Navigation -->
+    <nav class="md:hidden fixed bottom-6 left-4 right-4 z-[60] bg-white dark:bg-stone-900 border-2 border-black dark:border-stone-700 rounded-2xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,0.1)] pb-safe transition-transform duration-300">
+      <div class="flex justify-around items-center h-16 px-2">
+         <!-- Matches -->
+         <button @click="activeTab = 'matches'" class="flex flex-col items-center justify-center gap-1 w-16 transition-all active:scale-95" :class="activeTab === 'matches' ? 'text-rose-500' : 'text-stone-400 dark:text-stone-500 hover:text-stone-600 dark:hover:text-stone-300'">
+            <div class="relative">
+               <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="currentColor" class="transition-transform duration-200" :class="activeTab === 'matches' ? 'scale-110' : ''"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+               <span v-if="pendingMatchCount > 0" class="absolute -top-1 -right-1 w-2.5 h-2.5 bg-rose-500 rounded-full border border-white dark:border-stone-900 animate-pulse"></span>
+            </div>
+            <span class="text-[9px] font-bold uppercase tracking-widest">Matches</span>
+         </button>
+
+         <!-- Events -->
+         <button @click="activeTab = 'events'" class="flex flex-col items-center justify-center gap-1 w-16 transition-all active:scale-95" :class="activeTab === 'events' ? 'text-black dark:text-stone-100' : 'text-stone-400 dark:text-stone-500 hover:text-stone-600 dark:hover:text-stone-300'">
+            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="currentColor" class="transition-transform duration-200" :class="activeTab === 'events' ? 'scale-110' : ''"><path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10zm0-12H5V6h14v2zm-7 5h5v5h-5v-5z"/></svg>
+            <span class="text-[9px] font-bold uppercase tracking-widest">Events</span>
+         </button>
+
+         <!-- Profile -->
+         <button @click="activeTab = 'profile'" class="flex flex-col items-center justify-center gap-1 w-16 transition-all active:scale-95" :class="activeTab === 'profile' ? 'text-black dark:text-stone-100' : 'text-stone-400 dark:text-stone-500 hover:text-stone-600 dark:hover:text-stone-300'">
+            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="currentColor" class="transition-transform duration-200" :class="activeTab === 'profile' ? 'scale-110' : ''"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+            <span class="text-[9px] font-bold uppercase tracking-widest">Profile</span>
+         </button>
+      </div>
+    </nav>
+    
     <!-- Footer (Sticky to bottom) -->
-    <footer class="border-t border-stone-200 bg-white/80 backdrop-blur-sm mt-auto">
+    <footer class="border-t border-stone-200 bg-white/80 backdrop-blur-sm mt-auto pb-24 md:pb-0">
       <div class="max-w-6xl mx-auto px-4 py-5">
         <div class="flex flex-col md:flex-row items-center justify-between gap-3">
           <p class="text-xs text-stone-400 font-medium">
@@ -544,7 +591,11 @@ import EventCard from '~/components/EventCard.vue'
 import BlindProfileCard from '~/components/BlindProfileCard.vue'
 import UiButton from '~/components/ui/Button.vue'
 import { personas, type Persona } from '~/composables/usePersona'
+import { useToast } from '~/composables/useToast'
 import type { Database } from '~/types/database'
+import { useSwipe } from '@vueuse/core'
+
+const toast = useToast()
 
 useHead({
   title: 'My Dashboard',
@@ -774,10 +825,11 @@ const saveProfile = async () => {
     
     await fetchProfileById(currentUserId.value)
     saveSuccess.value = true
+    toast.success('Profile updated!', 'Your changes have been saved.')
     setTimeout(() => { saveSuccess.value = false }, 3000)
   } catch (err) {
     console.error('Save error:', err)
-    alert('Failed to save profile')
+    toast.error('Failed to save profile', 'Please try again or contact support.')
   } finally {
     saving.value = false
   }
@@ -803,13 +855,13 @@ const toggleAccountActive = async () => {
     
     // Show feedback
     if (newStatus) {
-      alert('Your profile is now active! You can receive matches and event invitations.')
+      toast.success('Profile Active!', 'You can now receive matches and event invitations.')
     } else {
-      alert('Your profile is now paused. You won\'t appear in matches or events until you reactivate.')
+      toast.warning('Profile Paused', "You won't appear in matches or events until you reactivate.")
     }
   } catch (err) {
     console.error('Toggle active error:', err)
-    alert('Failed to update account status')
+    toast.error('Failed to update account status', 'Please try again.')
   } finally {
     togglingActive.value = false
   }
@@ -827,7 +879,7 @@ const handlePhotoUpload = async (event: Event) => {
   if (!file || !currentUserId.value) return
   
   if (file.size > 5 * 1024 * 1024) {
-    alert('Photo must be less than 5MB')
+    toast.error('Photo too large', 'Please choose an image under 5MB.')
     return
   }
   
@@ -864,7 +916,7 @@ const handlePhotoUpload = async (event: Event) => {
     await fetchProfileById(currentUserId.value)
   } catch (err) {
     console.error('Upload error:', err)
-    alert('Failed to upload photo')
+    toast.error('Upload failed', 'Failed to upload photo. Please try again.')
     photoPreview.value = null
   } finally {
     uploadingPhoto.value = false
@@ -954,7 +1006,7 @@ const getTicketPrice = (event: any): string => {
 const handleBookEvent = (event: any) => {
   // Check if already booked
   if (hasBookedEvent(event.id)) {
-    alert('You have already booked this event!')
+    toast.info('Already booked', 'You have already booked this event!')
     return
   }
   selectedEvent.value = event
@@ -981,9 +1033,9 @@ const processEventPayment = async () => {
       // User already has a booking for this event
       showBookingModal.value = false
       if (booking.status === 'confirmed') {
-        alert('You have already booked this event! Check your confirmed bookings.')
+        toast.info('Already booked', 'You have already booked this event! Check your confirmed bookings.')
       } else if (booking.status === 'pending') {
-        alert('You already have a pending booking for this event. Please complete your previous payment or contact support.')
+        toast.warning('Pending booking', 'You already have a pending booking for this event. Please complete your previous payment or contact support.')
       }
       // Refresh bookings to update UI
       await fetchUserBookings(currentUserId.value)
@@ -1015,7 +1067,7 @@ const processEventPayment = async () => {
     if (bookingError) {
       // Handle unique constraint violation (race condition)
       if (bookingError.code === '23505') {
-        alert('You have already booked this event!')
+        toast.info('Already booked', 'You have already booked this event!')
         await fetchUserBookings(currentUserId.value)
         showBookingModal.value = false
         return
@@ -1038,7 +1090,7 @@ const processEventPayment = async () => {
     window.location.href = paymentData.authorization_url
   } catch (error) {
     console.error('Payment error:', error)
-    alert('Failed to process payment. Please try again.')
+    toast.error('Payment failed', 'Failed to process payment. Please try again.')
   } finally {
     processing.value = false
   }
@@ -1070,7 +1122,7 @@ const handleUnlockMatch = async (match: any) => {
     window.location.href = paymentData.authorization_url
   } catch (error) {
     console.error('Payment error:', error)
-    alert('Failed to process payment. Please try again.')
+    toast.error('Payment failed', 'Failed to process payment. Please try again.')
   }
 }
 
@@ -1226,6 +1278,61 @@ const fetchMatchesById = async (userId: string) => {
     loadingMatches.value = false
   }
 }
+  
+  // --- Mobile Experience ---
+  const mainContainer = ref<HTMLElement | null>(null)
+  const { direction } = useSwipe(mainContainer)
+  
+  watch(direction, (dir) => {
+    if (dir === 'left') {
+       if (activeTab.value === 'matches') activeTab.value = 'events'
+       else if (activeTab.value === 'events') activeTab.value = 'profile'
+    } else if (dir === 'right') {
+       if (activeTab.value === 'profile') activeTab.value = 'events'
+       else if (activeTab.value === 'events') activeTab.value = 'matches'
+    }
+  })
+  
+  const isRefreshing = ref(false)
+  const pullDistance = ref(0)
+  const touchStartY = ref(0)
+  
+  const handleTouchStart = (e: TouchEvent) => {
+    if (window.scrollY < 10) touchStartY.value = e.touches[0].clientY
+  }
+  
+  const handleTouchMove = (e: TouchEvent) => {
+    if (touchStartY.value > 0 && window.scrollY < 10 && !isRefreshing.value) {
+       const diff = e.touches[0].clientY - touchStartY.value
+       if (diff > 0) pullDistance.value = Math.min(Math.pow(diff, 0.85), 150)
+    }
+  }
+  
+  const handleTouchEnd = async () => {
+    if (pullDistance.value > 80 && !isRefreshing.value) {
+       isRefreshing.value = true
+       try {
+          if (currentUserId.value) {
+              await Promise.all([
+                 fetchMatchesById(currentUserId.value),
+                 // We assume fetchEvents exists based on usage in template; if not we'll handle gracefully or it might error if fetchEvents is not defined in scope yet.
+                 // Actually fetchEvents is likely defined earlier.
+                 fetchEvents(currentUserId.value)
+              ])
+          }
+       } catch (e) {
+          console.error(e)
+       } finally {
+          setTimeout(() => {
+             isRefreshing.value = false
+             pullDistance.value = 0
+          }, 800)
+       }
+    } else {
+       pullDistance.value = 0
+    }
+    touchStartY.value = 0
+  }
 </script>
 
 <style scoped>

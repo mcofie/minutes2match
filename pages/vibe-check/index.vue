@@ -1,5 +1,5 @@
 <template>
-  <main class="min-h-screen bg-[#FFFCF8] flex flex-col font-sans text-stone-900 relative overflow-hidden">
+  <main class="min-h-screen bg-[#FFFCF8] dark:bg-stone-950 flex flex-col font-sans text-stone-900 dark:text-stone-100 relative overflow-hidden transition-colors duration-300">
     <!-- Fonts -->
     <Head>
       <Link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -8,24 +8,24 @@
     </Head>
 
     <!-- Dot Pattern Background -->
-    <div class="absolute inset-0 opacity-[0.03] pointer-events-none" style="background-image: radial-gradient(#000 1px, transparent 1px); background-size: 24px 24px;"></div>
+    <div class="absolute inset-0 opacity-[0.03] dark:opacity-[0.1] pointer-events-none" style="background-image: radial-gradient(#000 1px, transparent 1px); background-size: 24px 24px;"></div>
 
     <!-- Retake Confirmation Modal -->
     <Transition name="modal">
       <div v-if="showRetakeModal" class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-        <div class="bg-white rounded-xl shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] border-2 border-black max-w-md w-full p-8 animate-in zoom-in-95 duration-300">
+        <div class="bg-white dark:bg-stone-900 rounded-xl shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] dark:shadow-[8px_8px_0px_0px_rgba(255,255,255,0.05)] border-2 border-black dark:border-stone-700 max-w-md w-full p-8 animate-in zoom-in-95 duration-300">
           <div class="text-center space-y-4">
             <span class="text-5xl block animate-spin-slow">🔄</span>
-            <h2 class="text-3xl font-serif font-bold text-black">Retake Vibe Test?</h2>
-            <p class="text-stone-600 leading-relaxed font-light">
-              You've already completed the vibe test. Retaking it will <strong class="text-black font-bold">replace your current answers</strong> and may affect your matches.
+            <h2 class="text-3xl font-serif font-bold text-black dark:text-white">Retake Vibe Test?</h2>
+            <p class="text-stone-600 dark:text-stone-300 leading-relaxed font-light">
+              You've already completed the vibe test. Retaking it will <strong class="text-black dark:text-white font-bold">replace your current answers</strong> and may affect your matches.
             </p>
-            <div class="bg-rose-50 border-2 border-rose-100 rounded-lg p-4 text-left">
+            <div class="bg-rose-50 dark:bg-rose-950/30 border-2 border-rose-100 dark:border-rose-900 rounded-lg p-4 text-left">
               <div class="flex items-start gap-3">
                 <span class="text-rose-500 text-xl font-bold">⚠️</span>
-                <div class="text-sm text-rose-900">
+                <div class="text-sm text-rose-900 dark:text-rose-200">
                   <p class="font-bold uppercase tracking-wider text-xs">This action cannot be undone</p>
-                  <p class="text-rose-700 mt-1 font-mono text-xs">Your persona and compatibility scores will be recalculated.</p>
+                  <p class="text-rose-700 dark:text-rose-300 mt-1 font-mono text-xs">Your persona and compatibility scores will be recalculated.</p>
                 </div>
               </div>
             </div>
@@ -33,13 +33,13 @@
           <div class="mt-8 flex flex-col gap-3">
             <button
               @click="confirmRetake"
-              class="w-full bg-black text-white py-3 rounded-lg font-bold uppercase tracking-widest text-sm hover:bg-rose-500 hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,0.2)] hover:-translate-y-[1px] transition-all border-2 border-black"
+              class="w-full bg-black dark:bg-stone-100 text-white dark:text-black py-3 rounded-lg font-bold uppercase tracking-widest text-sm hover:bg-rose-500 dark:hover:bg-rose-500 dark:hover:text-white hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,0.2)] hover:-translate-y-[1px] transition-all border-2 border-black dark:border-stone-100"
             >
               Yes, Retake Test 🎯
             </button>
             <button
               @click="cancelRetake"
-              class="w-full py-3 text-stone-500 font-bold uppercase tracking-widest text-xs hover:text-black transition-colors"
+              class="w-full py-3 text-stone-500 dark:text-stone-400 font-bold uppercase tracking-widest text-xs hover:text-black dark:hover:text-white transition-colors"
             >
               No, Go Back to Dashboard
             </button>
@@ -49,7 +49,7 @@
     </Transition>
 
     <!-- Progress Bar -->
-    <div class="fixed top-0 left-0 right-0 h-2 bg-stone-100 z-50 border-b border-black">
+    <div class="fixed top-0 left-0 right-0 h-2 bg-stone-100 dark:bg-stone-800 z-50 border-b border-black dark:border-stone-700">
       <div class="h-full bg-rose-500 transition-all duration-500 ease-out" :style="{ width: progressPercentage + '%' }"></div>
     </div>
 
@@ -67,18 +67,18 @@
       <div v-if="currentStep === 1" class="w-full animate-fade-in space-y-10">
         <div class="text-center space-y-2">
           <span class="text-5xl block mb-6 animate-bounce-slow">👋</span>
-          <h1 class="text-4xl md:text-5xl font-serif font-bold text-black tracking-tight">Let's meet you!</h1>
-          <p class="text-stone-500 font-light font-serif italic text-lg">This takes about 90 seconds</p>
+          <h1 class="text-4xl md:text-5xl font-serif font-bold text-black dark:text-white tracking-tight">Let's meet you!</h1>
+          <p class="text-stone-500 dark:text-stone-400 font-light font-serif italic text-lg">This takes about 90 seconds</p>
         </div>
 
         <div class="space-y-8">
           <div class="space-y-3">
-            <label class="block text-xs font-bold uppercase tracking-widest text-stone-900 border-b border-black pb-1 mb-2 inline-block">What should we call you?</label>
+            <label class="block text-xs font-bold uppercase tracking-widest text-stone-900 dark:text-stone-300 border-b border-black dark:border-white/50 pb-1 mb-2 inline-block">What should we call you?</label>
             <input
               type="text"
               v-model="form.displayName"
               placeholder="YOUR FIRST NAME"
-              class="w-full px-4 py-4 bg-transparent text-2xl md:text-3xl font-serif font-bold text-center placeholder-stone-200 focus:outline-none focus:placeholder-stone-100 transition-colors border-b-2 border-stone-200 focus:border-black rounded-none"
+              class="w-full px-4 py-4 bg-transparent text-2xl md:text-3xl font-serif font-bold text-center placeholder-stone-200 dark:placeholder-stone-800 focus:outline-none focus:placeholder-stone-100 transition-colors border-b-2 border-stone-200 dark:border-stone-800 focus:border-black dark:focus:border-white rounded-none dark:text-white"
               maxlength="20"
               @keyup.enter="form.displayName.length >= 2 && nextStep()"
             />
@@ -369,6 +369,7 @@ import type { Database } from '~/types/database'
 
 const route = useRoute()
 const user = useSupabaseUser()
+const toast = useToast()
 
 useHead({
   title: 'Vibe Check',
@@ -716,7 +717,7 @@ const handleReturningUserCompletion = async () => {
     currentStep.value = 11
   } catch (error) {
     console.error('Error completing profile:', error)
-    alert('Failed to save profile. Please try again.')
+    toast.error('Save failed', 'Failed to save profile. Please try again.')
   } finally {
     isCreatingProfile.value = false
   }

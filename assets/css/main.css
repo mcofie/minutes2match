@@ -44,6 +44,25 @@ body {
     -moz-osx-font-smoothing: grayscale;
     overflow-x: hidden;
     line-height: 1.5;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Dark Mode Variables */
+.dark {
+    --color-bg-main: #0c0a09;
+    --color-bg-alt: #1c1917;
+    --color-text-main: #fafaf9;
+    --color-text-muted: #a8a29e;
+    --color-text-light: #78716c;
+    --color-text-inverse: #1c1917;
+    --color-brand-primary: #fafaf9;
+    --color-border-subtle: #292524;
+    --color-border-strong: #44403c;
+}
+
+.dark body {
+    background-color: var(--color-bg-main);
+    color: var(--color-text-main);
 }
 
 /* Typography Overrides */

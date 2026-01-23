@@ -3,13 +3,13 @@
     <!-- Trigger Input -->
     <div 
       @click="togglePopover"
-      class="w-full px-4 py-3 rounded-xl border border-stone-200 bg-stone-50 hover:bg-white focus-within:bg-white focus-within:ring-2 focus-within:ring-black focus-within:border-transparent transition-all cursor-pointer flex items-center justify-between group"
-      :class="{ 'ring-2 ring-black bg-white border-transparent': isOpen }"
+      class="w-full px-4 py-3 rounded-xl border border-stone-200 dark:border-stone-700 bg-stone-50 dark:bg-stone-900 hover:bg-white dark:hover:bg-stone-800 focus-within:bg-white dark:focus-within:bg-stone-800 focus-within:ring-2 focus-within:ring-black dark:focus-within:ring-stone-500 focus-within:border-transparent transition-all cursor-pointer flex items-center justify-between group"
+      :class="{ 'ring-2 ring-black dark:ring-stone-500 bg-white dark:bg-stone-800 border-transparent': isOpen }"
     >
-      <span v-if="modelValue" class="font-medium text-stone-900">{{ formattedValue }}</span>
-      <span v-else class="text-stone-400">{{ placeholder }}</span>
+      <span v-if="modelValue" class="font-medium text-stone-900 dark:text-stone-100">{{ formattedValue }}</span>
+      <span v-else class="text-stone-400 dark:text-stone-500">{{ placeholder }}</span>
       
-      <span class="text-stone-400 group-hover:text-black transition-colors">
+      <span class="text-stone-400 dark:text-stone-500 group-hover:text-black dark:group-hover:text-white transition-colors">
         <svg v-if="mode === 'time'" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
         </svg>
@@ -22,20 +22,20 @@
     <!-- Popover -->
     <div 
       v-if="isOpen" 
-      class="absolute top-full left-0 mt-2 bg-white rounded-xl shadow-xl border border-stone-100 p-4 z-50 w-[320px] animate-in fade-in slide-in-from-top-2 duration-200"
+      class="absolute top-full left-0 mt-2 bg-white dark:bg-stone-900 rounded-xl shadow-xl border border-stone-100 dark:border-stone-700 p-4 z-50 w-[320px] animate-in fade-in slide-in-from-top-2 duration-200"
     >
       <!-- Birthday Mode: Simple Dropdowns -->
       <div v-if="forBirthday" class="space-y-4">
-        <p class="text-xs font-bold uppercase tracking-widest text-stone-500 text-center">Select your birthday</p>
+        <p class="text-xs font-bold uppercase tracking-widest text-stone-500 dark:text-stone-400 text-center">Select your birthday</p>
         
         <div class="grid grid-cols-3 gap-2">
           <!-- Month -->
           <div>
-            <label class="block text-[10px] font-bold uppercase text-stone-400 mb-1">Month</label>
+            <label class="block text-[10px] font-bold uppercase text-stone-400 dark:text-stone-500 mb-1">Month</label>
             <select 
               v-model="selectedMonth" 
               @change="updateBirthday"
-              class="w-full px-2 py-2 rounded-lg border border-stone-200 bg-white text-sm font-medium focus:outline-none focus:ring-2 focus:ring-black"
+              class="w-full px-2 py-2 rounded-lg border border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-800 dark:text-white text-sm font-medium focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-stone-500"
             >
               <option v-for="(month, idx) in months" :key="idx" :value="idx">{{ month }}</option>
             </select>
@@ -43,11 +43,11 @@
           
           <!-- Day -->
           <div>
-            <label class="block text-[10px] font-bold uppercase text-stone-400 mb-1">Day</label>
+            <label class="block text-[10px] font-bold uppercase text-stone-400 dark:text-stone-500 mb-1">Day</label>
             <select 
               v-model="selectedDay" 
               @change="updateBirthday"
-              class="w-full px-2 py-2 rounded-lg border border-stone-200 bg-white text-sm font-medium focus:outline-none focus:ring-2 focus:ring-black"
+              class="w-full px-2 py-2 rounded-lg border border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-800 dark:text-white text-sm font-medium focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-stone-500"
             >
               <option v-for="day in daysInSelectedMonth" :key="day" :value="day">{{ day }}</option>
             </select>
@@ -55,11 +55,11 @@
           
           <!-- Year -->
           <div>
-            <label class="block text-[10px] font-bold uppercase text-stone-400 mb-1">Year</label>
+            <label class="block text-[10px] font-bold uppercase text-stone-400 dark:text-stone-500 mb-1">Year</label>
             <select 
               v-model="selectedYear" 
               @change="updateBirthday"
-              class="w-full px-2 py-2 rounded-lg border border-stone-200 bg-white text-sm font-medium focus:outline-none focus:ring-2 focus:ring-black"
+              class="w-full px-2 py-2 rounded-lg border border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-800 dark:text-white text-sm font-medium focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-stone-500"
             >
               <option v-for="year in yearOptions" :key="year" :value="year">{{ year }}</option>
             </select>
@@ -67,16 +67,16 @@
         </div>
         
         <!-- Age Preview -->
-        <div v-if="calculatedAge" class="text-center py-2 bg-stone-50 rounded-lg">
-          <span class="text-sm text-stone-600">You'll be </span>
-          <span class="font-bold text-stone-900">{{ calculatedAge }} years old</span>
+        <div v-if="calculatedAge" class="text-center py-2 bg-stone-50 dark:bg-stone-800 rounded-lg">
+          <span class="text-sm text-stone-600 dark:text-stone-400">You'll be </span>
+          <span class="font-bold text-stone-900 dark:text-stone-100">{{ calculatedAge }} years old</span>
         </div>
         
         <!-- Done Button -->
         <button 
           @click="confirmBirthday"
           :disabled="!isValidBirthday"
-          class="w-full py-3 bg-black text-white rounded-lg font-bold text-sm hover:bg-stone-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          class="w-full py-3 bg-black dark:bg-stone-100 text-white dark:text-black rounded-lg font-bold text-sm hover:bg-stone-800 dark:hover:bg-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
           Confirm
         </button>
@@ -86,24 +86,24 @@
       <div v-else-if="mode !== 'time'">
         <!-- Header -->
         <div class="flex items-center justify-between mb-4">
-          <button @click.stop="changeMonth(-1)" class="p-1 hover:bg-stone-100 rounded-lg transition-colors">
-            <svg class="w-5 h-5 text-stone-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <button @click.stop="changeMonth(-1)" class="p-1 hover:bg-stone-100 dark:hover:bg-stone-800 rounded-lg transition-colors">
+            <svg class="w-5 h-5 text-stone-600 dark:text-stone-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
             </svg>
           </button>
           
           <div class="flex items-center gap-1">
-            <span class="font-bold text-stone-900">{{ currentMonthName }}</span>
+            <span class="font-bold text-stone-900 dark:text-stone-100">{{ currentMonthName }}</span>
             <input 
               type="number" 
               v-model="currentYear" 
-              class="w-16 p-1 text-center font-bold text-stone-900 bg-transparent hover:bg-stone-50 rounded focus:outline-none focus:ring-1 focus:ring-black"
+              class="w-16 p-1 text-center font-bold text-stone-900 dark:text-stone-100 bg-transparent hover:bg-stone-50 dark:hover:bg-stone-800 rounded focus:outline-none focus:ring-1 focus:ring-black dark:focus:ring-stone-500"
               @click.stop
             />
           </div>
 
-          <button @click.stop="changeMonth(1)" class="p-1 hover:bg-stone-100 rounded-lg transition-colors">
-            <svg class="w-5 h-5 text-stone-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <button @click.stop="changeMonth(1)" class="p-1 hover:bg-stone-100 dark:hover:bg-stone-800 rounded-lg transition-colors">
+            <svg class="w-5 h-5 text-stone-600 dark:text-stone-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
             </svg>
           </button>
@@ -111,7 +111,7 @@
 
         <!-- Week days -->
         <div class="grid grid-cols-7 mb-2">
-          <span v-for="day in weekDays" :key="day" class="text-center text-xs font-bold text-stone-400 uppercase">
+          <span v-for="day in weekDays" :key="day" class="text-center text-xs font-bold text-stone-400 dark:text-stone-500 uppercase">
             {{ day }}
           </span>
         </div>
@@ -129,8 +129,8 @@
             class="h-9 w-9 rounded-full flex items-center justify-center text-sm font-medium transition-all mx-auto"
             :class="[
               isSelected(day) 
-                ? 'bg-black text-white shadow-md' 
-                : 'text-stone-700 hover:bg-stone-100'
+                ? 'bg-black dark:bg-stone-100 text-white dark:text-black shadow-md' 
+                : 'text-stone-700 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-800'
             ]"
           >
             {{ day }}
@@ -139,28 +139,28 @@
       </div>
 
       <!-- Time Picker Section (Optional or Standalone) -->
-      <div v-if="enableTime && !forBirthday" class="mt-4 pt-4 border-t border-stone-100">
+      <div v-if="enableTime && !forBirthday" class="mt-4 pt-4 border-t border-stone-100 dark:border-stone-800">
         <div class="flex items-center justify-center gap-2">
           <div class="flex flex-col items-center">
-            <label class="text-[10px] uppercase font-bold text-stone-400 mb-1">Hour</label>
+            <label class="text-[10px] uppercase font-bold text-stone-400 dark:text-stone-500 mb-1">Hour</label>
             <input 
               type="number" 
               v-model="selectedHour" 
               min="0" 
               max="23"
-              class="w-12 p-2 text-center bg-stone-50 rounded-lg border border-stone-200 focus:ring-1 focus:ring-black outline-none font-bold"
+              class="w-12 p-2 text-center bg-stone-50 dark:bg-stone-800 dark:text-white rounded-lg border border-stone-200 dark:border-stone-700 focus:ring-1 focus:ring-black dark:focus:ring-stone-500 outline-none font-bold"
               @change="updateTime"
             />
           </div>
-          <span class="text-xl font-bold text-stone-300 mt-4">:</span>
+          <span class="text-xl font-bold text-stone-300 dark:text-stone-600 mt-4">:</span>
           <div class="flex flex-col items-center">
-            <label class="text-[10px] uppercase font-bold text-stone-400 mb-1">Min</label>
+            <label class="text-[10px] uppercase font-bold text-stone-400 dark:text-stone-500 mb-1">Min</label>
             <input 
               type="number" 
               v-model="selectedMinute" 
               min="0" 
               max="59"
-              class="w-12 p-2 text-center bg-stone-50 rounded-lg border border-stone-200 focus:ring-1 focus:ring-black outline-none font-bold"
+              class="w-12 p-2 text-center bg-stone-50 dark:bg-stone-800 dark:text-white rounded-lg border border-stone-200 dark:border-stone-700 focus:ring-1 focus:ring-black dark:focus:ring-stone-500 outline-none font-bold"
               @change="updateTime"
             />
           </div>

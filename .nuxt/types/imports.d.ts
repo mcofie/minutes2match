@@ -102,12 +102,14 @@ declare global {
   const useAsyncData: typeof import('../../node_modules/nuxt/dist/app/composables/asyncData').useAsyncData
   const useAttrs: typeof import('vue').useAttrs
   const useCompatibility: typeof import('../../composables/useCompatibility').useCompatibility
+  const useConfetti: typeof import('../../composables/useConfetti').useConfetti
   const useCookie: typeof import('../../node_modules/nuxt/dist/app/composables/cookie').useCookie
   const useCssModule: typeof import('vue').useCssModule
   const useCssVars: typeof import('vue').useCssVars
   const useError: typeof import('../../node_modules/nuxt/dist/app/composables/error').useError
   const useEventSeo: typeof import('../../composables/useSeo').useEventSeo
   const useFetch: typeof import('../../node_modules/nuxt/dist/app/composables/fetch').useFetch
+  const useFormValidation: typeof import('../../composables/useFormValidation').useFormValidation
   const useHead: typeof import('../../node_modules/nuxt/dist/app/composables/head').useHead
   const useHeadSafe: typeof import('../../node_modules/nuxt/dist/app/composables/head').useHeadSafe
   const useHubtel: typeof import('../../composables/useHubtel').useHubtel
@@ -166,6 +168,7 @@ declare global {
   const useScriptVimeoPlayer: typeof import('../../node_modules/nuxt/dist/app/composables/script-stubs').useScriptVimeoPlayer
   const useScriptXPixel: typeof import('../../node_modules/nuxt/dist/app/composables/script-stubs').useScriptXPixel
   const useScriptYouTubePlayer: typeof import('../../node_modules/nuxt/dist/app/composables/script-stubs').useScriptYouTubePlayer
+  const useScrollAnimation: typeof import('../../composables/useScrollAnimation').useScrollAnimation
   const useSeo: typeof import('../../composables/useSeo').useSeo
   const useSeoMeta: typeof import('../../node_modules/nuxt/dist/app/composables/head').useSeoMeta
   const useServerHead: typeof import('../../node_modules/nuxt/dist/app/composables/head').useServerHead
@@ -179,7 +182,9 @@ declare global {
   const useSupabaseSession: typeof import('../../node_modules/@nuxtjs/supabase/dist/runtime/composables/useSupabaseSession').useSupabaseSession
   const useSupabaseUser: typeof import('../../node_modules/@nuxtjs/supabase/dist/runtime/composables/useSupabaseUser').useSupabaseUser
   const useTemplateRef: typeof import('vue').useTemplateRef
+  const useToast: typeof import('../../composables/useToast').useToast
   const useTransitionState: typeof import('vue').useTransitionState
+  const vScrollAnimate: typeof import('../../composables/useScrollAnimation').vScrollAnimate
   const watch: typeof import('vue').watch
   const watchEffect: typeof import('vue').watchEffect
   const watchPostEffect: typeof import('vue').watchPostEffect
@@ -200,11 +205,20 @@ declare global {
   export type { VibeAnswer, UserProfile, CompatibilityResult } from '../../composables/useCompatibility'
   import('../../composables/useCompatibility')
   // @ts-ignore
+  export type { ValidationRule, FieldConfig, FieldState } from '../../composables/useFormValidation'
+  import('../../composables/useFormValidation')
+  // @ts-ignore
   export type { PaymentMetadata } from '../../composables/usePaystack'
   import('../../composables/usePaystack')
   // @ts-ignore
   export type { Persona } from '../../composables/usePersona'
   import('../../composables/usePersona')
+  // @ts-ignore
+  export type { ScrollAnimationOptions } from '../../composables/useScrollAnimation'
+  import('../../composables/useScrollAnimation')
+  // @ts-ignore
+  export type { Toast } from '../../composables/useToast'
+  import('../../composables/useToast')
 }
 // for vue template auto import
 import { UnwrapRef } from 'vue'
@@ -311,12 +325,14 @@ declare module 'vue' {
     readonly useAsyncData: UnwrapRef<typeof import('../../node_modules/nuxt/dist/app/composables/asyncData')['useAsyncData']>
     readonly useAttrs: UnwrapRef<typeof import('vue')['useAttrs']>
     readonly useCompatibility: UnwrapRef<typeof import('../../composables/useCompatibility')['useCompatibility']>
+    readonly useConfetti: UnwrapRef<typeof import('../../composables/useConfetti')['useConfetti']>
     readonly useCookie: UnwrapRef<typeof import('../../node_modules/nuxt/dist/app/composables/cookie')['useCookie']>
     readonly useCssModule: UnwrapRef<typeof import('vue')['useCssModule']>
     readonly useCssVars: UnwrapRef<typeof import('vue')['useCssVars']>
     readonly useError: UnwrapRef<typeof import('../../node_modules/nuxt/dist/app/composables/error')['useError']>
     readonly useEventSeo: UnwrapRef<typeof import('../../composables/useSeo')['useEventSeo']>
     readonly useFetch: UnwrapRef<typeof import('../../node_modules/nuxt/dist/app/composables/fetch')['useFetch']>
+    readonly useFormValidation: UnwrapRef<typeof import('../../composables/useFormValidation')['useFormValidation']>
     readonly useHead: UnwrapRef<typeof import('../../node_modules/nuxt/dist/app/composables/head')['useHead']>
     readonly useHeadSafe: UnwrapRef<typeof import('../../node_modules/nuxt/dist/app/composables/head')['useHeadSafe']>
     readonly useHubtel: UnwrapRef<typeof import('../../composables/useHubtel')['useHubtel']>
@@ -375,6 +391,7 @@ declare module 'vue' {
     readonly useScriptVimeoPlayer: UnwrapRef<typeof import('../../node_modules/nuxt/dist/app/composables/script-stubs')['useScriptVimeoPlayer']>
     readonly useScriptXPixel: UnwrapRef<typeof import('../../node_modules/nuxt/dist/app/composables/script-stubs')['useScriptXPixel']>
     readonly useScriptYouTubePlayer: UnwrapRef<typeof import('../../node_modules/nuxt/dist/app/composables/script-stubs')['useScriptYouTubePlayer']>
+    readonly useScrollAnimation: UnwrapRef<typeof import('../../composables/useScrollAnimation')['useScrollAnimation']>
     readonly useSeo: UnwrapRef<typeof import('../../composables/useSeo')['useSeo']>
     readonly useSeoMeta: UnwrapRef<typeof import('../../node_modules/nuxt/dist/app/composables/head')['useSeoMeta']>
     readonly useServerHead: UnwrapRef<typeof import('../../node_modules/nuxt/dist/app/composables/head')['useServerHead']>
@@ -388,7 +405,9 @@ declare module 'vue' {
     readonly useSupabaseSession: UnwrapRef<typeof import('../../node_modules/@nuxtjs/supabase/dist/runtime/composables/useSupabaseSession')['useSupabaseSession']>
     readonly useSupabaseUser: UnwrapRef<typeof import('../../node_modules/@nuxtjs/supabase/dist/runtime/composables/useSupabaseUser')['useSupabaseUser']>
     readonly useTemplateRef: UnwrapRef<typeof import('vue')['useTemplateRef']>
+    readonly useToast: UnwrapRef<typeof import('../../composables/useToast')['useToast']>
     readonly useTransitionState: UnwrapRef<typeof import('vue')['useTransitionState']>
+    readonly vScrollAnimate: UnwrapRef<typeof import('../../composables/useScrollAnimation')['vScrollAnimate']>
     readonly watch: UnwrapRef<typeof import('vue')['watch']>
     readonly watchEffect: UnwrapRef<typeof import('vue')['watchEffect']>
     readonly watchPostEffect: UnwrapRef<typeof import('vue')['watchPostEffect']>
