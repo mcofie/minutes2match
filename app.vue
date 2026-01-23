@@ -1,5 +1,5 @@
 <template>
-  <div class="app-wrapper" :class="{ 'dark': isDark }">
+  <div class="app-wrapper">
     <!-- Page Loading Overlay -->
     <Transition name="loading">
       <div 
@@ -30,54 +30,11 @@
     
     <!-- Global Confetti Container -->
     <UiConfettiContainer />
-    
-    <!-- Dark Mode Toggle (Fixed Position) -->
-    <button 
-      @click="toggleDark"
-      class="fixed left-6 z-[100] w-12 h-12 rounded-full bg-white dark:bg-stone-800 border-2 border-black dark:border-stone-600 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,0.1)] flex items-center justify-center hover:scale-110 transition-transform duration-300"
-      :class="[ isOnDashboard ? 'bottom-28 md:bottom-6' : 'bottom-6' ]"
-      :title="isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'"
-    >
-      <span v-if="isDark" class="text-xl">☀️</span>
-      <span v-else class="text-xl">🌙</span>
-    </button>
   </div>
 </template>
 
 <script setup lang="ts">
 const isLoading = ref(false)
-const route = useRoute()
-
-// Check if we are on the dashboard (needs higher toggle button on mobile)
-const isOnDashboard = computed(() => route.path === '/me')
-
-// Dark mode
-const isDark = ref(false)
-
-onMounted(() => {
-  // Check system preference or stored preference
-  const stored = localStorage.getItem('dark-mode')
-  if (stored !== null) {
-    isDark.value = stored === 'true'
-  } else {
-    isDark.value = window.matchMedia('(prefers-color-scheme: dark)').matches
-  }
-  updateDarkMode()
-})
-
-const toggleDark = () => {
-  isDark.value = !isDark.value
-  localStorage.setItem('dark-mode', String(isDark.value))
-  updateDarkMode()
-}
-
-const updateDarkMode = () => {
-  if (isDark.value) {
-    document.documentElement.classList.add('dark')
-  } else {
-    document.documentElement.classList.remove('dark')
-  }
-}
 </script>
 
 <style>
@@ -112,13 +69,5 @@ const updateDarkMode = () => {
   opacity: 0;
 }
 
-/* Dark mode base styles */
-.dark {
-  color-scheme: dark;
-}
 
-.dark body {
-  background-color: #0c0a09;
-  color: #fafaf9;
-}
 </style>
