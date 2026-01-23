@@ -25,7 +25,7 @@ type NuxtAppInjections =
   InjectionType<typeof import("../../node_modules/@nuxt/devtools/dist/runtime/plugins/devtools.client.js")> &
   InjectionType<typeof import("../../node_modules/nuxt/dist/app/plugins/warn.dev.server.js")> &
   InjectionType<typeof import("../../node_modules/nuxt/dist/app/plugins/check-if-layout-used.js")> &
-  InjectionType<typeof import("../../plugins/scroll-animation.client")>
+  InjectionType<typeof import("../../plugins/scroll-animation")>
 
 declare module '#app' {
   interface NuxtApp extends NuxtAppInjections { }
