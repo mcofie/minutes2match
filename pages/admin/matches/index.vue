@@ -75,6 +75,16 @@
             <td class="font-bold">GH₵{{ match.unlock_price }}</td>
             <td>
               <div class="flex items-center gap-2">
+                <!-- Unlock Action -->
+                <button 
+                  v-if="match.status !== 'unlocked'"
+                  class="btn-primary btn-sm bg-green-600 hover:bg-green-700 border-none text-white" 
+                  @click="unlockMatch(match)"
+                  title="Mark as Paid/Unlocked"
+                >
+                  Unlock
+                </button>
+                
                 <!-- Delete Action (Optional, for admin) -->
                 <button 
                   class="btn-secondary btn-sm text-red-600 hover:bg-red-50" 
@@ -182,6 +192,28 @@ const getStatusClass = (status: string) => {
     case 'pending_payment': return 'badge--yellow'
     case 'rejected': return 'badge--red'
     default: return 'badge--gray'
+  }
+}
+
+const unlockMatch = async (match: any) => {
+  if (!confirm('Are you sure you want to mark this match as UNLOCKED? This grants full access to the users.')) return
+
+  try {
+    const { error } = await supabase
+      .from('matches')
+      .update({ status: 'unlocked' })
+      .eq('id', match.id)
+
+    if (error) throw error
+
+    // Update local state
+    const index = matches.value.findIndex(m => m.id === match.id)
+    if (index !== -1) {
+      matches.value[index].status = 'unlocked'
+    }
+  } catch (e) {
+    alert('Failed to unlock match')
+    console.error(e)
   }
 }
 

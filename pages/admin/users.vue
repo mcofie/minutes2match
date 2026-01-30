@@ -27,6 +27,18 @@
         placeholder="Search by name or phone..."
         class="form-input user-search"
       />
+      <button class="btn-secondary" @click="exportUsers">
+        Export CSV
+      </button>
+    </div>
+
+    <!-- Bulk Actions -->
+    <div v-if="selectedIds.length > 0" class="bulk-actions">
+      <span>{{ selectedIds.length }} users selected</span>
+      <div class="flex gap-2">
+        <button class="btn-sm btn-primary" @click="bulkVerify">Verify Selected</button>
+        <button class="btn-sm btn-danger" @click="bulkDelete">Delete Selected</button>
+      </div>
     </div>
 
     <!-- Users Table -->
@@ -34,6 +46,9 @@
       <table class="data-table">
         <thead>
           <tr>
+            <th>
+              <input type="checkbox" :checked="isAllSelected" @change="toggleSelectAll" />
+            </th>
             <th>User</th>
             <th>Gender</th>
             <th>Age</th>
@@ -53,8 +68,19 @@
           </tr>
           <tr v-for="user in users" :key="user.id">
             <td>
+              <input type="checkbox" :value="user.id" v-model="selectedIds" />
+            </td>
+            <td>
               <div class="user-cell cursor-pointer" @click="viewUser(user)">
-                <div class="user-avatar">{{ user.display_name?.charAt(0) || '?' }}</div>
+                <div class="user-avatar">
+                  <img 
+                    v-if="user.photo_url" 
+                    :src="user.photo_url" 
+                    :alt="user.display_name" 
+                    class="user-avatar-img"
+                  />
+                  <span v-else>{{ user.display_name?.charAt(0) || '?' }}</span>
+                </div>
                 <div>
                   <div class="user-name">{{ user.display_name || 'Anonymous' }}</div>
                   <div class="user-phone">{{ user.phone }}</div>
@@ -109,7 +135,8 @@
                   v-if="selectedUser.photo_url" 
                   :src="selectedUser.photo_url" 
                   :alt="selectedUser.display_name"
-                  class="user-photo"
+                  class="user-photo cursor-pointer"
+                  @click="openImagePreview(selectedUser.photo_url)"
                 />
                 <div v-else class="user-avatar-large">
                   {{ selectedUser.display_name?.charAt(0) || '?' }}
@@ -416,6 +443,51 @@
                 :user="selectedUser" 
               />
             </div>
+            
+            <!-- Suggested Matches (New Section in Profile) -->
+            <div v-if="activeTab === 'profile'" class="mt-6 border-t pt-6">
+               <h4 class="info-card__title mb-4">
+                  <svg class="card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                     <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                  </svg>
+                  Smart Suggestions
+               </h4>
+               <div v-if="loadingSuggestions" class="text-sm text-gray-500">Finding suggestions...</div>
+               <div v-else-if="suggestedMatches.length === 0" class="text-sm text-gray-500">No suggestions found.</div>
+               <div v-else class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div v-for="match in suggestedMatches" :key="match.id" class="flex items-center justify-between p-3 border rounded-lg bg-white">
+                     <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center font-bold text-gray-700 overflow-hidden">
+                           <img v-if="match.photo_url" :src="match.photo_url" class="w-full h-full object-cover" />
+                           <span v-else>{{ match.display_name?.charAt(0) || '?' }}</span>
+                        </div>
+                        <div>
+                           <div class="font-semibold text-sm">{{ match.display_name }}</div>
+                           <div class="text-xs text-brand-500 font-bold">{{ match.match_score }}% Match</div>
+                        </div>
+                     </div>
+                     <button class="btn-xs btn-primary" @click="selectForMatch(match)">Match</button>
+                  </div>
+               </div>
+            </div>
+
+            <!-- Admin Notes (New Section in Profile) -->
+            <div v-if="activeTab === 'profile'" class="mt-6 border-t pt-6">
+              <h4 class="info-card__title mb-4">
+                <svg class="card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                </svg>
+                Admin Notes
+              </h4>
+              <textarea 
+                v-model="adminNotes" 
+                class="w-full p-3 border rounded-lg text-sm bg-yellow-50 focus:bg-white transition-colors min-h-[100px]"
+                placeholder="Add private notes about this user..."
+                @blur="saveAdminNotes"
+              ></textarea>
+              <div v-if="notesSaved" class="text-xs text-green-600 mt-1 font-semibold">Notes saved!</div>
+            </div>
 
             <!-- Vibe Check Tab -->
             <div v-if="activeTab === 'vibes'" class="tab-content">
@@ -458,6 +530,16 @@
         </div>
       </div>
     </Teleport>
+
+    <!-- Image Preview Modal -->
+    <Teleport to="body">
+      <div v-if="showImagePreview" class="modal-overlay image-preview-overlay" @click="closeImagePreview">
+        <div class="image-preview-container">
+          <img :src="previewImageUrl" class="preview-image" @click.stop />
+          <button class="preview-close" @click="closeImagePreview">×</button>
+        </div>
+      </div>
+    </Teleport>
   </div>
 </template>
 
@@ -476,6 +558,7 @@ const supabase = useSupabaseClient()
 // State
 const loading = ref(true)
 const users = ref<any[]>([])
+const selectedIds = ref<string[]>([])
 const filters = reactive({
   gender: '',
   persona: '',
@@ -491,6 +574,14 @@ const totalUsers = ref(0) // Will be set by fetch
 // Modal State
 const showModal = ref(false)
 const selectedUser = ref<any>(null)
+// Image Preview State
+const showImagePreview = ref(false)
+const previewImageUrl = ref('')
+const adminNotes = ref('')
+const notesSaved = ref(false)
+const suggestedMatches = ref<any[]>([])
+const loadingSuggestions = ref(false)
+
 const userAnswers = ref<any[]>([])
 const loadingAnswers = ref(false)
 const questionsMap = ref<Record<string, string>>({})
@@ -560,6 +651,61 @@ watch(filters, () => {
   currentPage.value = 1
   fetchUsers()
 }, { deep: true })
+
+// Bulk Actions
+const isAllSelected = computed(() => {
+  return users.value.length > 0 && selectedIds.value.length === users.value.length
+})
+
+const toggleSelectAll = () => {
+  if (isAllSelected.value) {
+    selectedIds.value = []
+  } else {
+    selectedIds.value = users.value.map(u => u.id)
+  }
+}
+
+const bulkVerify = async () => {
+  if (!confirm(`Verify ${selectedIds.value.length} users?`)) return
+  
+  const { error } = await supabase
+    .from('profiles')
+    .update({ is_verified: true })
+    .in('id', selectedIds.value)
+
+  if (!error) {
+    fetchUsers()
+    selectedIds.value = []
+  }
+}
+
+const bulkDelete = async () => {
+  if (!confirm(`Are you sure you want to PERMANENTLY delete ${selectedIds.value.length} users?`)) return
+  
+  const { error } = await supabase
+    .from('profiles')
+    .delete()
+    .in('id', selectedIds.value)
+
+  if (!error) {
+    fetchUsers()
+    selectedIds.value = []
+  }
+}
+
+const exportUsers = () => {
+  const data = users.value.map(u => ({
+    name: u.display_name,
+    phone: u.phone,
+    gender: u.gender,
+    age: getAge(u.birth_date),
+    location: u.location,
+    is_verified: u.is_verified ? 'Yes' : 'No',
+    joined: new Date(u.created_at).toLocaleDateString()
+  }))
+  
+  downloadCSV(data, `users_export_${new Date().toISOString().split('T')[0]}.csv`)
+}
 
 // Fetch helper: Questions map
 const fetchQuestionsMap = async () => {
@@ -656,6 +802,13 @@ const viewUser = async (user: any) => {
   activeTab.value = 'profile'
   loadingAnswers.value = true
   userAnswers.value = []
+  
+  // Set Notes
+  adminNotes.value = user.admin_notes || ''
+  notesSaved.value = false
+  
+  // Fetch Suggestions
+  fetchSuggestions(user)
 
   // Fetch answers and activity in parallel
   try {
@@ -689,6 +842,65 @@ const closeModal = () => {
 const selectForMatch = (user: any) => {
   sessionStorage.setItem('matchUser1', JSON.stringify(user))
   navigateTo('/admin/matches')
+}
+
+// Image Preview Actions
+const openImagePreview = (url: string) => {
+  previewImageUrl.value = url
+  showImagePreview.value = true
+}
+
+const closeImagePreview = () => {
+  showImagePreview.value = false
+  previewImageUrl.value = ''
+}
+
+
+
+// Admin Notes
+const saveAdminNotes = async () => {
+  if (!selectedUser.value) return
+  
+  // Optimistic update
+  selectedUser.value.admin_notes = adminNotes.value
+  
+  const { error } = await supabase
+    .from('profiles')
+    .update({ admin_notes: adminNotes.value })
+    .eq('id', selectedUser.value.id)
+    
+  if (!error) {
+    notesSaved.value = true
+    setTimeout(() => { notesSaved.value = false }, 2000)
+  }
+}
+
+// Smart Suggestions (Mock logic for now, or simple gender swap)
+const fetchSuggestions = async (user: any) => {
+  loadingSuggestions.value = true
+  suggestedMatches.value = []
+  
+  // Simple heuristic: Opposite gender, verified, not matched yet
+  // In a real app, this would be a weighted algorithm
+  const targetGender = user.gender === 'male' ? 'female' : 'male'
+  
+  const { data } = await supabase
+    .from('profiles')
+    .select('id, display_name, photo_url, gender, birth_date, location')
+    .eq('gender', targetGender)
+    .eq('is_verified', true)
+    .neq('id', user.id)
+    .limit(4)
+    
+  if (data) {
+    // Add fake match score for demo/ MVP
+    suggestedMatches.value = data.map(m => ({
+      ...m,
+      match_score: Math.floor(Math.random() * (98 - 75) + 75) // Random 75-98%
+    }))
+  }
+  
+  loadingSuggestions.value = false
 }
 
 // Helpers
@@ -868,6 +1080,13 @@ onMounted(() => {
   font-size: 0.875rem;
 }
 
+.user-avatar-img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
 .user-name {
   font-weight: 600;
   color: #111827;
@@ -924,6 +1143,15 @@ onMounted(() => {
   border-radius: 50%;
   object-fit: cover;
   border: 1px solid #E5E7EB;
+}
+
+.user-photo.cursor-pointer {
+  cursor: zoom-in;
+  transition: opacity 0.2s;
+}
+
+.user-photo.cursor-pointer:hover {
+  opacity: 0.9;
 }
 
 .user-avatar-large {
@@ -1597,6 +1825,52 @@ onMounted(() => {
 .empty-vibes h4 {
   margin: 0 0 0.5rem 0;
   color: #666;
+}
+
+/* Image Preview Modal */
+.image-preview-overlay {
+  z-index: 9999;
+  background: rgba(0, 0, 0, 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.image-preview-container {
+  position: relative;
+  max-width: 90vw;
+  max-height: 90vh;
+}
+
+.preview-image {
+  max-width: 100%;
+  max-height: 90vh;
+  object-fit: contain;
+  border-radius: 8px;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+.preview-close {
+  position: absolute;
+  top: -40px;
+  right: -40px;
+  background: none;
+  border: none;
+  color: white;
+  font-size: 2rem;
+  cursor: pointer;
+  padding: 10px;
+}
+
+.preview-close:hover {
+  opacity: 0.8;
+}
+
+@media (max-width: 768px) {
+  .preview-close {
+    top: -40px;
+    right: 0;
+  }
 }
 
 .empty-vibes p {

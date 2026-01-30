@@ -39,6 +39,7 @@ export { personas, usePersona, Persona } from '../composables/usePersona';
 export { useScrollAnimation, vScrollAnimate, ScrollAnimationOptions } from '../composables/useScrollAnimation';
 export { useSeo, useEventSeo } from '../composables/useSeo';
 export { useToast, Toast } from '../composables/useToast';
+export { downloadCSV } from '../utils/downloadCsv';
 export { useSupabaseClient } from '../node_modules/@nuxtjs/supabase/dist/runtime/composables/useSupabaseClient';
 export { useSupabaseCookieRedirect } from '../node_modules/@nuxtjs/supabase/dist/runtime/composables/useSupabaseCookieRedirect';
 export { useSupabaseSession } from '../node_modules/@nuxtjs/supabase/dist/runtime/composables/useSupabaseSession';
