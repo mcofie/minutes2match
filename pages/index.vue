@@ -454,7 +454,7 @@
           <!-- Top Section -->
           <div class="grid md:grid-cols-2 gap-16 mb-24 border-b border-white/20 pb-24">
              <div>
-                <h2 class="text-5xl md:text-7xl font-serif mb-8 leading-none text-white">
+                <h2 class="text-5xl md:text-7xl font-serif mb-8 leading-none !text-white" style="color: white !important;">
                    Ready to find <br/><span class="italic text-rose-500">your person?</span>
                 </h2>
                 <NuxtLink to="/vibe-check" class="inline-block bg-white dark:bg-stone-100 text-black px-12 py-5 rounded-md text-lg font-bold uppercase tracking-widest hover:bg-rose-500 dark:hover:bg-rose-500 hover:text-white dark:hover:text-white transition-all shadow-[6px_6px_0px_0px_rgba(255,255,255,0.3)] dark:shadow-[6px_6px_0px_0px_rgba(255,255,255,0.1)] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px]">
@@ -464,7 +464,7 @@
              
              <div class="grid grid-cols-2 md:grid-cols-3 gap-8">
                 <div>
-                   <h4 class="font-bold uppercase tracking-widest text-white mb-6 text-xs">Company</h4>
+                   <h4 class="font-bold uppercase tracking-widest !text-white mb-6 text-xs" style="color: white !important;">Company</h4>
                    <ul class="space-y-4 text-sm font-medium text-gray-300 dark:text-stone-400">
                       <li><a href="#" class="hover:text-rose-500 transition-colors">Manifesto</a></li>
                       <li><a href="#" class="hover:text-rose-500 transition-colors">How it Works</a></li>
@@ -474,7 +474,7 @@
                    </ul>
                 </div>
                 <div>
-                   <h4 class="font-bold uppercase tracking-widest text-white mb-6 text-xs">Social</h4>
+                   <h4 class="font-bold uppercase tracking-widest !text-white mb-6 text-xs" style="color: white !important;">Social</h4>
                    <ul class="space-y-4 text-sm font-medium text-gray-300 dark:text-stone-400">
                       <li><a href="#" class="hover:text-rose-500 transition-colors">Instagram</a></li>
                       <li><a href="#" class="hover:text-rose-500 transition-colors">Twitter / X</a></li>
@@ -482,7 +482,7 @@
                    </ul>
                 </div>
                 <div>
-                   <h4 class="font-bold uppercase tracking-widest text-white mb-6 text-xs">Legal</h4>
+                   <h4 class="font-bold uppercase tracking-widest !text-white mb-6 text-xs" style="color: white !important;">Legal</h4>
                    <ul class="space-y-4 text-sm font-medium text-gray-300 dark:text-stone-400">
                       <li><a href="#" class="hover:text-rose-500 transition-colors">Terms</a></li>
                       <li><a href="#" class="hover:text-rose-500 transition-colors">Privacy</a></li>

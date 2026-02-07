@@ -136,11 +136,7 @@
             <SkeletonEventCard v-for="i in 3" :key="i" />
           </div>
 
-          <div v-else-if="events.length === 0" class="py-16 text-center border-2 border-dashed border-stone-200 dark:border-stone-700 rounded-2xl bg-white dark:bg-stone-900">
-            <span class="text-4xl block mb-4 grayscale opacity-50">🌱</span>
-            <p class="font-bold text-stone-900 dark:text-stone-100 mb-1">No events scheduled yet</p>
-            <p class="text-sm text-stone-500 dark:text-stone-400">Check back soon for new gatherings</p>
-          </div>
+          <EventsEmptyState v-else-if="events.length === 0" />
 
           <div v-else class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             <EventCard
@@ -177,10 +173,21 @@
             <SkeletonMatchCard v-for="i in 3" :key="i" />
           </div>
 
-          <div v-else-if="matches.length === 0" class="py-16 text-center border-2 border-dashed border-stone-200 dark:border-stone-700 rounded-2xl bg-white dark:bg-stone-900">
-            <span class="text-4xl block mb-4 grayscale opacity-50">✨</span>
-            <p class="font-bold text-stone-900 dark:text-stone-100 mb-1">Your connections are brewing</p>
-            <p class="text-sm text-stone-500 dark:text-stone-400">We'll SMS you when you get matched!</p>
+          <div v-else-if="matches.length === 0" class="space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-500">
+             <div class="py-12 text-center border-2 border-dashed border-stone-200 dark:border-stone-700 rounded-2xl bg-white dark:bg-stone-900">
+               <span class="text-4xl block mb-4 grayscale opacity-50">✨</span>
+               <p class="font-bold text-stone-900 dark:text-stone-100 mb-1">Your connections are brewing</p>
+               <p class="text-sm text-stone-500 dark:text-stone-400">We'll SMS you when you get matched!</p>
+             </div>
+             
+             <!-- Show Pricing Model in Empty State -->
+             <div class="px-2">
+                <div class="text-center mb-6">
+                  <h3 class="text-xl font-bold font-serif text-black dark:text-white">Want more matches?</h3>
+                  <p class="text-sm text-stone-500 dark:text-stone-400">Upgrade to Premium for priority matching.</p>
+                </div>
+                <SubscriptionCard :subscription="subscription" @subscribe="handleSubscribe" />
+             </div>
           </div>
 
           <div v-else class="space-y-8">
@@ -209,6 +216,7 @@
                 :location="match.matchedProfile?.location"
                 :gender="match.matchedProfile?.gender"
                 @unlock="handleUnlockMatch(match)"
+                @update-status="navigateToFeedback(match)"
               />
             </div>
           </div>
@@ -238,7 +246,7 @@
           <!-- Edit Form -->
           <div class="md:col-span-2 space-y-8 md:row-span-[20]">
              <!-- Basic Info -->
-             <div class="bg-white p-6 md:p-8 rounded-xl border-2 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
+             <div class="bg-white p-5 md:p-8 rounded-xl border-2 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
                 <h3 class="text-2xl font-serif font-bold text-black mb-8 flex items-center gap-2">
                   <span>Basic Info</span>
                   <div class="h-px flex-1 bg-stone-100"></div>
@@ -268,7 +276,7 @@
              </div>
 
              <!-- Preferences -->
-             <div class="bg-white p-6 md:p-8 rounded-xl border-2 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
+             <div class="bg-white p-5 md:p-8 rounded-xl border-2 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
                 <h3 class="text-2xl font-serif font-bold text-black mb-8 flex items-center gap-2">
                    <span>Preferences</span>
                    <div class="h-px flex-1 bg-stone-100"></div>
@@ -334,7 +342,7 @@
              </div>
 
              <!-- Bio / About Me -->
-             <div class="bg-white dark:bg-stone-900 p-6 md:p-8 rounded-xl border-2 border-black dark:border-stone-700 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] dark:shadow-[8px_8px_0px_0px_rgba(255,255,255,0.05)]">
+             <div class="bg-white dark:bg-stone-900 p-5 md:p-8 rounded-xl border-2 border-black dark:border-stone-700 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] dark:shadow-[8px_8px_0px_0px_rgba(255,255,255,0.05)]">
                 <div class="flex items-center justify-between mb-6">
                    <h3 class="text-2xl font-serif font-bold text-black dark:text-white">About Me</h3>
                    <span class="text-xs font-mono font-bold" :class="editForm.about_me.length > 250 ? 'text-rose-500 md:text-rose-400' : 'text-stone-400 dark:text-stone-500'">
@@ -352,7 +360,7 @@
              </div>
 
              <!-- Interests -->
-             <div class="bg-white dark:bg-stone-900 p-6 md:p-8 rounded-xl border-2 border-black dark:border-stone-700 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] dark:shadow-[8px_8px_0px_0px_rgba(255,255,255,0.05)]">
+             <div class="bg-white dark:bg-stone-900 p-5 md:p-8 rounded-xl border-2 border-black dark:border-stone-700 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] dark:shadow-[8px_8px_0px_0px_rgba(255,255,255,0.05)]">
                 <div class="flex items-center justify-between mb-6">
                    <h3 class="text-2xl font-serif font-bold text-black dark:text-white">Interests</h3>
                    <span class="text-xs font-mono font-bold text-stone-400 dark:text-stone-500">{{ editForm.interests.length }}/6 selected</span>
@@ -373,7 +381,7 @@
              </div>
 
              <!-- Deal Breakers / Age Preferences -->
-             <div class="bg-white dark:bg-stone-900 p-6 md:p-8 rounded-xl border-2 border-black dark:border-stone-700 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] dark:shadow-[8px_8px_0px_0px_rgba(255,255,255,0.05)]">
+             <div class="bg-white dark:bg-stone-900 p-5 md:p-8 rounded-xl border-2 border-black dark:border-stone-700 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] dark:shadow-[8px_8px_0px_0px_rgba(255,255,255,0.05)]">
                 <h3 class="text-2xl font-serif font-bold text-black dark:text-white mb-2">Age Range</h3>
                 <p class="text-[10px] font-bold uppercase tracking-widest text-stone-400 dark:text-stone-500 mb-8">Who do you want to meet?</p>
                 
@@ -432,92 +440,8 @@
                  </span>
               </div>
 
-               <!-- Subscription Status -->
-               <div class="mt-10 bg-white dark:bg-stone-900 rounded-3xl border-2 border-black dark:border-stone-400 p-8 md:p-10 relative overflow-visible shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] dark:shadow-[8px_8px_0px_0px_rgba(255,255,255,0.1)] transition-transform hover:-translate-y-1">
-                  
-                  <!-- Floating Badge for Premium -->
-                  <div v-if="subscription" class="absolute -top-4 -right-2 md:right-8 bg-emerald-500 text-black border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] px-4 py-1.5 rounded-full rotate-3 z-10">
-                     <span class="text-xs font-black uppercase tracking-widest flex items-center gap-1.5">
-                        <span class="w-2 h-2 bg-white rounded-full animate-pulse"></span> Active
-                     </span>
-                  </div>
-
-                  <div class="flex flex-col md:flex-row md:items-start justify-between gap-8 mb-8">
-                     <div class="flex items-start gap-6">
-                         <!-- Icon Box -->
-                        <div class="w-20 h-20 rounded-2xl border-2 border-black dark:border-stone-400 flex items-center justify-center text-4xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,0.1)]"
-                           :class="subscription ? 'bg-emerald-100 dark:bg-emerald-900/30' : 'bg-rose-100 dark:bg-rose-900/30'"
-                        >
-                           👑
-                        </div>
-                        
-                        <div>
-                           <p class="text-xs font-bold uppercase tracking-widest text-stone-500 dark:text-stone-400 mb-2">
-                              {{ subscription ? 'Your Plan' : 'Membership' }}
-                           </p>
-                           <h3 class="text-3xl md:text-4xl font-black font-serif text-black dark:text-white mb-2 leading-none">
-                              {{ subscription ? 'Premium Member' : 'Unlock Premium' }}
-                           </h3>
-                           <p class="text-stone-600 dark:text-stone-300 max-w-sm leading-relaxed text-sm">
-                              {{ subscription 
-                                 ? 'You currently have unlimited access to all features and matches.' 
-                                 : 'Get unlimited match unlocks, priority visibility, and exclusive event access.' 
-                              }}
-                           </p>
-                        </div>
-                     </div>
-                  </div>
-
-                  <!-- Divider -->
-                  <div class="w-full h-0.5 bg-stone-100 dark:bg-stone-800 mb-8"></div>
-
-                  <!-- Benefits Grid -->
-                  <div class="grid md:grid-cols-2 gap-x-8 gap-y-6 mb-10">
-                     <div class="flex items-center gap-4 group">
-                        <div class="w-6 h-6 rounded-md bg-black dark:bg-white text-white dark:text-black flex items-center justify-center text-xs border border-transparent group-hover:scale-110 transition-transform">✓</div>
-                        <span class="font-bold text-black dark:text-white">Unlimited Match Unlocks</span>
-                     </div>
-                     <div class="flex items-center gap-4 group">
-                        <div class="w-6 h-6 rounded-md bg-black dark:bg-white text-white dark:text-black flex items-center justify-center text-xs border border-transparent group-hover:scale-110 transition-transform">✓</div>
-                        <span class="font-bold text-black dark:text-white">Priority Matching</span>
-                     </div>
-                     <div class="flex items-center gap-4 group">
-                        <div class="w-6 h-6 rounded-md bg-black dark:bg-white text-white dark:text-black flex items-center justify-center text-xs border border-transparent group-hover:scale-110 transition-transform">✓</div>
-                        <span class="font-bold text-black dark:text-white">Verified Badge</span>
-                     </div>
-                     <div class="flex items-center gap-4 group">
-                        <div class="w-6 h-6 rounded-md bg-black dark:bg-white text-white dark:text-black flex items-center justify-center text-xs border border-transparent group-hover:scale-110 transition-transform">✓</div>
-                        <span class="font-bold text-black dark:text-white">Exclusive Event Access</span>
-                     </div>
-                  </div>
-
-                  <!-- Active/Action Section -->
-                  <div v-if="subscription" class="bg-stone-50 dark:bg-stone-800/50 rounded-xl border-2 border-dashed border-stone-300 dark:border-stone-600 p-5 flex items-center justify-between">
-                     <div class="flex items-center gap-3">
-                        <span class="text-2xl">🗓️</span>
-                        <div>
-                           <p class="text-[10px] font-bold uppercase tracking-widest text-stone-500">Renews On</p>
-                           <p class="font-bold font-mono text-lg text-black dark:text-white">{{ new Date(subscription.end_date).toLocaleDateString(undefined, { dateStyle: 'long' }) }}</p>
-                        </div>
-                     </div>
-                     <!-- Optional Management Link -->
-                     <button class="text-xs font-bold underline hover:text-emerald-500 transition-colors">Manage</button>
-                  </div>
-
-                  <div v-else class="flex flex-col md:flex-row items-center gap-5">
-                     <button 
-                        @click="handleSubscribe"
-                        class="flex-1 w-full bg-rose-500 text-white font-black uppercase tracking-widest text-sm py-4 px-8 rounded-lg border-2 border-black dark:border-stone-200 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_#ffffff] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all flex items-center justify-center gap-3"
-                     >
-                        <span>Upgrade Now</span>
-                        <span class="bg-black/20 px-2 py-0.5 rounded text-xs font-mono">GH₵ 50/mo</span>
-                     </button>
-                     <p class="text-xs font-bold text-stone-400 text-center">
-                        Cancel anytime.
-                     </p>
-                  </div>
-
-               </div>
+                <!-- Subscription Status -->
+               <SubscriptionCard :subscription="subscription" @subscribe="handleSubscribe" />
 
                <!-- Account Actions (at bottom of profile tab) -->
                <div class="mt-12 pt-8 border-t-2 border-stone-100 dark:border-stone-800 space-y-6">
@@ -712,6 +636,16 @@ import BlindProfileCard from '~/components/BlindProfileCard.vue'
 import UiButton from '~/components/ui/Button.vue'
 import { personas, type Persona } from '~/composables/usePersona'
 import { useToast } from '~/composables/useToast'
+
+// --- Feedback Logic ---
+const { success: showSuccess, error: showError } = useToast()
+
+// Navigate to connection page for feedback (feedback form is now on the connection page)
+const navigateToFeedback = (match: any) => {
+  navigateTo(`/me/connection/${match.id}?feedback=true`)
+}
+// --- End Feedback Logic ---
+
 import type { Database } from '~/types/database'
 import { useSwipe } from '@vueuse/core'
 

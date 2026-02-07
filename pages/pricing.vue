@@ -300,7 +300,7 @@ const mobileMenuOpen = ref(false)
 
 const prices = reactive({
    match: 15, // Updated default
-   subscription: 50, // Default
+   subscription: 75, // Default updated to 75
    event_male: 100,
    event_female: 100
 })

@@ -377,18 +377,131 @@
                </div>
             </div>
           </div>
+
+          <!-- Connection Progress Feedback -->
+          <div id="feedback-section" v-if="match?.unlocked" class="relative overflow-hidden bg-[#7e22ce] dark:bg-purple-950 p-6 md:p-8 rounded-xl border-2 border-black dark:border-white shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] dark:shadow-[8px_8px_0px_0px_rgba(255,255,255,1)]">
+            <!-- Background Pattern -->
+            <div class="absolute inset-0 opacity-10 bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:16px_16px]"></div>
+            
+            <div class="relative z-10 flex items-center gap-5 mb-8">
+              <div class="w-14 h-14 bg-white text-black rounded-xl border-2 border-black flex items-center justify-center text-3xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transform -rotate-3">
+                💬
+              </div>
+              <div>
+                <h3 class="text-2xl font-black !text-white text-white uppercase tracking-tighter leading-none mb-1 drop-shadow-md" style="color: white !important;">HOW'S IT GOING?</h3>
+                <div class="inline-block bg-black/30 backdrop-blur-sm px-2 py-1 rounded text-xs font-bold !text-white text-white uppercase tracking-widest border border-white/20" style="color: white !important;">
+                  Connection Check-in
+                </div>
+              </div>
+            </div>
+            
+            <!-- Current Status Display -->
+            <div 
+              v-if="match.feedback_status && match.feedback_status !== 'pending'" 
+              class="relative z-10 mb-8 p-0"
+            >
+              <div class="flex items-center justify-between p-4 bg-white dark:bg-stone-900 rounded-xl border-2 border-black dark:border-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)]">
+                <div>
+                  <span class="text-[10px] font-black uppercase tracking-widest text-[#57534e] dark:text-stone-400 mb-1 block">Current Status</span>
+                  <div class="flex items-center gap-3">
+                    <span class="text-2xl">{{ getFeedbackIcon(match.feedback_status) }}</span>
+                    <span class="text-lg font-bold text-black dark:text-white capitalize">{{ getFeedbackLabel(match.feedback_status) }}</span>
+                  </div>
+                </div>
+                
+                <button 
+                  @click="showFeedbackEditor = !showFeedbackEditor"
+                  class="text-xs font-bold text-black dark:text-white hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black px-4 py-2 rounded border-2 border-black dark:border-stone-500 transition-all uppercase tracking-wide"
+                >
+                  {{ showFeedbackEditor ? 'Cancel' : 'Update' }}
+                </button>
+              </div>
+            </div>
+
+            <!-- Feedback Form -->
+            <div 
+              v-if="showFeedbackEditor || !match.feedback_status || match.feedback_status === 'pending'" 
+              class="relative z-10 space-y-6"
+            >
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <button 
+                  v-for="option in feedbackOptions" 
+                  :key="option.value"
+                  @click="feedbackForm.status = option.value"
+                  :class="[
+                    'group relative p-5 rounded-xl border-2 text-left transition-all duration-200 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)]',
+                    feedbackForm.status === option.value 
+                      ? 'border-black dark:border-white bg-white dark:bg-stone-900 translate-x-[-2px] translate-y-[-2px] ring-2 ring-yellow-400 dark:ring-yellow-400 ring-offset-2 ring-offset-[#7e22ce] dark:ring-offset-purple-900' 
+                      : 'border-black dark:border-white bg-white dark:bg-stone-900 hover:translate-x-[-2px] hover:translate-y-[-2px]'
+                  ]"
+                >
+                  <div class="flex items-start gap-4">
+                    <div class="text-3xl transition-transform duration-200 group-hover:scale-110">
+                      {{ option.icon }}
+                    </div>
+                    <div>
+                      <span class="font-bold text-base block mb-1 text-black dark:text-white">
+                        {{ option.label }}
+                      </span>
+                      <span class="text-xs font-bold text-[#57534e] dark:text-stone-400 group-hover:text-black dark:group-hover:text-white transition-colors">
+                        {{ option.desc }}
+                      </span>
+                    </div>
+                  </div>
+                  
+                  <!-- Checkmark -->
+                  <div 
+                    v-if="feedbackForm.status === option.value"
+                    class="absolute top-3 right-3 w-6 h-6 bg-yellow-400 text-black rounded-full flex items-center justify-center text-xs border-2 border-black"
+                  >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                  </div>
+                </button>
+              </div>
+
+              <!-- Notes -->
+              <div class="space-y-2">
+                <label class="text-[10px] font-black uppercase text-white tracking-widest px-1">Share more details (optional)</label>
+                <textarea 
+                  v-model="feedbackForm.note"
+                  rows="3"
+                  placeholder="How did it go? Any feedback for us?"
+                  class="w-full p-4 rounded-xl border-2 border-transparent focus:border-yellow-400 bg-black/40 text-base outline-none resize-none text-white placeholder:text-white/60 transition-all focus:bg-black/50 backdrop-blur-sm"
+                ></textarea>
+              </div>
+
+              <!-- Submit -->
+              <button 
+                @click="saveFeedback"
+                :disabled="savingFeedback || !feedbackForm.status"
+                class="w-full py-4 bg-yellow-400 hover:bg-yellow-300 text-black font-black rounded-xl transition-all shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] hover:-translate-y-1 active:translate-y-0 active:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-sm uppercase tracking-widest border-2 border-black"
+              >
+                <span v-if="savingFeedback" class="animate-spin w-4 h-4 border-2 border-black/30 border-t-black rounded-full"></span>
+                {{ savingFeedback ? 'Saving...' : 'Update Connection Status' }}
+              </button>
+            </div>
+
+            <!-- Success Message -->
+            <div v-if="feedbackSaved" class="relative z-10 mt-6 p-4 bg-green-400 rounded-xl border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] flex items-center gap-4">
+              <div class="w-8 h-8 bg-black rounded-full flex items-center justify-center text-green-400 font-bold shrink-0">✓</div>
+              <div>
+                <h4 class="font-black text-black text-sm mb-0.5 uppercase tracking-wide">Status Updated!</h4>
+                <span class="text-xs font-bold text-black/80">Thanks for letting us know.</span>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
       <!-- Safety Actions -->
-      <div class="mt-12 mb-8 flex items-center justify-center gap-6 opacity-60 hover:opacity-100 transition-opacity">
-        <button @click="handleReport" class="text-xs font-bold text-stone-400 dark:text-stone-500 hover:text-stone-600 dark:hover:text-stone-300 uppercase tracking-wider flex items-center gap-2">
-            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" x2="4" y1="22" y2="15"/></svg>
+      <div class="mt-8 mb-12 flex items-center justify-center gap-6 w-full px-6">
+        <button @click="handleReport" class="group flex items-center gap-2 text-xs font-black text-rose-400 dark:text-rose-500 hover:text-rose-600 dark:hover:text-rose-400 uppercase tracking-widest transition-colors py-2">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="group-hover:scale-110 transition-transform"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" x2="4" y1="22" y2="15"/></svg>
             Report User
         </button>
-        <span class="text-stone-300 dark:text-stone-700">|</span>
-        <button @click="handleBlock" class="text-xs font-bold text-stone-400 dark:text-stone-500 hover:text-red-500 uppercase tracking-wider flex items-center gap-2">
-             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="4.93" x2="19.07" y1="4.93" y2="19.07"/></svg>
+        <div class="h-4 w-0.5 bg-stone-200 dark:bg-stone-800"></div>
+        <button @click="handleBlock" class="group flex items-center gap-2 text-xs font-black text-stone-400 dark:text-stone-500 hover:text-stone-600 dark:hover:text-stone-300 uppercase tracking-widest transition-colors py-2">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="group-hover:scale-110 transition-transform"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
             Block User
         </button>
       </div>
@@ -550,6 +663,97 @@ const formatTimeRemaining = (expiresAt: string) => {
   }
   return `${hours}h left`
 }
+
+// --- Feedback Logic ---
+const showFeedbackEditor = ref(false)
+const savingFeedback = ref(false)
+const feedbackSaved = ref(false)
+
+// Auto-open feedback editor if coming from SMS notification or /me page link
+onMounted(() => {
+  if (route.query.feedback === 'true') {
+    showFeedbackEditor.value = true
+    // Scroll to feedback section after a short delay
+    setTimeout(() => {
+      const feedbackSection = document.getElementById('feedback-section')
+      if (feedbackSection) {
+        feedbackSection.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      }
+    }, 300)
+  }
+})
+
+const feedbackForm = reactive({
+  status: '' as string,
+  note: ''
+})
+
+const feedbackOptions = [
+  { value: 'connected', label: 'Talking', desc: 'We are chatting', icon: '💬' },
+  { value: 'dating', label: 'Dating', desc: 'It\'s getting serious', icon: '💕' },
+  { value: 'unmatched', label: 'Not interested', desc: 'Didn\'t work out', icon: '🙅' },
+  { value: 'no_response', label: 'No response', desc: 'Haven\'t heard back', icon: '👻' }
+]
+
+const getFeedbackIcon = (status: string) => {
+  const opt = feedbackOptions.find(o => o.value === status)
+  return opt?.icon || '📋'
+}
+
+const getFeedbackLabel = (status: string) => {
+  const opt = feedbackOptions.find(o => o.value === status)
+  return opt?.label || status
+}
+
+const saveFeedback = async () => {
+  if (!feedbackForm.status || !match.value?.id) return
+  savingFeedback.value = true
+  feedbackSaved.value = false
+  
+  try {
+    const { data: { session } } = await supabase.auth.getSession()
+    
+    const { error } = await supabase
+      .from('matches')
+      .update({
+        feedback_status: feedbackForm.status,
+        user_notes: feedbackForm.note,
+        feedback_updated_at: new Date().toISOString(),
+        feedback_updated_by: session?.user?.id
+      })
+      .eq('id', match.value.id)
+      
+    if (error) throw error
+    
+    // Update local state
+    match.value.feedback_status = feedbackForm.status
+    match.value.user_notes = feedbackForm.note
+    
+    showFeedbackEditor.value = false
+    feedbackSaved.value = true
+    
+    // Hide success message after 5 seconds
+    setTimeout(() => {
+      feedbackSaved.value = false
+    }, 5000)
+  } catch (e) {
+    console.error('Error saving feedback:', e)
+    toast.error('Update Failed', 'Please try again later.')
+  } finally {
+    savingFeedback.value = false
+  }
+}
+
+// Initialize feedback form with existing data
+watch(match, (m) => {
+  if (m?.feedback_status && m.feedback_status !== 'pending') {
+    feedbackForm.status = m.feedback_status
+  }
+  if (m?.user_notes) {
+    feedbackForm.note = m.user_notes
+  }
+}, { immediate: true })
+// --- End Feedback Logic ---
 
 const copyStarter = async (text: string, index: number) => {
   try {

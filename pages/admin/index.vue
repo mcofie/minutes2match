@@ -254,7 +254,7 @@
 
                   <div class="pt-4 border-t border-stone-100 space-y-3">
                      <button 
-                        @click="sendProfileReminders"
+                        @click="openSmsModal('incomplete')"
                         :disabled="sendingReminders"
                         class="w-full py-2.5 px-4 bg-orange-500 hover:bg-orange-600 text-white text-sm font-bold rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                      >
@@ -270,8 +270,87 @@
             </div>
          </section>
 
+          <!-- Missing Details Profiles -->
+          <section class="bg-white rounded-2xl border border-stone-200 p-6 shadow-sm mt-6">
+             <h3 class="text-sm font-bold text-stone-500 uppercase tracking-wider mb-4 flex items-center justify-between">
+               <div>Missing Details</div>
+               <span class="bg-purple-100 text-purple-800 text-xs px-2 py-0.5 rounded-full">{{ missingDetailsProfiles.length }}</span>
+             </h3>
+             
+             <div class="space-y-4">
+                <div v-if="loadingMissingDetails" class="text-sm text-stone-400 text-center py-4">
+                   <span class="animate-pulse">Checking details...</span>
+                </div>
+                
+                <div v-else-if="missingDetailsProfiles.length === 0" class="text-sm text-stone-400 italic">
+                   All profiles have full details! ✨
+                </div>
+                
+                <template v-else>
+                   <div v-for="profile in missingDetailsProfiles.slice(0, 3)" :key="profile.id" class="flex items-center gap-3">
+                      <div class="h-8 w-8 rounded-full bg-purple-50 text-purple-600 font-bold flex items-center justify-center text-xs border border-purple-200">
+                        {{ profile.displayName?.charAt(0) || '?' }}
+                      </div>
+                      <div class="flex-1 min-w-0">
+                         <p class="text-sm font-medium text-stone-900 truncate">{{ profile.displayName || 'Unknown' }}</p>
+                         <p class="text-xs text-stone-500">Missing: {{ profile.missingFields.slice(0, 2).join(', ') }}{{ profile.missingFields.length > 2 ? '...' : '' }}</p>
+                      </div>
+                   </div>
+
+                   <div class="pt-4 border-t border-stone-100 space-y-3">
+                      <button 
+                         @click="openSmsModal('missing')"
+                         :disabled="sendingMissingDetailsReminders"
+                         class="w-full py-2.5 px-4 bg-purple-500 hover:bg-purple-600 text-white text-sm font-bold rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                      >
+                         <svg v-if="sendingMissingDetailsReminders" class="animate-spin h-4 w-4" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
+                         <svg v-else width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+                         {{ sendingMissingDetailsReminders ? 'Sending...' : `Send Reminders (${missingDetailsProfiles.length})` }}
+                      </button>
+                      <p class="text-xs text-stone-400 text-center">
+                         Notify users missing secondary details
+                      </p>
+                   </div>
+                </template>
+             </div>
+          </section>
+
       </div>
     </div>
+    <!-- SMS Confirmation Modal -->
+    <Teleport to="body">
+      <div v-if="showSmsModal" class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm" @click.self="showSmsModal = false">
+        <div class="bg-white rounded-2xl shadow-xl max-w-md w-full p-6 animate-in fade-in zoom-in duration-200">
+          <h3 class="text-lg font-bold text-stone-900 mb-2">Confirm SMS Blast</h3>
+          <p class="text-stone-500 mb-4">
+            You are about to send an SMS to <span class="font-bold text-stone-900">{{ smsModalType === 'incomplete' ? incompleteProfiles.length : missingDetailsProfiles.length }}</span> users.
+          </p>
+          
+          <div class="bg-stone-50 border border-stone-200 rounded-lg p-4 mb-6">
+            <p class="text-xs text-stone-400 uppercase tracking-wider font-bold mb-2">Message Preview</p>
+            <p class="text-sm text-stone-800 font-mono whitespace-pre-wrap">{{ smsModalMessage }}</p>
+          </div>
+          
+          <div class="flex gap-3 justify-end">
+            <button 
+              @click="showSmsModal = false"
+              class="px-4 py-2 text-stone-500 hover:text-stone-700 font-medium transition-colors"
+            >
+              Cancel
+            </button>
+            <button 
+              @click="confirmSendSms"
+              :disabled="sendingReminders || sendingMissingDetailsReminders"
+              class="px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white font-bold rounded-lg shadow-sm transition-colors flex items-center gap-2 disabled:opacity-50"
+            >
+              <span v-if="sendingReminders || sendingMissingDetailsReminders" class="animate-pulse">Sending...</span>
+              <span v-else>Send Now</span>
+              <svg v-if="!sendingReminders && !sendingMissingDetailsReminders" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </Teleport>
   </div>
 </template>
 
@@ -315,6 +394,11 @@ interface IncompleteProfile {
 const incompleteProfiles = ref<IncompleteProfile[]>([])
 const loadingIncomplete = ref(false)
 const sendingReminders = ref(false)
+
+// Missing details profiles state
+const missingDetailsProfiles = ref<IncompleteProfile[]>([])
+const loadingMissingDetails = ref(false)
+const sendingMissingDetailsReminders = ref(false)
 
 // Computed
 const timeOfDay = computed(() => {
@@ -509,17 +593,40 @@ const fetchIncompleteProfiles = async () => {
   }
 }
 
+// Modal state
+const showSmsModal = ref(false)
+const smsModalType = ref<'incomplete' | 'missing'>('incomplete')
+const smsModalMessage = ref('')
+
+const openSmsModal = (type: 'incomplete' | 'missing') => {
+  smsModalType.value = type
+  if (type === 'incomplete') {
+    smsModalMessage.value = `Hi! Your Minutes 2 Match profile is incomplete. Complete it to unlock better matches! Visit: minutes2match.com/me`
+  } else {
+    smsModalMessage.value = `Hi! Please complete your profile details (Occupation, Genotype, Interests, etc.) to get better matches on Minutes 2 Match. Update here: minutes2match.com/me`
+  }
+  showSmsModal.value = true
+}
+
+const confirmSendSms = async () => {
+  if (smsModalType.value === 'incomplete') {
+    await sendProfileReminders()
+  } else {
+    await sendMissingDetailsReminders()
+  }
+  showSmsModal.value = false
+}
+
 // Send SMS reminders to users with incomplete profiles
 const sendProfileReminders = async () => {
-  if (!confirm(`Send SMS reminders to ${incompleteProfiles.value.length} users with incomplete profiles?`)) {
-    return
-  }
-  
   sendingReminders.value = true
   try {
     const response = await $fetch('/api/admin/notify-incomplete-profiles', {
       method: 'POST',
-      body: { dryRun: false }
+      body: { 
+        dryRun: false,
+        message: smsModalMessage.value
+      }
     }) as { sent: number; failed: number }
     
     alert(`✅ Sent ${response.sent} reminders!${response.failed > 0 ? ` (${response.failed} failed)` : ''}`)
@@ -534,13 +641,55 @@ const sendProfileReminders = async () => {
   }
 }
 
+// Fetch missing details profiles (dry run)
+const fetchMissingDetailsProfiles = async () => {
+  loadingMissingDetails.value = true
+  try {
+    const response = await $fetch('/api/admin/notify-missing-details', {
+      method: 'POST',
+      body: { dryRun: true }
+    }) as { profiles: IncompleteProfile[] }
+    
+    missingDetailsProfiles.value = response.profiles || []
+  } catch (error) {
+    console.error('Error fetching missing details profiles:', error)
+  } finally {
+    loadingMissingDetails.value = false
+  }
+}
+
+// Send SMS reminders to users with missing details
+const sendMissingDetailsReminders = async () => {
+  sendingMissingDetailsReminders.value = true
+  try {
+    const response = await $fetch('/api/admin/notify-missing-details', {
+      method: 'POST',
+      body: { 
+        dryRun: false, 
+        message: smsModalMessage.value
+      }
+    }) as { sent: number; failed: number }
+    
+    alert(`✅ Sent ${response.sent} reminders!${response.failed > 0 ? ` (${response.failed} failed)` : ''}`)
+    
+    // Refresh the list
+    await fetchMissingDetailsProfiles()
+  } catch (error: any) {
+    console.error('Error sending reminders:', error)
+    alert('Failed to send reminders: ' + (error.message || 'Unknown error'))
+  } finally {
+    sendingMissingDetailsReminders.value = false
+  }
+}
+
 // Initialize
 onMounted(async () => {
   await Promise.all([
     fetchStats(),
     fetchRecentActivity(),
     fetchWaitingUsers(),
-    fetchIncompleteProfiles()
+    fetchIncompleteProfiles(),
+    fetchMissingDetailsProfiles()
   ])
 })
 </script>

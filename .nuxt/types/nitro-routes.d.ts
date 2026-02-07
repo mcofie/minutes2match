@@ -12,6 +12,12 @@ declare module "nitropack/types" {
     '/api/admin/notify-incomplete-profiles': {
       'post': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/admin/notify-incomplete-profiles.post').default>>>>
     }
+    '/api/admin/notify-missing-details': {
+      'post': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/admin/notify-missing-details.post').default>>>>
+    }
+    '/api/admin/request-match-feedback': {
+      'post': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/admin/request-match-feedback.post').default>>>>
+    }
     '/api/admin/seed-users': {
       'post': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/admin/seed-users.post').default>>>>
     }

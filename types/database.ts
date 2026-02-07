@@ -239,6 +239,14 @@ export interface Database {
                     created_by: string | null
                     created_at: string
                     unlocked_at: string | null
+                    feedback_status: 'pending' | 'connected' | 'no_response' | 'unmatched' | 'dating' | null
+                    feedback_notes: string | null
+                    feedback_updated_at: string | null
+                    feedback_updated_by: string | null
+                    user_1_contacted: boolean
+                    user_2_contacted: boolean
+                    contact_exchanged: boolean
+                    user_notes: string | null
                 }
                 Insert: {
                     id?: string
@@ -253,6 +261,14 @@ export interface Database {
                     created_by?: string | null
                     created_at?: string
                     unlocked_at?: string | null
+                    feedback_status?: 'pending' | 'connected' | 'no_response' | 'unmatched' | 'dating' | null
+                    feedback_notes?: string | null
+                    feedback_updated_at?: string | null
+                    feedback_updated_by?: string | null
+                    user_1_contacted?: boolean
+                    user_2_contacted?: boolean
+                    contact_exchanged?: boolean
+                    user_notes?: string | null
                 }
                 Update: {
                     user_1_id?: string | null
@@ -264,6 +280,14 @@ export interface Database {
                     user_1_paid_at?: string | null
                     user_2_paid_at?: string | null
                     unlocked_at?: string | null
+                    feedback_status?: 'pending' | 'connected' | 'no_response' | 'unmatched' | 'dating' | null
+                    feedback_notes?: string | null
+                    feedback_updated_at?: string | null
+                    feedback_updated_by?: string | null
+                    user_1_contacted?: boolean
+                    user_2_contacted?: boolean
+                    contact_exchanged?: boolean
+                    user_notes?: string | null
                 }
             }
             payments: {

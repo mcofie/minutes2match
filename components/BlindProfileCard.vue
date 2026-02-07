@@ -110,6 +110,12 @@
                 <span class="text-[10px] font-bold text-emerald-600 flex items-center gap-1 mt-0.5">
                   Matched
                 </span>
+                <button 
+                  @click.stop="$emit('update-status')"
+                  class="text-[9px] font-bold text-stone-400 hover:text-stone-600 underline mt-1 text-left"
+                >
+                  Update Progress
+                </button>
               </div>
               <button 
                 @click.stop="openWhatsApp"
@@ -400,6 +406,7 @@ const props = defineProps<Props>()
 const emit = defineEmits<{
   unlock: []
   message: []
+  'update-status': []
 }>()
 
 const router = useRouter()
