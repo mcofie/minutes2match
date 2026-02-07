@@ -76,9 +76,18 @@
                   {{ personaData?.emoji || '✨' }}
                 </div>
               </div>
-              <!-- Badge -->
+              
+              <!-- Member Badge -->
+              <div v-if="matchProfile?.is_verified" class="absolute -top-2 -right-4 z-10 animate-bounce-in">
+                 <div class="bg-stone-900 dark:bg-white text-white dark:text-stone-900 text-[8px] font-black uppercase tracking-widest px-2 py-1 rounded-full border-2 border-white dark:border-stone-900 shadow-md flex items-center gap-1 transform rotate-6 hover:rotate-0 transition-transform cursor-help" title="Verified Member">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="currentColor" class="text-yellow-400 dark:text-yellow-600"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+                    Member
+                 </div>
+              </div>
+
+              <!-- Status Badge -->
               <div 
-                class="absolute -bottom-2 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest border border-black dark:border-stone-600 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.1)]"
+                class="absolute -bottom-2 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest border border-black dark:border-stone-600 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.1)] whitespace-nowrap"
                 :class="match?.unlocked ? 'bg-emerald-400 text-black' : 'bg-rose-500 text-white'"
               >
                 {{ match?.unlocked ? 'Connected' : 'Pending' }}

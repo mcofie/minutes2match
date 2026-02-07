@@ -433,30 +433,90 @@
               </div>
 
                <!-- Subscription Status -->
-               <div class="mt-8 bg-gradient-to-br from-stone-900 to-black text-white p-6 md:p-8 rounded-xl border-2 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,0.2)]">
-                  <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-                     <div>
-                        <div class="flex items-center gap-2 mb-2">
-                           <span class="text-2xl">👑</span>
-                           <h3 class="text-xl font-bold font-serif text-white">Premium Membership</h3>
+               <div class="mt-10 bg-white dark:bg-stone-900 rounded-3xl border-2 border-black dark:border-stone-400 p-8 md:p-10 relative overflow-visible shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] dark:shadow-[8px_8px_0px_0px_rgba(255,255,255,0.1)] transition-transform hover:-translate-y-1">
+                  
+                  <!-- Floating Badge for Premium -->
+                  <div v-if="subscription" class="absolute -top-4 -right-2 md:right-8 bg-emerald-500 text-black border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] px-4 py-1.5 rounded-full rotate-3 z-10">
+                     <span class="text-xs font-black uppercase tracking-widest flex items-center gap-1.5">
+                        <span class="w-2 h-2 bg-white rounded-full animate-pulse"></span> Active
+                     </span>
+                  </div>
+
+                  <div class="flex flex-col md:flex-row md:items-start justify-between gap-8 mb-8">
+                     <div class="flex items-start gap-6">
+                         <!-- Icon Box -->
+                        <div class="w-20 h-20 rounded-2xl border-2 border-black dark:border-stone-400 flex items-center justify-center text-4xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,0.1)]"
+                           :class="subscription ? 'bg-emerald-100 dark:bg-emerald-900/30' : 'bg-rose-100 dark:bg-rose-900/30'"
+                        >
+                           👑
                         </div>
-                        <p class="text-stone-300 text-sm max-w-md">
-                           {{ subscription ? 'You are a premium member! Enjoy unlimited match unlocks.' : 'Get unlimited match unlocks and premium features.' }}
-                        </p>
-                        <div v-if="subscription" class="mt-4 inline-flex items-center gap-2 px-3 py-1 bg-white/10 rounded-full border border-white/20">
-                           <span class="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></span>
-                           <span class="text-xs font-bold uppercase tracking-widest text-emerald-300">Active until {{ new Date(subscription.end_date).toLocaleDateString() }}</span>
+                        
+                        <div>
+                           <p class="text-xs font-bold uppercase tracking-widest text-stone-500 dark:text-stone-400 mb-2">
+                              {{ subscription ? 'Your Plan' : 'Membership' }}
+                           </p>
+                           <h3 class="text-3xl md:text-4xl font-black font-serif text-black dark:text-white mb-2 leading-none">
+                              {{ subscription ? 'Premium Member' : 'Unlock Premium' }}
+                           </h3>
+                           <p class="text-stone-600 dark:text-stone-300 max-w-sm leading-relaxed text-sm">
+                              {{ subscription 
+                                 ? 'You currently have unlimited access to all features and matches.' 
+                                 : 'Get unlimited match unlocks, priority visibility, and exclusive event access.' 
+                              }}
+                           </p>
                         </div>
                      </div>
-                     
-                     <button 
-                        v-if="!subscription"
-                        @click="handleSubscribe"
-                        class="w-full md:w-auto px-6 py-3 bg-white text-black font-bold uppercase tracking-widest text-xs rounded-lg hover:bg-emerald-400 hover:text-black transition-all shadow-[4px_4px_0px_0px_rgba(255,255,255,0.2)]"
-                     >
-                        Subscribe (GH₵ 50/mo)
-                     </button>
                   </div>
+
+                  <!-- Divider -->
+                  <div class="w-full h-0.5 bg-stone-100 dark:bg-stone-800 mb-8"></div>
+
+                  <!-- Benefits Grid -->
+                  <div class="grid md:grid-cols-2 gap-x-8 gap-y-6 mb-10">
+                     <div class="flex items-center gap-4 group">
+                        <div class="w-6 h-6 rounded-md bg-black dark:bg-white text-white dark:text-black flex items-center justify-center text-xs border border-transparent group-hover:scale-110 transition-transform">✓</div>
+                        <span class="font-bold text-black dark:text-white">Unlimited Match Unlocks</span>
+                     </div>
+                     <div class="flex items-center gap-4 group">
+                        <div class="w-6 h-6 rounded-md bg-black dark:bg-white text-white dark:text-black flex items-center justify-center text-xs border border-transparent group-hover:scale-110 transition-transform">✓</div>
+                        <span class="font-bold text-black dark:text-white">Priority Matching</span>
+                     </div>
+                     <div class="flex items-center gap-4 group">
+                        <div class="w-6 h-6 rounded-md bg-black dark:bg-white text-white dark:text-black flex items-center justify-center text-xs border border-transparent group-hover:scale-110 transition-transform">✓</div>
+                        <span class="font-bold text-black dark:text-white">Verified Badge</span>
+                     </div>
+                     <div class="flex items-center gap-4 group">
+                        <div class="w-6 h-6 rounded-md bg-black dark:bg-white text-white dark:text-black flex items-center justify-center text-xs border border-transparent group-hover:scale-110 transition-transform">✓</div>
+                        <span class="font-bold text-black dark:text-white">Exclusive Event Access</span>
+                     </div>
+                  </div>
+
+                  <!-- Active/Action Section -->
+                  <div v-if="subscription" class="bg-stone-50 dark:bg-stone-800/50 rounded-xl border-2 border-dashed border-stone-300 dark:border-stone-600 p-5 flex items-center justify-between">
+                     <div class="flex items-center gap-3">
+                        <span class="text-2xl">🗓️</span>
+                        <div>
+                           <p class="text-[10px] font-bold uppercase tracking-widest text-stone-500">Renews On</p>
+                           <p class="font-bold font-mono text-lg text-black dark:text-white">{{ new Date(subscription.end_date).toLocaleDateString(undefined, { dateStyle: 'long' }) }}</p>
+                        </div>
+                     </div>
+                     <!-- Optional Management Link -->
+                     <button class="text-xs font-bold underline hover:text-emerald-500 transition-colors">Manage</button>
+                  </div>
+
+                  <div v-else class="flex flex-col md:flex-row items-center gap-5">
+                     <button 
+                        @click="handleSubscribe"
+                        class="flex-1 w-full bg-rose-500 text-white font-black uppercase tracking-widest text-sm py-4 px-8 rounded-lg border-2 border-black dark:border-stone-200 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_#ffffff] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all flex items-center justify-center gap-3"
+                     >
+                        <span>Upgrade Now</span>
+                        <span class="bg-black/20 px-2 py-0.5 rounded text-xs font-mono">GH₵ 50/mo</span>
+                     </button>
+                     <p class="text-xs font-bold text-stone-400 text-center">
+                        Cancel anytime.
+                     </p>
+                  </div>
+
                </div>
 
                <!-- Account Actions (at bottom of profile tab) -->

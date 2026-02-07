@@ -222,6 +222,54 @@
             </div>
          </section>
 
+         <!-- Incomplete Profiles -->
+         <section class="bg-white rounded-2xl border border-stone-200 p-6 shadow-sm">
+            <h3 class="text-sm font-bold text-stone-500 uppercase tracking-wider mb-4 flex items-center justify-between">
+              <div>Incomplete Profiles</div>
+              <span class="bg-orange-100 text-orange-800 text-xs px-2 py-0.5 rounded-full">{{ incompleteProfiles.length }}</span>
+            </h3>
+            
+            <div class="space-y-4">
+               <div v-if="loadingIncomplete" class="text-sm text-stone-400 text-center py-4">
+                  <span class="animate-pulse">Checking profiles...</span>
+               </div>
+               
+               <div v-else-if="incompleteProfiles.length === 0" class="text-sm text-stone-400 italic">
+                  All profiles are complete! 🎉
+               </div>
+               
+               <template v-else>
+                  <div v-for="profile in incompleteProfiles.slice(0, 3)" :key="profile.id" class="flex items-center gap-3">
+                     <div class="h-8 w-8 rounded-full bg-orange-50 text-orange-600 font-bold flex items-center justify-center text-xs border border-orange-200">
+                       {{ profile.displayName?.charAt(0) || '?' }}
+                     </div>
+                     <div class="flex-1 min-w-0">
+                        <p class="text-sm font-medium text-stone-900 truncate">{{ profile.displayName || 'Unknown' }}</p>
+                        <p class="text-xs text-stone-500">Missing: {{ profile.missingFields.slice(0, 2).join(', ') }}{{ profile.missingFields.length > 2 ? '...' : '' }}</p>
+                     </div>
+                     <div class="text-xs font-mono bg-orange-100 text-orange-700 px-2 py-0.5 rounded">
+                       {{ profile.completenessPercent }}%
+                     </div>
+                  </div>
+
+                  <div class="pt-4 border-t border-stone-100 space-y-3">
+                     <button 
+                        @click="sendProfileReminders"
+                        :disabled="sendingReminders"
+                        class="w-full py-2.5 px-4 bg-orange-500 hover:bg-orange-600 text-white text-sm font-bold rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                     >
+                        <svg v-if="sendingReminders" class="animate-spin h-4 w-4" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
+                        <svg v-else width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+                        {{ sendingReminders ? 'Sending...' : `Send Reminders (${incompleteProfiles.length})` }}
+                     </button>
+                     <p class="text-xs text-stone-400 text-center">
+                        Sends SMS to users missing 2+ profile fields
+                     </p>
+                  </div>
+               </template>
+            </div>
+         </section>
+
       </div>
     </div>
   </div>
@@ -255,6 +303,18 @@ const stats = reactive({
 })
 const recentActivity = ref<any[]>([])
 const waitingUsers = ref<any[]>([])
+
+// Incomplete profiles state
+interface IncompleteProfile {
+  id: string
+  phone: string
+  displayName: string
+  missingFields: string[]
+  completenessPercent: number
+}
+const incompleteProfiles = ref<IncompleteProfile[]>([])
+const loadingIncomplete = ref(false)
+const sendingReminders = ref(false)
 
 // Computed
 const timeOfDay = computed(() => {
@@ -432,12 +492,55 @@ const getWaitingDays = (dateStr: string) => {
   return Math.floor(diff / (1000 * 60 * 60 * 24))
 }
 
+// Fetch incomplete profiles (dry run)
+const fetchIncompleteProfiles = async () => {
+  loadingIncomplete.value = true
+  try {
+    const response = await $fetch('/api/admin/notify-incomplete-profiles', {
+      method: 'POST',
+      body: { dryRun: true }
+    }) as { profiles: IncompleteProfile[] }
+    
+    incompleteProfiles.value = response.profiles || []
+  } catch (error) {
+    console.error('Error fetching incomplete profiles:', error)
+  } finally {
+    loadingIncomplete.value = false
+  }
+}
+
+// Send SMS reminders to users with incomplete profiles
+const sendProfileReminders = async () => {
+  if (!confirm(`Send SMS reminders to ${incompleteProfiles.value.length} users with incomplete profiles?`)) {
+    return
+  }
+  
+  sendingReminders.value = true
+  try {
+    const response = await $fetch('/api/admin/notify-incomplete-profiles', {
+      method: 'POST',
+      body: { dryRun: false }
+    }) as { sent: number; failed: number }
+    
+    alert(`✅ Sent ${response.sent} reminders!${response.failed > 0 ? ` (${response.failed} failed)` : ''}`)
+    
+    // Refresh the list
+    await fetchIncompleteProfiles()
+  } catch (error: any) {
+    console.error('Error sending reminders:', error)
+    alert('Failed to send reminders: ' + (error.message || 'Unknown error'))
+  } finally {
+    sendingReminders.value = false
+  }
+}
+
 // Initialize
 onMounted(async () => {
   await Promise.all([
     fetchStats(),
     fetchRecentActivity(),
-    fetchWaitingUsers()
+    fetchWaitingUsers(),
+    fetchIncompleteProfiles()
   ])
 })
 </script>

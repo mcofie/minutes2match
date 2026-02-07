@@ -299,7 +299,7 @@ const supabase = useSupabaseClient()
 const mobileMenuOpen = ref(false)
 
 const prices = reactive({
-   match: 50, // Default
+   match: 15, // Updated default
    subscription: 50, // Default
    event_male: 100,
    event_female: 100
