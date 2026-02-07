@@ -171,6 +171,9 @@ export default defineEventHandler(async (event) => {
         } else if (metadata.purpose === 'match_unlock') {
             console.log('[Webhook] Processing match_unlock payment')
             await handleMatchUnlockPayment(supabase, metadata, config)
+        } else if (metadata.purpose === 'subscription') {
+            console.log('[Webhook] Processing subscription payment')
+            await handleSubscriptionPayment(supabase, metadata)
         } else {
             console.log('[Webhook] Unknown or missing purpose:', metadata.purpose)
         }
@@ -248,82 +251,76 @@ async function handleMatchUnlockPayment(supabase: any, metadata: any, config: an
 
     console.log('[Webhook] Processing match unlock for match:', matchId, 'user:', payingUserId)
 
-    // Fetch current match state
-    const { data: match, error: matchFetchError } = await supabase
-        .from('matches')
-        .select(`
-            *,
-            user_1:profiles!matches_user_1_id_fkey(id, phone, display_name),
-            user_2:profiles!matches_user_2_id_fkey(id, phone, display_name)
-        `)
-        .eq('id', matchId)
-        .single()
+    try {
+        // Use shared utility to unlock
+        await unlockMatch(matchId, payingUserId)
 
-    if (matchFetchError || !match) {
-        console.error('[Webhook] Failed to fetch match:', matchFetchError)
-        return
+        // Fetch match status AFTER unlock to determine if we need to send notifications
+        const { data: match } = await supabase
+            .from('matches')
+            .select(`
+                *,
+                user_1:profiles!matches_user_1_id_fkey(id, phone, display_name),
+                user_2:profiles!matches_user_2_id_fkey(id, phone, display_name)
+            `)
+            .eq('id', matchId)
+            .single()
+
+        if (!match) return
+
+        // Check if the OTHER user has paid (determining if it was just fully unlocked)
+        const isUser1 = match.user_1_id === payingUserId
+        const otherUserPaid = isUser1 ? match.user_2_paid : match.user_1_paid
+
+        if (match.status === 'unlocked' && otherUserPaid) {
+            // Send Discord notification for match unlock
+            await notifyMatchUnlocked({
+                user1Name: match.user_1?.display_name || 'User 1',
+                user2Name: match.user_2?.display_name || 'User 2',
+                matchId: matchId,
+                fullyUnlocked: true
+            })
+        } else {
+            // Send SMS reminder to the unpaid user
+            // Note: unlockMatch utility handles the status update to 'partial_payment'
+            const unpaidUser = isUser1 ? match.user_2 : match.user_1
+            const paidUser = isUser1 ? match.user_1 : match.user_2
+
+            await sendPaymentReminderSMS(unpaidUser, paidUser, config)
+        }
+
+    } catch (error) {
+        console.error('[Webhook] Error handling match unlock:', error)
     }
+}
 
-    // Determine which user is paying
-    const isUser1 = match.user_1_id === payingUserId
-    const isUser2 = match.user_2_id === payingUserId
+/**
+ * Handle subscription payment
+ */
+async function handleSubscriptionPayment(supabase: any, metadata: any) {
+    console.log('[Webhook] Handling subscription for user:', metadata.userId)
 
-    if (!isUser1 && !isUser2) {
-        console.error('[Webhook] Paying user not part of this match:', payingUserId, matchId)
-        return
-    }
+    // Calculate end date (30 days from now)
+    const startDate = new Date()
+    const endDate = new Date(startDate)
+    endDate.setDate(endDate.getDate() + 30)
 
-    // Prepare update data for the paying user
-    const updateData: Record<string, any> = {}
-
-    if (isUser1) {
-        updateData.user_1_paid = true
-        updateData.user_1_paid_at = new Date().toISOString()
-    } else {
-        updateData.user_2_paid = true
-        updateData.user_2_paid_at = new Date().toISOString()
-    }
-
-    // Check if the OTHER user has already paid
-    const otherUserPaid = isUser1 ? match.user_2_paid : match.user_1_paid
-
-    if (otherUserPaid) {
-        // BOTH users have now paid - FULLY UNLOCK the match
-        updateData.status = 'unlocked'
-        updateData.unlocked_at = new Date().toISOString()
-
-        console.log(`[Webhook] ✅ Match ${matchId} FULLY UNLOCKED - both users have paid!`)
-    } else {
-        // Only one user has paid - set to partial_payment
-        updateData.status = 'partial_payment'
-
-        console.log(`[Webhook] ⏳ Match ${matchId} PARTIAL - waiting for other user to pay`)
-
-        // Send SMS reminder to the unpaid user
-        const unpaidUser = isUser1 ? match.user_2 : match.user_1
-        const paidUser = isUser1 ? match.user_1 : match.user_2
-
-        await sendPaymentReminderSMS(unpaidUser, paidUser, config)
-    }
-
-    // Update match record
-    const { error: matchError } = await supabase
-        .from('matches')
-        .update(updateData)
-        .eq('id', matchId)
-
-    if (matchError) {
-        console.error('[Webhook] Failed to update match:', matchError)
-    } else {
-        console.log('[Webhook] Match updated successfully')
-
-        // Send Discord notification for match unlock
-        await notifyMatchUnlocked({
-            user1Name: match.user_1?.display_name || 'User 1',
-            user2Name: match.user_2?.display_name || 'User 2',
-            matchId: matchId,
-            fullyUnlocked: otherUserPaid // If other user already paid, it's now fully unlocked
+    // Upsert subscription
+    // Check if exists first to extend? For now, we just create/update active sub
+    const { error } = await supabase
+        .from('subscriptions')
+        .insert({
+            user_id: metadata.userId,
+            status: 'active',
+            start_date: startDate.toISOString(),
+            end_date: endDate.toISOString(),
+            auto_renew: true // Default to true, though we don't handle auto-charge yet
         })
+
+    if (error) {
+        console.error('[Webhook] Failed to create subscription:', error)
+    } else {
+        console.log('[Webhook] Subscription activated for user:', metadata.userId)
     }
 }
 

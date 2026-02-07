@@ -16,24 +16,24 @@
         </NuxtLink>
 
         <!-- Center Links (Desktop) -->
-        <div class="hidden md:flex items-center gap-8 text-sm font-bold uppercase tracking-widest">
+        <div class="hidden md:flex items-center gap-8 text-sm font-bold">
           <button @click="scrollToSection('manifesto')" class="hover:text-rose-500 dark:text-stone-300 dark:hover:text-rose-400 transition-colors">Manifesto</button>
           <button @click="scrollToSection('process')" class="hover:text-rose-500 dark:text-stone-300 dark:hover:text-rose-400 transition-colors">Process</button>
           <button @click="scrollToSection('stories')" class="hover:text-rose-500 dark:text-stone-300 dark:hover:text-rose-400 transition-colors">Stories</button>
+          <NuxtLink to="/pricing" class="hover:text-rose-500 dark:text-stone-300 dark:hover:text-rose-400 transition-colors">Pricing</NuxtLink>
         </div>
 
         <!-- CTA & Login (Desktop) + Hamburger (Mobile) -->
-        <!-- CTA & Login (Desktop) + Hamburger (Mobile) -->
         <div class="flex items-center gap-3 md:gap-6">
-          <NuxtLink to="/login" class="hidden md:block text-sm font-bold uppercase tracking-widest hover:underline decoration-2 underline-offset-4 dark:text-stone-200">
+          <NuxtLink to="/login" class="hidden md:block text-sm font-bold hover:underline decoration-2 underline-offset-4 dark:text-stone-200">
              Member Login
           </NuxtLink>
           <NuxtLink to="/vibe-check" class="hidden md:inline-flex group relative items-center overflow-hidden rounded-md border border-black dark:border-stone-600 bg-black dark:bg-stone-100 text-white dark:text-black px-6 py-3 focus:outline-none hover:bg-rose-500 dark:hover:bg-rose-500 hover:border-rose-500 dark:hover:border-rose-500 dark:hover:text-white transition-all shadow-[4px_4px_0px_0px_rgba(0,0,0,0.2)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,0.2)] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-none">
-            <span class="text-xs font-bold uppercase tracking-widest">Vibe Check</span>
+            <span class="text-xs font-bold">Vibe Check</span>
           </NuxtLink>
 
           <!-- Mobile CTA -->
-          <NuxtLink to="/vibe-check" class="md:hidden bg-black dark:bg-stone-100 text-white dark:text-black px-4 py-2.5 rounded-lg text-[10px] font-bold uppercase tracking-widest border border-black dark:border-stone-600 shadow-[2px_2px_0px_0px_rgba(244,63,94,1)] hover:translate-y-[1px] hover:shadow-none transition-all">
+          <NuxtLink to="/vibe-check" class="md:hidden bg-black dark:bg-stone-100 text-white dark:text-black px-4 py-2.5 rounded-lg text-[10px] font-bold border border-black dark:border-stone-600 shadow-[2px_2px_0px_0px_rgba(244,63,94,1)] hover:translate-y-[1px] hover:shadow-none transition-all">
             Join
           </NuxtLink>
           
@@ -60,16 +60,19 @@
       >
         <div v-show="mobileMenuOpen" class="md:hidden absolute top-full left-0 right-0 bg-[#FFFCF8] dark:bg-stone-900 border-b border-black dark:border-stone-800 shadow-lg">
           <div class="px-6 py-6 space-y-4">
-            <button @click="scrollToSection('manifesto'); mobileMenuOpen = false" class="block w-full text-left py-3 text-sm font-bold uppercase tracking-widest hover:text-rose-500 dark:hover:text-rose-400 dark:text-stone-200 transition-colors border-b border-stone-100 dark:border-stone-800">
+            <button @click="scrollToSection('manifesto'); mobileMenuOpen = false" class="block w-full text-left py-3 text-sm font-bold hover:text-rose-500 dark:hover:text-rose-400 dark:text-stone-200 transition-colors border-b border-stone-100 dark:border-stone-800">
               Manifesto
             </button>
-            <button @click="scrollToSection('process'); mobileMenuOpen = false" class="block w-full text-left py-3 text-sm font-bold uppercase tracking-widest hover:text-rose-500 dark:hover:text-rose-400 dark:text-stone-200 transition-colors border-b border-stone-100 dark:border-stone-800">
+            <button @click="scrollToSection('process'); mobileMenuOpen = false" class="block w-full text-left py-3 text-sm font-bold hover:text-rose-500 dark:hover:text-rose-400 dark:text-stone-200 transition-colors border-b border-stone-100 dark:border-stone-800">
               Process
             </button>
-            <button @click="scrollToSection('stories'); mobileMenuOpen = false" class="block w-full text-left py-3 text-sm font-bold uppercase tracking-widest hover:text-rose-500 dark:hover:text-rose-400 dark:text-stone-200 transition-colors border-b border-stone-100 dark:border-stone-800">
+            <button @click="scrollToSection('stories'); mobileMenuOpen = false" class="block w-full text-left py-3 text-sm font-bold hover:text-rose-500 dark:hover:text-rose-400 dark:text-stone-200 transition-colors border-b border-stone-100 dark:border-stone-800">
               Stories
             </button>
-            <NuxtLink to="/login" @click="mobileMenuOpen = false" class="block w-full py-3 text-sm font-bold uppercase tracking-widest hover:text-rose-500 dark:hover:text-rose-400 dark:text-stone-200 transition-colors border-b border-stone-100 dark:border-stone-800">
+            <NuxtLink to="/pricing" @click="mobileMenuOpen = false" class="block w-full text-left py-3 text-sm font-bold hover:text-rose-500 dark:hover:text-rose-400 dark:text-stone-200 transition-colors border-b border-stone-100 dark:border-stone-800">
+               Pricing
+            </NuxtLink>
+            <NuxtLink to="/login" @click="mobileMenuOpen = false" class="block w-full py-3 text-sm font-bold hover:text-rose-500 dark:hover:text-rose-400 dark:text-stone-200 transition-colors border-b border-stone-100 dark:border-stone-800">
               Member Login
             </NuxtLink>
             <NuxtLink to="/vibe-check" @click="mobileMenuOpen = false" class="block w-full text-center bg-black dark:bg-stone-100 text-white dark:text-black py-4 rounded-lg font-bold uppercase tracking-widest text-sm hover:bg-rose-500 dark:hover:bg-rose-500 dark:hover:text-white transition-colors mt-4">
@@ -467,6 +470,7 @@
                       <li><a href="#" class="hover:text-rose-500 transition-colors">How it Works</a></li>
                       <li><a href="#" class="hover:text-rose-500 transition-colors">Stories</a></li>
                       <li><a href="#" class="hover:text-rose-500 transition-colors">Events</a></li>
+                      <li><NuxtLink to="/pricing" class="hover:text-rose-500 transition-colors">Pricing</NuxtLink></li>
                    </ul>
                 </div>
                 <div>

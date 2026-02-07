@@ -4,7 +4,7 @@
  */
 
 export interface PaymentMetadata {
-    purpose: 'event_ticket' | 'match_unlock'
+    purpose: 'event_ticket' | 'match_unlock' | 'subscription'
     eventId?: string
     matchId?: string
     userId: string
@@ -20,7 +20,7 @@ export const usePaystack = () => {
     const initializePayment = async (
         email: string,
         amount: number, // Amount in GHS
-        purpose: 'event_ticket' | 'match_unlock',
+        purpose: 'event_ticket' | 'match_unlock' | 'subscription',
         metadata: Partial<PaymentMetadata>
     ) => {
         const callbackUrl = `${config.public.baseUrl}/payment/callback`
@@ -38,7 +38,7 @@ export const usePaystack = () => {
             }
         })
 
-        return response
+        return response as any
     }
 
     /**
@@ -59,7 +59,7 @@ export const usePaystack = () => {
     const createPaymentRecord = async (
         userId: string,
         amount: number,
-        purpose: 'event_ticket' | 'match_unlock',
+        purpose: 'event_ticket' | 'match_unlock' | 'subscription',
         providerRef: string,
         metadata?: Record<string, any>
     ) => {
@@ -74,7 +74,7 @@ export const usePaystack = () => {
                 purpose,
                 status: 'pending',
                 metadata
-            })
+            } as any)
             .select()
             .single()
 

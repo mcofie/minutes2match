@@ -240,6 +240,54 @@ export default defineEventHandler(async (event) => {
                 } else {
                     console.error('[Match Unlock] Match not found:', metadata.matchId)
                 }
+            } else if (metadata.purpose === 'subscription') {
+                // Handle Subscription Activation
+                console.log('[Subscription] Activating subscription for user:', metadata.userId)
+
+                // Calculate subscription period (1 month)
+                const startDate = new Date()
+                const endDate = new Date()
+                endDate.setMonth(endDate.getMonth() + 1)
+
+                // 1. Check for existing active subscription
+                const { data: existingSub } = await supabase
+                    .from('subscriptions')
+                    .select('id, end_date')
+                    .eq('user_id', metadata.userId)
+                    .eq('status', 'active')
+                    .gt('end_date', new Date().toISOString())
+                    .maybeSingle()
+
+                if (existingSub) {
+                    // Extend existing subscription
+                    console.log('[Subscription] Extending existing subscription:', existingSub.id)
+                    const currentEndDate = new Date(existingSub.end_date)
+                    currentEndDate.setMonth(currentEndDate.getMonth() + 1)
+
+                    const { error: subError } = await supabase
+                        .from('subscriptions')
+                        .update({
+                            end_date: currentEndDate.toISOString(),
+                            updated_at: new Date().toISOString()
+                        })
+                        .eq('id', existingSub.id)
+
+                    if (subError) console.error('[Subscription] Failed to extend subscription:', subError)
+                } else {
+                    // Create new subscription
+                    console.log('[Subscription] Creating new subscription')
+                    const { error: subError } = await supabase
+                        .from('subscriptions')
+                        .insert({
+                            user_id: metadata.userId,
+                            status: 'active',
+                            start_date: startDate.toISOString(),
+                            end_date: endDate.toISOString(),
+                            auto_renew: false // Manual only for now via Paystack one-off
+                        })
+
+                    if (subError) console.error('[Subscription] Failed to create subscription:', subError)
+                }
             }
         }
 

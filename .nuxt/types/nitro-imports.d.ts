@@ -125,6 +125,7 @@ declare global {
   const toPlainHandler: typeof import('../../node_modules/h3').toPlainHandler
   const toWebHandler: typeof import('../../node_modules/h3').toWebHandler
   const toWebRequest: typeof import('../../node_modules/h3').toWebRequest
+  const unlockMatch: typeof import('../../server/utils/match').unlockMatch
   const unsealSession: typeof import('../../node_modules/h3').unsealSession
   const updateSession: typeof import('../../node_modules/h3').updateSession
   const useAppConfig: typeof import('../../node_modules/nitropack/dist/runtime/internal/config').useAppConfig
@@ -157,4 +158,5 @@ export { appendCorsHeaders, appendCorsPreflightHeaders, appendHeader, appendHead
 export { buildAssetsURL as __buildAssetsURL, publicAssetsURL as __publicAssetsURL } from '/Users/maxwellcofie/WebstormProjects/minutes2match/node_modules/@nuxt/nitro-server/dist/runtime/utils/paths';
 export { defineAppConfig } from '/Users/maxwellcofie/WebstormProjects/minutes2match/node_modules/@nuxt/nitro-server/dist/runtime/utils/config';
 export { DiscordColors, notifyDiscord, notifyNewSignup, notifyPaymentSuccess, notifyMatchUnlocked, notifyEventBooking, notifyError, notifyUserLogin } from '/Users/maxwellcofie/WebstormProjects/minutes2match/server/utils/discord';
+export { unlockMatch } from '/Users/maxwellcofie/WebstormProjects/minutes2match/server/utils/match';
 export { checkRateLimit, getClientIP, enforceRateLimit } from '/Users/maxwellcofie/WebstormProjects/minutes2match/server/utils/rateLimiter';

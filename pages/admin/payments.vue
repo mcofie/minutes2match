@@ -2,41 +2,42 @@
   <div class="admin-page">
     <header class="page-header">
       <div>
-        <h1 class="page-title">Payments</h1>
-        <p class="page-subtitle">Payment log and revenue tracking</p>
+        <h1 class="page-title">Payments & Revenue</h1>
+        <p class="page-subtitle">Track real-time transactions and financial health</p>
       </div>
       <div class="header-actions">
-        <button class="btn-secondary" @click="exportPayments">
-          📥 Export CSV
+        <button class="btn-primary" @click="exportPayments">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="mr-2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+          Export CSV
         </button>
       </div>
     </header>
 
     <!-- Stats Cards -->
     <div class="stats-grid">
-      <div class="stat-card">
-        <div class="stat-icon bg-emerald-100 text-emerald-600">💰</div>
+      <div class="stat-card success">
+        <div class="stat-icon">💰</div>
         <div>
           <p class="stat-label">Today's Revenue</p>
-          <p class="stat-value">{{ formatGHS(stats.todayRevenue) }}</p>
+          <p class="stat-value font-mono">{{ formatGHS(stats.todayRevenue) }}</p>
         </div>
       </div>
-      <div class="stat-card">
-        <div class="stat-icon bg-blue-100 text-blue-600">📅</div>
+      <div class="stat-card info">
+        <div class="stat-icon">📅</div>
         <div>
           <p class="stat-label">This Week</p>
-          <p class="stat-value">{{ formatGHS(stats.weekRevenue) }}</p>
+          <p class="stat-value font-mono">{{ formatGHS(stats.weekRevenue) }}</p>
         </div>
       </div>
-      <div class="stat-card">
-        <div class="stat-icon bg-purple-100 text-purple-600">📊</div>
+      <div class="stat-card accent">
+        <div class="stat-icon">📊</div>
         <div>
           <p class="stat-label">This Month</p>
-          <p class="stat-value">{{ formatGHS(stats.monthRevenue) }}</p>
+          <p class="stat-value font-mono">{{ formatGHS(stats.monthRevenue) }}</p>
         </div>
       </div>
-      <div class="stat-card">
-        <div class="stat-icon bg-red-100 text-red-600">⚠️</div>
+      <div class="stat-card danger" v-if="stats.failedCount > 0">
+        <div class="stat-icon">⚠️</div>
         <div>
           <p class="stat-label">Failed Payments</p>
           <p class="stat-value">{{ stats.failedCount }}</p>
@@ -46,49 +47,59 @@
 
     <!-- Alerts Section -->
     <div v-if="alerts.length > 0" class="alerts-section">
-      <h2 class="section-title">⚠️ Unresolved Alerts</h2>
-      <div class="alerts-list">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="section-title text-amber-800 flex items-center gap-2">
+          <span class="animate-pulse">⚠️</span> Action Required
+        </h2>
+      </div>
+      <div class="grid gap-3">
         <div v-for="alert in alerts" :key="alert.id" class="alert-item">
-          <div class="alert-content">
-            <span class="alert-badge" :class="getAlertClass(alert.alert_type)">
-              {{ alert.alert_type }}
-            </span>
-            <span class="alert-ref">{{ alert.payment_ref }}</span>
-            <span class="alert-amount" v-if="alert.amount">{{ formatGHS(alert.amount) }}</span>
-            <span class="alert-message">{{ alert.error_message }}</span>
-            <span class="alert-time">{{ formatTime(alert.created_at) }}</span>
+          <div class="flex items-center gap-4 flex-1">
+             <div class="p-2 bg-red-100 text-red-600 rounded-lg">
+               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+             </div>
+             <div>
+                <div class="flex items-center gap-2 mb-1">
+                  <span class="font-bold text-stone-900">{{ alert.alert_type }}</span>
+                  <span class="text-xs font-mono bg-stone-100 px-1 py-0.5 rounded text-stone-500">{{ alert.payment_ref }}</span>
+                </div>
+                <p class="text-sm text-stone-600">{{ alert.error_message }}</p>
+             </div>
           </div>
-          <button class="btn-sm" @click="resolveAlert(alert.id)">✓ Resolve</button>
+          <button class="btn-sm whitespace-nowrap" @click="resolveAlert(alert.id)">Mark Resolved</button>
         </div>
       </div>
     </div>
 
-    <!-- Filters -->
+    <!-- Filters Bar -->
     <div class="filters-bar">
-      <select v-model="filters.status" class="form-select">
-        <option value="">All Statuses</option>
-        <option value="success">Success</option>
-        <option value="pending">Pending</option>
-        <option value="failed">Failed</option>
-      </select>
-      <select v-model="filters.purpose" class="form-select">
-        <option value="">All Types</option>
-        <option value="event_ticket">Event Tickets</option>
-        <option value="match_unlock">Match Unlocks</option>
-      </select>
-      <input 
-        type="date" 
-        v-model="filters.dateFrom" 
-        class="form-input"
-        placeholder="From Date"
-      />
-      <input 
-        type="date" 
-        v-model="filters.dateTo" 
-        class="form-input"
-        placeholder="To Date"
-      />
-      <button class="btn-secondary" @click="fetchPayments">Apply</button>
+      <div class="search-wrapper">
+        <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8"/>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+        <input 
+          v-model="searchQuery" 
+          type="text" 
+          placeholder="Search ref, user, or phone..." 
+          class="search-input"
+        />
+      </div>
+      
+      <div class="flex gap-2">
+        <select v-model="filters.status" class="form-select">
+          <option value="">All Statuses</option>
+          <option value="success">Success</option>
+          <option value="pending">Pending</option>
+          <option value="failed">Failed</option>
+        </select>
+        <select v-model="filters.purpose" class="form-select">
+          <option value="">All Types</option>
+          <option value="event_ticket">Event Tickets</option>
+          <option value="match_unlock">Match Unlocks</option>
+        </select>
+        <!-- Date Inputs could go here if needed, keeping it simple for now -->
+      </div>
     </div>
 
     <!-- Payments Table -->
@@ -96,44 +107,77 @@
       <table class="data-table">
         <thead>
           <tr>
-            <th>Date</th>
-            <th>Reference</th>
-            <th>User</th>
-            <th>Purpose</th>
-            <th>Amount</th>
+            <th>Transaction Date</th>
+            <th>Details</th>
+            <th>Customer</th>
+            <th class="text-right">Amount</th>
             <th>Status</th>
-            <th>Actions</th>
+            <th></th>
           </tr>
         </thead>
         <tbody>
           <tr v-if="loading">
-            <td colspan="7" class="text-center py-8 text-stone-400">Loading...</td>
+            <td colspan="6" class="text-center py-12 text-stone-400">
+              <div class="flex flex-col items-center gap-2">
+                <span class="animate-spin text-2xl">⏳</span>
+                <span>Loading transactions...</span>
+              </div>
+            </td>
           </tr>
-          <tr v-else-if="payments.length === 0">
-            <td colspan="7" class="text-center py-8 text-stone-400">No payments found</td>
+          <tr v-else-if="filteredPayments.length === 0">
+            <td colspan="6" class="text-center py-16 text-stone-400">
+               <div class="flex flex-col items-center gap-3">
+                <span class="text-3xl opacity-50">🧾</span>
+                <span class="font-medium">No transactions found</span>
+              </div>
+            </td>
           </tr>
-          <tr v-for="payment in payments" :key="payment.id">
-            <td>{{ formatDate(payment.created_at) }}</td>
-            <td class="font-mono text-xs">{{ payment.provider_ref?.slice(0, 12) }}...</td>
+          <tr v-for="payment in filteredPayments" :key="payment.id" class="group hover:bg-stone-50 transition-colors">
             <td>
-              <div class="flex items-center gap-2">
-                <span class="user-avatar-sm">{{ payment.user?.display_name?.charAt(0) || '?' }}</span>
-                <span>{{ payment.user?.display_name || 'Unknown' }}</span>
+              <div class="flex flex-col">
+                <span class="font-medium text-stone-900">{{ formatDate(payment.created_at) }}</span>
+                <span class="text-xs text-stone-400 font-mono">{{ formatTime(payment.created_at) }}</span>
               </div>
             </td>
             <td>
-              <span class="purpose-badge" :class="payment.purpose === 'event_ticket' ? 'bg-blue-100 text-blue-700' : 'bg-pink-100 text-pink-700'">
-                {{ payment.purpose === 'event_ticket' ? '🎟️ Ticket' : '💕 Match' }}
+              <div class="flex flex-col gap-1">
+                 <div class="flex items-center gap-2">
+                    <span 
+                      class="purpose-icon" 
+                      :class="payment.purpose === 'event_ticket' ? 'bg-blue-100 text-blue-600' : 'bg-pink-100 text-pink-600'"
+                    >
+                      {{ payment.purpose === 'event_ticket' ? '🎟️' : '💕' }}
+                    </span>
+                    <span class="text-sm font-medium text-stone-700 capitalize">
+                      {{ payment.purpose?.replace('_', ' ') }}
+                    </span>
+                 </div>
+                 <span class="text-xs font-mono text-stone-400">{{ payment.provider_ref }}</span>
+              </div>
+            </td>
+            <td>
+              <div class="flex items-center gap-3">
+                <div class="user-avatar-sm bg-stone-100 text-stone-600">
+                  {{ payment.user?.display_name?.charAt(0) || '?' }}
+                </div>
+                <div class="flex flex-col">
+                  <span class="font-medium text-stone-900">{{ payment.user?.display_name || 'Unknown' }}</span>
+                  <span class="text-xs text-stone-400 font-mono">{{ payment.user?.phone }}</span>
+                </div>
+              </div>
+            </td>
+            <td class="text-right">
+              <span class="font-mono font-bold text-stone-900">{{ formatGHS(payment.amount) }}</span>
+            </td>
+            <td>
+              <span class="status-pill" :class="payment.status">
+                <span class="dot"></span> {{ payment.status }}
               </span>
             </td>
-            <td class="font-bold">{{ formatGHS(payment.amount) }}</td>
-            <td>
-              <span class="status-badge" :class="getStatusClass(payment.status)">
-                {{ payment.status }}
-              </span>
-            </td>
-            <td>
-              <button class="btn-sm" @click="viewPaymentDetails(payment)">View</button>
+            <td class="text-right">
+              <button class="btn-icon group-hover:visible invisible" @click="viewPaymentDetails(payment)" title="View Receipt">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+              </button>
             </td>
           </tr>
         </tbody>
@@ -141,52 +185,71 @@
     </div>
 
     <!-- Pagination -->
-    <Pagination 
-      :current-page="currentPage" 
-      :total-pages="Math.ceil(totalPayments / pageSize)" 
-      :total-items="totalPayments"
-      :page-size="pageSize"
-      @page-change="handlePageChange"
-    />
+     <div v-if="totalPages > 1" class="mt-4 flex justify-between items-center text-sm text-stone-500">
+      <span>Showing {{ (currentPage - 1) * pageSize + 1 }} - {{ Math.min(currentPage * pageSize, totalPayments) }} of {{ totalPayments }}</span>
+      <div class="flex gap-2">
+        <button 
+          @click="handlePageChange(currentPage - 1)"
+          :disabled="currentPage === 1"
+          class="px-3 py-1 border rounded hover:bg-white disabled:opacity-50"
+        >Prev</button>
+        <button 
+          @click="handlePageChange(currentPage + 1)"
+          :disabled="currentPage === totalPages"
+          class="px-3 py-1 border rounded hover:bg-white disabled:opacity-50"
+        >Next</button>
+      </div>
+    </div>
 
     <!-- Payment Detail Modal -->
     <Teleport to="body">
       <div v-if="selectedPayment" class="modal-overlay" @click.self="selectedPayment = null">
-        <div class="modal">
+        <div class="modal modal--receipt slide-in-up">
           <div class="modal__header">
-            <h2 class="modal__title">Payment Details</h2>
+            <h2 class="modal__title">Transaction Receipt</h2>
             <button class="modal__close" @click="selectedPayment = null">×</button>
           </div>
+          
           <div class="modal__content">
-            <div class="detail-grid">
+            <div class="receipt-header">
+               <div class="receipt-icon">🧾</div>
+               <div class="receipt-amount">{{ formatGHS(selectedPayment.amount) }}</div>
+               <div class="status-pill large" :class="selectedPayment.status">
+                 <span class="dot"></span> {{ selectedPayment.status }}
+               </div>
+            </div>
+
+            <div class="receipt-body">
               <div class="detail-row">
-                <span class="detail-label">Reference</span>
-                <span class="detail-value font-mono">{{ selectedPayment.provider_ref }}</span>
+                 <span class="label">Date</span>
+                 <span class="value">{{ new Date(selectedPayment.created_at).toLocaleString() }}</span>
               </div>
               <div class="detail-row">
-                <span class="detail-label">Amount</span>
-                <span class="detail-value font-bold text-lg">{{ formatGHS(selectedPayment.amount) }}</span>
+                 <span class="label">Reference</span>
+                 <span class="value font-mono">{{ selectedPayment.provider_ref }}</span>
               </div>
               <div class="detail-row">
-                <span class="detail-label">Status</span>
-                <span class="status-badge" :class="getStatusClass(selectedPayment.status)">{{ selectedPayment.status }}</span>
+                 <span class="label">Product</span>
+                 <span class="value capitalize">{{ selectedPayment.purpose?.replace('_', ' ') }}</span>
+              </div>
+              <div class="divider"></div>
+              <div class="detail-row">
+                 <span class="label">Customer</span>
+                 <span class="value">{{ selectedPayment.user?.display_name }}</span>
               </div>
               <div class="detail-row">
-                <span class="detail-label">Purpose</span>
-                <span class="detail-value">{{ selectedPayment.purpose }}</span>
+                 <span class="label">Phone</span>
+                 <span class="value font-mono">{{ selectedPayment.user?.phone }}</span>
               </div>
-              <div class="detail-row">
-                <span class="detail-label">User</span>
-                <span class="detail-value">{{ selectedPayment.user?.display_name }} ({{ selectedPayment.user?.phone }})</span>
-              </div>
-              <div class="detail-row">
-                <span class="detail-label">Created</span>
-                <span class="detail-value">{{ formatDate(selectedPayment.created_at) }}</span>
+              
+              <div v-if="selectedPayment.metadata" class="mt-6">
+                 <p class="text-xs font-bold uppercase text-stone-400 mb-2">Technical Metadata</p>
+                 <pre class="bg-stone-50 p-3 rounded border border-stone-200 text-xs overflow-auto font-mono text-stone-600">{{ JSON.stringify(selectedPayment.metadata, null, 2) }}</pre>
               </div>
             </div>
-            <div v-if="selectedPayment.metadata" class="mt-4">
-              <p class="detail-label mb-2">Metadata</p>
-              <pre class="bg-stone-100 p-3 rounded-lg text-xs overflow-auto">{{ JSON.stringify(selectedPayment.metadata, null, 2) }}</pre>
+            
+            <div class="receipt-footer">
+               <button class="btn-secondary w-full" @click="selectedPayment = null">Close Receipt</button>
             </div>
           </div>
         </div>
@@ -205,7 +268,7 @@ definePageMeta({
 
 const supabase = useSupabaseClient()
 
-// Pagination
+// State
 const currentPage = ref(1)
 const pageSize = ref(15)
 const totalPayments = ref(0)
@@ -213,6 +276,7 @@ const loading = ref(true)
 const payments = ref<any[]>([])
 const alerts = ref<any[]>([])
 const selectedPayment = ref<any>(null)
+const searchQuery = ref('')
 
 const stats = ref({
   todayRevenue: 0,
@@ -228,6 +292,21 @@ const filters = reactive({
   dateTo: ''
 })
 
+// Computed
+const totalPages = computed(() => Math.ceil(totalPayments.value / pageSize.value))
+
+const filteredPayments = computed(() => {
+  if (!searchQuery.value) return payments.value
+  
+  const query = searchQuery.value.toLowerCase()
+  return payments.value.filter(p => 
+    p.provider_ref?.toLowerCase().includes(query) ||
+    p.user?.display_name?.toLowerCase().includes(query) ||
+    p.user?.phone?.includes(query)
+  )
+})
+
+// Formatters
 const formatGHS = (amount: number) => {
   return new Intl.NumberFormat('en-GH', {
     style: 'currency',
@@ -238,43 +317,17 @@ const formatGHS = (amount: number) => {
 
 const formatDate = (dateStr: string) => {
   return new Date(dateStr).toLocaleDateString('en-GB', {
-    day: 'numeric',
-    month: 'short',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit'
+    day: 'numeric', month: 'short', year: 'numeric'
   })
 }
 
 const formatTime = (dateStr: string) => {
-  const date = new Date(dateStr)
-  const now = new Date()
-  const diff = now.getTime() - date.getTime()
-  const hours = Math.floor(diff / (1000 * 60 * 60))
-  if (hours < 1) return 'Just now'
-  if (hours < 24) return `${hours}h ago`
-  return `${Math.floor(hours / 24)}d ago`
+  return new Date(dateStr).toLocaleTimeString('en-GB', {
+    hour: '2-digit', minute: '2-digit'
+  })
 }
 
-const getStatusClass = (status: string) => {
-  switch (status) {
-    case 'success': return 'bg-emerald-100 text-emerald-700'
-    case 'pending': return 'bg-amber-100 text-amber-700'
-    case 'failed': return 'bg-red-100 text-red-700'
-    default: return 'bg-stone-100 text-stone-700'
-  }
-}
-
-const getAlertClass = (type: string) => {
-  switch (type) {
-    case 'payment_failed': return 'bg-red-100 text-red-700'
-    case 'verification_error': return 'bg-orange-100 text-orange-700'
-    case 'webhook_error': return 'bg-yellow-100 text-yellow-700'
-    case 'refund_needed': return 'bg-purple-100 text-purple-700'
-    default: return 'bg-stone-100 text-stone-700'
-  }
-}
-
+// Data Fetching
 const fetchPayments = async () => {
   loading.value = true
   
@@ -333,40 +386,23 @@ const fetchStats = async () => {
   const weekStart = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString()
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString()
   
-  // Today's revenue
-  const { data: todayData } = await supabase
-    .from('payments')
-    .select('amount')
-    .eq('status', 'success')
-    .gte('created_at', todayStart)
+  // Helper for summing
+  const sumAmount = (data: any[]) => (data || []).reduce((sum: number, p: any) => sum + (p.amount || 0), 0)
+
+  // Today
+  const { data: todayData } = await supabase.from('payments').select('amount').eq('status', 'success').gte('created_at', todayStart)
+  stats.value.todayRevenue = sumAmount(todayData || [])
   
-  stats.value.todayRevenue = (todayData || []).reduce((sum: number, p: any) => sum + (p.amount || 0), 0)
+  // Week
+  const { data: weekData } = await supabase.from('payments').select('amount').eq('status', 'success').gte('created_at', weekStart)
+  stats.value.weekRevenue = sumAmount(weekData || [])
   
-  // Week revenue
-  const { data: weekData } = await supabase
-    .from('payments')
-    .select('amount')
-    .eq('status', 'success')
-    .gte('created_at', weekStart)
-  
-  stats.value.weekRevenue = (weekData || []).reduce((sum: number, p: any) => sum + (p.amount || 0), 0)
-  
-  // Month revenue
-  const { data: monthData } = await supabase
-    .from('payments')
-    .select('amount')
-    .eq('status', 'success')
-    .gte('created_at', monthStart)
-  
-  stats.value.monthRevenue = (monthData || []).reduce((sum: number, p: any) => sum + (p.amount || 0), 0)
+  // Month
+  const { data: monthData } = await supabase.from('payments').select('amount').eq('status', 'success').gte('created_at', monthStart)
+  stats.value.monthRevenue = sumAmount(monthData || [])
   
   // Failed count
-  const { count } = await supabase
-    .from('payments')
-    .select('id', { count: 'exact', head: true })
-    .eq('status', 'failed')
-    .gte('created_at', weekStart)
-  
+  const { count } = await supabase.from('payments').select('id', { count: 'exact', head: true }).eq('status', 'failed').gte('created_at', weekStart)
   stats.value.failedCount = count || 0
 }
 
@@ -412,6 +448,33 @@ onMounted(() => {
 </script>
 
 <style scoped>
+/* Layout */
+.admin-page {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.page-title {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #111827;
+  letter-spacing: -0.025em;
+}
+
+.page-subtitle {
+  color: #6B7280;
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+}
+
+/* Stats */
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -421,50 +484,63 @@ onMounted(() => {
 
 .stat-card {
   background: white;
-  border: 1px solid #e5e7eb;
-  border-radius: 1rem;
+  border: 1px solid #E5E7EB;
+  border-radius: 12px;
   padding: 1.25rem;
   display: flex;
   align-items: center;
   gap: 1rem;
+  transition: transform 0.2s;
 }
 
+.stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+}
+
+.stat-card.success { border-left: 4px solid #10B981; }
+.stat-card.info { border-left: 4px solid #3B82F6; }
+.stat-card.accent { border-left: 4px solid #8B5CF6; }
+.stat-card.danger { border-left: 4px solid #EF4444; }
+
 .stat-icon {
-  width: 48px;
-  height: 48px;
-  border-radius: 12px;
+  font-size: 2rem;
+  width: 3rem;
+  height: 3rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.5rem;
+  background: #F3F4F6;
+  border-radius: 50%;
 }
 
 .stat-label {
   font-size: 0.75rem;
-  color: #6b7280;
+  font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  font-weight: 600;
+  color: #6B7280;
 }
 
 .stat-value {
   font-size: 1.5rem;
-  font-weight: 700;
+  font-weight: 800;
   color: #111827;
 }
 
+/* Alerts */
 .alerts-section {
-  background: #fef3c7;
-  border: 1px solid #f59e0b;
-  border-radius: 1rem;
-  padding: 1.25rem;
-  margin-bottom: 1.5rem;
+  background: #FFFBEB;
+  border: 1px solid #FCD34D;
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
 }
 
-.alerts-list {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
+.section-title {
+  font-size: 1rem;
+  font-weight: 700;
+  margin: 0;
 }
 
 .alert-item {
@@ -472,62 +548,68 @@ onMounted(() => {
   justify-content: space-between;
   align-items: center;
   background: white;
-  padding: 0.75rem 1rem;
-  border-radius: 0.5rem;
+  padding: 1rem;
+  border-radius: 8px;
+  border: 1px solid #F3F4F6;
   gap: 1rem;
 }
 
-.alert-content {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  flex-wrap: wrap;
-}
-
-.alert-badge {
-  padding: 0.25rem 0.5rem;
-  border-radius: 0.25rem;
-  font-size: 0.625rem;
-  font-weight: 700;
-  text-transform: uppercase;
-}
-
-.alert-ref {
-  font-family: monospace;
-  font-size: 0.75rem;
-  color: #6b7280;
-}
-
-.alert-amount {
-  font-weight: 700;
-}
-
-.alert-message {
-  color: #dc2626;
-  font-size: 0.875rem;
-}
-
-.alert-time {
-  font-size: 0.75rem;
-  color: #9ca3af;
-}
-
+/* Controls */
 .filters-bar {
   display: flex;
-  gap: 0.75rem;
-  margin-bottom: 1.5rem;
+  gap: 1rem;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+  align-items: center;
   flex-wrap: wrap;
 }
 
-.filters-bar .form-select,
-.filters-bar .form-input {
-  min-width: 150px;
+.search-wrapper {
+  flex: 1;
+  min-width: 250px;
+  position: relative;
 }
 
+.search-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 16px;
+  height: 16px;
+  color: #9CA3AF;
+}
+
+.search-input {
+  width: 100%;
+  padding: 0.625rem 1rem 0.625rem 2.5rem;
+  border: 1px solid #E5E7EB;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  transition: border-color 0.2s;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: #3B82F6;
+}
+
+.form-select {
+  padding: 0.625rem 2rem 0.625rem 1rem;
+  border: 1px solid #E5E7EB;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  background-color: white;
+  min-width: 140px;
+  color: #374151;
+}
+
+/* Table */
 .table-container {
   background: white;
-  border: 1px solid #e5e7eb;
-  border-radius: 1rem;
+  border: 1px solid #E5E7EB;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
   overflow: hidden;
 }
 
@@ -537,97 +619,213 @@ onMounted(() => {
 }
 
 .data-table th {
+  padding: 1rem 1.5rem;
   text-align: left;
-  padding: 1rem;
-  background: #f9fafb;
   font-size: 0.75rem;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: #6b7280;
-  border-bottom: 1px solid #e5e7eb;
+  color: #6B7280;
+  background: #F9FAFB;
+  border-bottom: 1px solid #E5E7EB;
 }
 
 .data-table td {
-  padding: 1rem;
-  border-bottom: 1px solid #f3f4f6;
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid #F3F4F6;
   font-size: 0.875rem;
 }
 
-.data-table tr:hover {
-  background: #f9fafb;
-}
-
-.user-avatar-sm {
-  width: 28px;
-  height: 28px;
-  border-radius: 8px;
-  background: #e5e7eb;
+.purpose-icon {
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.75rem;
-  font-weight: 700;
+  font-size: 0.875rem;
 }
 
-.purpose-badge {
-  padding: 0.25rem 0.5rem;
-  border-radius: 0.25rem;
+.user-avatar-sm {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.875rem;
+}
+
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 2px 8px;
+  border-radius: 99px;
   font-size: 0.75rem;
   font-weight: 600;
+  text-transform: capitalize;
 }
 
-.status-badge {
-  padding: 0.25rem 0.75rem;
-  border-radius: 9999px;
-  font-size: 0.75rem;
-  font-weight: 700;
-  text-transform: capitalize;
+.status-pill.large {
+  padding: 4px 12px;
+  font-size: 0.875rem;
+}
+
+.status-pill.success { background: #ECFDF5; color: #059669; border: 1px solid #6EE7B7; }
+.status-pill.success .dot { background: #059669; }
+
+.status-pill.pending { background: #FFFBEB; color: #D97706; border: 1px solid #FCD34D; }
+.status-pill.pending .dot { background: #D97706; }
+
+.status-pill.failed { background: #FEF2F2; color: #DC2626; border: 1px solid #FCA5A5; }
+.status-pill.failed .dot { background: #DC2626; }
+
+.dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+
+.btn-primary {
+  display: flex;
+  align-items: center;
+  padding: 0.625rem 1rem;
+  background: #111827;
+  color: white;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.875rem;
+}
+
+.btn-secondary {
+  padding: 0.625rem 1rem;
+  background: white;
+  border: 1px solid #E5E7EB;
+  color: #374151;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.875rem;
+  transition: all 0.2s;
+}
+
+.btn-secondary:hover {
+  background: #F9FAFB;
+  border-color: #D1D5DB;
 }
 
 .btn-sm {
   padding: 0.375rem 0.75rem;
   font-size: 0.75rem;
   font-weight: 600;
-  border: 1px solid #e5e7eb;
-  border-radius: 0.375rem;
+  border: 1px solid #E5E7EB;
+  border-radius: 6px;
   background: white;
   cursor: pointer;
-  transition: all 0.15s;
 }
 
-.btn-sm:hover {
-  background: #f3f4f6;
+.btn-icon {
+  padding: 6px;
+  color: #6B7280;
+  border-radius: 6px;
+  transition: all 0.2s;
 }
 
-.detail-grid {
+.btn-icon:hover {
+  background: #F3F4F6;
+  color: #111827;
+}
+
+/* Modal Receipt */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.4);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+
+.modal--receipt {
+  width: 100%;
+  max-width: 400px;
+  background: white;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+}
+
+.slide-in-up {
+  animation: slideUp 0.2s ease-out;
+}
+
+.modal__header {
+  padding: 1rem 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #F3F4F6;
+}
+
+.modal__title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.receipt-header {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  align-items: center;
+  padding: 2rem 0 1.5rem;
+}
+
+.receipt-icon {
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+}
+
+.receipt-amount {
+  font-size: 2rem;
+  font-weight: 800;
+  font-family: monospace;
+  color: #111827;
+  letter-spacing: -0.05em;
+  margin-bottom: 1rem;
+}
+
+.receipt-body {
+  padding: 0 1.5rem 2rem;
 }
 
 .detail-row {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  padding-bottom: 0.75rem;
-  border-bottom: 1px solid #f3f4f6;
-}
-
-.detail-label {
+  padding: 0.5rem 0;
   font-size: 0.875rem;
-  color: #6b7280;
-  font-weight: 500;
 }
 
-.detail-value {
-  font-size: 0.875rem;
-  color: #111827;
+.detail-row .label { color: #6B7280; }
+.detail-row .value { color: #111827; font-weight: 500; }
+
+.divider {
+  height: 1px;
+  background: #E5E7EB;
+  margin: 1rem 0;
+  border-top: 1px dashed #E5E7EB;
 }
 
-.section-title {
-  font-size: 1rem;
-  font-weight: 700;
-  margin-bottom: 1rem;
+.receipt-footer {
+  padding: 1.5rem;
+  background: #F9FAFB;
+  border-top: 1px solid #F3F4F6;
+}
+
+@keyframes slideUp {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
 }
 </style>

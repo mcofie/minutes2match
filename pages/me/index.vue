@@ -48,13 +48,23 @@
           </NuxtLink>
 
           <div class="text-right flex flex-col items-end">
-            <p class="text-xs md:text-sm font-bold text-black dark:text-stone-100 uppercase tracking-widest">{{ profile?.display_name }}</p>
-            <p class="hidden md:block text-[10px] font-mono font-bold text-rose-500 md:text-rose-400 mt-0.5 uppercase tracking-wider">
+            <div class="flex items-center gap-1.5">
+               <p class="text-xs md:text-sm font-bold text-black dark:text-stone-100 uppercase tracking-widest">{{ profile?.display_name }}</p>
+            </div>
+            
+            <div v-if="subscription" class="mt-0.5 flex items-center justify-end gap-1 mb-0.5">
+               <span class="bg-black text-amber-300 px-1.5 py-[1px] rounded-[3px] border border-amber-400/50 shadow-[1px_1px_0px_0px_rgba(251,191,36,1)] text-[8px] font-bold uppercase tracking-widest leading-none flex items-center gap-1">
+                  <span>👑</span> PREMIUM
+               </span>
+            </div>
+            
+            <p class="hidden md:block text-[10px] font-mono font-bold text-rose-500 md:text-rose-400 mt-px uppercase tracking-wider">
               {{ personaData ? `${personaData.emoji} ${personaData.name}` : 'New Member' }}
             </p>
           </div>
           <div 
-             class="w-10 h-10 md:w-12 md:h-12 rounded-full border-2 border-black dark:border-stone-500 bg-white dark:bg-stone-800 overflow-hidden cursor-pointer hover:scale-105 transition-transform shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.1)]"
+             class="w-10 h-10 md:w-12 md:h-12 rounded-full border-2 bg-white dark:bg-stone-800 overflow-hidden cursor-pointer hover:scale-105 transition-transform shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.1)] relative"
+             :class="subscription ? 'border-amber-400 ring-2 ring-amber-400/30' : 'border-black dark:border-stone-500'"
              @click="activeTab = 'profile'"
           >
             <img v-if="profile?.photo_url" :src="profile.photo_url" class="w-full h-full object-cover" />
@@ -422,6 +432,33 @@
                  </span>
               </div>
 
+               <!-- Subscription Status -->
+               <div class="mt-8 bg-gradient-to-br from-stone-900 to-black text-white p-6 md:p-8 rounded-xl border-2 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,0.2)]">
+                  <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+                     <div>
+                        <div class="flex items-center gap-2 mb-2">
+                           <span class="text-2xl">👑</span>
+                           <h3 class="text-xl font-bold font-serif text-white">Premium Membership</h3>
+                        </div>
+                        <p class="text-stone-300 text-sm max-w-md">
+                           {{ subscription ? 'You are a premium member! Enjoy unlimited match unlocks.' : 'Get unlimited match unlocks and premium features.' }}
+                        </p>
+                        <div v-if="subscription" class="mt-4 inline-flex items-center gap-2 px-3 py-1 bg-white/10 rounded-full border border-white/20">
+                           <span class="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></span>
+                           <span class="text-xs font-bold uppercase tracking-widest text-emerald-300">Active until {{ new Date(subscription.end_date).toLocaleDateString() }}</span>
+                        </div>
+                     </div>
+                     
+                     <button 
+                        v-if="!subscription"
+                        @click="handleSubscribe"
+                        class="w-full md:w-auto px-6 py-3 bg-white text-black font-bold uppercase tracking-widest text-xs rounded-lg hover:bg-emerald-400 hover:text-black transition-all shadow-[4px_4px_0px_0px_rgba(255,255,255,0.2)]"
+                     >
+                        Subscribe (GH₵ 50/mo)
+                     </button>
+                  </div>
+               </div>
+
                <!-- Account Actions (at bottom of profile tab) -->
                <div class="mt-12 pt-8 border-t-2 border-stone-100 dark:border-stone-800 space-y-6">
                   <h3 class="text-2xl font-serif font-bold text-black dark:text-white mb-6">Account Settings</h3>
@@ -505,9 +542,13 @@
                           class="flex items-center justify-between py-2 border-b border-stone-50 last:border-0"
                         >
                           <div class="flex items-center gap-3">
-                            <span class="text-lg bg-stone-50 w-8 h-8 flex items-center justify-center rounded-full border border-stone-200">{{ payment.purpose === 'event_ticket' ? '🎟️' : '💕' }}</span>
+                            <span class="text-lg bg-stone-50 w-8 h-8 flex items-center justify-center rounded-full border border-stone-200">
+                               {{ payment.purpose === 'event_ticket' ? '🎟️' : (payment.purpose === 'subscription' ? '👑' : '💕') }}
+                            </span>
                             <div>
-                              <p class="text-[10px] font-bold uppercase tracking-widest text-black">{{ payment.purpose === 'event_ticket' ? 'Event' : 'Match' }}</p>
+                              <p class="text-[10px] font-bold uppercase tracking-widest text-black">
+                                {{ payment.purpose === 'event_ticket' ? 'Event' : (payment.purpose === 'subscription' ? 'Membership' : 'Match') }}
+                              </p>
                               <p class="text-[10px] font-mono text-stone-400">{{ formatPaymentDate(payment.created_at) }}</p>
                             </div>
                           </div>
@@ -800,9 +841,50 @@ const fetchUserPayments = async (userId: string) => {
       .order('created_at', { ascending: false })
       .limit(50)
     
+      .limit(50)
+    
     userPayments.value = data || []
   } finally {
     loadingPayments.value = false
+  }
+}
+
+// Fetch user subscription
+const subscription = ref<any>(null)
+const loadingSubscription = ref(true)
+
+const fetchSubscription = async (userId: string) => {
+  loadingSubscription.value = true
+  console.log('[Profile] Fetching subscription for:', userId)
+  try {
+    const { data, error } = await supabase
+      .from('subscriptions')
+      .select('*')
+      .eq('user_id', userId)
+      .eq('status', 'active')
+      .order('end_date', { ascending: false }) // Get latest
+      .limit(1)
+      .maybeSingle()
+    
+    if (error) {
+       console.error('[Profile] Error fetching subscription:', error)
+    }
+
+    // Client-side date check to avoid timezone mismatch issues with DB query
+    if (data && new Date(data.end_date) > new Date()) {
+       console.log('[Profile] Active subscription found:', data.id)
+       subscription.value = data
+    } else if (data) {
+       console.log('[Profile] Found expired subscription:', data.id, 'Expires:', data.end_date)
+       subscription.value = null
+    } else {
+       console.log('[Profile] No subscription found')
+       subscription.value = null
+    }
+  } catch (error) {
+    console.error('Error fetching subscription:', error)
+  } finally {
+    loadingSubscription.value = false
   }
 }
 
@@ -1134,27 +1216,75 @@ const handleUnlockMatch = async (match: any) => {
   try {
     const { initializePayment } = usePaystack()
 
-    const paymentData = await initializePayment(
+    const response = await initializePayment(
       profile.value.phone ? `${profile.value.phone.replace(/\+/g, '')}@m2match.com` : 'user@m2match.com',
       match.unlock_price,
       'match_unlock',
       { userId: currentUserId.value, matchId: match.id }
     )
 
-    // Payment record now created server-side in initializePayment
-    // await createPaymentRecord(
-    //   currentUserId.value,
-    //   match.unlock_price,
-    //   'match_unlock',
-    //   paymentData.reference,
-    //   { matchId: match.id }
-    // )
+    // Check if it was an immediate unlock (Free or Subscription)
+    if (response.type === 'free_unlock' || response.type === 'subscription_unlock') {
+        toast.success(
+            response.type === 'free_unlock' ? 'First Match Free!' : 'Unlocked with Subscription', 
+            'Your match has been unlocked successfully.'
+        )
+        // Refresh matches to show unlocked state
+        await fetchMatchesById(currentUserId.value)
+        return
+    }
 
-    window.location.href = paymentData.authorization_url
+    // Standard payment flow
+    const authUrl = response.authorization_url || response.data?.authorization_url
+    if (authUrl) {
+        window.location.href = authUrl
+    } else {
+        throw new Error('Invalid payment response')
+    }
+
   } catch (error) {
     console.error('Payment error:', error)
     toast.error('Payment failed', 'Failed to process payment. Please try again.')
   }
+}
+
+// Handle Subscription
+const handleSubscribe = async () => {
+    if (!currentUserId.value || !profile.value) return
+
+    // Check if already subscribed
+    if (subscription.value) {
+        toast.info('Active Subscription', 'You already have an active subscription.')
+        return
+    }
+
+    try {
+        const { initializePayment } = usePaystack()
+        
+        // Fetch price from settings
+        const { data: settingsData } = await supabase
+            .from('settings')
+            .select('value')
+            .eq('key', 'subscription_price_monthly')
+            .single() as { data: any, error: any }
+            
+        const price = settingsData?.value?.amount || 50
+
+        const response = await initializePayment(
+            profile.value.phone ? `${profile.value.phone.replace(/\+/g, '')}@m2match.com` : 'user@m2match.com',
+            price,
+            'subscription',
+            { userId: currentUserId.value }
+        )
+
+        const authUrl = response.authorization_url || response.data?.authorization_url
+        if (authUrl) {
+            window.location.href = authUrl
+        }
+    } catch (error) {
+        console.error('Subscription error:', error)
+        toast.error('Error', 'Failed to start subscription.')
+    }
 }
 
 // Initialize data - handle auth hydration properly
@@ -1190,7 +1320,13 @@ onMounted(async () => {
     try {
       // Manually set user if it came from session
       await fetchProfileById(userId)
-      await Promise.all([fetchEvents(userId), fetchMatchesById(userId), fetchUserBookings(userId), fetchUserPayments(userId)])
+      await Promise.all([
+        fetchEvents(userId), 
+        fetchMatchesById(userId), 
+        fetchUserBookings(userId), 
+        fetchUserPayments(userId),
+        fetchSubscription(userId)
+      ])
     } catch (err) {
       console.error('[Profile] Error loading data:', err)
     }
@@ -1213,7 +1349,7 @@ const fetchProfileById = async (userId: string) => {
       .from('profiles')
       .select('*')
       .eq('id', userId)
-      .single()
+      .single() as { data: any, error: any, status: number }
 
     console.log('[Profile] Response:', status, 'Data:', data ? 'found' : 'null', 'Error:', error?.message)
   

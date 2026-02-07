@@ -139,6 +139,58 @@
         <div class="md:col-span-8 lg:col-span-9 space-y-6">
           
           <!-- Basic Details -->
+          <!-- Compatibility & Date Idea (Editorial Style) -->
+          <div v-if="match?.unlocked && matchProfile" class="grid sm:grid-cols-2 gap-8 mb-8">
+             <!-- Vibe Match (Editorial Report) -->
+             <div class="bg-white dark:bg-stone-900 border border-black dark:border-stone-700 p-8 flex flex-col justify-between text-center relative shadow-[4px_4px_0px_0px_rgba(0,0,0,0.1)] hover:shadow-none transition-shadow duration-300">
+                <!-- Decorative Corner Lines -->
+                <div class="absolute top-2 left-2 w-4 h-4 border-t border-l border-black dark:border-white"></div>
+                <div class="absolute top-2 right-2 w-4 h-4 border-t border-r border-black dark:border-white"></div>
+                <div class="absolute bottom-2 left-2 w-4 h-4 border-b border-l border-black dark:border-white"></div>
+                <div class="absolute bottom-2 right-2 w-4 h-4 border-b border-r border-black dark:border-white"></div>
+                
+                <div>
+                   <h3 class="font-serif italic text-xl text-stone-900 dark:text-stone-100 mb-2">The Compatibility Report</h3>
+                   <div class="w-12 h-px bg-black md:mx-auto mb-6"></div>
+                   
+                   <div v-if="sharedInterests.length" class="mb-6">
+                      <div class="text-xs font-bold uppercase tracking-widest text-stone-400 mb-2">Key Areas of Connection</div>
+                      <div class="flex flex-wrap justify-center gap-x-4 gap-y-2">
+                         <span v-for="interest in sharedInterests" :key="interest" class="font-serif text-lg border-b border-stone-200">
+                            {{ getInterestLabel(interest) }}
+                         </span>
+                      </div>
+                   </div>
+                   <div v-else class="mb-6">
+                      <p class="font-serif text-stone-500">"A study in contrasts."</p>
+                   </div>
+                </div>
+
+                <div class="text-[10px] font-bold uppercase tracking-widest text-stone-400 mt-4">
+                   established {{ new Date(match.created_at).toLocaleDateString() }}
+                </div>
+             </div>
+             
+             <!-- Smart Date Idea (Editor's Pick) -->
+             <div v-if="dateIdea" class="bg-stone-50 dark:bg-stone-800 border border-black dark:border-stone-600 p-8 flex flex-col justify-center text-center relative shadow-[4px_4px_0px_0px_rgba(0,0,0,0.1)] hover:shadow-none transition-shadow duration-300">
+                <div class="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-black text-white px-3 py-1 text-[10px] font-bold uppercase tracking-widest">
+                   Editor's Choice
+                </div>
+                
+                <h3 class="text-xs font-bold uppercase tracking-widest text-stone-400 mb-4">Our Recommendation</h3>
+                
+                <div class="text-4xl mb-4">{{ dateIdea.emoji }}</div>
+                
+                <h4 class="font-serif font-bold text-2xl text-black dark:text-white leading-tight mb-4">
+                   {{ dateIdea.title }}
+                </h4>
+                
+                <p class="font-serif italic text-stone-600 dark:text-stone-300 leading-relaxed max-w-xs mx-auto">
+                   "{{ dateIdea.desc }}"
+                </p>
+             </div>
+          </div>
+
           <!-- Basic Details (Unlocked) -->
           <div v-if="match?.unlocked && matchProfile" class="bg-white p-6 md:p-8 rounded-xl border-2 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
              <h3 class="text-2xl font-serif font-bold text-black mb-8 flex items-center gap-2">
@@ -333,6 +385,81 @@
       </div>
     </div>
 
+    <!-- Report Modal -->
+    <Teleport to="body">
+      <Transition name="fade">
+        <div v-if="showReportModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4" @click.self="showReportModal = false">
+          <div class="bg-white dark:bg-stone-900 w-full max-w-md rounded-xl border-2 border-black dark:border-stone-700 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] dark:shadow-[8px_8px_0px_0px_rgba(255,255,255,0.1)] overflow-hidden">
+            <!-- Header -->
+            <div class="bg-red-500 p-4 flex justify-between items-center border-b-2 border-black">
+              <h3 class="text-white font-bold uppercase tracking-widest text-sm flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" x2="4" y1="22" y2="15"/></svg>
+                Report User
+              </h3>
+              <button @click="showReportModal = false" class="text-white hover:text-white/80 transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" x2="6" y1="6" y2="18"/><line x1="6" x2="18" y1="6" y2="18"/></svg>
+              </button>
+            </div>
+            
+            <!-- Body -->
+            <div class="p-6 space-y-6">
+              <p class="text-sm text-stone-600 dark:text-stone-400">
+                Help us keep the community safe. Your report will be reviewed by our team.
+              </p>
+              
+              <!-- Reason Selection -->
+              <div class="space-y-2">
+                <label class="text-xs font-bold uppercase tracking-widest text-stone-500">Reason for reporting</label>
+                <div class="grid grid-cols-2 gap-2">
+                  <button 
+                    v-for="option in reportReasons" 
+                    :key="option.value"
+                    @click="reportForm.reason = option.value"
+                    :class="[
+                      'p-3 rounded-lg border-2 text-left transition-all text-xs font-bold uppercase tracking-wide',
+                      reportForm.reason === option.value 
+                        ? 'border-black dark:border-white bg-black dark:bg-white text-white dark:text-black' 
+                        : 'border-stone-200 dark:border-stone-700 hover:border-stone-400'
+                    ]"
+                  >
+                    <span class="mr-1">{{ option.emoji }}</span> {{ option.label }}
+                  </button>
+                </div>
+              </div>
+              
+              <!-- Description -->
+              <div class="space-y-2">
+                <label class="text-xs font-bold uppercase tracking-widest text-stone-500">Additional details (optional)</label>
+                <textarea 
+                  v-model="reportForm.description"
+                  rows="3"
+                  placeholder="Describe what happened..."
+                  class="w-full px-4 py-3 bg-stone-50 dark:bg-stone-800 rounded-lg border-2 border-stone-200 dark:border-stone-700 focus:border-black dark:focus:border-white outline-none text-sm resize-none transition-colors"
+                ></textarea>
+              </div>
+            </div>
+            
+            <!-- Footer -->
+            <div class="p-4 bg-stone-50 dark:bg-stone-800 border-t-2 border-stone-200 dark:border-stone-700 flex gap-3">
+              <button 
+                @click="showReportModal = false"
+                class="flex-1 py-3 bg-white dark:bg-stone-700 text-stone-600 dark:text-stone-300 rounded-lg font-bold text-xs uppercase tracking-widest border-2 border-stone-200 dark:border-stone-600 hover:bg-stone-100 dark:hover:bg-stone-600 transition-colors"
+              >
+                Cancel
+              </button>
+              <button 
+                @click="submitReport"
+                :disabled="!reportForm.reason || submittingReport"
+                class="flex-1 py-3 bg-red-500 text-white rounded-lg font-bold text-xs uppercase tracking-widest border-2 border-red-600 hover:bg-red-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              >
+                <span v-if="submittingReport" class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
+                {{ submittingReport ? 'Submitting...' : 'Submit Report' }}
+              </button>
+            </div>
+          </div>
+        </div>
+      </Transition>
+    </Teleport>
 
   </main>
 </template>
@@ -428,8 +555,80 @@ const copyStarter = async (text: string, index: number) => {
 }
 
 const handleReport = () => {
-   // Placeholder for report functionality
-   toast.info('Coming soon', 'The report feature is under development.')
+   showReportModal.value = true
+}
+
+// Report functionality
+const showReportModal = ref(false)
+const submittingReport = ref(false)
+const reportForm = reactive({
+  reason: '' as string,
+  description: ''
+})
+
+const reportReasons = [
+  { value: 'inappropriate_behavior', label: 'Inappropriate', emoji: '😤' },
+  { value: 'fake_profile', label: 'Fake Profile', emoji: '🎭' },
+  { value: 'harassment', label: 'Harassment', emoji: '⚠️' },
+  { value: 'spam', label: 'Spam', emoji: '📧' },
+  { value: 'underage', label: 'Underage', emoji: '🔞' },
+  { value: 'other', label: 'Other', emoji: '❓' }
+]
+
+const submitReport = async () => {
+  if (!reportForm.reason || !matchProfile.value?.id) return
+  
+  submittingReport.value = true
+  try {
+    // Get current user
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session?.user?.id) {
+      toast.error('Error', 'You must be logged in to submit a report.')
+      return
+    }
+    
+    // Check for existing report in last 24 hours
+    const { data: existingReport } = await supabase
+      .from('reports')
+      .select('id')
+      .eq('reporter_id', session.user.id)
+      .eq('reported_user_id', matchProfile.value.id)
+      .gte('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString())
+      .maybeSingle()
+    
+    if (existingReport) {
+      toast.info('Already Reported', 'You have already reported this user recently. Our team is reviewing it.')
+      showReportModal.value = false
+      return
+    }
+    
+    // Insert report
+    const { error } = await supabase
+      .from('reports')
+      .insert({
+        reporter_id: session.user.id,
+        reported_user_id: matchProfile.value.id,
+        match_id: matchId.value,
+        reason: reportForm.reason,
+        description: reportForm.description || null,
+        status: 'pending'
+      })
+    
+    if (error) {
+      console.error('Report insert error:', error)
+      throw new Error(error.message)
+    }
+    
+    toast.success('Report Submitted', 'Thank you for helping keep our community safe.')
+    showReportModal.value = false
+    reportForm.reason = ''
+    reportForm.description = ''
+  } catch (error: any) {
+    const message = error.message || 'Failed to submit report. Please try again.'
+    toast.error('Report Failed', message)
+  } finally {
+    submittingReport.value = false
+  }
 }
 
 const handleBlock = () => {
@@ -469,6 +668,32 @@ const getInterestLabel = (id: string) => {
   return interest ? interest.label : id
 }
 
+const currentUser = ref<any>(null)
+
+const sharedInterests = computed(() => {
+  if (!matchProfile.value?.interests || !currentUser.value?.interests) return []
+  return matchProfile.value.interests.filter((i: string) => currentUser.value.interests.includes(i))
+})
+
+const dateIdea = computed(() => {
+   if (!matchProfile.value) return null
+   const interests = matchProfile.value.interests || []
+   const shared = sharedInterests.value
+   
+   // Prioritize shared interests
+   const relevant = shared.length ? shared : interests
+   
+   if (relevant.includes('coffee') || relevant.includes('reading')) return { title: 'Bookstore Café Date', emoji: '☕️', desc: 'Find a cozy corner, sip some latte, and browse books together.' }
+   if (relevant.includes('art') || relevant.includes('photography')) return { title: 'Gallery Hopping', emoji: '🎨', desc: 'Visit a local art exhibition and critique the abstract pieces.' }
+   if (relevant.includes('fitness') || relevant.includes('sports')) return { title: 'Active Date', emoji: '🏃‍♂️', desc: 'Go for a scenic run or try a bouldering gym together.' }
+   if (relevant.includes('food') || relevant.includes('cooking')) return { title: 'Food Tour', emoji: '🌮', desc: 'Hop between three different spots: appetizers, mains, and dessert.' }
+   if (relevant.includes('music') || relevant.includes('dancing')) return { title: 'Live Music Night', emoji: '🎷', desc: 'Find a jazz bar or a local gig and enjoy the vibes.' }
+   if (relevant.includes('nature') || relevant.includes('travel')) return { title: 'Sunset Picnic', emoji: '🌅', desc: 'Pack some snacks and find a spot with a view to watch the sunset.' }
+   if (relevant.includes('movies')) return { title: 'Drive-in Cinema', emoji: '🎬', desc: 'Watch a classic movie under the stars (or just a regular cinema!).' }
+   
+   return { title: 'Classic Dinner Date', emoji: '🥂', desc: 'Pick a restaurant with great ambiance and get to know each other properly.' }
+})
+
 // Fetch match data
 onMounted(async () => {
   try {
@@ -480,6 +705,15 @@ onMounted(async () => {
     }
 
     const userId = session.user.id
+
+    // Fetch CURRENT USER details (for comparison)
+    const { data: myProfile } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', userId)
+      .single()
+      
+    currentUser.value = myProfile
 
     // Fetch match details
     const { data: matchData, error: matchError } = await supabase

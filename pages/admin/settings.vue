@@ -123,53 +123,50 @@ const saveSuccess = ref(false)
 const saveError = ref('')
 
 const settings = reactive({
-  default_match_unlock_fee: 50,
-  default_male_ticket_price: 100,
-  default_female_ticket_price: 80,
-  match_expiry_days: 7,
-  platform_name: 'Minutes 2 Match'
+   default_match_unlock_fee: 50,
+   subscription_price_monthly: 50,
+   default_male_ticket_price: 100,
+   default_female_ticket_price: 80,
+   match_expiry_days: 7,
+   platform_name: 'Minutes to Match'
 })
 
 // Fetch current settings
-const fetchSettings = async () => {
+const { data } = await supabase.from('settings').select('*')
+
+// Initialize
+onMounted(() => {
   loading.value = true
-  
   try {
-    const { data, error } = await supabase
-      .from('settings')
-      .select('*')
-    
-    if (error) throw error
-    
-    // Parse settings from database
     if (data) {
-      for (const row of data) {
-        const value = row.value
-        switch (row.key) {
+      data.forEach((item: any) => {
+        const value = item.value
+        switch (item.key) {
           case 'default_match_unlock_fee':
             settings.default_match_unlock_fee = value?.amount || 50
             break
-          case 'default_male_ticket_price':
-            settings.default_male_ticket_price = value?.amount || 100
+          case 'subscription_price_monthly':
+            settings.subscription_price_monthly = value?.amount || 50
             break
-          case 'default_female_ticket_price':
-            settings.default_female_ticket_price = value?.amount || 80
+          case 'event_ticket_prices':
+            settings.default_male_ticket_price = value?.male || 100
+            settings.default_female_ticket_price = value?.female || 80
             break
           case 'match_expiry_days':
             settings.match_expiry_days = value?.days || 7
             break
           case 'platform_name':
-            settings.platform_name = value?.name || 'Minutes 2 Match'
+            settings.platform_name = value?.name || 'Minutes to Match'
             break
         }
-      }
+      })
     }
   } catch (error) {
     console.error('Failed to fetch settings:', error)
   } finally {
     loading.value = false
   }
-}
+})
 
 // Save settings
 const saveSettings = async () => {
@@ -185,13 +182,13 @@ const saveSettings = async () => {
         updated_at: new Date().toISOString()
       },
       {
-        key: 'default_male_ticket_price',
-        value: { amount: settings.default_male_ticket_price, currency: 'GHS' },
+        key: 'subscription_price_monthly',
+        value: { amount: settings.subscription_price_monthly, currency: 'GHS' },
         updated_at: new Date().toISOString()
       },
       {
-        key: 'default_female_ticket_price',
-        value: { amount: settings.default_female_ticket_price, currency: 'GHS' },
+        key: 'event_ticket_prices',
+        value: { male: settings.default_male_ticket_price, female: settings.default_female_ticket_price },
         updated_at: new Date().toISOString()
       },
       {
@@ -204,7 +201,7 @@ const saveSettings = async () => {
         value: { name: settings.platform_name },
         updated_at: new Date().toISOString()
       }
-    ]
+    ] as any
     
     // @ts-ignore - Supabase types not generated
     const { error } = await supabase
@@ -222,10 +219,7 @@ const saveSettings = async () => {
   }
 }
 
-// Initialize
-onMounted(() => {
-  fetchSettings()
-})
+
 </script>
 
 <style scoped>

@@ -118,6 +118,8 @@ onMounted(async () => {
           } else {
              message.value = 'Payment received! Waiting for final confirmation.'
           }
+        } else if (result.metadata?.purpose === 'subscription') {
+           message.value = 'Welcome to the club! Your Premium Membership is now active.'
         } else {
           message.value = 'Your payment was processed successfully.'
         }

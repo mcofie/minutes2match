@@ -70,6 +70,20 @@
           </svg>
           <span class="label">Questions</span>
         </NuxtLink>
+        <NuxtLink to="/admin/payments" class="sidebar-link" @click="sidebarOpen = false">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="1" y="4" width="22" height="16" rx="2" ry="2"/>
+            <line x1="1" y1="10" x2="23" y2="10"/>
+          </svg>
+          <span class="label">Payments</span>
+        </NuxtLink>
+        <NuxtLink to="/admin/reports" class="sidebar-link" @click="sidebarOpen = false">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/>
+            <line x1="4" x2="4" y1="22" y2="15"/>
+          </svg>
+          <span class="label">Reports</span>
+        </NuxtLink>
         <NuxtLink to="/admin/settings" class="sidebar-link" @click="sidebarOpen = false">
           <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
              <circle cx="12" cy="12" r="3"/>
@@ -139,6 +153,8 @@ const pageTitle = computed(() => {
   if (path === '/admin/messaging/history') return 'SMS History'
   if (path.startsWith('/admin/messaging')) return 'SMS Messaging'
   if (path.startsWith('/admin/questions')) return 'Vibe Questions'
+  if (path.startsWith('/admin/payments')) return 'Payments'
+  if (path.startsWith('/admin/reports')) return 'User Reports'
   if (path.startsWith('/admin/settings')) return 'Platform Settings'
   return 'Admin Portal'
 })

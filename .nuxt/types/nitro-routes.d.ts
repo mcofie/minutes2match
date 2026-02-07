@@ -54,6 +54,9 @@ declare module "nitropack/types" {
     '/api/referrals/track': {
       'post': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/referrals/track.post').default>>>>
     }
+    '/api/reports': {
+      'post': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/reports.post').default>>>>
+    }
     '/api/send-sms': {
       'post': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/send-sms.post').default>>>>
     }

@@ -12,7 +12,7 @@ interface InitializePaymentBody {
     amount: number // Amount in GHS (cedis)
     callback_url?: string
     metadata?: {
-        purpose: 'event_ticket' | 'match_unlock'
+        purpose: 'event_ticket' | 'match_unlock' | 'subscription'
         userId?: string
         eventId?: string
         matchId?: string
@@ -44,6 +44,76 @@ export default defineEventHandler(async (event) => {
     console.log('[Paystack] Key prefix:', config.paystackSecretKey.substring(0, 10) + '...')
     console.log('[Paystack] Key length:', config.paystackSecretKey.length)
 
+
+    // Check for "First Match Free" or "Active Subscription" eligibility
+    if (body.metadata?.purpose === 'match_unlock' && body.metadata.userId && body.metadata.matchId) {
+        try {
+            const supabaseUrl = config.supabaseUrl
+            const supabaseServiceKey = config.supabaseServiceKey
+            const supabase = createClient(supabaseUrl, supabaseServiceKey, {
+                db: { schema: 'm2m' }
+            })
+
+            // Fetch user profile and subscription status
+            const { data: profile } = await supabase
+                .from('profiles')
+                .select('has_used_free_unlock')
+                .eq('id', body.metadata.userId)
+                .single()
+
+            const { data: subscription } = await supabase
+                .from('subscriptions')
+                .select('status, end_date')
+                .eq('user_id', body.metadata.userId)
+                .eq('status', 'active')
+                .gt('end_date', new Date().toISOString())
+                .maybeSingle()
+
+            // 1. Check Subscription
+            if (subscription) {
+                console.log(`[Paystack] User ${body.metadata.userId} has active subscription. Unlocking match ${body.metadata.matchId} immediately.`)
+                await unlockMatch(body.metadata.matchId, body.metadata.userId)
+                return {
+                    status: true,
+                    message: 'Match unlocked via subscription',
+                    data: {
+                        authorization_url: `${config.public.baseUrl}/me?unlocked=true`, // Redirect back to profile
+                        access_code: 'SUBSCRIPTION_UNLOCK',
+                        reference: `SUB_UNLOCK_${Date.now()}`
+                    },
+                    type: 'subscription_unlock'
+                }
+            }
+
+            // 2. Check First Match Free
+            if (profile && !profile.has_used_free_unlock) {
+                console.log(`[Paystack] User ${body.metadata.userId} using First Match Free. Unlocking match ${body.metadata.matchId} immediately.`)
+
+                // Unlock match
+                await unlockMatch(body.metadata.matchId, body.metadata.userId)
+
+                // Mark free unlock as used
+                await supabase
+                    .from('profiles')
+                    .update({ has_used_free_unlock: true })
+                    .eq('id', body.metadata.userId)
+
+                return {
+                    status: true,
+                    message: 'Match unlocked via free trial',
+                    data: {
+                        authorization_url: `${config.public.baseUrl}/me?unlocked=true`, // Redirect back to profile
+                        access_code: 'FREE_UNLOCK',
+                        reference: `FREE_UNLOCK_${Date.now()}`
+                    },
+                    type: 'free_unlock'
+                }
+            }
+        } catch (error) {
+            console.error('[Paystack] Error checking unlock eligibility:', error)
+            // Continue to normal payment flow if check fails
+        }
+    }
 
     try {
         const response = await $fetch<{
@@ -104,7 +174,7 @@ export default defineEventHandler(async (event) => {
                 currency: 'GHS',
                 provider: 'paystack',
                 provider_ref: paymentData.reference,
-                purpose: body.metadata?.purpose || 'match_unlock',
+                purpose: body.metadata?.purpose || 'match_unlock', // 'subscription' will pass through here if strictly typed in DB constraint? Need to update DB constraint check?
                 status: 'pending',
                 metadata: body.metadata
             })
