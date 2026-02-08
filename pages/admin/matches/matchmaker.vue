@@ -164,8 +164,9 @@
             <div class="auto-match-card__users">
               <!-- User 1 -->
               <div class="auto-match-card__user">
-                <div class="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center font-bold text-sm border border-gray-200">
-                  {{ match.user1.display_name?.charAt(0) }}
+                <div class="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center font-bold text-sm border border-gray-200 overflow-hidden">
+                  <img v-if="match.user1.photo_url" :src="match.user1.photo_url" :alt="match.user1.display_name" class="w-full h-full object-cover" />
+                  <span v-else>{{ match.user1.display_name?.charAt(0) }}</span>
                 </div>
                 <div class="mt-2 text-center">
                   <div class="font-bold text-sm truncate max-w-[90px]">{{ match.user1.display_name }}</div>
@@ -180,8 +181,9 @@
 
               <!-- User 2 -->
               <div class="auto-match-card__user">
-                <div class="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center font-bold text-sm border border-gray-200">
-                  {{ match.user2.display_name?.charAt(0) }}
+                <div class="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center font-bold text-sm border border-gray-200 overflow-hidden">
+                  <img v-if="match.user2.photo_url" :src="match.user2.photo_url" :alt="match.user2.display_name" class="w-full h-full object-cover" />
+                  <span v-else>{{ match.user2.display_name?.charAt(0) }}</span>
                 </div>
                 <div class="mt-2 text-center">
                   <div class="font-bold text-sm truncate max-w-[90px]">{{ match.user2.display_name }}</div>
@@ -285,8 +287,9 @@
               </button>
               
               <div class="flex flex-col items-center text-center">
-                <div class="w-24 h-24 rounded-full bg-black text-white flex items-center justify-center text-3xl font-bold shadow-lg mb-4 ring-4 ring-stone-50">
-                  {{ user1.display_name?.charAt(0) }}
+                <div class="w-24 h-24 rounded-full bg-black text-white flex items-center justify-center text-3xl font-bold shadow-lg mb-4 ring-4 ring-stone-50 overflow-hidden">
+                  <img v-if="user1.photo_url" :src="user1.photo_url" :alt="user1.display_name" class="w-full h-full object-cover" />
+                  <span v-else>{{ user1.display_name?.charAt(0) }}</span>
                 </div>
                 
                 <h3 class="text-xl font-bold text-stone-900 leading-tight mb-1">{{ user1.display_name }}</h3>
@@ -381,8 +384,9 @@
                  <span class="bg-black text-white px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider shadow-sm">Preview</span>
               </div>
               
-              <div class="w-20 h-20 rounded-full flex items-center justify-center mb-4 bg-white border-2 border-dashed border-stone-300 shadow-sm text-2xl font-bold text-stone-400">
-                 {{ hoveredUser.display_name?.charAt(0) }}
+              <div class="w-20 h-20 rounded-full flex items-center justify-center mb-4 bg-white border-2 border-dashed border-stone-300 shadow-sm text-2xl font-bold text-stone-400 overflow-hidden">
+                 <img v-if="hoveredUser.photo_url" :src="hoveredUser.photo_url" :alt="hoveredUser.display_name" class="w-full h-full object-cover" />
+                 <span v-else>{{ hoveredUser.display_name?.charAt(0) }}</span>
               </div>
               
               <h3 class="font-bold text-lg mb-1 text-stone-500">{{ hoveredUser.display_name }}</h3>
@@ -401,8 +405,9 @@
               </button>
               
               <div class="flex flex-col items-center text-center">
-                <div class="w-24 h-24 rounded-full bg-black text-white flex items-center justify-center text-3xl font-bold shadow-lg mb-4 ring-4 ring-stone-50">
-                  {{ user2.display_name?.charAt(0) }}
+                <div class="w-24 h-24 rounded-full bg-black text-white flex items-center justify-center text-3xl font-bold shadow-lg mb-4 ring-4 ring-stone-50 overflow-hidden">
+                  <img v-if="user2.photo_url" :src="user2.photo_url" :alt="user2.display_name" class="w-full h-full object-cover" />
+                  <span v-else>{{ user2.display_name?.charAt(0) }}</span>
                 </div>
                 
                 <h3 class="text-xl font-bold text-stone-900 leading-tight mb-1">{{ user2.display_name }}</h3>
@@ -553,8 +558,9 @@
             </div>
 
             <div class="flex items-center gap-3 mb-2">
-              <div class="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center font-bold text-sm border border-gray-200">
-                {{ user.display_name?.charAt(0) }}
+              <div class="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center font-bold text-sm border border-gray-200 overflow-hidden">
+                <img v-if="user.photo_url" :src="user.photo_url" :alt="user.display_name" class="w-full h-full object-cover" />
+                <span v-else>{{ user.display_name?.charAt(0) }}</span>
               </div>
               <div class="flex-1 min-w-0">
                 <h4 class="font-bold text-sm truncate leading-tight">{{ user.display_name }}</h4>
@@ -622,7 +628,7 @@ const user1 = ref<any>(null)
 const user2 = ref<any>(null)
 const hoveredUser = ref<any>(null)
 const selectingSlot = ref(1)
-const unlockPrice = ref(1) // Testing price - change back to 50 for production
+const unlockPrice = ref(15) // Testing price - change back to 50 for production
 const creating = ref(false)
 const matchError = ref('')
 const matchSuccess = ref('')

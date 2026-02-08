@@ -37,6 +37,7 @@ export interface Database {
                     height_cm: number | null
                     occupation: string | null
                     is_active: boolean
+                    admin_notes: string | null
                     created_at: string
                     updated_at: string
                 }
@@ -77,6 +78,7 @@ export interface Database {
                     height_cm?: number | null
                     occupation?: string | null
                     is_active?: boolean
+                    admin_notes?: string | null
                     updated_at?: string
                 }
             }
