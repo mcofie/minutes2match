@@ -20,6 +20,7 @@ export const EventCard: typeof import("../components/EventCard.vue").default
 export const EventsEmptyState: typeof import("../components/EventsEmptyState.vue").default
 export const LivePulse: typeof import("../components/LivePulse.vue").default
 export const Pagination: typeof import("../components/Pagination.vue").default
+export const ProfileBadges: typeof import("../components/ProfileBadges.vue").default
 export const ReferralCard: typeof import("../components/ReferralCard.vue").default
 export const SubscriptionCard: typeof import("../components/SubscriptionCard.vue").default
 export const UserActivityTimeline: typeof import("../components/UserActivityTimeline.vue").default
@@ -73,6 +74,7 @@ export const LazyEventCard: LazyComponent<typeof import("../components/EventCard
 export const LazyEventsEmptyState: LazyComponent<typeof import("../components/EventsEmptyState.vue").default>
 export const LazyLivePulse: LazyComponent<typeof import("../components/LivePulse.vue").default>
 export const LazyPagination: LazyComponent<typeof import("../components/Pagination.vue").default>
+export const LazyProfileBadges: LazyComponent<typeof import("../components/ProfileBadges.vue").default>
 export const LazyReferralCard: LazyComponent<typeof import("../components/ReferralCard.vue").default>
 export const LazySubscriptionCard: LazyComponent<typeof import("../components/SubscriptionCard.vue").default>
 export const LazyUserActivityTimeline: LazyComponent<typeof import("../components/UserActivityTimeline.vue").default>

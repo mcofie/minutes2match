@@ -61,6 +61,9 @@
             <p class="hidden md:block text-[10px] font-mono font-bold text-rose-500 md:text-rose-400 mt-px uppercase tracking-wider">
               {{ personaData ? `${personaData.emoji} ${personaData.name}` : 'New Member' }}
             </p>
+            
+            <!-- Profile Badges -->
+            <ProfileBadges v-if="profile" :profile="profile" size="xs" :max-display="3" class="hidden md:flex mt-1 justify-end" />
           </div>
           <div 
              class="w-10 h-10 md:w-12 md:h-12 rounded-full border-2 bg-white dark:bg-stone-800 overflow-hidden cursor-pointer hover:scale-105 transition-transform shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.1)] relative"
@@ -241,6 +244,17 @@
                 <p class="text-[10px] font-bold text-stone-400 dark:text-stone-500 uppercase tracking-widest mb-2 border-b border-stone-100 dark:border-stone-800 pb-2 inline-block">Pro Tip</p>
                 <p class="text-xs font-medium text-stone-500 dark:text-stone-400">Profiles with photos get <span class="text-black dark:text-white font-bold">80% more matches</span>.</p>
              </div>
+             
+             <!-- Badges Section -->
+             <div class="bg-white dark:bg-stone-900 p-6 rounded-xl border-2 border-black dark:border-stone-700 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] dark:shadow-[8px_8px_0px_0px_rgba(255,255,255,0.05)]">
+                <h4 class="text-sm font-bold text-black dark:text-white mb-4 flex items-center gap-2">
+                   <span>🏆</span> Your Badges
+                </h4>
+                <ProfileBadges v-if="profile" :profile="profile" size="md" :show-labels="true" :max-display="10" class="flex-wrap gap-2" />
+                <p v-if="!profile?.badges?.length" class="text-xs text-stone-400 dark:text-stone-500">
+                   Complete your profile and attend events to earn badges!
+                </p>
+             </div>
           </div>
 
           <!-- Edit Form -->
@@ -377,53 +391,149 @@
                    >
                       {{ interest.label }}
                    </button>
-                </div>
+              </div>
              </div>
 
-             <!-- Deal Breakers / Age Preferences -->
-             <div class="bg-white dark:bg-stone-900 p-5 md:p-8 rounded-xl border-2 border-black dark:border-stone-700 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] dark:shadow-[8px_8px_0px_0px_rgba(255,255,255,0.05)]">
-                <h3 class="text-2xl font-serif font-bold text-black dark:text-white mb-2">Age Range</h3>
-                <p class="text-[10px] font-bold uppercase tracking-widest text-stone-400 dark:text-stone-500 mb-8">Who do you want to meet?</p>
+             <!-- Dealbreakers Section -->
+             <div class="bg-white dark:bg-stone-900 p-5 md:p-8 rounded-xl border-2 border-rose-200 dark:border-rose-900 shadow-[8px_8px_0px_0px_rgba(244,63,94,0.3)] dark:shadow-[8px_8px_0px_0px_rgba(244,63,94,0.1)]">
+                <div class="flex items-center gap-3 mb-2">
+                   <span class="text-2xl">🚫</span>
+                   <h3 class="text-2xl font-serif font-bold text-black dark:text-white">Dealbreakers</h3>
+                </div>
+                <p class="text-[10px] font-bold uppercase tracking-widest text-stone-400 dark:text-stone-500 mb-8">Set your non-negotiable preferences. We'll filter matches accordingly.</p>
                 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-6">
-                   <div class="space-y-4">
-                      <label class="text-[10px] font-bold uppercase text-stone-500 dark:text-stone-400 tracking-widest">Minimum Age</label>
-                      <div class="flex items-center gap-4">
-                         <input 
-                            type="range" 
-                            v-model.number="editForm.min_age" 
-                            min="18" 
-                            max="60" 
-                            class="flex-1 h-2 bg-stone-100 dark:bg-stone-800 rounded-lg appearance-none cursor-pointer border border-black dark:border-stone-600 accent-black dark:accent-stone-100"
-                         />
-                         <span class="text-2xl font-mono font-bold text-black dark:text-white w-12 text-center">{{ editForm.min_age }}</span>
+                <!-- Age Range -->
+                <div class="mb-8">
+                   <h4 class="text-sm font-bold text-black dark:text-white mb-4 flex items-center gap-2">
+                      <span>📅</span> Age Range
+                   </h4>
+                   <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div class="space-y-3">
+                         <label class="text-[10px] font-bold uppercase text-stone-500 dark:text-stone-400 tracking-widest">Minimum Age</label>
+                         <div class="flex items-center gap-4">
+                            <input 
+                               type="range" 
+                               v-model.number="editForm.min_age" 
+                               min="18" 
+                               max="60" 
+                               class="flex-1 h-2 bg-stone-100 dark:bg-stone-800 rounded-lg appearance-none cursor-pointer border border-black dark:border-stone-600 accent-rose-500"
+                            />
+                            <span class="text-xl font-mono font-bold text-black dark:text-white w-10 text-center">{{ editForm.min_age }}</span>
+                         </div>
                       </div>
-                   </div>
-                   <div class="space-y-4">
-                      <label class="text-[10px] font-bold uppercase text-stone-500 dark:text-stone-400 tracking-widest">Maximum Age</label>
-                      <div class="flex items-center gap-4">
-                         <input 
-                            type="range" 
-                            v-model.number="editForm.max_age" 
-                            min="18" 
-                            max="70" 
-                            class="flex-1 h-2 bg-stone-100 dark:bg-stone-800 rounded-lg appearance-none cursor-pointer border border-black dark:border-stone-600 accent-black dark:accent-stone-100"
-                         />
-                         <span class="text-2xl font-mono font-bold text-black dark:text-white w-12 text-center">{{ editForm.max_age }}</span>
+                      <div class="space-y-3">
+                         <label class="text-[10px] font-bold uppercase text-stone-500 dark:text-stone-400 tracking-widest">Maximum Age</label>
+                         <div class="flex items-center gap-4">
+                            <input 
+                               type="range" 
+                               v-model.number="editForm.max_age" 
+                               min="18" 
+                               max="70" 
+                               class="flex-1 h-2 bg-stone-100 dark:bg-stone-800 rounded-lg appearance-none cursor-pointer border border-black dark:border-stone-600 accent-rose-500"
+                            />
+                            <span class="text-xl font-mono font-bold text-black dark:text-white w-10 text-center">{{ editForm.max_age }}</span>
+                         </div>
                       </div>
                    </div>
                 </div>
                 
-                <!-- Genotype Warning -->
-                <div v-if="editForm.genotype === 'AS'" class="bg-rose-50 dark:bg-rose-950/30 border-2 border-rose-100 dark:border-rose-900 rounded-xl p-4">
-                   <div class="flex items-start gap-4">
-                      <span class="text-rose-500 text-2xl font-bold">⚠️</span>
-                      <div>
-                         <p class="font-bold text-rose-900 dark:text-rose-200 uppercase tracking-widest text-xs mb-1">Genotype Awareness</p>
-                         <p class="text-xs text-rose-800 dark:text-rose-300 leading-relaxed">
-                            You have AS genotype. We'll notify you if a potential match also has AS genotype so you can make informed decisions.
-                         </p>
+                <!-- Genotype Dealbreaker -->
+                <div class="mb-8">
+                   <h4 class="text-sm font-bold text-black dark:text-white mb-4 flex items-center gap-2">
+                      <span>🧬</span> Genotype Compatibility
+                   </h4>
+                   <div class="flex flex-wrap gap-2">
+                      <button 
+                         v-for="gt in ['AA', 'AS', 'AC']" 
+                         :key="gt"
+                         @click="toggleDealbreaker('genotype', gt)"
+                         class="px-4 py-2 rounded-full text-xs font-bold font-mono uppercase tracking-widest transition-all duration-200 border-2"
+                         :class="editForm.dealbreakers.genotype?.includes(gt) 
+                            ? 'bg-rose-500 text-white border-rose-500' 
+                            : 'bg-white dark:bg-stone-950 text-stone-500 dark:text-stone-400 border-stone-200 dark:border-stone-700 hover:border-rose-300 dark:hover:border-rose-800'"
+                      >
+                         {{ gt }}
+                      </button>
+                   </div>
+                   <p class="text-[10px] text-stone-400 dark:text-stone-500 mt-2">Select genotypes you're compatible with. Leave empty to accept all.</p>
+                   
+                   <!-- Genotype Warning -->
+                   <div v-if="editForm.genotype === 'AS' || editForm.genotype === 'SS'" class="mt-4 bg-rose-50 dark:bg-rose-950/30 border-2 border-rose-100 dark:border-rose-900 rounded-xl p-4">
+                      <div class="flex items-start gap-3">
+                         <span class="text-rose-500 text-xl">⚠️</span>
+                         <div>
+                            <p class="font-bold text-rose-900 dark:text-rose-200 uppercase tracking-widest text-[10px] mb-1">Genotype Awareness</p>
+                            <p class="text-xs text-rose-800 dark:text-rose-300 leading-relaxed">
+                               You have {{ editForm.genotype }} genotype. We recommend setting AA as a dealbreaker to avoid potential health complications.
+                            </p>
+                         </div>
                       </div>
+                   </div>
+                </div>
+                
+                <!-- Intent Dealbreaker -->
+                <div class="mb-8">
+                   <h4 class="text-sm font-bold text-black dark:text-white mb-4 flex items-center gap-2">
+                      <span>💍</span> Relationship Intent
+                   </h4>
+                   <div class="flex flex-wrap gap-2">
+                      <button 
+                         v-for="intent in [
+                            { id: 'marriage', label: 'Marriage' },
+                            { id: 'serious', label: 'Serious' },
+                            { id: 'casual', label: 'Casual' },
+                            { id: 'friendship', label: 'Friendship' }
+                         ]" 
+                         :key="intent.id"
+                         @click="toggleDealbreaker('intent', intent.id)"
+                         class="px-4 py-2 rounded-full text-xs font-bold uppercase tracking-widest transition-all duration-200 border-2"
+                         :class="editForm.dealbreakers.intent?.includes(intent.id) 
+                            ? 'bg-rose-500 text-white border-rose-500' 
+                            : 'bg-white dark:bg-stone-950 text-stone-500 dark:text-stone-400 border-stone-200 dark:border-stone-700 hover:border-rose-300 dark:hover:border-rose-800'"
+                      >
+                         {{ intent.label }}
+                      </button>
+                   </div>
+                   <p class="text-[10px] text-stone-400 dark:text-stone-500 mt-2">Only match with people looking for these types of relationships.</p>
+                </div>
+                
+                <!-- Religion Dealbreaker -->
+                <div>
+                   <h4 class="text-sm font-bold text-black dark:text-white mb-4 flex items-center gap-2">
+                      <span>🙏</span> Religion
+                   </h4>
+                   <div class="flex flex-wrap gap-2">
+                      <button 
+                         v-for="religion in ['Christian', 'Muslim', 'Traditional', 'Other']" 
+                         :key="religion"
+                         @click="toggleDealbreaker('religion', religion)"
+                         class="px-4 py-2 rounded-full text-xs font-bold uppercase tracking-widest transition-all duration-200 border-2"
+                         :class="editForm.dealbreakers.religion?.includes(religion) 
+                            ? 'bg-rose-500 text-white border-rose-500' 
+                            : 'bg-white dark:bg-stone-950 text-stone-500 dark:text-stone-400 border-stone-200 dark:border-stone-700 hover:border-rose-300 dark:hover:border-rose-800'"
+                      >
+                         {{ religion }}
+                      </button>
+                   </div>
+                   <p class="text-[10px] text-stone-400 dark:text-stone-500 mt-2">Only match with people of these religions. Leave empty for no preference.</p>
+                </div>
+                
+                <!-- Summary -->
+                <div v-if="hasActiveDealbreakers" class="mt-6 p-4 bg-rose-50 dark:bg-rose-950/20 border border-rose-200 dark:border-rose-900 rounded-xl">
+                   <p class="text-[10px] font-bold uppercase tracking-widest text-rose-600 dark:text-rose-400 mb-2">Active Dealbreakers</p>
+                   <div class="flex flex-wrap gap-1">
+                      <span v-if="editForm.min_age !== 18 || editForm.max_age !== 50" class="px-2 py-1 bg-rose-100 dark:bg-rose-900/50 text-rose-700 dark:text-rose-300 rounded text-[10px] font-bold">
+                         Age: {{ editForm.min_age }}-{{ editForm.max_age }}
+                      </span>
+                      <span v-for="gt in (editForm.dealbreakers.genotype || [])" :key="'gt-'+gt" class="px-2 py-1 bg-rose-100 dark:bg-rose-900/50 text-rose-700 dark:text-rose-300 rounded text-[10px] font-bold font-mono">
+                         {{ gt }}
+                      </span>
+                      <span v-for="intent in (editForm.dealbreakers.intent || [])" :key="'int-'+intent" class="px-2 py-1 bg-rose-100 dark:bg-rose-900/50 text-rose-700 dark:text-rose-300 rounded text-[10px] font-bold">
+                         {{ intent }}
+                      </span>
+                      <span v-for="religion in (editForm.dealbreakers.religion || [])" :key="'rel-'+religion" class="px-2 py-1 bg-rose-100 dark:bg-rose-900/50 text-rose-700 dark:text-rose-300 rounded text-[10px] font-bold">
+                         {{ religion }}
+                      </span>
                    </div>
                 </div>
              </div>
@@ -701,7 +811,13 @@ const editForm = reactive({
   min_age: 18 as number,
   max_age: 50 as number,
   interests: [] as string[],
-  is_active: true
+  is_active: true,
+  // Dealbreakers
+  dealbreakers: {
+    genotype: [] as string[],
+    intent: [] as string[],
+    religion: [] as string[]
+  }
 })
 
 // Available interests for selection
@@ -741,6 +857,31 @@ const toggleInterest = (interestId: string) => {
   // Reassign to trigger reactivity
   editForm.interests = currentInterests
 }
+
+// Toggle dealbreaker selection
+const toggleDealbreaker = (category: 'genotype' | 'intent' | 'religion', value: string) => {
+  const current = [...(editForm.dealbreakers[category] || [])]
+  const index = current.indexOf(value)
+  
+  if (index === -1) {
+    current.push(value)
+  } else {
+    current.splice(index, 1)
+  }
+  
+  editForm.dealbreakers[category] = current
+}
+
+// Check if any dealbreakers are active
+const hasActiveDealbreakers = computed(() => {
+  return (
+    editForm.min_age !== 18 ||
+    editForm.max_age !== 50 ||
+    (editForm.dealbreakers.genotype?.length || 0) > 0 ||
+    (editForm.dealbreakers.intent?.length || 0) > 0 ||
+    (editForm.dealbreakers.religion?.length || 0) > 0
+  )
+})
 
 const saving = ref(false)
 const saveSuccess = ref(false)
@@ -924,7 +1065,9 @@ const saveProfile = async () => {
         about_me: editForm.about_me || null,
         min_age: editForm.min_age,
         max_age: editForm.max_age,
-        interests: editForm.interests
+        interests: editForm.interests,
+        // Dealbreakers
+        dealbreakers: editForm.dealbreakers
       } as any)
       .eq('id', currentUserId.value)
     
@@ -1370,6 +1513,13 @@ const fetchProfileById = async (userId: string) => {
       editForm.max_age = data.max_age || 50
       editForm.interests = [...(data.interests || [])]
       editForm.is_active = data.is_active !== false // Default to true if not set
+      // Dealbreakers
+      const db = data.dealbreakers || {}
+      editForm.dealbreakers = {
+        genotype: db.genotype || [],
+        intent: db.intent || [],
+        religion: db.religion || []
+      }
     }
   } catch (err) {
     console.error('[Profile] Exception:', err)

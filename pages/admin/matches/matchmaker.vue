@@ -157,7 +157,7 @@
 
             <!-- Checkbox -->
             <div class="auto-match-card__check">
-              <input type="checkbox" :checked="isAutoMatchSelected(match)" @click.stop class="w-5 h-5 accent-black rounded" />
+              <input type="checkbox" :checked="isAutoMatchSelected(match)" @change="toggleAutoMatchSelection(match)" @click.stop class="w-5 h-5 accent-black rounded" />
             </div>
 
             <!-- Users -->
@@ -171,6 +171,7 @@
                 <div class="mt-2 text-center">
                   <div class="font-bold text-sm truncate max-w-[90px]">{{ match.user1.display_name }}</div>
                   <div class="text-[10px] text-muted font-mono uppercase">{{ match.user1.gender?.substring(0,1) }} • {{ getAge(match.user1.birth_date) }}</div>
+                  <ProfileBadges :profile="match.user1" size="xs" :max-display="2" class="mt-1 justify-center" />
                 </div>
               </div>
 
@@ -188,6 +189,7 @@
                 <div class="mt-2 text-center">
                   <div class="font-bold text-sm truncate max-w-[90px]">{{ match.user2.display_name }}</div>
                   <div class="text-[10px] text-muted font-mono uppercase">{{ match.user2.gender?.substring(0,1) }} • {{ getAge(match.user2.birth_date) }}</div>
+                  <ProfileBadges :profile="match.user2" size="xs" :max-display="2" class="mt-1 justify-center" />
                 </div>
               </div>
             </div>
@@ -601,6 +603,59 @@
         </div>
       </div>
     </div>
+    <!-- Success Modal -->
+    <Teleport to="body">
+      <Transition name="fade">
+        <div v-if="showSuccessModal" class="fixed inset-0 z-[100] flex items-center justify-center p-4" @click="closeSuccessModal">
+          <!-- Backdrop -->
+          <div class="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity"></div>
+          
+          <!-- Modal Content -->
+          <div class="bg-white rounded-3xl shadow-2xl max-w-sm w-full p-8 text-center relative overflow-hidden transform transition-all z-10" @click.stop>
+            
+            <!-- Confetti Gradient Strip -->
+            <div class="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500"></div>
+
+            <!-- Success Icon Animation -->
+            <div class="mx-auto flex items-center justify-center h-20 w-20 rounded-full bg-green-50 mb-5 relative group">
+              <div class="absolute inset-0 bg-green-100 rounded-full animate-ping opacity-20"></div>
+              <svg class="w-10 h-10 text-green-600 relative z-10" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M20 6L9 17l-5-5"></path>
+              </svg>
+            </div>
+            
+            <h3 class="text-2xl font-black text-gray-900 mb-2 tracking-tight">Match Created!</h3>
+            <p class="text-gray-500 text-sm mb-8 leading-relaxed">
+              These two users have been successfully paired. An SMS notification has been sent.
+            </p>
+
+            <!-- User Comparison Visual -->
+            <div class="flex items-center justify-center gap-3 mb-8 bg-gray-50 p-4 rounded-2xl border border-gray-100">
+              <div class="flex flex-col items-center gap-2 flex-1 min-w-0">
+                <img :src="successModalData.user1_photo || 'https://placehold.co/100'" class="w-14 h-14 rounded-full object-cover border-2 border-white shadow-md bg-gray-200" />
+                <span class="text-xs font-bold truncate w-full px-1 text-gray-700">{{ successModalData.user1_name.split(' ')[0] }}</span>
+              </div>
+              
+               <div class="flex flex-col items-center justify-center z-10 -mx-2">
+                 <div class="w-10 h-10 rounded-full bg-white border-2 border-pink-100 flex items-center justify-center text-pink-600 font-bold text-xs shadow-sm transform rotate-12">
+                   {{ successModalData.score }}%
+                 </div>
+               </div>
+
+              <div class="flex flex-col items-center gap-2 flex-1 min-w-0">
+                <img :src="successModalData.user2_photo || 'https://placehold.co/100'" class="w-14 h-14 rounded-full object-cover border-2 border-white shadow-md bg-gray-200" />
+                <span class="text-xs font-bold truncate w-full px-1 text-gray-700">{{ successModalData.user2_name.split(' ')[0] }}</span>
+              </div>
+            </div>
+
+            <button @click="closeSuccessModal" class="w-full py-3.5 bg-gray-900 text-white font-bold rounded-xl hover:bg-black transition-all transform active:scale-[0.98] shadow-lg hover:shadow-xl flex items-center justify-center gap-2 group">
+              <span>Continue Matching</span>
+              <svg class="w-4 h-4 text-gray-400 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+            </button>
+          </div>
+        </div>
+      </Transition>
+    </Teleport>
   </div>
 </template>
 
@@ -788,12 +843,62 @@ const calculateMatchScore = (u1: any, u2: any) => {
     return { score: 0, reasons: [], warnings: ['Gender Mismatch'] }
   }
   
+  // 2. DEALBREAKER CHECKS (New - Filter based on user preferences)
+  const u1Dealbreakers = u1.dealbreakers || {}
+  const u2Dealbreakers = u2.dealbreakers || {}
+  const age1 = getAge(u1.birth_date)
+  const age2 = getAge(u2.birth_date)
+  
+  // Check U1's dealbreakers against U2
+  if (u1Dealbreakers.genotype?.length > 0 && u2.genotype) {
+    if (!u1Dealbreakers.genotype.includes(u2.genotype)) {
+      return { score: 0, reasons: [], warnings: ['Dealbreaker: Genotype'] }
+    }
+  }
+  if (u1Dealbreakers.intent?.length > 0 && u2.intent) {
+    if (!u1Dealbreakers.intent.includes(u2.intent)) {
+      return { score: 0, reasons: [], warnings: ['Dealbreaker: Intent'] }
+    }
+  }
+  if (u1Dealbreakers.religion?.length > 0 && u2.religion) {
+    if (!u1Dealbreakers.religion.includes(u2.religion)) {
+      return { score: 0, reasons: [], warnings: ['Dealbreaker: Religion'] }
+    }
+  }
+  // Age range dealbreakers (user1's preferred age range)
+  if (u1.min_age && u1.max_age) {
+    if (age2 < u1.min_age || age2 > u1.max_age) {
+      return { score: 0, reasons: [], warnings: ['Dealbreaker: Age Range'] }
+    }
+  }
+  
+  // Check U2's dealbreakers against U1
+  if (u2Dealbreakers.genotype?.length > 0 && u1.genotype) {
+    if (!u2Dealbreakers.genotype.includes(u1.genotype)) {
+      return { score: 0, reasons: [], warnings: ['Dealbreaker: Genotype'] }
+    }
+  }
+  if (u2Dealbreakers.intent?.length > 0 && u1.intent) {
+    if (!u2Dealbreakers.intent.includes(u1.intent)) {
+      return { score: 0, reasons: [], warnings: ['Dealbreaker: Intent'] }
+    }
+  }
+  if (u2Dealbreakers.religion?.length > 0 && u1.religion) {
+    if (!u2Dealbreakers.religion.includes(u1.religion)) {
+      return { score: 0, reasons: [], warnings: ['Dealbreaker: Religion'] }
+    }
+  }
+  // Age range dealbreakers (user2's preferred age range)
+  if (u2.min_age && u2.max_age) {
+    if (age1 < u2.min_age || age1 > u2.max_age) {
+      return { score: 0, reasons: [], warnings: ['Dealbreaker: Age Range'] }
+    }
+  }
+  
   // Opposite gender bonus
   if (u1.gender !== u2.gender) score += 15
   
-  // 2. Age Rule
-  const age1 = getAge(u1.birth_date)
-  const age2 = getAge(u2.birth_date)
+  // 3. Age Rule
   const gap = Math.abs(age1 - age2)
   if (gap <= 3) { score += 10; reasons.push('Close Age') }
   else if (gap <= 7) { score += 5 }
@@ -986,18 +1091,57 @@ const isAutoMatchSelected = (match: any) => {
 }
 
 const toggleAutoMatchSelection = (match: any) => {
-  const idx = selectedAutoMatches.value.findIndex(
+  const isSelected = selectedAutoMatches.value.some(
     m => m.user1.id === match.user1.id && m.user2.id === match.user2.id
   )
-  if (idx >= 0) {
-    selectedAutoMatches.value.splice(idx, 1)
+  
+  if (isSelected) {
+    // Deselect if already selected
+    selectedAutoMatches.value = selectedAutoMatches.value.filter(
+      m => !(m.user1.id === match.user1.id && m.user2.id === match.user2.id)
+    )
   } else {
-    selectedAutoMatches.value.push(match)
+    // Select this match AND remove any conflicting matches
+    // (i.e. if user1 or user2 is already involved in another selected match)
+    const u1Id = match.user1.id
+    const u2Id = match.user2.id
+    
+    // Filter out conflicts from existing selection
+    const nonConflicting = selectedAutoMatches.value.filter(m => {
+       const m1 = m.user1.id
+       const m2 = m.user2.id
+       // Check if either user in existing match overlaps with new match
+       const conflict = (m1 === u1Id || m1 === u2Id || m2 === u1Id || m2 === u2Id)
+       return !conflict
+    })
+    
+    // Add new match
+    selectedAutoMatches.value = [...nonConflicting, match]
   }
 }
 
 const selectAllHigh = () => {
-  selectedAutoMatches.value = autoMatches.value.filter(m => m.score >= 70 && !m.warnings.length)
+  // Greedy selection: Take highest scoring matches first, skipping any that create conflicts
+  const candidates = [...autoMatches.value]
+    .filter(m => m.score >= 70 && !m.warnings.length)
+    .sort((a, b) => b.score - a.score) 
+    
+  const selected: any[] = []
+  const usedUsers = new Set<string>()
+  
+  for (const match of candidates) {
+    const u1 = match.user1.id
+    const u2 = match.user2.id
+    
+    // Only select if neither user is already taken in this batch
+    if (!usedUsers.has(u1) && !usedUsers.has(u2)) {
+      selected.push(match)
+      usedUsers.add(u1)
+      usedUsers.add(u2)
+    }
+  }
+  
+  selectedAutoMatches.value = selected
 }
 
 const createBulkMatches = async () => {
@@ -1013,7 +1157,10 @@ const createBulkMatches = async () => {
       user_2_id: m.user2.id,
       unlock_price: unlockPrice.value,
       created_by: currentUser.value?.id,
-      status: 'pending_payment'
+      status: 'pending_payment',
+      match_score: m.score,
+      match_reasons: m.reasons || [],
+      match_warnings: m.warnings || []
     }))
     
     const { error } = await supabase
@@ -1142,6 +1289,21 @@ const isDisabled = (user: any) => {
   return false
 }
 
+const showSuccessModal = ref(false)
+const successModalData = ref({ 
+  user1_name: '', 
+  user2_name: '', 
+  score: 0,
+  user1_photo: null as string | null,
+  user2_photo: null as string | null
+})
+
+const closeSuccessModal = () => {
+  showSuccessModal.value = false
+  user2.value = null
+  matchSuccess.value = ''
+}
+
 const createMatch = async () => {
   if (!user1.value || !user2.value) return
   
@@ -1150,6 +1312,9 @@ const createMatch = async () => {
   matchSuccess.value = ''
   
   try {
+    // Calculate score for manual match
+    const scoreResult = calculateMatchScore(user1.value, user2.value)
+    
     const { error } = await (supabase
       .from('matches') as any)
       .insert({
@@ -1157,32 +1322,46 @@ const createMatch = async () => {
         user_2_id: user2.value.id,
         unlock_price: unlockPrice.value,
         created_by: currentUser.value?.id,
-        status: 'pending_payment'
+        status: 'pending_payment',
+        match_score: scoreResult.score,
+        match_reasons: scoreResult.reasons || [],
+        match_warnings: scoreResult.warnings || []
       })
     
     if (error) throw error
     
     // Send SMS Notification via Hubtel
-    // We can do this in a Supabase Edge Function ideally, but client-side for now
     const { sendSMS } = useHubtel()
     const msg = `Great news! You've been matched on Minutes 2 Match! Log in to see who it is and unlock their profile. - M2Match`
     
-    // Fire and forget SMS
     if (user1.value.phone) sendSMS(user1.value.phone, msg)
     if (user2.value.phone) sendSMS(user2.value.phone, msg)
     
-    matchSuccess.value = `Match created successfully! SMS notifications sent.`
+    matchSuccess.value = `Match created successfully!`
     
     // Update local existing matches
     existingMatches.value.add(`${user1.value.id}-${user2.value.id}`)
     existingMatches.value.add(`${user2.value.id}-${user1.value.id}`)
     
-    // Reset slot 2 after a brief delay for visual feedback
+    // Show Success Modal
+    successModalData.value = {
+      user1_name: user1.value.display_name,
+      user2_name: user2.value.display_name,
+      score: scoreResult.score,
+      user1_photo: user1.value.photo_url,
+      user2_photo: user2.value.photo_url
+    }
+    showSuccessModal.value = true
+    
+    // Auto-close after 3 seconds if not interacted
     setTimeout(() => {
-      user2.value = null
-      matchSuccess.value = ''
-      // matchData is computed and will auto-reset when user2 becomes null
-    }, 2000)
+      if (showSuccessModal.value) {
+        // closeSuccessModal() // Optional: auto close?
+        // Let's just reset the form behind the scenes or leave it providing current context?
+        // Better to wait for user to close.
+      }
+    }, 3000)
+
   } catch (err: any) {
     if (err.code === '23505') {
       matchError.value = 'This match already exists.'
@@ -1894,5 +2073,16 @@ const createMatch = async () => {
   font-size: 0.625rem;
   padding: 0.125rem 0.5rem;
   border-radius: 999px;
+}
+
+/* Transitions */
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.3s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
 }
 </style>

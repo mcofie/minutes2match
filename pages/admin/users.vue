@@ -106,6 +106,13 @@
               <div class="flex items-center gap-2">
                 <button class="btn-secondary btn-sm" @click="viewUser(user)">View Details</button>
                 <button class="btn-primary btn-sm" @click="selectForMatch(user)" title="Add to match">Match</button>
+                <button 
+                  class="p-1 text-stone-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
+                  @click="deleteUser(user)"
+                  title="Delete User"
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                </button>
               </div>
             </td>
           </tr>
@@ -180,6 +187,9 @@
                   <span class="persona-chip__emoji" v-html="getPersonaIcon(selectedUser.dating_persona)"></span>
                   <span class="persona-chip__name">{{ getPersona(selectedUser.dating_persona)?.name }}</span>
                 </div>
+                
+                <!-- Profile Badges -->
+                <ProfileBadges :profile="selectedUser" size="sm" :max-display="4" />
               </div>
             </div>
             <button class="modal__close" @click="closeModal">×</button>
@@ -419,6 +429,41 @@
                     </div>
                   </div>
                 </div>
+
+                <!-- Badge Management Card -->
+                <div class="info-card info-card--full">
+                  <h4 class="info-card__title">
+                    <svg class="card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <circle cx="12" cy="8" r="7"/>
+                      <polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/>
+                    </svg>
+                    Badge Management
+                  </h4>
+                  <div class="badges-grid">
+                    <button 
+                      v-for="badge in allBadges" 
+                      :key="badge.id"
+                      @click="toggleBadge(badge.id)"
+                      class="badge-toggle"
+                      :class="{ 'badge-toggle--active': userHasBadge(badge.id) }"
+                      :style="userHasBadge(badge.id) ? { backgroundColor: badge.color, color: badge.textColor } : {}"
+                    >
+                      <span class="badge-toggle__icon" v-html="badge.icon"></span>
+                      <span class="badge-toggle__name">{{ badge.name }}</span>
+                      <span class="badge-toggle__status">{{ userHasBadge(badge.id) ? '✓' : '+' }}</span>
+                    </button>
+                  </div>
+                  <div class="badge-actions">
+                    <button 
+                      class="btn btn--primary btn--sm"
+                      :disabled="savingBadges"
+                      @click="saveBadges"
+                    >
+                      {{ savingBadges ? 'Saving...' : 'Save Badges' }}
+                    </button>
+                    <span v-if="badgeSaveSuccess" class="save-success">✓ Badges updated</span>
+                  </div>
+                </div>
               </div>
 
               <!-- Persona Description -->
@@ -579,6 +624,14 @@ const showImagePreview = ref(false)
 const previewImageUrl = ref('')
 const adminNotes = ref('')
 const notesSaved = ref(false)
+
+// Badge Management
+const { badges: badgeDefinitions } = useBadges()
+const allBadges = computed(() => Object.values(badgeDefinitions))
+const userBadges = ref<string[]>([])
+const savingBadges = ref(false)
+const badgeSaveSuccess = ref(false)
+
 const suggestedMatches = ref<any[]>([])
 const loadingSuggestions = ref(false)
 
@@ -668,8 +721,8 @@ const toggleSelectAll = () => {
 const bulkVerify = async () => {
   if (!confirm(`Verify ${selectedIds.value.length} users?`)) return
   
-  const { error } = await supabase
-    .from('profiles')
+  const { error } = await (supabase
+    .from('profiles') as any)
     .update({ is_verified: true })
     .in('id', selectedIds.value)
 
@@ -690,6 +743,26 @@ const bulkDelete = async () => {
   if (!error) {
     fetchUsers()
     selectedIds.value = []
+  }
+}
+
+const deleteUser = async (user: any) => {
+  if (!confirm(`Are you sure you want to permanently delete user "${user.display_name || 'Anonymous'}"? This action cannot be undone.`)) return
+
+  try {
+    await $fetch(`/api/admin/users/${user.id}`, { method: 'DELETE' })
+    
+    // Remove from local list
+    users.value = users.value.filter(u => u.id !== user.id)
+    totalUsers.value--
+    
+    // If deleted from modal, close modal
+    if (selectedUser.value && selectedUser.value.id === user.id) {
+      closeModal()
+    }
+  } catch (err: any) {
+    console.error('Failed to delete user:', err)
+    alert(`Failed to delete user: ${err.message || 'Unknown error'}`)
   }
 }
 
@@ -807,6 +880,10 @@ const viewUser = async (user: any) => {
   adminNotes.value = user.admin_notes || ''
   notesSaved.value = false
   
+  // Set Badges
+  userBadges.value = [...(user.badges || [])]
+  badgeSaveSuccess.value = false
+  
   // Fetch Suggestions
   fetchSuggestions(user)
 
@@ -864,14 +941,74 @@ const saveAdminNotes = async () => {
   // Optimistic update
   selectedUser.value.admin_notes = adminNotes.value
   
-  const { error } = await supabase
-    .from('profiles')
+  const { error } = await (supabase
+    .from('profiles') as any)
     .update({ admin_notes: adminNotes.value })
     .eq('id', selectedUser.value.id)
     
   if (!error) {
     notesSaved.value = true
     setTimeout(() => { notesSaved.value = false }, 2000)
+  }
+}
+
+// Badge Management Functions
+const userHasBadge = (badgeId: string): boolean => {
+  return userBadges.value.includes(badgeId)
+}
+
+const toggleBadge = (badgeId: string) => {
+  if (userHasBadge(badgeId)) {
+    userBadges.value = userBadges.value.filter(b => b !== badgeId)
+  } else {
+    userBadges.value = [...userBadges.value, badgeId]
+  }
+}
+
+const saveBadges = async () => {
+  if (!selectedUser.value) return
+  
+  savingBadges.value = true
+  badgeSaveSuccess.value = false
+  
+  const oldBadges = selectedUser.value.badges || []
+  const newBadges = userBadges.value.filter(b => !oldBadges.includes(b))
+  
+  try {
+    // Update badges in database
+    const { error } = await (supabase
+      .from('profiles') as any)
+      .update({ badges: userBadges.value })
+      .eq('id', selectedUser.value.id)
+    
+    if (error) throw error
+    
+    // Update local state
+    selectedUser.value.badges = [...userBadges.value]
+    
+    // Create notifications for new badges
+    if (newBadges.length > 0) {
+      for (const badgeId of newBadges) {
+        const badge = badgeDefinitions[badgeId]
+        if (badge) {
+          await (supabase.from('notifications') as any).insert({
+            user_id: selectedUser.value.id,
+            type: 'badge_earned',
+            title: `You earned a badge! 🏆`,
+            message: `Congratulations! You've earned the "${badge.name}" badge: ${badge.description}`,
+            data: { badge_id: badgeId },
+            read: false
+          })
+        }
+      }
+    }
+    
+    badgeSaveSuccess.value = true
+    setTimeout(() => { badgeSaveSuccess.value = false }, 3000)
+  } catch (err) {
+    console.error('Error saving badges:', err)
+  } finally {
+    savingBadges.value = false
   }
 }
 
@@ -894,7 +1031,7 @@ const fetchSuggestions = async (user: any) => {
     
   if (data) {
     // Add fake match score for demo/ MVP
-    suggestedMatches.value = data.map(m => ({
+    suggestedMatches.value = (data as any[]).map(m => ({
       ...m,
       match_score: Math.floor(Math.random() * (98 - 75) + 75) // Random 75-98%
     }))
@@ -2021,6 +2158,75 @@ onMounted(() => {
   color: #1E40AF;
   border-radius: 9999px;
   font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+/* Badge Management */
+.badges-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.badge-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  background: #F9FAFB;
+  border: 2px solid #E5E7EB;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.badge-toggle:hover {
+  border-color: #D1D5DB;
+  background: #F3F4F6;
+}
+
+.badge-toggle--active {
+  border-color: currentColor;
+}
+
+.badge-toggle__icon {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+.badge-toggle__icon svg {
+  width: 100%;
+  height: 100%;
+}
+
+.badge-toggle__name {
+  flex: 1;
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.badge-toggle__status {
+  flex-shrink: 0;
+  font-weight: 700;
+}
+
+.badge-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid #E5E7EB;
+}
+
+.save-success {
+  color: #059669;
+  font-size: 0.75rem;
   font-weight: 600;
 }
 </style>

@@ -38,6 +38,11 @@ export interface Database {
                     occupation: string | null
                     is_active: boolean
                     admin_notes: string | null
+                    dealbreakers: Json | null
+                    badges: string[] | null
+                    min_age: number | null
+                    max_age: number | null
+                    events_attended: number
                     created_at: string
                     updated_at: string
                 }
@@ -58,6 +63,11 @@ export interface Database {
                     height_cm?: number | null
                     occupation?: string | null
                     is_active?: boolean
+                    dealbreakers?: Json | null
+                    badges?: string[] | null
+                    min_age?: number | null
+                    max_age?: number | null
+                    events_attended?: number
                     created_at?: string
                     updated_at?: string
                 }
@@ -79,6 +89,11 @@ export interface Database {
                     occupation?: string | null
                     is_active?: boolean
                     admin_notes?: string | null
+                    dealbreakers?: Json | null
+                    badges?: string[] | null
+                    min_age?: number | null
+                    max_age?: number | null
+                    events_attended?: number
                     updated_at?: string
                 }
             }
