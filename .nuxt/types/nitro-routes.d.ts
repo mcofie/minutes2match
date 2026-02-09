@@ -33,6 +33,9 @@ declare module "nitropack/types" {
     '/api/auth/signup': {
       'post': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/auth/signup.post').default>>>>
     }
+    '/api/cron/auto-match': {
+      'get': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/cron/auto-match.get').default>>>>
+    }
     '/api/cron/match-expiration-reminder': {
       'get': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/cron/match-expiration-reminder.get').default>>>>
     }

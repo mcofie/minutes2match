@@ -895,10 +895,28 @@ const calculateMatchScore = (u1: any, u2: any) => {
     }
   }
   
+  // 3. AGE RULE - Male's age must be >= female's age
+  // This is a core matching requirement
+  if (u1.gender !== u2.gender) {
+    let maleAge: number, femaleAge: number
+    if (u1.gender === 'male' && u2.gender === 'female') {
+      maleAge = age1
+      femaleAge = age2
+    } else {
+      maleAge = age2
+      femaleAge = age1
+    }
+    
+    if (maleAge < femaleAge) {
+      // Male is younger than female - not a valid match
+      return { score: 0, reasons: [], warnings: ['Age Rule: Male must be older or same age'] }
+    }
+  }
+  
   // Opposite gender bonus
   if (u1.gender !== u2.gender) score += 15
   
-  // 3. Age Rule
+  // Age gap scoring
   const gap = Math.abs(age1 - age2)
   if (gap <= 3) { score += 10; reasons.push('Close Age') }
   else if (gap <= 7) { score += 5 }
