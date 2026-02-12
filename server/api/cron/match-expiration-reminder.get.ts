@@ -22,14 +22,15 @@ export default defineEventHandler(async (event) => {
     // Original variables removed, using direct access with fallbacks
     // and adding the Database type for better type safety.
     const supabase = createClient<M2MDatabase, 'm2m'>(
-        process.env.SUPABASE_URL || '',
+        config.supabaseUrl || process.env.SUPABASE_URL || '',
         config.supabaseServiceKey || '',
         { db: { schema: 'm2m' } }
     )
 
     // Re-adding the check for missing keys, adapted for the new direct access
-    if (!process.env.SUPABASE_URL || !config.supabaseServiceKey) {
-        throw createError({ statusCode: 500, message: 'Server configuration error: SUPABASE_URL or SUPABASE_SERVICE_KEY missing' })
+    const supabaseUrl = config.supabaseUrl || process.env.SUPABASE_URL
+    if (!supabaseUrl || !config.supabaseServiceKey) {
+        throw createError({ statusCode: 500, statusMessage: 'Server configuration error: SUPABASE_URL or SUPABASE_SERVICE_KEY missing' })
     }
 
     console.log('[Cron] Running match expiration reminder job...')

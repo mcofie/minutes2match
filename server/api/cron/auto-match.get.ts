@@ -209,32 +209,40 @@ function calculateMatchScore(
     }
 
     // 2. DEALBREAKER CHECKS
-    const u1Dealbreakers = u1.dealbreakers || {}
-    const u2Dealbreakers = u2.dealbreakers || {}
+    const parseDealbreakers = (db: any) => {
+        if (!db) return {}
+        if (typeof db === 'string') {
+            try { return JSON.parse(db) } catch (e) { return {} }
+        }
+        return db
+    }
+
+    const u1Dealbreakers = parseDealbreakers(u1.dealbreakers)
+    const u2Dealbreakers = parseDealbreakers(u2.dealbreakers)
     const age1 = u1.birth_date ? calculateAge(u1.birth_date) : 25
     const age2 = u2.birth_date ? calculateAge(u2.birth_date) : 25
 
     // Check genotype dealbreakers
-    if (u1Dealbreakers.genotype?.length && u2.genotype && !u1Dealbreakers.genotype.includes(u2.genotype)) {
+    if (Array.isArray(u1Dealbreakers.genotype) && u2.genotype && !u1Dealbreakers.genotype.includes(u2.genotype)) {
         return { score: 0, reasons: [], warnings: ['Dealbreaker: Genotype'] }
     }
-    if (u2Dealbreakers.genotype?.length && u1.genotype && !u2Dealbreakers.genotype.includes(u1.genotype)) {
+    if (Array.isArray(u2Dealbreakers.genotype) && u1.genotype && !u2Dealbreakers.genotype.includes(u1.genotype)) {
         return { score: 0, reasons: [], warnings: ['Dealbreaker: Genotype'] }
     }
 
     // Check intent dealbreakers
-    if (u1Dealbreakers.intent?.length && u2.intent && !u1Dealbreakers.intent.includes(u2.intent)) {
+    if (Array.isArray(u1Dealbreakers.intent) && u2.intent && !u1Dealbreakers.intent.includes(u2.intent)) {
         return { score: 0, reasons: [], warnings: ['Dealbreaker: Intent'] }
     }
-    if (u2Dealbreakers.intent?.length && u1.intent && !u2Dealbreakers.intent.includes(u1.intent)) {
+    if (Array.isArray(u2Dealbreakers.intent) && u1.intent && !u2Dealbreakers.intent.includes(u1.intent)) {
         return { score: 0, reasons: [], warnings: ['Dealbreaker: Intent'] }
     }
 
     // Check religion dealbreakers
-    if (u1Dealbreakers.religion?.length && u2.religion && !u1Dealbreakers.religion.includes(u2.religion)) {
+    if (Array.isArray(u1Dealbreakers.religion) && u2.religion && !u1Dealbreakers.religion.includes(u2.religion)) {
         return { score: 0, reasons: [], warnings: ['Dealbreaker: Religion'] }
     }
-    if (u2Dealbreakers.religion?.length && u1.religion && !u2Dealbreakers.religion.includes(u1.religion)) {
+    if (Array.isArray(u2Dealbreakers.religion) && u1.religion && !u2Dealbreakers.religion.includes(u1.religion)) {
         return { score: 0, reasons: [], warnings: ['Dealbreaker: Religion'] }
     }
 
@@ -374,17 +382,17 @@ export default defineEventHandler(async (event) => {
     const authHeader = getHeader(event, 'authorization')
     if (authHeader !== `Bearer ${config.cronSecret}`) {
         console.log('[AutoMatch Cron] Unauthorized access attempt')
-        throw createError({ statusCode: 401, message: 'Unauthorized' })
+        throw createError({ statusCode: 401, statusMessage: 'Unauthorized' })
     }
 
-    const supabaseUrl = process.env.SUPABASE_URL
+    const supabaseUrl = config.supabaseUrl || process.env.SUPABASE_URL
     const supabaseServiceKey = config.supabaseServiceKey
 
     if (!supabaseUrl || !supabaseServiceKey) {
         throw createError({ statusCode: 500, message: 'Server configuration error' })
     }
 
-    const supabase = createClient(supabaseUrl, supabaseServiceKey, {
+    const supabase = createClient<any, 'm2m'>(supabaseUrl, supabaseServiceKey, {
         db: { schema: 'm2m' }
     })
 
@@ -441,38 +449,66 @@ export default defineEventHandler(async (event) => {
         })
 
         // 4. All verified users are eligible - we only exclude specific pairs that already exist
-        const eligibleUsers = users || []
+        const eligibleUsers = (users || []) as UserProfile[]
         console.log(`[AutoMatch Cron] ${eligibleUsers.length} verified users available for matching`)
 
-        // 5. Find all potential matches with 70%+ score
+        // Split users by gender for faster lookup if possible
+        const males = eligibleUsers.filter(u => u.gender === 'male')
+        const females = eligibleUsers.filter(u => u.gender === 'female')
+
+        console.log(`[AutoMatch Cron] ${males.length} males, ${females.length} females`)
+
+        // 5. Find potential matches (Heterosexual focus for efficiency, others included)
         const MIN_SCORE = 70
         const potentialMatches: MatchResult[] = []
         const usedPairs = new Set<string>()
 
-        for (let i = 0; i < eligibleUsers.length; i++) {
-            for (let j = i + 1; j < eligibleUsers.length; j++) {
-                const u1 = eligibleUsers[i] as UserProfile
-                const u2 = eligibleUsers[j] as UserProfile
+        // Helper to evaluate a pair
+        const evaluatePair = (u1: any, u2: any) => {
+            const pairKey = [u1.id, u2.id].sort().join('-')
+            if (matchedPairs.has(`${u1.id}-${u2.id}`) || matchedPairs.has(`${u2.id}-${u1.id}`) || usedPairs.has(pairKey)) {
+                return
+            }
 
-                // Skip if already matched or in this batch
-                const pairKey = [u1.id, u2.id].sort().join('-')
-                if (matchedPairs.has(`${u1.id}-${u2.id}`) || usedPairs.has(pairKey)) {
-                    continue
+            const u1Answers = userVibeAnswers.get(u1.id) || []
+            const u2Answers = userVibeAnswers.get(u2.id) || []
+
+            const result = calculateMatchScore(u1, u2, u1Answers, u2Answers)
+
+            if (result.score >= MIN_SCORE && result.warnings.length === 0) {
+                potentialMatches.push({
+                    user1: u1,
+                    user2: u2,
+                    score: result.score,
+                    reasons: result.reasons,
+                    warnings: result.warnings
+                })
+                usedPairs.add(pairKey)
+            }
+        }
+
+        // Optimized matching: Compare cross-gender primarily
+        for (const male of males) {
+            for (const female of females) {
+                evaluatePair(male, female)
+            }
+        }
+
+        // Optional: Same-gender matches if interests allow
+        const malesWhoWantMales = males.filter(u => u.interested_in === 'male' || u.interested_in === 'everyone')
+        if (malesWhoWantMales.length > 1) {
+            for (let i = 0; i < malesWhoWantMales.length; i++) {
+                for (let j = i + 1; j < malesWhoWantMales.length; j++) {
+                    evaluatePair(malesWhoWantMales[i], malesWhoWantMales[j])
                 }
+            }
+        }
 
-                const u1Answers = userVibeAnswers.get(u1.id) || []
-                const u2Answers = userVibeAnswers.get(u2.id) || []
-
-                const result = calculateMatchScore(u1, u2, u1Answers, u2Answers)
-
-                if (result.score >= MIN_SCORE && result.warnings.length === 0) {
-                    potentialMatches.push({
-                        user1: u1,
-                        user2: u2,
-                        score: result.score,
-                        reasons: result.reasons,
-                        warnings: result.warnings
-                    })
+        const femalesWhoWantFemales = females.filter(u => u.interested_in === 'female' || u.interested_in === 'everyone')
+        if (femalesWhoWantFemales.length > 1) {
+            for (let i = 0; i < femalesWhoWantFemales.length; i++) {
+                for (let j = i + 1; j < femalesWhoWantFemales.length; j++) {
+                    evaluatePair(femalesWhoWantFemales[i], femalesWhoWantFemales[j])
                 }
             }
         }
@@ -499,33 +535,59 @@ export default defineEventHandler(async (event) => {
 
         console.log(`[AutoMatch Cron] Selected ${selectedMatches.length} matches after deduplication`)
 
-        // 7. Create the matches in database
+        // 7. Create the matches in database (BULK INSERT)
         const UNLOCK_PRICE = 15 // Default unlock price
+        const matchesToInsert = selectedMatches.map(match => ({
+            user_1_id: match.user1.id,
+            user_2_id: match.user2.id,
+            unlock_price: UNLOCK_PRICE,
+            status: 'pending_payment',
+            match_score: match.score,
+            match_reasons: match.reasons,
+            match_warnings: match.warnings
+        }))
+
         let createdCount = 0
         const createdMatches: { user1: string; user2: string; score: number }[] = []
 
-        for (const match of selectedMatches) {
+        if (matchesToInsert.length > 0) {
             const { error: insertError } = await supabase
                 .from('matches')
-                .insert({
-                    user_1_id: match.user1.id,
-                    user_2_id: match.user2.id,
-                    unlock_price: UNLOCK_PRICE,
-                    status: 'pending_payment',
-                    match_score: match.score,
-                    match_reasons: match.reasons,
-                    match_warnings: match.warnings
-                })
+                .insert(matchesToInsert)
 
             if (!insertError) {
-                createdCount++
-                createdMatches.push({
-                    user1: match.user1.display_name || 'Unknown',
-                    user2: match.user2.display_name || 'Unknown',
-                    score: match.score
+                createdCount = matchesToInsert.length
+                selectedMatches.forEach(m => {
+                    createdMatches.push({
+                        user1: m.user1.display_name || 'Unknown',
+                        user2: m.user2.display_name || 'Unknown',
+                        score: m.score
+                    })
                 })
             } else {
-                console.error(`[AutoMatch Cron] Failed to insert match:`, insertError)
+                console.error(`[AutoMatch Cron] Bulk insert failed:`, insertError)
+                // Fallback to one by one if bulk fails for some reason (e.g. unique constraint)
+                for (const match of selectedMatches) {
+                    const { error: singleError } = await supabase
+                        .from('matches')
+                        .insert({
+                            user_1_id: match.user1.id,
+                            user_2_id: match.user2.id,
+                            unlock_price: UNLOCK_PRICE,
+                            status: 'pending_payment',
+                            match_score: match.score,
+                            match_reasons: match.reasons,
+                            match_warnings: match.warnings
+                        })
+                    if (!singleError) {
+                        createdCount++
+                        createdMatches.push({
+                            user1: match.user1.display_name || 'Unknown',
+                            user2: match.user2.display_name || 'Unknown',
+                            score: match.score
+                        })
+                    }
+                }
             }
         }
 
@@ -585,7 +647,8 @@ export default defineEventHandler(async (event) => {
 
         throw createError({
             statusCode: 500,
-            message: err.message || 'Auto matching failed'
+            statusMessage: 'Auto Matching Job Failed',
+            data: { error: err.message || err }
         })
     }
 })

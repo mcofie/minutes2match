@@ -15,7 +15,7 @@ export default defineEventHandler(async (event) => {
     }
 
     const supabaseAdmin = createClient<M2MDatabase>(
-        process.env.SUPABASE_URL || '',
+        config.supabaseUrl || process.env.SUPABASE_URL || '',
         config.supabaseServiceKey || '',
         { auth: { persistSession: false } }
     )

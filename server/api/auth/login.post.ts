@@ -23,7 +23,7 @@ export default defineEventHandler(async (event) => {
 
     // Create admin client with service role key
     const supabaseAdmin = createClient(
-        process.env.SUPABASE_URL || '',
+        config.supabaseUrl || process.env.SUPABASE_URL || '',
         config.supabaseServiceKey || '',
         { auth: { persistSession: false } }
     )

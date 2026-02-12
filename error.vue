@@ -1,8 +1,22 @@
+<script setup lang="ts">
+const props = defineProps({
+  error: Object
+})
+
+const statusCode = computed(() => props.error?.statusCode || 404)
+const statusMessage = computed(() => props.error?.statusMessage || props.error?.message || 'The page you\'re looking for has moved on.')
+
+const handleError = () => clearError({ redirect: '/' })
+
+useHead({
+  title: `${statusCode.value} Error | Minutes 2 Match`
+})
+</script>
+
 <template>
-  <div class="min-h-screen bg-[#FFFCF8] text-stone-900 font-sans flex flex-col">
+  <div class="min-h-screen bg-[#FFFCF8] text-stone-900 font-sans flex flex-col transition-colors duration-300">
     <!-- Fonts -->
     <Head>
-      <title>Page Not Found | Minutes 2 Match</title>
       <Link rel="preconnect" href="https://fonts.googleapis.com" />
       <Link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="" />
       <Link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
@@ -23,34 +37,35 @@
     <!-- Main Content -->
     <main class="flex-1 flex items-center justify-center px-6 py-20 relative z-10">
       <div class="text-center max-w-2xl mx-auto">
-        <!-- 404 Visual -->
+        <!-- Error Visual -->
         <div class="relative inline-block mb-8">
-          <div class="text-[12rem] md:text-[16rem] font-serif font-bold leading-none text-stone-100 select-none">
-            404
+          <div class="text-[12rem] md:text-[16rem] font-serif font-bold leading-none text-stone-100 select-none opacity-50">
+            {{ statusCode }}
           </div>
           <div class="absolute inset-0 flex items-center justify-center">
             <div class="bg-white border-2 border-black rounded-2xl p-6 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] transform -rotate-6">
-              <span class="text-6xl">💔</span>
+              <span class="text-6xl">{{ statusCode === 404 ? '💔' : '🚨' }}</span>
             </div>
           </div>
         </div>
 
         <!-- Text -->
         <h1 class="text-4xl md:text-5xl font-serif font-bold mb-4">
-          No match <span class="italic text-rose-500">here.</span>
+          {{ statusCode === 404 ? 'No match ' : 'Something ' }} 
+          <span class="italic text-rose-500">{{ statusCode === 404 ? 'here.' : 'broke.' }}</span>
         </h1>
         <p class="text-lg text-stone-500 mb-10 max-w-md mx-auto leading-relaxed">
-          The page you're looking for has moved on. Maybe it found someone better. Let's get you back on track.
+          {{ statusMessage }}
         </p>
 
         <!-- Actions -->
         <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
-          <NuxtLink 
-            to="/" 
-            class="bg-black text-white px-8 py-4 rounded-lg font-bold uppercase tracking-widest text-sm hover:bg-stone-800 transition-all shadow-[4px_4px_0px_0px_rgba(244,63,94,1)] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] border border-black"
+          <button 
+            @click="handleError"
+            class="bg-black text-white px-8 py-4 rounded-lg font-bold uppercase tracking-widest text-sm hover:bg-stone-800 transition-all shadow-[4px_4px_0px_0px_rgba(244,63,94,1)] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] border border-black cursor-pointer"
           >
-            Go Home
-          </NuxtLink>
+            Back to Safety
+          </button>
           <NuxtLink 
             to="/vibe-check" 
             class="text-black font-bold uppercase tracking-widest text-sm hover:text-rose-500 transition-colors flex items-center gap-2"
@@ -61,7 +76,7 @@
         </div>
 
         <!-- Fun Stats -->
-        <div class="mt-16 pt-8 border-t border-stone-100">
+        <div v-if="statusCode === 404" class="mt-16 pt-8 border-t border-stone-100">
           <p class="text-xs font-bold uppercase tracking-widest text-stone-400 mb-4">While you're here...</p>
           <div class="flex items-center justify-center gap-8 text-center">
             <div>

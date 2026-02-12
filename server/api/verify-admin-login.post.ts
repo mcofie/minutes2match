@@ -6,7 +6,7 @@ export default defineEventHandler(async (event) => {
     console.log('🔍 Admin Login Request:', { phone, code })
 
     // Get keys from env
-    const supabaseUrl = process.env.SUPABASE_URL || process.env.public_supabase_url
+    const supabaseUrl = config.supabaseUrl || process.env.SUPABASE_URL || process.env.public_supabase_url
     const supabaseKey = process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY
 
     if (!supabaseUrl || !supabaseKey) {

@@ -8,7 +8,7 @@ const SEED_DATA = `6/4/2025 3:28:59	Kwame Kwakye	24	Male	0558408624	kwameoduro16
 export default defineEventHandler(async (event) => {
     const config = useRuntimeConfig()
     const supabaseAdmin = createClient(
-        process.env.SUPABASE_URL || '',
+        config.supabaseUrl || process.env.SUPABASE_URL || '',
         config.supabaseServiceKey || '',
         { auth: { persistSession: false } }
     )
