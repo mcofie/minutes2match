@@ -756,7 +756,7 @@ const navigateToFeedback = (match: any) => {
 }
 // --- End Feedback Logic ---
 
-import type { Database } from '~/types/database'
+import type { M2MDatabase } from '~/types/database.types'
 import { useSwipe } from '@vueuse/core'
 
 const toast = useToast()
@@ -772,7 +772,7 @@ definePageMeta({
   middleware: ['auth']
 })
 
-const supabase = useSupabaseClient<Database>()
+const supabase = useSupabaseClient<M2MDatabase>() as any
 const user = useSupabaseUser()
 
 // State

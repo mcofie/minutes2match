@@ -1,0 +1,96 @@
+
+[@nuxt/supabase]  WARN  SUPABASE_SERVICE_KEY is deprecated and will be removed in a future version. Please migrate to SUPABASE_SECRET_KEY (JWT signing key). See: https://supabase.com/blog/jwt-signing-keys
+
+composables/useHubtel.ts(120,25): error TS2345: Argument of type 'any' is not assignable to parameter of type 'never'.
+composables/useSeo.ts(105,9): error TS2322: Type '"event"' is not assignable to type 'ResolvableValue<"article" | "profile" | "website" | "book" | "music.song" | "music.album" | "music.playlist" | "music.radio_status" | "video.movie" | "video.episode" | "video.tv_show" | "video.other" | undefined>'.
+middleware/admin.ts(35,61): error TS2339: Property 'role' does not exist on type 'never'.
+pages/admin/events/index.vue(513,17): error TS2345: Argument of type '{ title: string; description: string; event_date: string; venue: string; venue_address: string; cover_image_url: string; male_capacity: number; female_capacity: number; ticket_price_male: number; ticket_price_female: number; status: string; is_public: boolean; }' is not assignable to parameter of type 'never'.
+pages/admin/events/index.vue(518,17): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(values: never, options?: { count?: "exact" | "planned" | "estimated" | undefined; } | undefined): PostgrestFilterBuilder<{ PostgrestVersion: "12"; }, never, never, null, "events", never, "POST">', gave the following error.
+    Argument of type '{ title: string; description: string; event_date: string; venue: string; venue_address: string; cover_image_url: string; male_capacity: number; female_capacity: number; ticket_price_male: number; ticket_price_female: number; status: string; is_public: boolean; }' is not assignable to parameter of type 'never'.
+  Overload 2 of 2, '(values: never[], options?: { count?: "exact" | "planned" | "estimated" | undefined; defaultToNull?: boolean | undefined; } | undefined): PostgrestFilterBuilder<{ PostgrestVersion: "12"; }, never, never, null, "events", never, "POST">', gave the following error.
+    Argument of type '{ title: string; description: string; event_date: string; venue: string; venue_address: string; cover_image_url: string; male_capacity: number; female_capacity: number; ticket_price_male: number; ticket_price_female: number; status: string; is_public: boolean; }' is not assignable to parameter of type 'never[]'.
+      Type '{ title: string; description: string; event_date: string; venue: string; venue_address: string; cover_image_url: string; male_capacity: number; female_capacity: number; ticket_price_male: number; ticket_price_female: number; status: string; is_public: boolean; }' is missing the following properties from type 'never[]': length, pop, push, concat, and 35 more.
+pages/admin/events/index.vue(674,6): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(values: never, options?: { count?: "exact" | "planned" | "estimated" | undefined; } | undefined): PostgrestFilterBuilder<{ PostgrestVersion: "12"; }, never, never, null, "event_qualifications", never, "POST">', gave the following error.
+    Argument of type '{ event_id: any; user_id: string; status: string; }' is not assignable to parameter of type 'never'.
+  Overload 2 of 2, '(values: never[], options?: { count?: "exact" | "planned" | "estimated" | undefined; defaultToNull?: boolean | undefined; } | undefined): PostgrestFilterBuilder<{ PostgrestVersion: "12"; }, never, never, null, "event_qualifications", never, "POST">', gave the following error.
+    Object literal may only specify known properties, and 'event_id' does not exist in type 'never[]'.
+pages/admin/events/index.vue(737,21): error TS2345: Argument of type '{ notified_at: string; }' is not assignable to parameter of type 'never'.
+pages/admin/index.vue(549,72): error TS2339: Property 'id' does not exist on type 'never'.
+pages/admin/payments.vue(412,13): error TS2345: Argument of type '{ resolved: boolean; resolved_at: string; }' is not assignable to parameter of type 'never'.
+pages/admin/questions.vue(389,17): error TS2345: Argument of type '{ key: string; question: string; category: string; display_order: number; is_core: boolean; weight: number; dimension: string; options: string[]; }' is not assignable to parameter of type 'never'.
+pages/admin/questions.vue(395,17): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(values: never, options?: { count?: "exact" | "planned" | "estimated" | undefined; } | undefined): PostgrestFilterBuilder<{ PostgrestVersion: "12"; }, never, never, null, "questions", never, "POST">', gave the following error.
+    Argument of type '{ key: string; question: string; category: string; display_order: number; is_core: boolean; weight: number; dimension: string; options: string[]; }' is not assignable to parameter of type 'never'.
+  Overload 2 of 2, '(values: never[], options?: { count?: "exact" | "planned" | "estimated" | undefined; defaultToNull?: boolean | undefined; } | undefined): PostgrestFilterBuilder<{ PostgrestVersion: "12"; }, never, never, null, "questions", never, "POST">', gave the following error.
+    Argument of type '{ key: string; question: string; category: string; display_order: number; is_core: boolean; weight: number; dimension: string; options: string[]; }' is not assignable to parameter of type 'never[]'.
+      Type '{ key: string; question: string; category: string; display_order: number; is_core: boolean; weight: number; dimension: string; options: string[]; }' is missing the following properties from type 'never[]': length, pop, push, concat, and 35 more.
+pages/admin/reports.vue(471,13): error TS2345: Argument of type 'any' is not assignable to parameter of type 'never'.
+pages/me/connection/[id].vue(718,15): error TS2345: Argument of type '{ feedback_status: string; user_notes: string; feedback_updated_at: string; feedback_updated_by: string | undefined; }' is not assignable to parameter of type 'never'.
+pages/me/connection/[id].vue(821,8): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(values: never, options?: { count?: "exact" | "planned" | "estimated" | undefined; } | undefined): PostgrestFilterBuilder<{ PostgrestVersion: "12"; }, never, never, null, "reports", never, "POST">', gave the following error.
+    Argument of type '{ reporter_id: string; reported_user_id: any; match_id: string; reason: string; description: string | null; status: string; }' is not assignable to parameter of type 'never'.
+  Overload 2 of 2, '(values: never[], options?: { count?: "exact" | "planned" | "estimated" | undefined; defaultToNull?: boolean | undefined; } | undefined): PostgrestFilterBuilder<{ PostgrestVersion: "12"; }, never, never, null, "reports", never, "POST">', gave the following error.
+    Object literal may only specify known properties, and 'reporter_id' does not exist in type 'never[]'.
+pages/me/index.vue(1009,31): error TS2339: Property 'end_date' does not exist on type 'never'.
+pages/me/index.vue(1010,65): error TS2339: Property 'id' does not exist on type 'never'.
+pages/me/index.vue(1013,66): error TS2339: Property 'id' does not exist on type 'never'.
+pages/me/index.vue(1013,87): error TS2339: Property 'end_date' does not exist on type 'never'.
+pages/me/index.vue(1053,15): error TS2345: Argument of type 'any' is not assignable to parameter of type 'never'.
+pages/me/index.vue(1099,15): error TS2345: Argument of type 'any' is not assignable to parameter of type 'never'.
+pages/me/index.vue(1163,15): error TS2345: Argument of type 'any' is not assignable to parameter of type 'never'.
+pages/me/notifications.vue(132,13): error TS2345: Argument of type '{ read: boolean; }' is not assignable to parameter of type 'never'.
+pages/me/notifications.vue(145,13): error TS2345: Argument of type '{ read: boolean; }' is not assignable to parameter of type 'never'.
+pages/payment/callback.vue(105,39): error TS2339: Property 'metadata' does not exist on type '{ status: string; data: any; }'.
+pages/payment/callback.vue(112,20): error TS2339: Property 'metadata' does not exist on type '{ status: string; data: any; }'.
+pages/payment/callback.vue(114,27): error TS2339: Property 'metadata' does not exist on type '{ status: string; data: any; }'.
+pages/payment/callback.vue(116,53): error TS2339: Property 'metadata' does not exist on type '{ status: string; data: any; }'.
+pages/payment/callback.vue(121,27): error TS2339: Property 'metadata' does not exist on type '{ status: string; data: any; }'.
+pages/payment/match/[id].vue(121,18): error TS2339: Property 'status' does not exist on type 'never'.
+pages/payment/match/[id].vue(125,18): error TS2339: Property 'unlock_price' does not exist on type 'never'.
+pages/payment/match/[id].vue(126,31): error TS2339: Property 'unlock_price' does not exist on type 'never'.
+pages/vibe-check/index.vue(625,71): error TS2339: Property 'email' does not exist on type 'Simplify<SerializeObject<{ exists: boolean; requiresOtp: boolean; message?: undefined; email?: undefined; password?: undefined; displayName?: undefined; }> | SerializeObject<{ exists: boolean; ... 4 more ...; displayName?: undefined; }> | SerializeObject<...>>'.
+  Property 'email' does not exist on type '{ exists: boolean; requiresOtp: boolean; }'.
+pages/vibe-check/index.vue(625,92): error TS2339: Property 'password' does not exist on type 'Simplify<SerializeObject<{ exists: boolean; requiresOtp: boolean; message?: undefined; email?: undefined; password?: undefined; displayName?: undefined; }> | SerializeObject<{ exists: boolean; ... 4 more ...; displayName?: undefined; }> | SerializeObject<...>>'.
+  Property 'password' does not exist on type '{ exists: boolean; requiresOtp: boolean; }'.
+pages/vibe-check/index.vue(629,28): error TS2339: Property 'email' does not exist on type 'Simplify<SerializeObject<{ exists: boolean; requiresOtp: boolean; message?: undefined; email?: undefined; password?: undefined; displayName?: undefined; }> | SerializeObject<{ exists: boolean; ... 4 more ...; displayName?: undefined; }> | SerializeObject<...>>'.
+  Property 'email' does not exist on type '{ exists: boolean; requiresOtp: boolean; }'.
+pages/vibe-check/index.vue(630,31): error TS2339: Property 'password' does not exist on type 'Simplify<SerializeObject<{ exists: boolean; requiresOtp: boolean; message?: undefined; email?: undefined; password?: undefined; displayName?: undefined; }> | SerializeObject<{ exists: boolean; ... 4 more ...; displayName?: undefined; }> | SerializeObject<...>>'.
+  Property 'password' does not exist on type '{ exists: boolean; requiresOtp: boolean; }'.
+pages/vibe-check/index.vue(635,81): error TS2339: Property 'displayName' does not exist on type 'Simplify<SerializeObject<{ exists: boolean; requiresOtp: boolean; message?: undefined; email?: undefined; password?: undefined; displayName?: undefined; }> | SerializeObject<{ exists: boolean; ... 4 more ...; displayName?: undefined; }> | SerializeObject<...>>'.
+  Property 'displayName' does not exist on type '{ exists: boolean; requiresOtp: boolean; }'.
+pages/vibe-check/index.vue(744,13): error TS2345: Argument of type '{ display_name: string; gender: "" | "male" | "female"; birth_date: string; location: string; interested_in: "" | "male" | "female" | "everyone"; intent: string; genotype: string | null; religion: string | null; height_cm: number | null; occupation: string | null; is_verified: boolean; }' is not assignable to parameter of type 'never'.
+pages/vibe-check/index.vue(771,17): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(values: never, options?: { onConflict?: string | undefined; ignoreDuplicates?: boolean | undefined; count?: "exact" | "planned" | "estimated" | undefined; } | undefined): PostgrestFilterBuilder<{ ...; }, ... 5 more ..., "POST">', gave the following error.
+    Argument of type '{ user_id: any; question_key: string; answer_value: string; }[]' is not assignable to parameter of type 'never'.
+  Overload 2 of 2, '(values: never[], options?: { onConflict?: string | undefined; ignoreDuplicates?: boolean | undefined; count?: "exact" | "planned" | "estimated" | undefined; defaultToNull?: boolean | undefined; } | undefined): PostgrestFilterBuilder<...>', gave the following error.
+    Argument of type '{ user_id: any; question_key: string; answer_value: string; }[]' is not assignable to parameter of type 'never[]'.
+      Type '{ user_id: any; question_key: string; answer_value: string; }' is not assignable to type 'never'.
+server/api/admin/notify-incomplete-profiles.post.ts(56,56): error TS7006: Parameter 'profile' implicitly has an 'any' type.
+server/api/admin/notify-incomplete-profiles.post.ts(62,12): error TS7006: Parameter 'profile' implicitly has an 'any' type.
+server/api/admin/notify-incomplete-profiles.post.ts(80,46): error TS7006: Parameter 'p' implicitly has an 'any' type.
+server/api/admin/notify-missing-details.post.ts(76,49): error TS7006: Parameter 'profile' implicitly has an 'any' type.
+server/api/admin/notify-missing-details.post.ts(109,15): error TS7006: Parameter 'p' implicitly has an 'any' type.
+server/api/admin/notify-missing-details.post.ts(119,42): error TS7006: Parameter 'p' implicitly has an 'any' type.
+server/api/cron/match-expiration-reminder.get.ts(69,26): error TS2339: Property 'phone' does not exist on type '{ display_name: any; phone: any; }[]'.
+server/api/cron/match-expiration-reminder.get.ts(74,36): error TS2339: Property 'display_name' does not exist on type '{ display_name: any; phone: any; }[]'.
+server/api/cron/match-expiration-reminder.get.ts(82,36): error TS2339: Property 'phone' does not exist on type '{ display_name: any; phone: any; }[]'.
+server/api/cron/match-expiration-reminder.get.ts(88,85): error TS2339: Property 'phone' does not exist on type '{ display_name: any; phone: any; }[]'.
+server/api/paystack/verify.get.ts(304,16): error TS2551: Property 'catch' does not exist on type 'PostgrestFilterBuilder<any, any, any, null, "payment_alerts", unknown, "POST">'. Did you mean 'match'?
+server/api/paystack/verify.get.ts(304,22): error TS7006: Parameter 'err' implicitly has an 'any' type.
+server/api/paystack/verify.get.ts(323,12): error TS2551: Property 'catch' does not exist on type 'PostgrestFilterBuilder<any, any, any, null, "payment_alerts", unknown, "POST">'. Did you mean 'match'?
+
+ ERROR  Process exited with non-zero status (2)
+
+    at G._waitForOutput (node_modules/tinyexec/dist/main.js:574:92)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async Object.run (node_modules/@nuxt/cli/dist/typecheck-B-jIcMjP.mjs:66:3)
+    at async runCommand (node_modules/citty/dist/index.mjs:316:16)
+    at async runCommand (node_modules/citty/dist/index.mjs:307:11)
+    at async runMain (node_modules/citty/dist/index.mjs:445:7) 
+
+
+
+ ERROR  Process exited with non-zero status (2)
+

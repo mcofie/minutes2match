@@ -293,7 +293,7 @@ export default defineEventHandler(async (event) => {
 
         // Log failed payments for admin alerts
         if (!paymentSuccess) {
-            await supabase.from('payment_alerts').insert({
+            const { error: alertError } = await supabase.from('payment_alerts').insert({
                 payment_ref: reference,
                 user_id: metadata.userId,
                 amount: response.data.amount / 100,
@@ -301,7 +301,8 @@ export default defineEventHandler(async (event) => {
                 error_message: response.data.status,
                 alert_type: 'payment_failed',
                 resolved: false
-            }).catch(err => console.error('[Verify] Failed to log payment alert:', err))
+            })
+            if (alertError) console.error('[Verify] Failed to log payment alert:', alertError)
         }
 
         return {
@@ -320,7 +321,7 @@ export default defineEventHandler(async (event) => {
             error_message: error.message || 'Unknown error',
             alert_type: 'verification_error',
             resolved: false
-        }).catch(() => { })
+        })
 
         throw createError({
             statusCode: 500,

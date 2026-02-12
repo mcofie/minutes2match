@@ -102,7 +102,7 @@ export function useEventSeo(event: {
         ogTitle: event.name,
         ogDescription: event.description || `Speed dating event at ${event.location}`,
         ogImage: event.image || `${baseUrl}/og-event.png`,
-        ogType: 'event',
+        ogType: 'website',
         twitterCard: 'summary_large_image',
     })
 

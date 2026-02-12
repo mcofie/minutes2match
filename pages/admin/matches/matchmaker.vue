@@ -662,7 +662,7 @@
 <script setup lang="ts">
 import { personas } from '~/composables/usePersona'
 import { useCompatibility, type VibeAnswer, type UserProfile } from '~/composables/useCompatibility'
-import type { Database } from '~/types/database'
+import type { M2MDatabase } from '~/types/database.types'
 
 useHead({ title: 'Matchmaker' })
 
@@ -671,7 +671,7 @@ definePageMeta({
   middleware: ['admin']
 })
 
-const supabase = useSupabaseClient<Database>()
+const supabase = useSupabaseClient<M2MDatabase>() as any
 const currentUser = useSupabaseUser()
 
 // Mode

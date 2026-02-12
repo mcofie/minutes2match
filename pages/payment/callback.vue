@@ -98,7 +98,7 @@ onMounted(async () => {
 
   try {
     const { verifyPayment } = usePaystack()
-    const result = await verifyPayment(reference)
+    const result = await verifyPayment(reference) as any
     
       if (result.status === 'success') {
         success.value = true

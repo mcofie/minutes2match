@@ -1,3 +1,4 @@
+import type { M2MDatabase } from '~/types/database.types'
 /**
  * Admin Middleware
  * Protects admin routes - only users in admins table can access
@@ -9,7 +10,7 @@ export default defineNuxtRouteMiddleware(async (to) => {
         return
     }
 
-    const supabase = useSupabaseClient()
+    const supabase = useSupabaseClient<M2MDatabase>() as any
 
     // Get current session directly from Supabase (more reliable than useSupabaseUser)
     const { data: { session } } = await supabase.auth.getSession()

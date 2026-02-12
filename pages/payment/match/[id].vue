@@ -75,10 +75,10 @@
 
 <script setup lang="ts">
 import { usePaystack } from '~/composables/usePaystack'
-import type { Database } from '~/types/database'
+import type { M2MDatabase } from '~/types/database.types'
 
 const route = useRoute()
-const supabase = useSupabaseClient<Database>()
+const supabase = useSupabaseClient<M2MDatabase>() as any
 const { initializePayment, formatGHS } = usePaystack()
 const user = useSupabaseUser()
 

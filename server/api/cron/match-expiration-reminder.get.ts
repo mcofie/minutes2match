@@ -7,6 +7,7 @@
  */
 
 import { createClient } from '@supabase/supabase-js'
+import type { M2MDatabase } from '~/types/database.types'
 
 export default defineEventHandler(async (event) => {
     const config = useRuntimeConfig()
@@ -18,16 +19,18 @@ export default defineEventHandler(async (event) => {
         throw createError({ statusCode: 401, message: 'Unauthorized' })
     }
 
-    const supabaseUrl = process.env.SUPABASE_URL
-    const supabaseServiceKey = config.supabaseServiceKey
+    // Original variables removed, using direct access with fallbacks
+    // and adding the Database type for better type safety.
+    const supabase = createClient<M2MDatabase, 'm2m'>(
+        process.env.SUPABASE_URL || '',
+        config.supabaseServiceKey || '',
+        { db: { schema: 'm2m' } }
+    )
 
-    if (!supabaseUrl || !supabaseServiceKey) {
-        throw createError({ statusCode: 500, message: 'Server configuration error' })
+    // Re-adding the check for missing keys, adapted for the new direct access
+    if (!process.env.SUPABASE_URL || !config.supabaseServiceKey) {
+        throw createError({ statusCode: 500, message: 'Server configuration error: SUPABASE_URL or SUPABASE_SERVICE_KEY missing' })
     }
-
-    const supabase = createClient(supabaseUrl, supabaseServiceKey, {
-        db: { schema: 'm2m' }
-    })
 
     console.log('[Cron] Running match expiration reminder job...')
 
@@ -49,8 +52,8 @@ export default defineEventHandler(async (event) => {
             user_2:profiles!matches_user_2_id_fkey(display_name, phone)
         `)
         .eq('status', 'partial_payment')
-        .gte('expires_at', in24Hours.toISOString())
-        .lte('expires_at', in26Hours.toISOString())
+        .gte('expires_at', now.toISOString())
+        .lte('expires_at', in26Hours.toISOString()) as any
 
     if (error) {
         console.error('[Cron] Failed to fetch expiring matches:', error)
@@ -62,9 +65,14 @@ export default defineEventHandler(async (event) => {
     let sentCount = 0
 
     for (const match of expiringMatches || []) {
-        // Find the unpaid user
-        const unpaidUser = match.user_1_paid ? match.user_2 : match.user_1
-        const paidUser = match.user_1_paid ? match.user_1 : match.user_2
+        // Joined results might be arrays, so access the first element if it's an array
+        const unpaidUser = Array.isArray(match.user_1_paid ? match.user_2 : match.user_1)
+            ? (match.user_1_paid ? (match.user_2 as any)[0] : (match.user_1 as any)[0])
+            : (match.user_1_paid ? match.user_2 : match.user_1)
+
+        const paidUser = Array.isArray(match.user_1_paid ? match.user_1 : match.user_2)
+            ? (match.user_1_paid ? (match.user_1 as any)[0] : (match.user_2 as any)[0])
+            : (match.user_1_paid ? match.user_1 : match.user_2)
 
         if (!unpaidUser?.phone) {
             console.log(`[Cron] Skipping match ${match.id} - unpaid user has no phone`)

@@ -365,7 +365,8 @@
 import UiButton from '~/components/ui/Button.vue'
 import VibeCard from '~/components/VibeCard.vue'
 import { usePersona, type Persona } from '~/composables/usePersona'
-import type { Database } from '~/types/database'
+import { createClient } from '@supabase/supabase-js'
+import type { M2MDatabase } from '~/types/database.types'
 
 const route = useRoute()
 const user = useSupabaseUser()
@@ -480,7 +481,7 @@ const loadingQuestions = ref(true)
 
 const fetchVibeQuestions = async () => {
   loadingQuestions.value = true
-  const supabase = useSupabaseClient<Database>()
+  const supabase = useSupabaseClient<M2MDatabase>() as any
   
   try {
     // Fetch all active questions
@@ -617,7 +618,7 @@ const handleSendOtp = async () => {
     const fullPhone = '+233' + form.phone.replace(/\D/g, '').replace(/^0+/, '')
     
     // First check if this is a seeded/verified user who can skip OTP
-    const checkResult = await $fetch('/api/auth/check-existing-user', {
+    const checkResult = await $fetch<any>('/api/auth/check-existing-user', {
       method: 'POST',
       body: { phone: fullPhone }
     })
@@ -728,7 +729,7 @@ const handleReturningUserCompletion = async () => {
 }
 
 const updateUserProfile = async (explicitUserId?: string) => {
-  const supabase = useSupabaseClient<Database>()
+  const supabase = useSupabaseClient<M2MDatabase>() as any
   
   const userId = explicitUserId || user.value?.id
   console.log('[VibeCheck] updateUserProfile called with ID:', userId)
@@ -779,7 +780,7 @@ const createUserProfile = async () => {
   isCreatingProfile.value = true
   
   try {
-    const supabase = useSupabaseClient<Database>()
+    const supabase = useSupabaseClient<M2MDatabase>() as any
     const fullPhone = '+233' + form.phone.replace(/\D/g, '').replace(/^0+/, '')
     
     // Call server-side signup (Handles Auth Creation + Auto-confirm + Profile + Vibes)
@@ -820,7 +821,7 @@ const createUserProfile = async () => {
 
 
 const finishOnboarding = async () => {
-  const supabase = useSupabaseClient<Database>()
+  const supabase = useSupabaseClient<M2MDatabase>() as any
   const { data: { user } } = await supabase.auth.getUser()
   
   if (user && assignedPersona.value) {

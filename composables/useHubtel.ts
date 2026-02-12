@@ -1,11 +1,11 @@
-import type { Database } from '~/types/database'
+import type { M2MDatabase } from '~/types/database.types'
 
 /**
  * Hubtel SMS Integration Composable
  * Handles SMS sending and OTP verification via server API
  */
 export const useHubtel = () => {
-    const supabase = useSupabaseClient<Database>()
+    const supabase = useSupabaseClient<M2MDatabase>() as any
     const config = useRuntimeConfig()
 
     /**

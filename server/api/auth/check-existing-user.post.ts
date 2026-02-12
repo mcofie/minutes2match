@@ -2,6 +2,7 @@
 // Allows them to complete vibe check without OTP friction
 
 import { createClient } from '@supabase/supabase-js'
+import type { M2MDatabase } from '~/types/database.types'
 
 export default defineEventHandler(async (event) => {
     const body = await readBody(event)
@@ -13,7 +14,7 @@ export default defineEventHandler(async (event) => {
         throw createError({ statusCode: 400, message: 'Phone is required' })
     }
 
-    const supabaseAdmin = createClient(
+    const supabaseAdmin = createClient<M2MDatabase>(
         process.env.SUPABASE_URL || '',
         config.supabaseServiceKey || '',
         { auth: { persistSession: false } }

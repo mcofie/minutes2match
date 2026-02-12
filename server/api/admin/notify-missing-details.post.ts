@@ -73,7 +73,7 @@ export default defineEventHandler(async (event) => {
     console.log(`Fetched ${profiles?.length ?? 0} profiles total`)
 
     // Use all profiles (removed verified check to capture all users missing details)
-    const targetProfiles = (profiles || []).map(profile => {
+    const targetProfiles = (profiles || []).map((profile: any) => {
         const missingFields: string[] = []
 
         // Check standard fields
@@ -106,7 +106,7 @@ export default defineEventHandler(async (event) => {
             ...profile,
             missingFields
         }
-    }).filter(p => p.missingFields.length > 0)
+    }).filter((p: any) => p.missingFields.length > 0)
     // Filter to only those with at least 1 missing field? 
     // Yes, "list of users without...".
 
@@ -116,7 +116,7 @@ export default defineEventHandler(async (event) => {
             success: true,
             dryRun: true,
             totalCount: targetProfiles.length,
-            profiles: targetProfiles.map(p => ({
+            profiles: targetProfiles.map((p: any) => ({
                 id: p.id,
                 phone: p.phone,
                 displayName: p.display_name || 'Unknown',

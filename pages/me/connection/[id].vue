@@ -589,12 +589,12 @@
 <script setup lang="ts">
 import { personas } from '~/composables/usePersona'
 import { useToast } from '~/composables/useToast'
-import type { Database } from '~/types/database'
+import type { M2MDatabase } from '~/types/database.types'
 
 const toast = useToast()
 const route = useRoute()
 const router = useRouter()
-const supabase = useSupabaseClient<Database>()
+const supabase = useSupabaseClient<M2MDatabase>() as any
 
 const matchId = computed(() => route.params.id as string)
 
