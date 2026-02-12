@@ -114,20 +114,17 @@ useHead({
   ]
 })
 
+definePageMeta({
+  middleware: 'guest'
+})
+
+
 const supabase = useSupabaseClient()
 const user = useSupabaseUser()
 
 // Track if we're in the middle of a login attempt
 const isLoggingIn = ref(false)
 
-// If user is already logged in on page load, redirect to /me
-// But don't redirect during the login process (we handle that after verifyOtp)
-onMounted(() => {
-  if (user.value?.id && !isLoggingIn.value) {
-    console.log('[Login] User already authenticated on mount, redirecting to /me')
-    navigateTo('/me')
-  }
-})
 
 const phone = ref('')
 const otpCode = ref('')
