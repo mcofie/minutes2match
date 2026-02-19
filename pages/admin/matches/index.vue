@@ -144,7 +144,7 @@
                 </div>
               </td>
             </tr>
-            <tr v-for="match in filteredMatches" :key="match.id" class="hover:bg-stone-50/50 transition-colors group">
+            <tr v-for="match in paginatedMatches" :key="match.id" class="hover:bg-stone-50/50 transition-colors group">
               <td class="py-4 px-3 text-sm text-stone-500 whitespace-nowrap align-top pt-5">
                 {{ formatDate(match.created_at) }}
               </td>
@@ -152,12 +152,17 @@
                 <div class="flex items-center gap-4">
                   <!-- User 1 -->
                   <div class="flex items-center gap-2 min-w-[120px]">
-                    <div class="h-8 w-8 rounded-full bg-gradient-to-br from-stone-100 to-stone-200 flex items-center justify-center text-stone-600 font-bold border border-white shadow-sm ring-1 ring-stone-100">
+                    <div class="h-8 w-8 rounded-full bg-stone-100 flex items-center justify-center text-stone-600 font-bold border border-white shadow-sm ring-1 ring-stone-100">
                       <img v-if="match.user_1?.photo_url" :src="match.user_1.photo_url" class="h-full w-full rounded-full object-cover" />
                       <span v-else class="text-xs">{{ match.user_1?.display_name?.charAt(0) || '?' }}</span>
                     </div>
                     <div>
-                      <div class="font-bold text-stone-900 text-sm truncate max-w-[100px]">{{ match.user_1?.display_name || 'Anonymous' }}</div>
+                      <div class="font-bold text-stone-900 text-sm truncate max-w-[100px] flex items-center gap-1">
+                        <span class="truncate">{{ match.user_1?.display_name || 'Anonymous' }}</span>
+                        <span v-if="match.user_1_paid || (match.user_1 && !requiresPayment(match.user_1, match.user_1_paid))" title="Payment Fulfilled" class="text-emerald-500 shrink-0">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                        </span>
+                      </div>
                       <div class="text-[10px] text-stone-500 font-mono mt-0.5">{{ match.user_1?.phone }}</div>
                     </div>
                   </div>
@@ -169,12 +174,17 @@
 
                   <!-- User 2 -->
                   <div class="flex items-center gap-2 min-w-[120px]">
-                    <div class="h-8 w-8 rounded-full bg-gradient-to-br from-stone-100 to-stone-200 flex items-center justify-center text-stone-600 font-bold border border-white shadow-sm ring-1 ring-stone-100">
+                    <div class="h-8 w-8 rounded-full bg-stone-100 flex items-center justify-center text-stone-600 font-bold border border-white shadow-sm ring-1 ring-stone-100">
                       <img v-if="match.user_2?.photo_url" :src="match.user_2.photo_url" class="h-full w-full rounded-full object-cover" />
                       <span v-else class="text-xs">{{ match.user_2?.display_name?.charAt(0) || '?' }}</span>
                     </div>
                     <div>
-                      <div class="font-bold text-stone-900 text-sm truncate max-w-[100px]">{{ match.user_2?.display_name || 'Anonymous' }}</div>
+                      <div class="font-bold text-stone-900 text-sm truncate max-w-[100px] flex items-center gap-1">
+                        <span class="truncate">{{ match.user_2?.display_name || 'Anonymous' }}</span>
+                        <span v-if="match.user_2_paid || (match.user_2 && !requiresPayment(match.user_2, match.user_2_paid))" title="Payment Fulfilled" class="text-emerald-500 shrink-0">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                        </span>
+                      </div>
                       <div class="text-[10px] text-stone-500 font-mono mt-0.5">{{ match.user_2?.phone }}</div>
                     </div>
                   </div>
@@ -222,7 +232,6 @@
               </td>
               <td class="py-4 px-3 text-right align-top pt-4">
                 <div class="flex items-center justify-end gap-1 opacity-80 group-hover:opacity-100 transition-opacity">
-                  <!-- Actions (Compact) -->
                   <button 
                     v-if="match.status === 'unlocked'"
                     class="p-1.5 text-purple-600 hover:text-purple-700 hover:bg-purple-50 rounded" 
@@ -275,6 +284,52 @@
         </table>
       </div>
 
+      <!-- Pagination Footer -->
+      <div class="p-4 border-t border-stone-100 bg-white flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div class="text-sm text-stone-500">
+          Showing 
+          <span class="font-bold text-stone-900">{{ Math.min(filteredMatches.length, (currentPage - 1) * itemsPerPage + 1) }}</span> 
+          to 
+          <span class="font-bold text-stone-900">{{ Math.min(filteredMatches.length, currentPage * itemsPerPage) }}</span> 
+          of 
+          <span class="font-bold text-stone-900">{{ filteredMatches.length }}</span> 
+          matches
+        </div>
+        
+        <div class="flex items-center gap-1">
+          <button 
+            @click="currentPage--" 
+            :disabled="currentPage === 1"
+            class="p-2 rounded-lg border border-stone-200 hover:bg-stone-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-stone-600"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+          </button>
+          
+          <div class="flex items-center gap-1 px-2">
+            <template v-for="page in totalPages" :key="page">
+              <button 
+                v-if="shouldShowPage(page)"
+                @click="currentPage = page"
+                class="min-w-[36px] h-9 rounded-lg text-sm font-bold transition-all"
+                :class="currentPage === page ? 'bg-stone-900 text-white shadow-md' : 'text-stone-600 hover:bg-stone-100'"
+              >
+                {{ page }}
+              </button>
+              <span v-else-if="shouldShowEllipsis(page)" class="px-1 text-stone-400">...</span>
+            </template>
+          </div>
+
+          <button 
+            @click="currentPage++" 
+            :disabled="currentPage === totalPages"
+            class="p-2 rounded-lg border border-stone-200 hover:bg-stone-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-stone-600"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+          </button>
+        </div>
+      </div>
+
+
       <!-- Matches Card View (Mobile) -->
       <div class="md:hidden">
         <div v-if="loading" class="text-center py-12 text-stone-400">
@@ -290,7 +345,7 @@
            </div>
         </div>
         <div v-else class="divide-y divide-stone-100">
-           <div v-for="match in filteredMatches" :key="match.id" class="p-4 bg-white">
+           <div v-for="match in paginatedMatches" :key="match.id" class="p-4 bg-white">
              <!-- Header -->
              <div class="flex justify-between items-start mb-4">
                <div>
@@ -651,10 +706,15 @@
                 <!-- Subscription Status -->
                 <div class="flex items-center justify-between">
                   <span class="text-sm text-stone-600">Subscription</span>
-                  <span v-if="getSubscriptionStatus(paymentModalMatch.user_1).active" class="badge badge--green flex items-center gap-1">
-                    <span>👑</span> {{ getSubscriptionStatus(paymentModalMatch.user_1).plan }}
-                  </span>
-                  <span v-else class="badge badge--gray">No Subscription</span>
+                  <div class="flex flex-col items-end gap-1">
+                    <span v-if="getSubscriptionStatus(paymentModalMatch.user_1).active" class="badge badge--green flex items-center gap-1">
+                      <span>👑</span> {{ getSubscriptionStatus(paymentModalMatch.user_1).plan }}
+                    </span>
+                    <span v-else class="badge badge--gray">No Subscription</span>
+                    <span v-if="getSubscriptionStatus(paymentModalMatch.user_1).active" class="text-[10px] text-stone-500">
+                      Valid until {{ new Date(getSubscriptionStatus(paymentModalMatch.user_1).endsAt!).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) }}
+                    </span>
+                  </div>
                 </div>
                 <!-- Free Unlock Status -->
                 <div class="flex items-center justify-between">
@@ -667,7 +727,8 @@
                 <!-- Payment Required -->
                 <div class="flex items-center justify-between pt-2 border-t border-stone-100">
                   <span class="text-sm font-medium text-stone-900">Payment Required</span>
-                  <span v-if="requiresPayment(paymentModalMatch.user_1)" class="text-rose-600 font-bold text-sm">GH₵{{ paymentModalMatch.unlock_price || 15 }}</span>
+                  <span v-if="paymentModalMatch.user_1_paid" class="text-emerald-600 font-bold text-sm flex items-center gap-1">✅ Paid</span>
+                  <span v-else-if="requiresPayment(paymentModalMatch.user_1, paymentModalMatch.user_1_paid)" class="text-rose-600 font-bold text-sm">GH₵{{ paymentModalMatch.unlock_price || 15 }}</span>
                   <span v-else class="text-emerald-600 font-bold text-sm flex items-center gap-1">✓ Covered</span>
                 </div>
               </div>
@@ -689,10 +750,15 @@
                 <!-- Subscription Status -->
                 <div class="flex items-center justify-between">
                   <span class="text-sm text-stone-600">Subscription</span>
-                  <span v-if="getSubscriptionStatus(paymentModalMatch.user_2).active" class="badge badge--green flex items-center gap-1">
-                    <span>👑</span> {{ getSubscriptionStatus(paymentModalMatch.user_2).plan }}
-                  </span>
-                  <span v-else class="badge badge--gray">No Subscription</span>
+                  <div class="flex flex-col items-end gap-1">
+                    <span v-if="getSubscriptionStatus(paymentModalMatch.user_2).active" class="badge badge--green flex items-center gap-1">
+                      <span>👑</span> {{ getSubscriptionStatus(paymentModalMatch.user_2).plan }}
+                    </span>
+                    <span v-else class="badge badge--gray">No Subscription</span>
+                    <span v-if="getSubscriptionStatus(paymentModalMatch.user_2).active" class="text-[10px] text-stone-500">
+                      Valid until {{ new Date(getSubscriptionStatus(paymentModalMatch.user_2).endsAt!).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) }}
+                    </span>
+                  </div>
                 </div>
                 <!-- Free Unlock Status -->
                 <div class="flex items-center justify-between">
@@ -705,7 +771,8 @@
                 <!-- Payment Required -->
                 <div class="flex items-center justify-between pt-2 border-t border-stone-100">
                   <span class="text-sm font-medium text-stone-900">Payment Required</span>
-                  <span v-if="requiresPayment(paymentModalMatch.user_2)" class="text-rose-600 font-bold text-sm">GH₵{{ paymentModalMatch.unlock_price || 15 }}</span>
+                  <span v-if="paymentModalMatch.user_2_paid" class="text-emerald-600 font-bold text-sm flex items-center gap-1">✅ Paid</span>
+                  <span v-else-if="requiresPayment(paymentModalMatch.user_2, paymentModalMatch.user_2_paid)" class="text-rose-600 font-bold text-sm">GH₵{{ paymentModalMatch.unlock_price || 15 }}</span>
                   <span v-else class="text-emerald-600 font-bold text-sm flex items-center gap-1">✓ Covered</span>
                 </div>
               </div>
@@ -718,15 +785,23 @@
                 <template v-if="paymentModalMatch.status === 'unlocked'">
                   ✅ This match is <strong>already unlocked</strong>. Both users have full access.
                 </template>
-                <template v-else-if="!requiresPayment(paymentModalMatch.user_1) || !requiresPayment(paymentModalMatch.user_2)">
-                  <template v-if="!requiresPayment(paymentModalMatch.user_1) && !requiresPayment(paymentModalMatch.user_2)">
+                <template v-else-if="paymentModalMatch.user_1_paid || paymentModalMatch.user_2_paid || !requiresPayment(paymentModalMatch.user_1, paymentModalMatch.user_1_paid) || !requiresPayment(paymentModalMatch.user_2, paymentModalMatch.user_2_paid)">
+                  <template v-if="paymentModalMatch.user_1_paid && paymentModalMatch.user_2_paid">
+                    Both users have already <strong>paid</strong>!
+                  </template>
+                  <template v-else-if="(!requiresPayment(paymentModalMatch.user_1, paymentModalMatch.user_1_paid)) && (!requiresPayment(paymentModalMatch.user_2, paymentModalMatch.user_2_paid))">
                     Both users have benefits (subscription or free unlock) — match can be unlocked at no cost!
                   </template>
-                  <template v-else-if="!requiresPayment(paymentModalMatch.user_1)">
-                    <strong>{{ paymentModalMatch.user_1?.display_name }}</strong> has benefits. <strong>{{ paymentModalMatch.user_2?.display_name }}</strong> needs to pay.
-                  </template>
                   <template v-else>
-                    <strong>{{ paymentModalMatch.user_2?.display_name }}</strong> has benefits. <strong>{{ paymentModalMatch.user_1?.display_name }}</strong> needs to pay.
+                    <span v-if="paymentModalMatch.user_1_paid"><strong>{{ paymentModalMatch.user_1?.display_name }}</strong> has paid.</span>
+                    <span v-else-if="!requiresPayment(paymentModalMatch.user_1, paymentModalMatch.user_1_paid)"><strong>{{ paymentModalMatch.user_1?.display_name }}</strong> has benefits.</span>
+                    <span v-else><strong>{{ paymentModalMatch.user_1?.display_name }}</strong> needs to pay.</span>
+                    
+                    <span class="mx-1.5">&</span>
+                    
+                    <span v-if="paymentModalMatch.user_2_paid"><strong>{{ paymentModalMatch.user_2?.display_name }}</strong> has paid.</span>
+                    <span v-else-if="!requiresPayment(paymentModalMatch.user_2, paymentModalMatch.user_2_paid)"><strong>{{ paymentModalMatch.user_2?.display_name }}</strong> has benefits.</span>
+                    <span v-else><strong>{{ paymentModalMatch.user_2?.display_name }}</strong> needs to pay.</span>
                   </template>
                 </template>
                 <template v-else>
@@ -885,6 +960,15 @@ const filters = reactive({
   search: ''
 })
 
+// Pagination State
+const currentPage = ref(1)
+const itemsPerPage = ref(10)
+
+// Reset pagination when filters change
+watch([() => filters.status, () => filters.feedbackStatus, () => filters.search], () => {
+  currentPage.value = 1
+})
+
 // Feedback Modal State
 const showFeedbackModal = ref(false)
 const selectedMatch = ref<any>(null)
@@ -925,14 +1009,29 @@ const openPaymentDetailsModal = (match: any) => {
   showPaymentModal.value = true
 }
 
-const getSubscriptionStatus = (user: any): { active: boolean; plan: string } => {
-  if (!user) return { active: false, plan: '' }
+const getSubscriptionStatus = (user: any): { active: boolean; plan: string; endsAt: string | null } => {
+  if (!user) return { active: false, plan: '', endsAt: null }
   
   const now = new Date()
-  const subEnd = user.subscription_ends_at ? new Date(user.subscription_ends_at) : null
   
+  // 1. Try nested subscriptions array (new structure)
+  if (user.subscriptions && Array.isArray(user.subscriptions)) {
+    const activeSub = user.subscriptions.find((s: any) => s.status === 'active')
+    if (activeSub) {
+      const subEnd = new Date(activeSub.end_date)
+      if (subEnd > now) {
+        return {
+          active: true,
+          plan: 'Active Subscription',
+          endsAt: activeSub.end_date
+        }
+      }
+    }
+  }
+
+  // 2. Try direct properties (backup/compat)
+  const subEnd = user.subscription_ends_at ? new Date(user.subscription_ends_at) : null
   if (subEnd && subEnd > now) {
-    // Determine plan name based on subscription type
     const planMap: Record<string, string> = {
       'monthly_unlimited': 'Monthly Unlimited',
       'weekly_unlimited': 'Weekly Unlimited',
@@ -940,14 +1039,16 @@ const getSubscriptionStatus = (user: any): { active: boolean; plan: string } => 
     }
     return { 
       active: true, 
-      plan: planMap[user.subscription_type] || user.subscription_type || 'Active' 
+      plan: planMap[user.subscription_type] || user.subscription_type || 'Active',
+      endsAt: user.subscription_ends_at
     }
   }
   
-  return { active: false, plan: '' }
+  return { active: false, plan: '', endsAt: null }
 }
 
-const requiresPayment = (user: any): boolean => {
+const requiresPayment = (user: any, isPaid: boolean = false): boolean => {
+  if (isPaid) return false
   if (!user) return true
   
   // User has free unlock available
@@ -1134,8 +1235,8 @@ const fetchMatches = async () => {
       .from('matches')
       .select(`
         *,
-        user_1:profiles!matches_user_1_id_fkey(*),
-        user_2:profiles!matches_user_2_id_fkey(*)
+        user_1:profiles!matches_user_1_id_fkey(*, subscriptions(*)),
+        user_2:profiles!matches_user_2_id_fkey(*, subscriptions(*))
       `)
       .order('created_at', { ascending: false })
 
@@ -1173,6 +1274,31 @@ const filteredMatches = computed(() => {
     return true
   })
 })
+
+const paginatedMatches = computed(() => {
+  const start = (currentPage.value - 1) * itemsPerPage.value
+  const end = start + itemsPerPage.value
+  return filteredMatches.value.slice(start, end)
+})
+
+const totalPages = computed(() => {
+  return Math.ceil(filteredMatches.value.length / itemsPerPage.value)
+})
+
+// Pagination Helpers
+const shouldShowPage = (page: number) => {
+  if (totalPages.value <= 7) return true
+  if (page === 1 || page === totalPages.value) return true
+  if (Math.abs(page - currentPage.value) <= 1) return true
+  return false
+}
+
+const shouldShowEllipsis = (page: number) => {
+  if (totalPages.value <= 7) return false
+  if (page === 2 && currentPage.value > 4) return true
+  if (page === totalPages.value - 1 && currentPage.value < totalPages.value - 3) return true
+  return false
+}
 
 // Feedback stats for unlocked matches
 const feedbackStats = computed(() => {

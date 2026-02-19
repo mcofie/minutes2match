@@ -5,42 +5,89 @@
         <h1 class="page-title">Payments & Revenue</h1>
         <p class="page-subtitle">Track real-time transactions and financial health</p>
       </div>
-      <div class="header-actions">
-        <button class="btn-primary" @click="exportPayments">
+      <div class="header-actions flex gap-2">
+        <div class="tabs-nav mr-4">
+          <button 
+            class="tab-btn" 
+            :class="{ active: activeTab === 'transactions' }"
+            @click="activeTab = 'transactions'"
+          >
+            Transactions
+          </button>
+          <button 
+            class="tab-btn" 
+            :class="{ active: activeTab === 'subscriptions' }"
+            @click="activeTab = 'subscriptions'"
+          >
+            Active Subscriptions
+          </button>
+        </div>
+        <button v-if="activeTab === 'transactions'" class="btn-primary" @click="exportPayments">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="mr-2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
           Export CSV
         </button>
       </div>
     </header>
 
-    <!-- Stats Cards -->
-    <div class="stats-grid">
-      <div class="stat-card success">
-        <div class="stat-icon">💰</div>
-        <div>
-          <p class="stat-label">Today's Revenue</p>
-          <p class="stat-value font-mono">{{ formatGHS(stats.todayRevenue) }}</p>
+    <!-- Analytics & Stats Grid -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+      <!-- Main Revenue Stats -->
+      <div class="lg:col-span-2 grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div class="stat-card success relative overflow-hidden">
+          <div class="stat-icon !bg-emerald-50 text-emerald-600">💰</div>
+          <div>
+            <p class="stat-label">Today</p>
+            <p class="stat-value font-mono">{{ formatGHS(stats.todayRevenue) }}</p>
+            <div class="text-[10px] mt-1 flex items-center gap-1" :class="stats.growth.today >= 0 ? 'text-emerald-600' : 'text-rose-600'">
+              <span v-if="stats.growth.today >= 0">▲</span>
+              <span v-else>▼</span>
+              {{ Math.abs(stats.growth.today) }}% vs yesterday
+            </div>
+          </div>
+        </div>
+        
+        <div class="stat-card info">
+          <div class="stat-icon !bg-blue-50 text-blue-600">�</div>
+          <div>
+            <p class="stat-label">Success Rate</p>
+            <p class="stat-value font-mono">{{ stats.successRate }}%</p>
+            <div class="w-full bg-stone-100 h-1.5 rounded-full mt-2 overflow-hidden">
+              <div class="bg-blue-500 h-full transition-all duration-1000" :style="{ width: `${stats.successRate}%` }"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="stat-card accent">
+          <div class="stat-icon !bg-purple-50 text-purple-600">�</div>
+          <div>
+            <p class="stat-label">Active Subs</p>
+            <div class="flex items-baseline gap-2">
+              <p class="stat-value">{{ subMetrics.total }}</p>
+              <span v-if="subMetrics.expiringSoon > 0" class="text-[10px] font-bold text-rose-500 bg-rose-50 px-1.5 py-0.5 rounded-full animate-pulse">
+                {{ subMetrics.expiringSoon }} dying soon
+              </span>
+            </div>
+          </div>
         </div>
       </div>
-      <div class="stat-card info">
-        <div class="stat-icon">📅</div>
-        <div>
-          <p class="stat-label">This Week</p>
-          <p class="stat-value font-mono">{{ formatGHS(stats.weekRevenue) }}</p>
-        </div>
-      </div>
-      <div class="stat-card accent">
-        <div class="stat-icon">📊</div>
-        <div>
-          <p class="stat-label">This Month</p>
-          <p class="stat-value font-mono">{{ formatGHS(stats.monthRevenue) }}</p>
-        </div>
-      </div>
-      <div class="stat-card danger" v-if="stats.failedCount > 0">
-        <div class="stat-icon">⚠️</div>
-        <div>
-          <p class="stat-label">Failed Payments</p>
-          <p class="stat-value">{{ stats.failedCount }}</p>
+
+      <!-- Revenue Split Chart (Simplified CSS Version) -->
+      <div class="stat-card !flex-col !items-start gap-4">
+        <p class="stat-label">Revenue Split</p>
+        <div class="w-full space-y-3">
+          <div v-for="(val, key) in stats.revenueSplit" :key="key" class="space-y-1">
+            <div class="flex justify-between text-xs">
+              <span class="capitalize text-stone-500">{{ key }}</span>
+              <span class="font-bold text-stone-900">{{ formatGHS(val) }}</span>
+            </div>
+            <div class="w-full bg-stone-50 h-2 rounded-full overflow-hidden">
+              <div 
+                class="h-full rounded-full transition-all duration-1000" 
+                :class="key === 'tickets' ? 'bg-blue-400' : key === 'matches' ? 'bg-rose-400' : 'bg-purple-400'"
+                :style="{ width: `${(val / (stats.totalRevenue || 1)) * 100}%` }"
+              ></div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -72,7 +119,7 @@
     </div>
 
     <!-- Filters Bar -->
-    <div class="filters-bar">
+    <div class="filters-bar" v-if="activeTab === 'transactions'">
       <div class="search-wrapper">
         <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <circle cx="11" cy="11" r="8"/>
@@ -98,106 +145,233 @@
           <option value="event_ticket">Event Tickets</option>
           <option value="match_unlock">Match Unlocks</option>
         </select>
-        <!-- Date Inputs could go here if needed, keeping it simple for now -->
       </div>
     </div>
 
-    <!-- Payments Table -->
-    <div class="table-container">
-      <table class="data-table">
-        <thead>
-          <tr>
-            <th>Transaction Date</th>
-            <th>Details</th>
-            <th>Customer</th>
-            <th class="text-right">Amount</th>
-            <th>Status</th>
-            <th></th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-if="loading">
-            <td colspan="6" class="text-center py-12 text-stone-400">
-              <div class="flex flex-col items-center gap-2">
-                <span class="animate-spin text-2xl">⏳</span>
-                <span>Loading transactions...</span>
-              </div>
-            </td>
-          </tr>
-          <tr v-else-if="filteredPayments.length === 0">
-            <td colspan="6" class="text-center py-16 text-stone-400">
-               <div class="flex flex-col items-center gap-3">
-                <span class="text-3xl opacity-50">🧾</span>
-                <span class="font-medium">No transactions found</span>
-              </div>
-            </td>
-          </tr>
-          <tr v-for="payment in filteredPayments" :key="payment.id" class="group hover:bg-stone-50 transition-colors">
-            <td>
-              <div class="flex flex-col">
-                <span class="font-medium text-stone-900">{{ formatDate(payment.created_at) }}</span>
-                <span class="text-xs text-stone-400 font-mono">{{ formatTime(payment.created_at) }}</span>
-              </div>
-            </td>
-            <td>
-              <div class="flex flex-col gap-1">
-                 <div class="flex items-center gap-2">
-                    <span 
-                      class="purpose-icon" 
-                      :class="payment.purpose === 'event_ticket' ? 'bg-blue-100 text-blue-600' : 'bg-pink-100 text-pink-600'"
-                    >
-                      {{ payment.purpose === 'event_ticket' ? '🎟️' : '💕' }}
-                    </span>
-                    <span class="text-sm font-medium text-stone-700 capitalize">
-                      {{ payment.purpose?.replace('_', ' ') }}
-                    </span>
-                 </div>
-                 <span class="text-xs font-mono text-stone-400">{{ payment.provider_ref }}</span>
-              </div>
-            </td>
-            <td>
-              <div class="flex items-center gap-3">
-                <div class="user-avatar-sm bg-stone-100 text-stone-600">
-                  {{ payment.user?.display_name?.charAt(0) || '?' }}
-                </div>
-                <div class="flex flex-col">
-                  <span class="font-medium text-stone-900">{{ payment.user?.display_name || 'Unknown' }}</span>
-                  <span class="text-xs text-stone-400 font-mono">{{ payment.user?.phone }}</span>
-                </div>
-              </div>
-            </td>
-            <td class="text-right">
-              <span class="font-mono font-bold text-stone-900">{{ formatGHS(payment.amount) }}</span>
-            </td>
-            <td>
-              <span class="status-pill" :class="payment.status">
-                <span class="dot"></span> {{ payment.status }}
-              </span>
-            </td>
-            <td class="text-right">
-              <button class="btn-icon group-hover:visible invisible" @click="viewPaymentDetails(payment)" title="View Receipt">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
-              </button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+    <!-- Subscriptions Search -->
+    <div class="filters-bar" v-else>
+      <div class="search-wrapper">
+        <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8"/>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+        <input 
+          v-model="subSearchQuery" 
+          type="text" 
+          placeholder="Search subscriber name or phone..." 
+          class="search-input"
+        />
+      </div>
     </div>
 
-    <!-- Pagination -->
-     <div v-if="totalPages > 1" class="mt-4 flex justify-between items-center text-sm text-stone-500">
-      <span>Showing {{ (currentPage - 1) * pageSize + 1 }} - {{ Math.min(currentPage * pageSize, totalPayments) }} of {{ totalPayments }}</span>
-      <div class="flex gap-2">
+    <div v-if="activeTab === 'transactions'">
+      <!-- Payments Table -->
+      <div class="table-container">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Transaction Date</th>
+              <th>Details</th>
+              <th>Customer</th>
+              <th class="text-right">Amount</th>
+              <th>Status</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-if="loading">
+              <td colspan="6" class="text-center py-12 text-stone-400">
+                <div class="flex flex-col items-center gap-2">
+                  <span class="animate-spin text-2xl">⏳</span>
+                  <span>Loading transactions...</span>
+                </div>
+              </td>
+            </tr>
+            <tr v-else-if="filteredPayments.length === 0">
+              <td colspan="6" class="text-center py-16 text-stone-400">
+                 <div class="flex flex-col items-center gap-3">
+                  <span class="text-3xl opacity-50">🧾</span>
+                  <span class="font-medium">No transactions found</span>
+                </div>
+              </td>
+            </tr>
+            <tr v-for="payment in filteredPayments" :key="payment.id" class="group hover:bg-stone-50 transition-colors">
+              <td>
+                <div class="flex flex-col">
+                  <span class="font-medium text-stone-900">{{ formatDate(payment.created_at) }}</span>
+                  <span class="text-xs text-stone-400 font-mono">{{ formatTime(payment.created_at) }}</span>
+                </div>
+              </td>
+              <td>
+                <div class="flex flex-col gap-1">
+                   <div class="flex items-center gap-2">
+                      <span 
+                        class="purpose-icon" 
+                        :class="payment.purpose === 'event_ticket' ? 'bg-blue-100 text-blue-600' : 'bg-pink-100 text-pink-600'"
+                      >
+                        {{ payment.purpose === 'event_ticket' ? '🎟️' : '💕' }}
+                      </span>
+                      <span class="text-sm font-medium text-stone-700 capitalize">
+                        {{ payment.purpose?.replace('_', ' ') }}
+                      </span>
+                   </div>
+                   <span class="text-xs font-mono text-stone-400">{{ payment.provider_ref }}</span>
+                </div>
+              </td>
+              <td>
+                <div class="flex items-center gap-3">
+                  <div class="user-avatar-sm bg-stone-100 text-stone-600">
+                    {{ payment.user?.display_name?.charAt(0) || '?' }}
+                  </div>
+                  <div class="flex flex-col">
+                    <span class="font-medium text-stone-900">{{ payment.user?.display_name || 'Unknown' }}</span>
+                    <span class="text-xs text-stone-400 font-mono">{{ payment.user?.phone }}</span>
+                  </div>
+                </div>
+              </td>
+              <td class="text-right">
+                <span class="font-mono font-bold text-stone-900">{{ formatGHS(payment.amount) }}</span>
+              </td>
+              <td>
+                <span class="status-pill" :class="payment.status">
+                  <span class="dot"></span> {{ payment.status }}
+                </span>
+              </td>
+              <td class="text-right">
+                <button class="btn-icon group-hover:visible invisible" @click="viewPaymentDetails(payment)" title="View Receipt">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Pagination -->
+       <div v-if="totalPages > 1" class="mt-4 flex justify-between items-center text-sm text-stone-500">
+        <span>Showing {{ (currentPage - 1) * pageSize + 1 }} - {{ Math.min(currentPage * pageSize, totalPayments) }} of {{ totalPayments }}</span>
+        <div class="flex gap-2">
+          <button 
+            @click="handlePageChange(currentPage - 1)"
+            :disabled="currentPage === 1"
+            class="px-3 py-1 border rounded hover:bg-white disabled:opacity-50"
+          >Prev</button>
+          <button 
+            @click="handlePageChange(currentPage + 1)"
+            :disabled="currentPage === totalPages"
+            class="px-3 py-1 border rounded hover:bg-white disabled:opacity-50"
+          >Next</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Active Subscriptions View -->
+    <div v-else>
+      <!-- Subscriptions Intelligence Bar -->
+      <div class="mb-4 flex flex-wrap items-center justify-between gap-4 bg-white p-3 border border-stone-200 rounded-xl shadow-sm">
+        <div class="flex gap-4">
+           <div class="flex flex-col">
+             <span class="text-[10px] uppercase font-black text-stone-400 tracking-widest">Expiring Soon</span>
+             <span class="text-lg font-bold text-rose-600">{{ subMetrics.expiringSoon }} profiles</span>
+           </div>
+           <div class="w-px h-8 bg-stone-100 self-center"></div>
+           <div class="flex flex-col">
+             <span class="text-[10px] uppercase font-black text-stone-400 tracking-widest">Auto-Renewing</span>
+             <span class="text-lg font-bold text-emerald-600">{{ subscriptions.filter(s => s.auto_renew).length }} users</span>
+           </div>
+        </div>
+        
         <button 
-          @click="handlePageChange(currentPage - 1)"
-          :disabled="currentPage === 1"
-          class="px-3 py-1 border rounded hover:bg-white disabled:opacity-50"
-        >Prev</button>
-        <button 
-          @click="handlePageChange(currentPage + 1)"
-          :disabled="currentPage === totalPages"
-          class="px-3 py-1 border rounded hover:bg-white disabled:opacity-50"
-        >Next</button>
+          v-if="subMetrics.expiringSoon > 0"
+          class="btn-primary !bg-rose-600 hover:!bg-rose-700 !py-2 !px-4 text-xs animate-in slide-in-from-right duration-500"
+          @click="bulkRemindExpiring"
+          :disabled="isRemindingAll"
+        >
+          <span v-if="isRemindingAll" class="animate-spin mr-2 text-[10px]">⌛</span>
+          📲 Remind All Expiring Today
+        </button>
+      </div>
+
+      <div class="table-container">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Subscriber</th>
+              <th>Subscription Period</th>
+              <th>Status</th>
+              <th class="text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-if="loadingSubs">
+              <td colspan="4" class="text-center py-12 text-stone-400">
+                 <div class="flex flex-col items-center gap-2">
+                  <span class="animate-spin text-2xl">⏳</span>
+                  <span>Loading subscriptions...</span>
+                </div>
+              </td>
+            </tr>
+            <tr v-else-if="filteredSubs.length === 0">
+              <td colspan="4" class="text-center py-16 text-stone-400">
+                 <div class="flex flex-col items-center gap-3">
+                  <span class="text-3xl opacity-50">👑</span>
+                  <span class="font-medium">No active subscriptions found</span>
+                </div>
+              </td>
+            </tr>
+            <tr v-for="sub in filteredSubs" :key="sub.id" 
+              class="group hover:bg-stone-50 transition-colors border-l-4"
+              :class="isExpiringSoon(sub.end_date) ? 'border-l-rose-500 bg-rose-50/20' : 'border-l-transparent'"
+            >
+              <td>
+                <div class="flex items-center gap-3">
+                  <div class="user-avatar-sm bg-purple-100 text-purple-600">
+                    {{ sub.user?.display_name?.charAt(0) || '?' }}
+                  </div>
+                  <div class="flex flex-col">
+                    <span class="font-bold text-stone-900 flex items-center gap-2">
+                       {{ sub.user?.display_name || 'Member' }}
+                       <span v-if="isExpiringSoon(sub.end_date)" class="text-[8px] bg-rose-100 text-rose-700 px-1.5 py-0.5 rounded-full uppercase tracking-tighter">Due Soon</span>
+                    </span>
+                    <span class="text-xs text-stone-500 font-mono">{{ sub.user?.phone }}</span>
+                  </div>
+                </div>
+              </td>
+              <td>
+                 <div class="flex flex-col">
+                   <div class="flex items-center gap-2 text-sm text-stone-700">
+                     <span class="text-stone-400">From</span>
+                     <span class="font-medium">{{ formatDate(sub.start_date) }}</span>
+                   </div>
+                   <div class="flex items-center gap-2 text-sm text-stone-700 mt-1">
+                     <span class="text-stone-400">To</span>
+                     <span class="font-bold" :class="isExpiringSoon(sub.end_date) ? 'text-rose-600' : 'text-emerald-600'">{{ formatDate(sub.end_date) }}</span>
+                   </div>
+                 </div>
+              </td>
+              <td>
+                <div class="status-pill success">
+                  <span class="dot"></span> Active
+                </div>
+                <div v-if="sub.auto_renew" class="text-[10px] text-stone-400 mt-1 ml-1 flex items-center gap-1">
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+                  Auto-renews
+                </div>
+              </td>
+              <td class="text-right">
+                <button 
+                  class="btn-sm bg-purple-50 text-purple-700 border-purple-100 hover:bg-purple-100 transition-colors flex items-center gap-2 float-right"
+                  @click="sendSubReminder(sub)"
+                  :disabled="sendingReminderId === sub.id"
+                >
+                  <span v-if="sendingReminderId === sub.id" class="animate-spin text-[10px]">⌛</span>
+                  <span v-else>📲</span>
+                  Remind
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
       </div>
     </div>
 
@@ -277,13 +451,37 @@ const payments = ref<any[]>([])
 const alerts = ref<any[]>([])
 const selectedPayment = ref<any>(null)
 const searchQuery = ref('')
+const subSearchQuery = ref('')
+const activeTab = ref('transactions') // 'transactions' | 'subscriptions'
+
+const subscriptions = ref<any[]>([])
+const loadingSubs = ref(false)
+const sendingReminderId = ref<string | null>(null)
 
 const stats = ref({
   todayRevenue: 0,
   weekRevenue: 0,
   monthRevenue: 0,
-  failedCount: 0
+  totalRevenue: 0,
+  failedCount: 0,
+  successRate: 0,
+  growth: {
+    today: 0
+  },
+  revenueSplit: {
+    tickets: 0,
+    matches: 0,
+    subscriptions: 0
+  }
 })
+
+const subMetrics = ref({
+  total: 0,
+  expiringSoon: 0,
+  newToday: 0
+})
+
+const isRemindingAll = ref(false)
 
 const filters = reactive({
   status: '',
@@ -330,32 +528,34 @@ const formatTime = (dateStr: string) => {
 // Data Fetching
 const fetchPayments = async () => {
   loading.value = true
-  
-  let query = supabase
-    .from('payments')
-    .select('*, user:profiles!payments_user_id_fkey(id, display_name, phone)', { count: 'exact' })
-  
-  // Apply filters
-  if (filters.status) query = query.eq('status', filters.status)
-  if (filters.purpose) query = query.eq('purpose', filters.purpose)
-  if (filters.dateFrom) query = query.gte('created_at', filters.dateFrom)
-  if (filters.dateTo) query = query.lte('created_at', filters.dateTo + 'T23:59:59')
-  
-  // Apply Pagination
-  const from = (currentPage.value - 1) * pageSize.value
-  const to = from + pageSize.value - 1
+  try {
+    let query = supabase
+      .from('payments')
+      .select('*, user:profiles!payments_user_id_fkey(id, display_name, phone)', { count: 'exact' })
+    
+    // Apply filters
+    if (filters.status) query = query.eq('status', filters.status)
+    if (filters.purpose) query = query.eq('purpose', filters.purpose)
+    if (filters.dateFrom) query = query.gte('created_at', filters.dateFrom)
+    if (filters.dateTo) query = query.lte('created_at', filters.dateTo + 'T23:59:59')
+    
+    // Apply Pagination
+    const from = (currentPage.value - 1) * pageSize.value
+    const to = from + pageSize.value - 1
 
-  const { data, count, error } = await query
-    .order('created_at', { ascending: false })
-    .range(from, to)
-  
-  if (error) {
-    console.error('Error fetching payments:', error)
+    const { data, count, error } = await query
+      .order('created_at', { ascending: false })
+      .range(from, to)
+    
+    if (error) throw error
+
+    payments.value = data || []
+    totalPayments.value = count || 0
+  } catch (e) {
+    console.error('Error fetching payments:', e)
+  } finally {
+    loading.value = false
   }
-
-  payments.value = data || []
-  totalPayments.value = count || 0
-  loading.value = false
 }
 
 const handlePageChange = (page: number) => {
@@ -370,40 +570,67 @@ watch(filters, () => {
 }, { deep: true })
 
 const fetchAlerts = async () => {
-  const { data } = await supabase
-    .from('payment_alerts')
-    .select('*')
-    .eq('resolved', false)
-    .order('created_at', { ascending: false })
-    .limit(10)
-  
-  alerts.value = data || []
+  try {
+    const { data, error } = await supabase
+      .from('payment_alerts')
+      .select('*')
+      .eq('resolved', false)
+      .order('created_at', { ascending: false })
+      .limit(10)
+    
+    if (error) throw error
+    alerts.value = data || []
+  } catch (e) {
+    console.error('Error fetching alerts:', e)
+  }
 }
 
 const fetchStats = async () => {
-  const now = new Date()
-  const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString()
-  const weekStart = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString()
-  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString()
-  
-  // Helper for summing
-  const sumAmount = (data: any[]) => (data || []).reduce((sum: number, p: any) => sum + (p.amount || 0), 0)
+  try {
+    const now = new Date()
+    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString()
+    const yesterdayStart = new Date(now.getTime() - 24 * 60 * 60 * 1000).toISOString()
+    const weekStart = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString()
+    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString()
+    
+    // Helper for summing
+    const sumAmount = (data: any[]) => (data || []).reduce((sum: number, p: any) => sum + (p.amount || 0), 0)
 
-  // Today
-  const { data: todayData } = await supabase.from('payments').select('amount').eq('status', 'success').gte('created_at', todayStart)
-  stats.value.todayRevenue = sumAmount(todayData || [])
-  
-  // Week
-  const { data: weekData } = await supabase.from('payments').select('amount').eq('status', 'success').gte('created_at', weekStart)
-  stats.value.weekRevenue = sumAmount(weekData || [])
-  
-  // Month
-  const { data: monthData } = await supabase.from('payments').select('amount').eq('status', 'success').gte('created_at', monthStart)
-  stats.value.monthRevenue = sumAmount(monthData || [])
-  
-  // Failed count
-  const { count } = await supabase.from('payments').select('id', { count: 'exact', head: true }).eq('status', 'failed').gte('created_at', weekStart)
-  stats.value.failedCount = count || 0
+    // 1. Fetch data in parallel for efficiency
+    const [allSuccessRecent, totalCountResponse, todayResponse, yesterdayResponse, monthResponse, failedCountResponse] = await Promise.all([
+      // Fetch only last 100 successful payments for split (avoid fetching entire table)
+      supabase.from('payments').select('amount, purpose, status').eq('status', 'success').limit(500),
+      supabase.from('payments').select('id', { count: 'exact', head: true }),
+      supabase.from('payments').select('amount').eq('status', 'success').gte('created_at', todayStart),
+      supabase.from('payments').select('amount').eq('status', 'success').gte('created_at', yesterdayStart).lte('created_at', todayStart),
+      supabase.from('payments').select('amount').eq('status', 'success').gte('created_at', monthStart),
+      supabase.from('payments').select('id', { count: 'exact', head: true }).eq('status', 'failed').gte('created_at', todayStart)
+    ])
+
+    // Success Rate & Total (based on all-caps stats)
+    const successCount = allSuccessRecent.data?.length || 0
+    const totalCount = totalCountResponse.count || 0
+    stats.value.successRate = totalCount ? Math.round((successCount / totalCount) * 100) : 0
+    
+    // Split based on recent data
+    const recentData = allSuccessRecent.data || []
+    stats.value.revenueSplit = {
+      tickets: sumAmount(recentData.filter(p => p.purpose === 'event_ticket')),
+      matches: sumAmount(recentData.filter(p => p.purpose === 'match_unlock')),
+      subscriptions: sumAmount(recentData.filter(p => ['premium_sub', 'subscription'].includes(p.purpose)))
+    }
+    stats.value.totalRevenue = sumAmount(recentData)
+
+    // Time-based values
+    stats.value.todayRevenue = sumAmount(todayResponse.data || [])
+    const yesterdayRevenue = sumAmount(yesterdayResponse.data || [])
+    stats.value.growth.today = yesterdayRevenue ? Math.round(((stats.value.todayRevenue - yesterdayRevenue) / yesterdayRevenue) * 100) : 100
+    
+    stats.value.monthRevenue = sumAmount(monthResponse.data || [])
+    stats.value.failedCount = failedCountResponse.count || 0
+  } catch (e) {
+    console.error('Error fetching stats:', e)
+  }
 }
 
 const resolveAlert = async (alertId: string) => {
@@ -418,6 +645,108 @@ const resolveAlert = async (alertId: string) => {
 const viewPaymentDetails = (payment: any) => {
   selectedPayment.value = payment
 }
+
+const filteredSubs = computed(() => {
+  if (!subSearchQuery.value) return subscriptions.value
+  
+  const query = subSearchQuery.value.toLowerCase()
+  return subscriptions.value.filter(s => 
+    s.user?.display_name?.toLowerCase().includes(query) ||
+    s.user?.phone?.includes(query)
+  )
+})
+
+// Subscriptions logic
+const fetchSubscriptions = async () => {
+  loadingSubs.value = true
+  try {
+    const { data, error } = await supabase
+      .from('subscriptions')
+      .select('*, user:profiles(id, display_name, phone)')
+      .eq('status', 'active')
+      .order('end_date', { ascending: true })
+
+    if (error) throw error
+    subscriptions.value = data || []
+    
+    // Update metrics
+    subMetrics.value.total = data?.length || 0
+    subMetrics.value.expiringSoon = data?.filter(s => isExpiringSoon(s.end_date)).length || 0
+  } catch (e: any) {
+    console.error('Error fetching subscriptions:', e)
+    // Fallback if the above query fails due to relationship naming
+    if (e.message?.includes('relationship')) {
+      const { data: fallbackData } = await supabase
+        .from('subscriptions')
+        .select('*, user:profiles!subscriptions_user_id_fkey(id, display_name, phone)')
+        .eq('status', 'active')
+      subscriptions.value = fallbackData || []
+    }
+  } finally {
+    loadingSubs.value = false
+  }
+}
+
+const isExpiringSoon = (endDate: string) => {
+  const diff = new Date(endDate).getTime() - new Date().getTime()
+  const hours = diff / (1000 * 60 * 60)
+  return hours > 0 && hours < 48
+}
+
+const bulkRemindExpiring = async () => {
+  const expiring = subscriptions.value.filter(s => isExpiringSoon(s.end_date))
+  if (expiring.length === 0) return
+  
+  if (!confirm(`Send SMS reminders to ${expiring.length} users whose subscriptions expire within 48 hours?`)) return
+  
+  isRemindingAll.value = true
+  let success = 0
+  
+  for (const sub of expiring) {
+    try {
+      await sendSubReminder(sub, true) // silent mode
+      success++
+    } catch (e) {
+      console.error('Failed to remind:', sub.user?.phone)
+    }
+  }
+  
+  alert(`Bulk reminder complete. ${success} messages sent.`)
+  isRemindingAll.value = false
+}
+
+const sendSubReminder = async (sub: any, silent = false) => {
+  if (!sub.user?.phone) {
+    if (!silent) alert('User has no phone number')
+    return
+  }
+
+  sendingReminderId.value = sub.id
+  try {
+    const { sendSMS } = useHubtel()
+    const endDate = formatDate(sub.end_date)
+    const message = `Friendly reminder: Your Minutes 2 Match subscription is active until ${endDate}. Log in to find your perfect match! 💕 - M2Match`
+    
+    const result = await sendSMS(sub.user.phone, message)
+    if (result.success) {
+      if (!silent) alert('Reminder sent successfully!')
+    } else {
+      throw new Error('Failed to send SMS')
+    }
+  } catch (e) {
+    console.error('Error sending reminder:', e)
+    if (!silent) alert('Failed to send reminder SMS')
+    throw e
+  } finally {
+    sendingReminderId.value = null
+  }
+}
+
+watch(activeTab, (newTab) => {
+  if (newTab === 'subscriptions' && subscriptions.value.length === 0) {
+    fetchSubscriptions()
+  }
+})
 
 const exportPayments = () => {
   const csv = [
@@ -440,14 +769,48 @@ const exportPayments = () => {
   a.click()
 }
 
-onMounted(() => {
-  fetchPayments()
-  fetchAlerts()
-  fetchStats()
+onMounted(async () => {
+  // Use Promise.all to fetch everything concurrently but safely
+  try {
+    await Promise.all([
+      fetchPayments(),
+      fetchAlerts(),
+      fetchStats()
+    ])
+  } catch (e) {
+    console.error('Core data fetch failed:', e)
+  }
 })
 </script>
 
 <style scoped>
+/* Tabs */
+.tabs-nav {
+  display: flex;
+  background: #F3F4F6;
+  padding: 0.25rem;
+  border-radius: 10px;
+}
+
+.tab-btn {
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  border-radius: 8px;
+  color: #6B7280;
+  transition: all 0.2s;
+}
+
+.tab-btn.active {
+  background: white;
+  color: #111827;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.tab-btn:hover:not(.active) {
+  color: #374151;
+}
+
 /* Layout */
 .admin-page {
   max-width: 1200px;

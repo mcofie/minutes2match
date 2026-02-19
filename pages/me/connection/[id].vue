@@ -131,10 +131,15 @@
                 v-else
                 @click="handleUnlock"
                 :disabled="unlocking"
-                class="w-full py-4 bg-black dark:bg-stone-100 text-white dark:text-black rounded-lg font-bold text-xs uppercase tracking-widest shadow-[4px_4px_0px_0px_rgba(0,0,0,0.2)] hover:shadow-[6px_6px_0px_0px_rgba(244,63,94,1)] hover:bg-rose-500 dark:hover:bg-rose-500 dark:hover:text-white hover:-translate-y-0.5 transition-all disabled:opacity-50 border-2 border-black dark:border-stone-100 flex items-center justify-center gap-2"
+                class="w-full py-4 bg-black dark:bg-stone-100 text-white dark:text-black rounded-lg font-bold text-xs uppercase tracking-widest shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-[6px_6px_0px_0px_rgba(244,63,94,1)] hover:bg-rose-500 dark:hover:bg-rose-500 dark:hover:text-white hover:-translate-y-0.5 transition-all disabled:opacity-50 border-2 border-black dark:border-stone-100 flex items-center justify-center gap-2"
               >
                 <span v-if="unlocking" class="w-4 h-4 border-2 border-white/30 dark:border-black/30 border-t-white dark:border-t-black rounded-full animate-spin"></span>
-                {{ unlocking ? 'Processing...' : `Unlock for GH₵${match?.unlock_price || 10}` }}
+                <template v-if="!unlocking">
+                  <span v-if="subscription">Unlock for Free (Subscription)</span>
+                  <span v-else-if="currentUser && !currentUser.has_used_free_unlock">Unlock for Free (First Match)</span>
+                  <span v-else>Unlock for GH₵{{ match?.unlock_price || 10 }}</span>
+                </template>
+                <span v-else>Processing...</span>
               </button>
             </div>
             
@@ -852,8 +857,46 @@ const handleBlock = () => {
 }
 
 const handleUnlock = async () => {
-  // Redirect to payment flow
-  router.push(`/payment/match/${matchId.value}`)
+  if (unlocking.value || !match.value || !currentUser.value) return
+  
+  unlocking.value = true
+  
+  try {
+    const { initializePayment } = usePaystack()
+    const paymentEmail = currentUser.value.phone 
+       ? `${currentUser.value.phone.replace(/\+/g, '')}@m2match.com` 
+       : 'user@m2match.com'
+
+    const response = await initializePayment(
+      paymentEmail,
+      match.value.unlock_price,
+      'match_unlock',
+      { userId: currentUser.value.id, matchId: match.value.id }
+    )
+
+    // Check if it was an immediate unlock (Free or Subscription)
+    if (response.type === 'free_unlock' || response.type === 'subscription_unlock') {
+        toast.success(
+            response.type === 'free_unlock' ? 'First Match Free!' : 'Unlocked with Subscription', 
+            'Your match has been unlocked successfully.'
+        )
+        // Refresh local data
+        await loadMatchData()
+    } else {
+        // Standard payment flow
+        const authUrl = response.authorization_url || response.data?.authorization_url
+        if (authUrl) {
+            window.location.href = authUrl
+        } else {
+            throw new Error('Invalid payment response')
+        }
+    }
+  } catch (err: any) {
+    console.error('Unlock error:', err)
+    toast.error('Unlock failed', err.message || 'Please try again.')
+  } finally {
+    unlocking.value = false
+  }
 }
 
 // Available interests for mapping
@@ -882,6 +925,23 @@ const getInterestLabel = (id: string) => {
 }
 
 const currentUser = ref<any>(null)
+const subscription = ref<any>(null)
+
+const fetchSubscription = async (userId: string) => {
+  try {
+    const { data } = await supabase
+      .from('subscriptions')
+      .select('*')
+      .eq('user_id', userId)
+      .eq('status', 'active')
+      .gt('end_date', new Date().toISOString())
+      .maybeSingle()
+    
+    subscription.value = data
+  } catch (error) {
+    console.error('Error fetching subscription:', error)
+  }
+}
 
 const sharedInterests = computed(() => {
   if (!matchProfile.value?.interests || !currentUser.value?.interests) return []
@@ -908,7 +968,8 @@ const dateIdea = computed(() => {
 })
 
 // Fetch match data
-onMounted(async () => {
+const loadMatchData = async () => {
+  loading.value = true
   try {
     const { data: { session } } = await supabase.auth.getSession()
     
@@ -926,7 +987,11 @@ onMounted(async () => {
       .eq('id', userId)
       .single()
       
+      
     currentUser.value = myProfile
+    if (userId) {
+      await fetchSubscription(userId)
+    }
 
     // Fetch match details
     const { data: matchData, error: matchError } = await supabase
@@ -976,7 +1041,9 @@ onMounted(async () => {
   } finally {
     loading.value = false
   }
-})
+}
+
+onMounted(loadMatchData)
 
 useHead({
   title: 'Your Connection - Minutes 2 Match'

@@ -8,7 +8,7 @@
       <!-- Full Card Layout -->
       <div class="flex">
         <!-- Photo Section -->
-        <div class="relative w-36 aspect-[3/4] flex-shrink-0 overflow-hidden bg-stone-100 flex items-center justify-center">
+        <div class="relative w-32 aspect-square flex-shrink-0 overflow-hidden bg-stone-100 flex items-center justify-center">
           <!-- Gender Badge - Top Left -->
           <div 
             v-if="gender"
@@ -53,7 +53,7 @@
         </div>
         
         <!-- Content Section -->
-        <div class="flex-1 p-4 min-w-0 flex flex-col justify-between">
+        <div class="flex-1 p-3.5 min-w-0 flex flex-col justify-between">
           <!-- Header -->
           <div>
             <!-- Name Row -->
@@ -76,7 +76,7 @@
             </div>
             
             <!-- Meta Info -->
-            <div class="flex items-center gap-1.5 text-xs font-medium text-stone-500 mb-2.5">
+            <div class="flex items-center gap-1.5 text-xs font-medium text-stone-500 mb-1.5">
               <span class="text-stone-700">{{ age }}</span>
               <span v-if="location" class="flex items-center gap-1.5">
                 <span class="w-0.5 h-0.5 rounded-full bg-stone-300"></span>
@@ -85,7 +85,7 @@
             </div>
             
             <!-- Shared Interests -->
-            <div v-if="sharedInterests && sharedInterests.length > 0" class="mb-2">
+            <div v-if="sharedInterests && sharedInterests.length > 0" class="mb-1.5">
               <div class="inline-flex items-center gap-1.5 py-0.5">
                 <span class="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-100/50">
                   ✨ {{ sharedInterests.length }} shared interests
@@ -140,18 +140,49 @@
             </template>
             
             <template v-else>
-              <div class="flex flex-col">
-                <span class="text-[9px] font-bold text-stone-400 uppercase tracking-widest">Unlock Fee</span>
-                <span class="text-sm font-bold font-mono text-black mt-0.5">{{ formattedPrice }}</span>
+              <div class="flex items-center gap-2 w-full">
+                <!-- Premium Info Card -->
+                <div 
+                  class="relative flex-1 flex items-center gap-2 p-2 rounded-xl overflow-hidden border"
+                  :class="[
+                    hasSubscription ? 'bg-gradient-to-br from-amber-50/50 to-orange-50/50 border-amber-100/50' :
+                    isFreeUnlockEligible ? 'bg-gradient-to-br from-emerald-50/50 to-teal-50/50 border-emerald-100/50' :
+                    'bg-stone-50/80 border-stone-100/50'
+                  ]"
+                >
+                  <div class="w-6 h-6 shrink-0 rounded-full bg-white/60 backdrop-blur-sm flex items-center justify-center text-xs border border-white/50">
+                    {{ hasSubscription ? '👑' : isFreeUnlockEligible ? '✨' : '🔒' }}
+                  </div>
+                  
+                  <div class="flex flex-col min-w-0">
+                    <template v-if="hasSubscription">
+                      <span class="text-[9px] font-bold text-amber-900 truncate">Premium</span>
+                    </template>
+                    <template v-else-if="isFreeUnlockEligible">
+                      <span class="text-[9px] font-bold text-emerald-900 truncate">Free Match</span>
+                    </template>
+                    <template v-else>
+                      <span class="text-xs font-bold text-stone-900">{{ formattedPrice }}</span>
+                    </template>
+                  </div>
+                </div>
+
+                <!-- Action Button -->
+                <button 
+                  @click.stop="handleUnlock"
+                  :disabled="isUnlocking"
+                  class="group relative px-4 py-2.5 rounded-xl text-[10px] font-bold uppercase tracking-wider transition-all duration-300 overflow-hidden bg-stone-900 text-white shrink-0"
+                >
+                  <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:animate-[shimmer_2s_infinite]"></div>
+                  <div class="flex items-center gap-1.5 relative z-10">
+                    <span v-if="isUnlocking" class="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
+                    <span v-else>{{ isFreeUnlockEligible || hasSubscription ? 'Claim' : 'Unlock' }}</span>
+                    <svg v-if="!isUnlocking" class="w-2.5 h-2.5 transition-transform group-hover:translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                    </svg>
+                  </div>
+                </button>
               </div>
-              <button 
-                @click.stop="handleUnlock"
-                :disabled="isUnlocking"
-                class="px-4 py-1.5 bg-black text-white rounded-md text-[10px] font-bold uppercase tracking-widest hover:bg-rose-500 transition-all shadow-[2px_2px_0px_0px_rgba(0,0,0,0.2)] hover:shadow-[3px_3px_0px_0px_rgba(0,0,0,0.3)] hover:-translate-y-[1px] border border-black flex items-center gap-2"
-              >
-                <span v-if="isUnlocking" class="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
-                {{ isUnlocking ? '...' : 'Unlock' }}
-              </button>
             </template>
           </div>
         </div>
@@ -346,17 +377,30 @@
             
             <template v-else-if="!unlocked && !currentUserPaid">
               <div class="flex items-center justify-between gap-4">
-                <div>
+                <div v-if="hasSubscription" class="bg-amber-50 px-4 py-2 rounded-xl border-2 border-amber-200">
+                  <p class="text-lg font-black text-amber-600 leading-none mb-1">👑 INCLUDED</p>
+                  <p class="text-[9px] text-amber-700 font-bold uppercase tracking-wider">Premium Member</p>
+                </div>
+                <div v-else-if="isFreeUnlockEligible" class="bg-emerald-50 px-4 py-2 rounded-xl border-2 border-emerald-200">
+                  <p class="text-lg font-black text-emerald-600 leading-none mb-1">✨ FREE</p>
+                  <p class="text-[9px] text-emerald-700 font-bold uppercase tracking-wider">First Match Bonus</p>
+                </div>
+                <div v-else>
                   <p class="text-2xl font-bold text-stone-900 tracking-tight">{{ formattedPrice }}</p>
-                  <p class="text-xs text-stone-500 font-medium">One-time unlock fee</p>
+                  <p class="text-[10px] text-stone-500 font-black uppercase tracking-widest">Unlock Profile</p>
                 </div>
                 <button 
                   @click="handleUnlock"
                   :disabled="isUnlocking"
-                  class="flex-1 py-4 bg-black text-white rounded-lg font-bold uppercase tracking-widest text-sm hover:bg-rose-500 transition-all shadow-[4px_4px_0px_0px_rgba(0,0,0,0.2)] hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,0.3)] hover:-translate-y-[1px] shadow-sm disabled:opacity-70 disabled:cursor-wait flex items-center justify-center gap-2 border-2 border-black"
+                  class="flex-1 py-4 rounded-xl font-black uppercase tracking-widest text-xs transition-all shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] disabled:opacity-70 disabled:cursor-wait flex items-center justify-center gap-2 border-2 border-black"
+                  :class="[
+                    (hasSubscription || isFreeUnlockEligible) 
+                      ? 'bg-emerald-500 text-white' 
+                      : 'bg-black text-white hover:bg-rose-500'
+                  ]"
                 >
                   <span v-if="isUnlocking" class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
-                  {{ isUnlocking ? 'Unlocking...' : 'Unlock Profile' }}
+                  {{ isUnlocking ? 'Unlocking...' : (hasSubscription || isFreeUnlockEligible ? 'Claim My Free Unlock' : 'Unlock Profile Now') }}
                 </button>
               </div>
             </template>
@@ -399,6 +443,8 @@ interface Props {
   matchedAt?: string
   location?: string
   gender?: 'male' | 'female'
+  hasSubscription?: boolean
+  isFreeUnlockEligible?: boolean
 }
 
 const props = defineProps<Props>()

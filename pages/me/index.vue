@@ -218,6 +218,8 @@
                 :matchedAt="match.created_at"
                 :location="match.matchedProfile?.location"
                 :gender="match.matchedProfile?.gender"
+                :hasSubscription="!!subscription"
+                :isFreeUnlockEligible="profile && !profile.has_used_free_unlock"
                 @unlock="handleUnlockMatch(match)"
                 @update-status="navigateToFeedback(match)"
               />
