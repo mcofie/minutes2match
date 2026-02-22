@@ -71,7 +71,7 @@
         </div>
 
         <!-- Tabs Navigation (Desktop) -->
-        <div class="hidden md:flex md:flex-wrap md:gap-4 mb-8 md:mb-12">
+        <div v-if="['/matches', '/events', '/me'].includes(route.path)" class="hidden md:flex md:flex-wrap md:gap-4 mb-8 md:mb-12">
           <NuxtLink 
             to="/matches"
             class="px-6 py-3 rounded-lg text-xs font-bold uppercase tracking-widest transition-all border-2"
@@ -114,7 +114,7 @@
       </footer>
 
       <!-- Mobile Bottom Navigation -->
-      <nav class="md:hidden fixed bottom-6 left-4 right-4 z-[60] bg-white dark:bg-stone-900 border-2 border-black dark:border-stone-700 rounded-2xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,0.1)] pb-safe transition-transform duration-300">
+      <nav v-if="['/matches', '/events', '/me'].includes(route.path)" class="md:hidden fixed bottom-6 left-4 right-4 z-[60] bg-white dark:bg-stone-900 border-2 border-black dark:border-stone-700 rounded-2xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,0.1)] pb-safe transition-transform duration-300">
         <div class="flex justify-around items-center h-16 px-2">
            <NuxtLink to="/matches" class="flex flex-col items-center justify-center gap-1 w-16 transition-all active:scale-95" :class="route.path === '/matches' ? 'text-rose-500' : 'text-stone-400 dark:text-stone-500'">
               <div class="relative">

@@ -1,27 +1,10 @@
 <template>
   <div class="app-wrapper">
-    <!-- Page Loading Overlay -->
-    <Transition name="loading">
-      <div 
-        v-if="isLoading" 
-        class="fixed inset-0 z-[300] bg-[#FFFCF8] dark:bg-stone-950 flex items-center justify-center"
-      >
-        <div class="text-center">
-          <div class="relative w-16 h-16 mx-auto mb-4">
-            <div class="absolute inset-0 border-4 border-stone-200 dark:border-stone-800 rounded-full"></div>
-            <div class="absolute inset-0 border-4 border-transparent border-t-rose-500 rounded-full animate-spin"></div>
-          </div>
-          <p class="text-sm font-bold uppercase tracking-widest text-stone-400 dark:text-stone-500">Loading...</p>
-        </div>
-      </div>
-    </Transition>
-
+    <!-- Page Loading Overlay removed to prevent covering persistent navigation. -->
     <NuxtLayout>
       <NuxtPage :transition="{
         name: 'page',
-        mode: 'out-in',
-        onBeforeEnter: () => { isLoading = false },
-        onBeforeLeave: () => { isLoading = true }
+        mode: 'out-in'
       }" />
     </NuxtLayout>
     
@@ -34,7 +17,7 @@
 </template>
 
 <script setup lang="ts">
-const isLoading = ref(false)
+// Using Nuxt's default page transitions.
 </script>
 
 <style>

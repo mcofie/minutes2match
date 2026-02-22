@@ -3,23 +3,39 @@
     <!-- Dot Pattern Background -->
     <div class="absolute inset-0 opacity-[0.03] dark:opacity-[0.1] pointer-events-none" style="background-image: radial-gradient(#000 1px, transparent 1px); background-size: 24px 24px;"></div>
     <!-- Navbar -->
-    <nav class="sticky top-0 z-50 bg-[#FFFCF8] dark:bg-stone-950/90 dark:backdrop-blur-md border-b border-black dark:border-stone-800 transition-colors duration-300">
-      <div class="max-w-6xl mx-auto px-4 h-20 flex items-center justify-between">
+    <nav class="sticky top-0 z-[60] bg-[#FFFCF8]/90 dark:bg-stone-950/90 backdrop-blur-md border-b border-stone-200 dark:border-stone-800 transition-colors duration-300 shadow-sm">
+      <div class="max-w-6xl mx-auto px-4 h-16 md:h-20 flex items-center justify-between">
         <!-- Logo -->
-        <NuxtLink to="/me" class="flex items-center">
-           <img src="/logo-full.png" alt="minutes2match" class="h-28 w-auto object-contain hover:opacity-80 transition-opacity dark:invert" />
+        <NuxtLink to="/me" class="flex items-center -ml-2">
+           <img src="/logo-full.png" alt="minutes2match" class="h-14 md:h-16 w-auto object-contain hover:opacity-80 transition-opacity dark:invert" />
         </NuxtLink>
         
         <!-- User Info -->
-        <div class="flex items-center gap-4">
-          <div class="text-right hidden sm:block">
-            <p class="text-sm font-bold text-black dark:text-stone-100 uppercase tracking-widest">{{ match?.unlocked ? matchProfile?.display_name : (personaData?.name || 'Mystery Match') }}</p>
-            <p class="text-[10px] text-rose-500 font-bold uppercase tracking-wider">Your Match</p>
+        <div class="flex items-center gap-2 md:gap-6">
+          <NuxtLink to="/me/notifications" class="relative p-1.5 md:p-2 hover:bg-stone-100 dark:hover:bg-stone-800 rounded-full transition-colors active:scale-95 text-stone-600 dark:text-stone-300">
+             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
+             <span v-if="unreadCount > 0" class="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-rose-500 rounded-full border-2 border-[#FFFCF8] dark:border-stone-950 animate-pulse"></span>
+          </NuxtLink>
+
+          <div class="hidden sm:flex text-right flex-col items-end">
+             <p class="text-xs md:text-sm font-bold text-black dark:text-stone-100 uppercase tracking-widest truncate max-w-[120px]">{{ currentUser?.display_name }}</p>
+             <div v-if="subscription" class="mt-0.5 flex items-center justify-end gap-1">
+                <span class="bg-black text-amber-300 px-1.5 py-[1px] rounded-[3px] border border-amber-400/50 shadow-[1px_1px_0px_0px_rgba(251,191,36,1)] text-[8px] font-bold uppercase tracking-widest leading-none">
+                   👑 PREMIUM
+                </span>
+             </div>
           </div>
-          <div class="w-12 h-12 rounded-full overflow-hidden bg-white dark:bg-stone-800 border-2 border-black dark:border-stone-600 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,0.2)]">
-            <img v-if="match?.unlocked && matchProfile?.photo_url" :src="matchProfile.photo_url" class="w-full h-full object-cover" />
-            <div v-else class="w-full h-full flex items-center justify-center text-lg font-serif italic">{{ personaData?.emoji || '✨' }}</div>
-          </div>
+
+          <NuxtLink 
+             to="/me"
+             class="w-9 h-9 md:w-12 md:h-12 rounded-full border-2 bg-white dark:bg-stone-800 overflow-hidden cursor-pointer hover:scale-105 transition-transform shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.1)] relative flex-shrink-0"
+             :class="subscription ? 'border-amber-400 ring-2 ring-amber-400/30' : 'border-black dark:border-stone-500'"
+          >
+            <img v-if="currentUser?.photo_url" :src="currentUser.photo_url" class="w-full h-full object-cover" width="48" height="48" />
+            <div v-else class="w-full h-full flex items-center justify-center text-stone-400 font-bold text-lg md:text-xl font-serif italic dark:text-white">
+              {{ currentUser?.display_name?.charAt(0) || 'U' }}
+            </div>
+          </NuxtLink>
         </div>
       </div>
       
@@ -70,7 +86,8 @@
                   v-if="match?.unlocked && matchProfile?.photo_url" 
                   :src="matchProfile.photo_url" 
                   :alt="matchProfile.display_name"
-                  class="w-full h-full object-cover"
+                  class="w-full h-full object-cover cursor-zoom-in hover:scale-110 transition-transform duration-500"
+                  @click="showImageZoom = true"
                 />
                 <div v-else class="w-full h-full flex items-center justify-center text-5xl">
                   {{ personaData?.emoji || '✨' }}
@@ -106,31 +123,40 @@
             <div class="space-y-4">
               <div v-if="match?.unlocked && matchProfile" class="flex flex-col gap-3">
                  <!-- Reveal according to preference -->
-                 <template v-if="matchProfile.preferred_contact_method === 'instagram' && matchProfile.instagram_handle">
+                 <template v-if="matchProfile.preferred_contact_method === 'instagram'">
                     <a 
+                      v-if="matchProfile.instagram_handle"
                       :href="`https://instagram.com/${matchProfile.instagram_handle.replace('@', '')}`"
                       target="_blank"
-                      class="flex items-center justify-center gap-3 w-full py-4 bg-gradient-to-tr from-yellow-400 via-rose-500 to-purple-600 text-white hover:opacity-90 rounded-xl transition-all border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-none font-bold uppercase tracking-widest text-xs"
+                      class="flex flex-col items-center justify-center gap-1 w-full py-3 bg-gradient-to-tr from-yellow-400 via-rose-500 to-purple-600 text-white hover:opacity-90 rounded-xl transition-all border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-none"
                     >
-                      <span>📸 Instagram</span>
-                      <span class="opacity-80 font-mono">@{{ matchProfile.instagram_handle.replace('@', '') }}</span>
+                      <span class="text-[10px] font-black uppercase tracking-widest opacity-80">📸 Instagram</span>
+                      <span class="font-mono font-bold text-sm truncate px-4 w-full text-center">@{{ matchProfile.instagram_handle.replace('@', '') }}</span>
                     </a>
+                    <div v-else class="text-center py-4 border-2 border-stone-200 dark:border-stone-700 text-stone-500 dark:text-stone-400 rounded-xl font-bold text-xs uppercase tracking-widest">
+                       Instagram handle not provided.
+                    </div>
                  </template>
 
-                 <template v-else-if="matchProfile.preferred_contact_method === 'snapchat' && matchProfile.snapchat_handle">
+                 <template v-else-if="matchProfile.preferred_contact_method === 'snapchat'">
                     <a 
+                      v-if="matchProfile.snapchat_handle"
                       :href="`https://snapchat.com/add/${matchProfile.snapchat_handle}`"
                       target="_blank"
-                      class="flex items-center justify-center gap-3 w-full py-4 bg-yellow-400 text-black hover:bg-yellow-300 rounded-xl transition-all border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-none font-bold uppercase tracking-widest text-xs"
+                      class="flex flex-col items-center justify-center gap-1 w-full py-3 bg-yellow-400 text-black hover:bg-yellow-300 rounded-xl transition-all border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-none"
                     >
-                      <span>👻 Snapchat</span>
-                      <span class="opacity-80 font-mono">{{ matchProfile.snapchat_handle }}</span>
+                      <span class="text-[10px] font-black uppercase tracking-widest opacity-70">👻 Snapchat</span>
+                      <span class="font-mono font-bold text-sm truncate px-4 w-full text-center">{{ matchProfile.snapchat_handle }}</span>
                     </a>
+                    <div v-else class="text-center py-4 border-2 border-stone-200 dark:border-stone-700 text-stone-500 dark:text-stone-400 rounded-xl font-bold text-xs uppercase tracking-widest">
+                       Snapchat handle not provided.
+                    </div>
                  </template>
 
                  <template v-else>
                     <div class="grid grid-cols-2 gap-4">
                       <a 
+                        v-if="matchProfile.phone"
                         :href="`https://wa.me/${matchProfile.phone?.replace(/\D/g, '')}`"
                         target="_blank"
                         class="flex flex-col items-center justify-center gap-2 p-3 bg-black dark:bg-stone-100 text-white dark:text-black hover:bg-stone-800 dark:hover:bg-white rounded-lg transition-all border-2 border-black dark:border-stone-100 hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,0.2)]"
@@ -139,6 +165,7 @@
                         <span class="text-[10px] font-bold uppercase tracking-widest">WhatsApp</span>
                       </a>
                       <a 
+                        v-if="matchProfile.phone"
                         :href="`tel:${matchProfile.phone}`"
                         class="flex flex-col items-center justify-center gap-2 p-3 bg-white dark:bg-stone-950 border-2 border-stone-200 dark:border-stone-700 text-stone-700 dark:text-stone-300 hover:border-black dark:hover:border-stone-400 hover:text-black dark:hover:text-white rounded-lg transition-all"
                       >
@@ -615,18 +642,44 @@
       </Transition>
     </Teleport>
 
+    <!-- Image Zoom Modal -->
+    <Teleport to="body">
+      <Transition name="fade">
+        <div v-if="showImageZoom && match?.unlocked && matchProfile?.photo_url" class="fixed inset-0 bg-black/95 backdrop-blur-md z-[100] flex items-center justify-center p-4 sm:p-8" @click.self="showImageZoom = false">
+          <button @click="showImageZoom = false" class="absolute top-6 right-6 text-white hover:text-white/80 transition-colors p-2 z-[101] bg-stone-800/50 rounded-full border border-white/10 hover:bg-stone-800">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" x2="6" y1="6" y2="18"/><line x1="6" x2="18" y1="6" y2="18"/></svg>
+          </button>
+          <div class="relative w-full h-full flex items-center justify-center" @click.self="showImageZoom = false">
+             <img 
+               :src="matchProfile.photo_url"
+               :alt="matchProfile.display_name"
+               class="max-w-full max-h-[85vh] object-contain rounded-xl shadow-2xl transition-transform duration-300 transform scale-100 cursor-zoom-out"
+               @click="showImageZoom = false"
+             />
+          </div>
+        </div>
+      </Transition>
+    </Teleport>
+
   </main>
 </template>
 
 <script setup lang="ts">
 import { personas } from '~/composables/usePersona'
 import { useToast } from '~/composables/useToast'
+import { useNotifications } from '~/composables/useNotifications'
 import type { M2MDatabase } from '~/types/database.types'
 
 const toast = useToast()
 const route = useRoute()
 const router = useRouter()
 const supabase = useSupabaseClient<M2MDatabase>() as any
+
+const { unreadCount, fetchNotifications } = useNotifications()
+
+onMounted(() => {
+  fetchNotifications()
+})
 
 const matchId = computed(() => route.params.id as string)
 
@@ -636,6 +689,7 @@ const match = ref<any>(null)
 const matchProfile = ref<any>(null)
 const unlocking = ref(false)
 const copiedIndex = ref<number | null>(null)
+const showImageZoom = ref(false)
 
 const personaData = computed(() => {
   const personaId = matchProfile.value?.dating_persona

@@ -121,7 +121,7 @@
                 </button>
               </div>
               <button 
-                @click.stop="openWhatsApp"
+                @click.stop="openContactMethod"
                 class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-black text-white rounded-lg text-xs font-bold hover:bg-stone-800 transition-all shadow-sm"
               >
                 Message
@@ -348,7 +348,41 @@
           
           <!-- Sticky Footer Actions -->
           <div class="p-4 border-t border-stone-100 bg-white z-20">
-            <template v-if="unlocked && phone">
+            <template v-if="unlocked && preferredContactMethod === 'instagram'">
+              <div class="space-y-3">
+                 <a 
+                   v-if="instagramHandle"
+                   :href="`https://instagram.com/${instagramHandle.replace('@', '')}`"
+                   target="_blank"
+                   class="flex flex-col items-center justify-center gap-1 w-full py-3 bg-gradient-to-tr from-yellow-400 via-rose-500 to-purple-600 text-white hover:opacity-90 rounded-xl transition-all border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-none"
+                 >
+                   <span class="text-[10px] font-black uppercase tracking-widest opacity-80">📸 Instagram</span>
+                   <span class="font-mono font-bold text-sm truncate px-4 w-full text-center">@{{ instagramHandle.replace('@', '') }}</span>
+                 </a>
+                 <div v-else class="text-center py-4 border-2 border-stone-200 text-stone-500 rounded-xl font-bold text-xs uppercase tracking-widest">
+                    Instagram handle not provided.
+                 </div>
+              </div>
+            </template>
+
+            <template v-else-if="unlocked && preferredContactMethod === 'snapchat'">
+              <div class="space-y-3">
+                 <a 
+                   v-if="snapchatHandle"
+                   :href="`https://snapchat.com/add/${snapchatHandle}`"
+                   target="_blank"
+                   class="flex flex-col items-center justify-center gap-1 w-full py-3 bg-yellow-400 text-black hover:bg-yellow-300 rounded-xl transition-all border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-none"
+                 >
+                   <span class="text-[10px] font-black uppercase tracking-widest opacity-70">👻 Snapchat</span>
+                   <span class="font-mono font-bold text-sm truncate px-4 w-full text-center">{{ snapchatHandle }}</span>
+                 </a>
+                 <div v-else class="text-center py-4 border-2 border-stone-200 text-stone-500 rounded-xl font-bold text-xs uppercase tracking-widest">
+                    Snapchat handle not provided.
+                 </div>
+              </div>
+            </template>
+            
+            <template v-else-if="unlocked && (!preferredContactMethod || preferredContactMethod === 'phone') && phone">
               <div class="space-y-3">
                 <div class="flex items-center gap-3 p-3 rounded-lg border border-stone-200">
                   <span class="flex-1 font-mono text-stone-600 text-sm pl-2">{{ phone }}</span>
@@ -436,6 +470,9 @@ interface Props {
   displayName?: string
   photoUrl?: string
   phone?: string
+  preferredContactMethod?: string
+  instagramHandle?: string
+  snapchatHandle?: string
   bio?: string
   interests?: string[]
   sharedInterests?: string[]
@@ -596,8 +633,14 @@ const whatsappLink = computed(() => {
   return `https://wa.me/${cleanPhone}?text=${message}`
 })
 
-const openWhatsApp = () => {
-  if (props.phone) window.open(whatsappLink.value, '_blank')
+const openContactMethod = () => {
+  if (props.preferredContactMethod === 'instagram' && props.instagramHandle) {
+    window.open(`https://instagram.com/${props.instagramHandle.replace('@', '')}`, '_blank')
+  } else if (props.preferredContactMethod === 'snapchat' && props.snapchatHandle) {
+    window.open(`https://snapchat.com/add/${props.snapchatHandle}`, '_blank')
+  } else if (props.phone) {
+    window.open(whatsappLink.value, '_blank')
+  }
 }
 
 const copyPhone = () => {
