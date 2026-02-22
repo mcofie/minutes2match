@@ -2,7 +2,7 @@
   <article class="group relative bg-white rounded-2xl border border-stone-200 overflow-hidden transition-all duration-300 hover:shadow-lg hover:-translate-y-1 hover:border-stone-300">
     <!-- Image Header -->
     <div class="relative h-48 bg-stone-100">
-      <img v-if="coverImage" :src="coverImage" :alt="title" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
+      <NuxtImg v-if="coverImage" :src="coverImage" :alt="title" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" loading="lazy" />
       <div v-else class="w-full h-full flex items-center justify-center bg-stone-100 text-stone-300">
         <span class="text-4xl">📅</span>
       </div>

@@ -270,7 +270,9 @@ definePageMeta({
   middleware: ['admin']
 })
 
-const supabase = useSupabaseClient()
+import type { M2MDatabase } from '~/types/database.types'
+
+const supabase = useSupabaseClient<M2MDatabase>()
 const loading = ref(true)
 const saving = ref(false)
 const questions = ref<any[]>([])
@@ -304,6 +306,7 @@ const fetchQuestions = async () => {
   try {
     loading.value = true
     const { data, error } = await supabase
+      .schema('m2m')
       .from('questions')
       .select('*')
       .order('display_order', { ascending: true })
@@ -385,13 +388,15 @@ const saveQuestion = async () => {
 
     if (isEditing.value) {
       const { error } = await supabase
-        .from('questions')
+        .schema('m2m')
+      .from('questions')
         .update(payload)
         .eq('key', form.value.key)
       if (error) throw error
     } else {
       const { error } = await supabase
-        .from('questions')
+        .schema('m2m')
+      .from('questions')
         .insert(payload)
       if (error) throw error
     }
@@ -411,6 +416,7 @@ const confirmDelete = async (question: any) => {
 
   try {
     const { error } = await supabase
+      .schema('m2m')
       .from('questions')
       .delete()
       .eq('key', question.key)

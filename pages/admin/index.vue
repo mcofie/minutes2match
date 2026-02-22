@@ -120,39 +120,121 @@
              </div>
           </div>
         </section>
+        <!-- Demographics Breakdown -->
+        <section class="grid grid-cols-1 md:grid-cols-2 gap-6 pb-6">
+          <!-- Gender Split -->
+          <div class="bg-white rounded-2xl border border-stone-200 p-6 shadow-sm">
+            <h2 class="text-sm font-bold text-stone-900 uppercase tracking-widest mb-6">User Gender Ratio</h2>
+            <div class="flex items-center gap-6">
+              <div class="relative w-32 h-32 flex-shrink-0">
+                <svg viewBox="0 0 36 36" class="w-full h-full transform -rotate-90">
+                  <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" class="stroke-stone-100" stroke-width="3" />
+                  <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" class="stroke-blue-500" stroke-width="3" :stroke-dasharray="`${genderSplit.male}, 100`" />
+                  <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" class="stroke-rose-500" stroke-width="3" :stroke-dasharray="`${genderSplit.female}, 100`" :stroke-dashoffset="`-${genderSplit.male}`" />
+                </svg>
+                <div class="absolute inset-0 flex items-center justify-center flex-col leading-none">
+                  <span class="text-xs text-stone-400 font-bold uppercase tracking-wider mb-1">Ratio</span>
+                  <span class="text-lg font-black text-stone-900">{{ genderSplit.male }}:{{ genderSplit.female }}</span>
+                </div>
+              </div>
+              <div class="space-y-4 flex-1">
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-2">
+                    <span class="w-3 h-3 rounded-full bg-blue-500"></span>
+                    <span class="text-sm font-bold text-stone-600">Men</span>
+                  </div>
+                  <span class="text-sm font-black text-stone-900">{{ stats.maleUsers }}</span>
+                </div>
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-2">
+                    <span class="w-3 h-3 rounded-full bg-rose-500"></span>
+                    <span class="text-sm font-bold text-stone-600">Women</span>
+                  </div>
+                  <span class="text-sm font-black text-stone-900">{{ stats.femaleUsers }}</span>
+                </div>
+                <div class="pt-2 border-t border-stone-50 text-[10px] text-stone-400 font-medium">
+                  {{ stats.unspecifiedGender }} users unspecified
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Age Distribution -->
+          <div class="bg-white rounded-2xl border border-stone-200 p-6 shadow-sm">
+            <h2 class="text-sm font-bold text-stone-900 uppercase tracking-widest mb-6">Age Distribution</h2>
+            <div class="space-y-3">
+              <div v-for="(count, range) in ageDistribution" :key="range">
+                <div class="flex justify-between text-xs mb-1.5">
+                  <span class="font-bold text-stone-600 uppercase tracking-wide">{{ range }} yrs</span>
+                  <span class="font-black text-stone-900">{{ count }} users</span>
+                </div>
+                <div class="h-2 bg-stone-100 rounded-full overflow-hidden">
+                  <div class="h-full bg-stone-900 rounded-full bg-gradient-to-r from-stone-800 to-stone-500" :style="{ width: (count / stats.totalUsers * 100) + '%' }"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Insights Grid -->
+        <section class="grid grid-cols-1 md:grid-cols-2 gap-6 pb-6">
+          <!-- Dating Intent -->
+          <div class="bg-white rounded-2xl border border-stone-200 p-6 shadow-sm">
+            <h2 class="text-sm font-bold text-stone-900 uppercase tracking-widest mb-6">Dating Intent</h2>
+            <div class="space-y-4">
+              <div v-for="(count, intent) in intentDistribution" :key="intent" class="flex items-center gap-3">
+                <div class="w-24 text-xs font-bold text-stone-500 uppercase tracking-tight truncate">{{ intent }}</div>
+                <div class="flex-1 h-2 bg-stone-100 rounded-full overflow-hidden">
+                   <div class="h-full bg-rose-500 rounded-full" :style="{ width: (count / stats.totalUsers * 100) + '%' }"></div>
+                </div>
+                <div class="text-xs font-black text-stone-900 w-8 text-right">{{ count }}</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Match Conversion -->
+          <div class="bg-white rounded-2xl border border-stone-200 p-6 shadow-sm flex flex-col justify-between">
+            <div class="flex justify-between items-start mb-6">
+               <h2 class="text-sm font-bold text-stone-900 uppercase tracking-widest">Match Success Rate</h2>
+               <div class="px-2 py-1 bg-green-50 text-green-700 rounded text-[10px] font-bold">LIVE</div>
+            </div>
+            <div class="flex items-end justify-between">
+               <div>
+                  <div class="text-3xl font-black text-rose-500 leading-none mb-1">{{ matchSuccessRate }}%</div>
+                  <div class="text-[10px] font-bold text-stone-400 uppercase tracking-widest">Unlocked Conversion</div>
+               </div>
+               <div class="flex gap-1 h-12 items-end">
+                  <div v-for="i in 7" :key="i" class="w-2 bg-rose-100 rounded-t-sm" :style="{ height: (20 + (Math.random() * 80)) + '%' }"></div>
+               </div>
+            </div>
+            <div class="mt-6 pt-6 border-t border-stone-50 flex gap-4">
+               <div>
+                  <div class="text-sm font-bold text-stone-900">{{ stats.unlockedMatches }}</div>
+                  <div class="text-[9px] font-bold text-stone-400 uppercase tracking-wider">Unlocked</div>
+               </div>
+               <div>
+                  <div class="text-sm font-bold text-stone-900">{{ stats.pendingMatches }}</div>
+                  <div class="text-[9px] font-bold text-stone-400 uppercase tracking-wider">Pending</div>
+               </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Product Clusters -->
+        <section class="grid grid-cols-1 gap-6 pb-6">
+          <div class="bg-white rounded-2xl border border-stone-200 p-6 shadow-sm">
+            <h2 class="text-sm font-bold text-stone-900 uppercase tracking-widest mb-6">Personality Type Distribution</h2>
+            <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4">
+              <div v-for="(count, personaId) in personaDistribution" :key="personaId" class="flex flex-col items-center p-3 rounded-xl border border-stone-50 bg-stone-50/50">
+                <span class="text-2xl mb-2">{{ getPersonaEmoji(personaId) }}</span>
+                <span class="text-[10px] font-bold text-stone-400 uppercase tracking-tighter text-center h-8 flex items-center">{{ getPersonaName(personaId) }}</span>
+                <span class="text-lg font-black text-stone-900 mt-1">{{ count }}</span>
+              </div>
+            </div>
+          </div>
+        </section>
 
         <!-- Revenue Breakdown -->
-        <section class="bg-white rounded-2xl border border-stone-200 p-6 shadow-sm">
-           <h2 class="text-lg font-bold text-stone-900 mb-6">Revenue Sources</h2>
-           
-           <div class="space-y-6">
-              <!-- Event Tickets -->
-              <div>
-                 <div class="flex justify-between text-sm mb-2">
-                    <span class="font-medium text-stone-600 flex items-center gap-2">
-                       <span class="w-2 h-2 rounded-full bg-blue-500"></span> Event Tickets
-                    </span>
-                    <span class="font-bold text-stone-900">{{ formatCurrency(stats.eventRevenue) }}</span>
-                 </div>
-                 <div class="h-2 bg-stone-100 rounded-full overflow-hidden">
-                    <div class="h-full bg-blue-500 rounded-full" :style="{ width: eventRevenuePercent + '%' }"></div>
-                 </div>
-              </div>
-
-              <!-- Match Unlocks -->
-              <div>
-                 <div class="flex justify-between text-sm mb-2">
-                    <span class="font-medium text-stone-600 flex items-center gap-2">
-                       <span class="w-2 h-2 rounded-full bg-pink-500"></span> Match Unlocks
-                    </span>
-                    <span class="font-bold text-stone-900">{{ formatCurrency(stats.matchRevenue) }}</span>
-                 </div>
-                 <div class="h-2 bg-stone-100 rounded-full overflow-hidden">
-                    <div class="h-full bg-pink-500 rounded-full" :style="{ width: matchRevenuePercent + '%' }"></div>
-                 </div>
-              </div>
-           </div>
-        </section>
 
       </div>
 
@@ -355,6 +437,8 @@
 </template>
 
 <script setup lang="ts">
+import { personas } from '~/composables/usePersona'
+
 useHead({ title: 'Dashboard' })
 
 definePageMeta({
@@ -362,7 +446,9 @@ definePageMeta({
   middleware: ['admin']
 })
 
-const supabase = useSupabaseClient()
+import type { M2MDatabase } from '~/types/database.types'
+
+const supabase = useSupabaseClient<M2MDatabase>()
 
 // State
 const loading = ref(true)
@@ -378,7 +464,13 @@ const stats = reactive({
   eventRevenue: 0,
   matchRevenue: 0,
   totalPayments: 0,
-  avgUnlockPrice: 0
+  avgUnlockPrice: 0,
+  maleUsers: 0,
+  femaleUsers: 0,
+  unspecifiedGender: 0,
+  ageData: [] as string[],
+  intentData: [] as string[],
+  personaData: [] as string[]
 })
 const recentActivity = ref<any[]>([])
 const waitingUsers = ref<any[]>([])
@@ -423,26 +515,104 @@ const matchRevenuePercent = computed(() => {
   return Math.round((stats.matchRevenue / stats.totalRevenue) * 100)
 })
 
+const genderSplit = computed(() => {
+  const total = stats.maleUsers + stats.femaleUsers
+  if (!total) return { male: 50, female: 50 }
+  return {
+    male: Math.round((stats.maleUsers / total) * 100),
+    female: Math.round((stats.femaleUsers / total) * 100)
+  }
+})
+
+const ageDistribution = computed(() => {
+  const ranges = {
+    '18-24': 0,
+    '25-34': 0,
+    '35-44': 0,
+    '45+': 0
+  }
+  
+  stats.ageData.forEach(dateStr => {
+    if (!dateStr) return
+    const birthDate = new Date(dateStr)
+    const age = new Date().getFullYear() - birthDate.getFullYear()
+    
+    if (age < 25) ranges['18-24']++
+    else if (age < 35) ranges['25-34']++
+    else if (age < 45) ranges['35-44']++
+    else ranges['45+']++
+  })
+  
+  return ranges
+})
+
+const intentDistribution = computed(() => {
+  const counts: Record<string, number> = {
+    'marriage': 0,
+    'serious': 0,
+    'casual': 0,
+    'friendship': 0,
+    'other': 0
+  }
+  stats.intentData.forEach(intent => {
+    if (intent && counts[intent] !== undefined) counts[intent]++
+    else counts['other']++
+  })
+  return counts
+})
+
+const matchSuccessRate = computed(() => {
+  if (!stats.totalMatches) return 0
+  return Math.round((stats.unlockedMatches / stats.totalMatches) * 100)
+})
+
+const personaDistribution = computed(() => {
+  const counts: Record<string, number> = {}
+  stats.personaData.forEach(p => {
+    if (!p) return
+    counts[p] = (counts[p] || 0) + 1
+  })
+  return counts
+})
+
+const getPersonaEmoji = (id: string) => {
+  return (personas as any)[id]?.emoji || '✨'
+}
+
+const getPersonaName = (id: string) => {
+  return (personas as any)[id]?.name || 'Mystery'
+}
+
 // Fetch stats
 const fetchStats = async () => {
   // Total users
   const { count: totalUsers } = await supabase
+    .schema('m2m')
     .from('profiles')
     .select('*', { count: 'exact', head: true })
   
   stats.totalUsers = totalUsers || 0
 
-  // Verified users
-  const { count: verifiedUsers } = await supabase
+  // Profile Specific Stats
+  const { data: profileStats } = await supabase
+    .schema('m2m')
     .from('profiles')
-    .select('*', { count: 'exact', head: true })
-    .eq('is_verified', true)
+    .select('gender, birth_date, is_verified, intent, dating_persona')
   
-  stats.verifiedUsers = verifiedUsers || 0
+  if (profileStats) {
+    stats.maleUsers = profileStats.filter((p: any) => p.gender === 'male').length
+    stats.femaleUsers = profileStats.filter((p: any) => p.gender === 'female').length
+    stats.unspecifiedGender = profileStats.filter((p: any) => !p.gender).length
+    stats.verifiedUsers = profileStats.filter((p: any) => p.is_verified).length
+    stats.ageData = profileStats.map((p: any) => p.birth_date).filter(Boolean) as string[]
+    stats.intentData = profileStats.map((p: any) => p.intent).filter(Boolean) as string[]
+    stats.personaData = profileStats.map((p: any) => p.dating_persona).filter(Boolean) as string[]
+  }
 
   // New users this week
   const oneWeekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
   const { count: newUsers } = await supabase
+    .schema('m2m')
     .from('profiles')
     .select('*', { count: 'exact', head: true })
     .gte('created_at', oneWeekAgo)
@@ -450,7 +620,7 @@ const fetchStats = async () => {
   stats.newUsersThisWeek = newUsers || 0
 
   // Match stats
-  const { data: rawMatches } = await supabase.from('matches').select('status, unlock_price')
+  const { data: rawMatches } = await supabase.schema('m2m').from('matches').select('status, unlock_price')
   
   const matches = rawMatches as any[] || []
   if (matches.length) {
@@ -465,6 +635,7 @@ const fetchStats = async () => {
 
   // Revenue
   const { data: rawPayments } = await supabase
+    .schema('m2m')
     .from('payments')
     .select('amount, purpose, created_at')
     .eq('status', 'success')
@@ -483,12 +654,14 @@ const fetchRecentActivity = async () => {
   loading.value = true
   
   const { data: profiles } = await supabase
+    .schema('m2m')
     .from('profiles')
     .select('id, display_name, created_at')
     .order('created_at', { ascending: false })
     .limit(5)
 
   const { data: payments } = await supabase
+    .schema('m2m')
     .from('payments')
     .select('id, amount, purpose, created_at')
     .eq('status', 'success')
@@ -496,6 +669,7 @@ const fetchRecentActivity = async () => {
     .limit(5)
 
   const { data: matchesCreated } = await supabase
+    .schema('m2m')
     .from('matches')
     .select('id, created_at')
     .order('created_at', { ascending: false })
@@ -530,6 +704,7 @@ const fetchRecentActivity = async () => {
 // Fetch users waiting for matches
 const fetchWaitingUsers = async () => {
   const { data: users } = await supabase
+    .schema('m2m')
     .from('profiles')
     .select('id, display_name, created_at')
     .eq('is_verified', true)
@@ -537,7 +712,7 @@ const fetchWaitingUsers = async () => {
     .limit(10)
   
   // Filter out users who already have matches
-  const { data: rawMatches } = await supabase.from('matches').select('user_1_id, user_2_id')
+  const { data: rawMatches } = await supabase.schema('m2m').from('matches').select('user_1_id, user_2_id')
   
   const matches = rawMatches as any[] || []
   const matchedUserIds = new Set<string>()
@@ -546,7 +721,7 @@ const fetchWaitingUsers = async () => {
     if (m.user_2_id) matchedUserIds.add(m.user_2_id)
   })
   
-  waitingUsers.value = (users || []).filter(u => !matchedUserIds.has(u.id))
+  waitingUsers.value = (users || []).filter((u: any) => !matchedUserIds.has(u.id))
 }
 
 // Helpers

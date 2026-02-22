@@ -12,7 +12,7 @@
       <div class="max-w-[1440px] mx-auto px-4 md:px-6 h-20 md:h-28 flex items-center justify-between">
         <!-- Logo -->
         <NuxtLink to="/" class="flex items-center z-50 -ml-2 md:ml-0">
-           <img src="/logo-full.png" alt="minutes2match" class="h-16 md:h-24 w-auto object-contain hover:opacity-80 transition-opacity dark:invert" />
+           <NuxtImg format="webp" src="/logo-full.png" alt="minutes2match" class="h-16 md:h-24 w-auto object-contain hover:opacity-80 transition-opacity dark:invert" />
         </NuxtLink>
 
         <!-- Center Links (Desktop) -->
@@ -158,7 +158,7 @@
                            
                            <!-- Avatar 1 -->
                            <div class="w-28 h-28 rounded-full border-2 border-black p-1 bg-white z-10 relative">
-                              <img src="/ama_profile.png" class="w-full h-full rounded-full object-cover grayscale hover:grayscale-0 transition-all"/>
+                              <NuxtImg format="webp" src="/ama_profile.png" class="w-full h-full rounded-full object-cover grayscale hover:grayscale-0 transition-all"/>
                            </div>
                            
                            <!-- Match Badge -->
@@ -168,7 +168,7 @@
 
                            <!-- Avatar 2 -->
                            <div class="w-28 h-28 rounded-full border-2 border-black p-1 bg-white z-10 relative">
-                              <img src="/kwame_profile.png" class="w-full h-full rounded-full object-cover grayscale hover:grayscale-0 transition-all"/>
+                              <NuxtImg format="webp" src="/kwame_profile.png" class="w-full h-full rounded-full object-cover grayscale hover:grayscale-0 transition-all"/>
                            </div>
                         </div>
 
@@ -244,7 +244,7 @@
          </div>
          <div class="relative min-h-[400px]">
             <!-- Updated Image: Black couple / Connection -->
-            <img src="/manifesto_connection.png" alt="Real Connection" class="absolute inset-0 w-full h-full object-cover grayscale hover:grayscale-0 transition-all duration-700" />
+            <NuxtImg format="webp" src="/manifesto_connection.png" alt="Real Connection" class="absolute inset-0 w-full h-full object-cover grayscale hover:grayscale-0 transition-all duration-700" />
             <div class="absolute bottom-8 left-8 bg-white dark:bg-stone-900 text-black dark:text-white border border-black dark:border-stone-600 px-4 py-2 text-sm font-bold uppercase tracking-wider">
                Real Humans, Real Time
             </div>
@@ -427,7 +427,7 @@
               </p>
               <div class="font-bold flex items-center gap-3">
                  <div class="w-10 h-10 rounded-full bg-stone-200 dark:bg-stone-700 overflow-hidden">
-                    <img src="/ama_profile.png" class="w-full h-full object-cover">
+                    <NuxtImg format="webp" src="/ama_profile.png" class="w-full h-full object-cover" />
                  </div>
                  <span class="dark:text-stone-200">Ama, 29</span>
               </div>
@@ -439,7 +439,7 @@
               </p>
               <div class="font-bold flex items-center gap-3">
                  <div class="w-10 h-10 rounded-full bg-stone-200 dark:bg-stone-700 overflow-hidden">
-                    <img src="/kwame_profile.png" class="w-full h-full object-cover">
+                    <NuxtImg format="webp" src="/kwame_profile.png" class="w-full h-full object-cover" />
                  </div>
                  <span class="dark:text-stone-200">Kwame, 31</span>
               </div>
@@ -495,7 +495,7 @@
           <!-- Bottom Watermark -->
           <div class="flex flex-col md:flex-row justify-between items-end">
           <div class="flex items-end">
-             <img src="/logo-full.png" alt="minutes2match" class="h-24 w-auto object-contain brightness-0 invert opacity-90" />
+             <NuxtImg format="webp" src="/logo-full.png" alt="minutes2match" class="h-24 w-auto object-contain brightness-0 invert opacity-90" />
           </div>
              <div class="text-xs font-mono text-gray-400 dark:text-stone-500 mb-4 md:mb-8 text-right">
                 © 2024 Minutes2Match Inc. • Accra, GH <br/>

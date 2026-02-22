@@ -829,7 +829,11 @@ const finishOnboarding = async () => {
     await savePersona(user.id, assignedPersona.value.id)
   }
   
-  await navigateTo('/me')
+  // Small delay for session stability
+  await new Promise(resolve => setTimeout(resolve, 800))
+  
+  // Navigate to dashboard with external redirect
+  return navigateTo('/me', { external: true })
 }
 </script>
 

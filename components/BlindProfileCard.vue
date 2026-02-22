@@ -20,11 +20,14 @@
           
           <!-- Unlocked Photo -->
           <template v-if="unlocked">
-            <img 
+            <NuxtImg 
               v-if="photoUrl" 
               :src="photoUrl" 
               :alt="displayName" 
               class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" 
+              width="128"
+              height="128"
+              loading="lazy"
             />
             <div v-else class="w-full h-full flex items-center justify-center bg-stone-200">
               <span class="text-4xl font-black text-stone-300">{{ displayName?.charAt(0) || '?' }}</span>
@@ -223,7 +226,7 @@
             <!-- Photo Layer -->
             <div class="absolute inset-0">
               <template v-if="unlocked">
-                <img v-if="photoUrl" :src="photoUrl" :alt="displayName" class="w-full h-full object-cover" />
+                <NuxtImg v-if="photoUrl" :src="photoUrl" :alt="displayName" class="w-full h-full object-cover" loading="lazy" placeholder />
                 <div v-else class="w-full h-full flex items-center justify-center bg-stone-50">
                   <span class="text-6xl font-bold text-stone-200 tracking-tighter">{{ displayName?.charAt(0) || '?' }}</span>
                 </div>
@@ -326,20 +329,17 @@
               </div>
               
               <!-- Icebreakers -->
-              <div v-if="unlocked && icebreakers.length > 0">
-                <h3 class="text-xs font-bold text-stone-900 uppercase tracking-widest mb-3">
-                  Icebreakers
-                </h3>
+              <div v-if="unlocked && icebreakers.length > 0" class="mt-6">
+                <h3 class="text-xs font-bold text-stone-400 uppercase tracking-widest mb-3">Icebreaker Suggestions</h3>
                 <div class="space-y-2">
                   <button 
                     v-for="(icebreaker, idx) in icebreakers" 
                     :key="idx"
                     @click="copyIcebreaker(icebreaker, idx)"
-                    class="w-full text-left p-3 bg-stone-50 hover:bg-stone-100 rounded-lg text-sm text-stone-600 transition-colors border border-stone-100 flex gap-3 group items-center"
+                    class="w-full text-left p-3 bg-stone-50 hover:bg-rose-50 rounded-lg text-xs text-stone-600 transition-colors border border-stone-100 relative overflow-hidden"
                   >
-                    <span class="text-stone-300 group-hover:text-stone-400">💬</span>
-                    <span class="flex-1">"{{ icebreaker }}"</span>
-                    <span v-if="copiedIndex === idx" class="text-emerald-500 text-xs font-bold animate-in fade-in zoom-in">Copied!</span>
+                    <span v-if="copiedIndex === idx" class="absolute inset-0 bg-emerald-500 text-white flex items-center justify-center font-bold">Copied!</span>
+                    "{{ icebreaker }}"
                   </button>
                 </div>
               </div>
@@ -376,7 +376,7 @@
             </template>
             
             <template v-else-if="!unlocked && !currentUserPaid">
-              <div class="flex items-center justify-between gap-4">
+              <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
                 <div v-if="hasSubscription" class="bg-amber-50 px-4 py-2 rounded-xl border-2 border-amber-200">
                   <p class="text-lg font-black text-amber-600 leading-none mb-1">👑 INCLUDED</p>
                   <p class="text-[9px] text-amber-700 font-bold uppercase tracking-wider">Premium Member</p>

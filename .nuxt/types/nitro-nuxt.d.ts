@@ -2,6 +2,7 @@
 /// <reference path="app.config.d.ts" />
 /// <reference path="runtime-config.d.ts" />
 /// <reference types="/Users/maxwellcofie/WebstormProjects/minutes2match/node_modules/@nuxt/nitro-server/dist/index.mjs" />
+/// <reference path="../image/providers.d.ts" />
 /// <reference path="nitro-middleware.d.ts" />
 /// <reference path="./schema.d.ts" />
 

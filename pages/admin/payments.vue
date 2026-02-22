@@ -277,7 +277,7 @@
            <div class="w-px h-8 bg-stone-100 self-center"></div>
            <div class="flex flex-col">
              <span class="text-[10px] uppercase font-black text-stone-400 tracking-widest">Auto-Renewing</span>
-             <span class="text-lg font-bold text-emerald-600">{{ subscriptions.filter(s => s.auto_renew).length }} users</span>
+             <span class="text-lg font-bold text-emerald-600">{{ subscriptions.filter((s: any) => s.auto_renew).length }} users</span>
            </div>
         </div>
         
@@ -440,7 +440,9 @@ definePageMeta({
   middleware: ['admin']
 })
 
-const supabase = useSupabaseClient()
+import type { M2MDatabase } from '~/types/database.types'
+
+const supabase = useSupabaseClient<M2MDatabase>()
 
 // State
 const currentPage = ref(1)
@@ -497,7 +499,7 @@ const filteredPayments = computed(() => {
   if (!searchQuery.value) return payments.value
   
   const query = searchQuery.value.toLowerCase()
-  return payments.value.filter(p => 
+  return payments.value.filter((p: any) => 
     p.provider_ref?.toLowerCase().includes(query) ||
     p.user?.display_name?.toLowerCase().includes(query) ||
     p.user?.phone?.includes(query)
@@ -615,9 +617,9 @@ const fetchStats = async () => {
     // Split based on recent data
     const recentData = allSuccessRecent.data || []
     stats.value.revenueSplit = {
-      tickets: sumAmount(recentData.filter(p => p.purpose === 'event_ticket')),
-      matches: sumAmount(recentData.filter(p => p.purpose === 'match_unlock')),
-      subscriptions: sumAmount(recentData.filter(p => ['premium_sub', 'subscription'].includes(p.purpose)))
+      tickets: sumAmount(recentData.filter((p: any) => p.purpose === 'event_ticket')),
+      matches: sumAmount(recentData.filter((p: any) => p.purpose === 'match_unlock')),
+      subscriptions: sumAmount(recentData.filter((p: any) => ['premium_sub', 'subscription'].includes(p.purpose)))
     }
     stats.value.totalRevenue = sumAmount(recentData)
 
@@ -635,6 +637,7 @@ const fetchStats = async () => {
 
 const resolveAlert = async (alertId: string) => {
   await supabase
+    .schema('m2m')
     .from('payment_alerts')
     .update({ resolved: true, resolved_at: new Date().toISOString() })
     .eq('id', alertId)
@@ -650,7 +653,7 @@ const filteredSubs = computed(() => {
   if (!subSearchQuery.value) return subscriptions.value
   
   const query = subSearchQuery.value.toLowerCase()
-  return subscriptions.value.filter(s => 
+  return subscriptions.value.filter((s: any) => 
     s.user?.display_name?.toLowerCase().includes(query) ||
     s.user?.phone?.includes(query)
   )
@@ -671,7 +674,7 @@ const fetchSubscriptions = async () => {
     
     // Update metrics
     subMetrics.value.total = data?.length || 0
-    subMetrics.value.expiringSoon = data?.filter(s => isExpiringSoon(s.end_date)).length || 0
+    subMetrics.value.expiringSoon = data?.filter((s: any) => isExpiringSoon(s.end_date)).length || 0
   } catch (e: any) {
     console.error('Error fetching subscriptions:', e)
     // Fallback if the above query fails due to relationship naming
@@ -694,7 +697,7 @@ const isExpiringSoon = (endDate: string) => {
 }
 
 const bulkRemindExpiring = async () => {
-  const expiring = subscriptions.value.filter(s => isExpiringSoon(s.end_date))
+  const expiring = subscriptions.value.filter((s: any) => isExpiringSoon(s.end_date))
   if (expiring.length === 0) return
   
   if (!confirm(`Send SMS reminders to ${expiring.length} users whose subscriptions expire within 48 hours?`)) return

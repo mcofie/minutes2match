@@ -309,7 +309,9 @@ definePageMeta({
   middleware: ['admin']
 })
 
-const supabase = useSupabaseClient()
+import type { M2MDatabase } from '~/types/database.types'
+
+const supabase = useSupabaseClient<M2MDatabase>()
 
 // State
 const activeTab = ref('active') // 'active' (pending/reviewed) or 'resolved' (actioned/dismissed)
@@ -339,7 +341,7 @@ const filteredReports = computed(() => {
   if (!searchQuery.value) return reports.value
   
   const query = searchQuery.value.toLowerCase()
-  return reports.value.filter(r => 
+  return reports.value.filter((r: any) => 
     r.reporter?.display_name?.toLowerCase().includes(query) ||
     r.reported_user?.display_name?.toLowerCase().includes(query) ||
     r.reported_user?.phone?.includes(query)
@@ -392,6 +394,7 @@ const fetchReports = async () => {
   loading.value = true
   
   let query = supabase
+    .schema('m2m')
     .from('reports')
     .select(`
       *,
@@ -436,6 +439,7 @@ const fetchStats = async () => {
   const statuses = ['pending', 'reviewed', 'actioned', 'dismissed']
   for (const status of statuses) {
     const { count } = await supabase
+      .schema('m2m')
       .from('reports')
       .select('id', { count: 'exact', head: true })
       .eq('status', status)
@@ -467,6 +471,7 @@ const updateReportStatus = async (newStatus: string) => {
   }
   
   const { error } = await supabase
+    .schema('m2m')
     .from('reports')
     .update(updates)
     .eq('id', selectedReport.value.id)

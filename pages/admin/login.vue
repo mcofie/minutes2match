@@ -109,35 +109,30 @@ const handleLogin = async () => {
     console.log('[Admin Login] Admin check result:', { adminData, adminError })
     
     if (adminError || !adminData) {
-      // User is not an admin - sign them out
       console.log('[Admin Login] User is not an admin, signing out')
       await supabase.auth.signOut()
       throw new Error('Access denied. You are not authorized to access the admin portal.')
     }
     
-    // Safe access
     const role = (adminData as any).role
     console.log('[Admin Login] Admin verified! Role:', role)
-    console.log('[Admin Login] Redirecting to /admin in 1 second...')
     
-    // Wait a bit longer to ensure session is fully saved
-    await new Promise(resolve => setTimeout(resolve, 1000))
+    // Wait for the @nuxtjs/supabase module to process the session
+    await new Promise(resolve => setTimeout(resolve, 500))
     
-    // Verify session is still valid before redirect
-    const { data: { session } } = await supabase.auth.getSession()
-    console.log('[Admin Login] Session before redirect:', session ? 'EXISTS' : 'MISSING')
+    // Force a session refresh so the module fully syncs cookies
+    await supabase.auth.getSession()
+    await new Promise(resolve => setTimeout(resolve, 300))
     
-    if (!session) {
-      throw new Error('Session was not persisted. Please try again.')
-    }
+    console.log('[Admin Login] Session synced, navigating to /admin')
     
-    // Force full page reload to /admin
-    window.location.replace('/admin')
+    // Use SPA navigation to keep the in-memory session alive
+    // window.location.replace() kills the session context and causes redirect loops on Safari
+    return navigateTo('/admin', { replace: true })
     
   } catch (e: any) {
     console.error('[Admin Login] Error:', e)
     
-    // Handle specific error messages
     if (e.message?.includes('Invalid login credentials')) {
       error.value = 'Invalid email or password.'
     } else if (e.message?.includes('Access denied')) {
@@ -152,18 +147,21 @@ const handleLogin = async () => {
 
 // Check if already admin on mount
 onMounted(async () => {
-  const { data: { user } } = await supabase.auth.getUser()
-  if (user) {
-    // Check if admin
-    const { data: adminData } = await supabase
-      .from('admins')
-      .select('role')
-      .eq('id', user.id)
-      .single()
-    
-    if (adminData) {
-      router.push('/admin')
+  try {
+    const { data: { session } } = await supabase.auth.getSession()
+    if (session?.user) {
+      const { data: adminData } = await supabase
+        .from('admins')
+        .select('role')
+        .eq('id', session.user.id)
+        .single()
+      
+      if (adminData) {
+        navigateTo('/admin', { replace: true })
+      }
     }
+  } catch {
+    // Not logged in, stay on login page
   }
 })
 </script>

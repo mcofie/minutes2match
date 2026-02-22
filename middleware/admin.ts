@@ -2,6 +2,8 @@ import type { M2MDatabase } from '~/types/database.types'
 /**
  * Admin Middleware
  * Protects admin routes - only users in admins table can access
+ * 
+ * Uses both getSession() and getUser() for Safari compatibility.
  */
 
 export default defineNuxtRouteMiddleware(async (to) => {
@@ -10,22 +12,49 @@ export default defineNuxtRouteMiddleware(async (to) => {
         return
     }
 
-    const supabase = useSupabaseClient<M2MDatabase>() as any
+    const supabase = useSupabaseClient<M2MDatabase>()
 
-    // Get current session directly from Supabase (more reliable than useSupabaseUser)
-    const { data: { session } } = await supabase.auth.getSession()
+    // Try to get the current user via multiple methods
+    let userId: string | null = null
+
+    // Method 1: Try getSession (reads from storage - fast)
+    try {
+        const { data: { session } } = await supabase.auth.getSession()
+        if (session?.user) {
+            userId = session.user.id
+        }
+    } catch { }
+
+    // Method 2: If session not found, try getUser (verifies with server)
+    if (!userId) {
+        for (let i = 0; i < 3; i++) {
+            try {
+                const { data: { user } } = await supabase.auth.getUser()
+                if (user) {
+                    userId = user.id
+                    break
+                }
+            } catch { }
+
+            if (import.meta.client && i < 2) {
+                await new Promise(r => setTimeout(r, 300 * Math.pow(2, i)))
+            } else {
+                break
+            }
+        }
+    }
 
     // Must be logged in
-    if (!session?.user) {
-        console.log('[Admin Middleware] No session, redirecting to login')
+    if (!userId) {
+        console.log('[Admin Middleware] No session found, redirecting to login')
         return navigateTo('/admin/login')
     }
 
-    // Check if user is an admin
     const { data: admin, error } = await supabase
+        .schema('m2m')
         .from('admins')
         .select('role')
-        .eq('id', session.user.id)
+        .eq('id', userId)
         .single()
 
     if (error || !admin) {
@@ -34,5 +63,4 @@ export default defineNuxtRouteMiddleware(async (to) => {
     }
 
     console.log('[Admin Middleware] Admin verified:', admin.role)
-    // Admin is authorized, allow access
 })
