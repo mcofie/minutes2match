@@ -80,7 +80,7 @@ export default defineEventHandler(async (event) => {
             continue
         }
 
-        const paidName = paidUser?.display_name || 'Someone'
+        const paidName = (paidUser as any)?.display_name || 'Someone'
         const message = `⏰ Reminder: ${paidName}'s match unlock expires in 24 hours! Log in now to see if you want to connect: ${config.public?.baseUrl || 'https://minutes2match.com'}/me`
 
         try {
@@ -88,7 +88,7 @@ export default defineEventHandler(async (event) => {
                 method: 'POST',
                 baseURL: config.public?.baseUrl || 'http://localhost:3000',
                 body: {
-                    to: unpaidUser.phone,
+                    to: (unpaidUser as any).phone,
                     message
                 }
             })

@@ -167,7 +167,7 @@ const verifyOtp = async () => {
   if (otpCode.value.length !== 6) return
   
   verifying.value = true
-  isLoggingIn.value = true // Prevent redirect loop
+  isLoggingIn.value = true
   error.value = ''
   
   try {
@@ -192,31 +192,34 @@ const verifyOtp = async () => {
         throw new Error('Sign in failed. Please try again.')
       }
 
-      console.log('[Login] Sign in successful, session:', signInData.session?.user?.id)
-      
-      // Wait for the session to be properly established
-      // The @nuxtjs/supabase module needs time to detect the session change
+      console.log('[Login] signInWithPassword succeeded, user:', signInData.user?.id)
+
+      // Wait for the @nuxtjs/supabase module to process onAuthStateChange
+      // and populate the useSupabaseUser() composable + set cookies
       await new Promise(resolve => setTimeout(resolve, 500))
       
-      // Verify the user is now available
-      const currentUser = useSupabaseUser()
-      console.log('[Login] User after wait:', currentUser.value?.id)
-      
-      // Redirect based on vibe check completion status
-      if (result.hasCompletedVibeCheck) {
-        // User has completed vibe check, go to dashboard
-        window.location.href = '/me'
-      } else {
-        // User hasn't completed vibe check, redirect to complete it
-        console.log('[Login] User needs to complete vibe check')
-        window.location.href = '/vibe-check?returnUser=true'
+      // Verify the composable has been updated
+      for (let i = 0; i < 5; i++) {
+        if (user.value) {
+          console.log('[Login] useSupabaseUser() populated on attempt:', i + 1)
+          break
+        }
+        // Force a session refresh to trigger the module to update
+        await supabase.auth.getSession()
+        await new Promise(r => setTimeout(r, 300))
       }
+
+      const redirectPath = result.hasCompletedVibeCheck ? '/matches' : '/vibe-check?returnUser=true'
+      
+      // Use SPA navigation — keeps the in-memory session alive  
+      // /me is ssr:false so this works perfectly without cookies needing to be ready
+      return navigateTo(redirectPath, { replace: true })
     }
   } catch (err: any) {
     console.error('Login error:', err)
     error.value = err.data?.message || err.message || 'Invalid code or account not found'
-  } finally {
     verifying.value = false
+    isLoggingIn.value = false
   }
 }
 

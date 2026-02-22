@@ -2,21 +2,23 @@ import { createClient } from '@supabase/supabase-js'
 
 export default defineEventHandler(async (event) => {
     const body = await readBody(event)
+    const config = useRuntimeConfig()
     const { phone, code } = body
     console.log('🔍 Admin Login Request:', { phone, code })
 
-    // Get keys from env
-    const supabaseUrl = config.supabaseUrl || process.env.SUPABASE_URL || process.env.public_supabase_url
-    const supabaseKey = process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY
+    // Get keys from runtime config
+    const supabaseUrl = config.supabaseUrl || process.env.SUPABASE_URL
+    const supabaseKey = config.supabaseServiceKey || process.env.SUPABASE_SERVICE_KEY
 
     if (!supabaseUrl || !supabaseKey) {
         console.error('SERVER ERROR: Missing Supabase Service Keys')
         throw createError({ statusCode: 500, message: 'Server configuration error' })
     }
 
-    // Initialize with m2m schema to access tables
+    // Initialize with m2m schema AND persistSession: false for server-side
     const supabase = createClient(supabaseUrl, supabaseKey, {
-        db: { schema: 'm2m' }
+        db: { schema: 'm2m' },
+        auth: { persistSession: false }
     })
 
     // 1. Verify OTP or Developer Bypass
@@ -68,13 +70,18 @@ export default defineEventHandler(async (event) => {
         throw createError({ statusCode: 403, message: 'Access Denied: You are not authorized.' })
     }
 
-    // 4. Reset Password for seamless login (Bypasses Redirect Issues)
-    const email = `${phone.replace(/\D/g, '')}@m2m.app`
+    // 4. Get auth user email and reset password for seamless login
+    const { data: authUser, error: authError } = await supabase.auth.admin.getUserById(profile.id)
+
+    if (authError || !authUser.user) {
+        throw createError({ statusCode: 404, message: 'Auth user not found' })
+    }
+
     const tempPassword = `AdminSeq-${Math.random().toString(36).slice(-8)}-${Date.now()}`
 
     const { error: updateError } = await supabase.auth.admin.updateUserById(
         profile.id,
-        { password: tempPassword }
+        { password: tempPassword, email_confirm: true }
     )
 
     if (updateError) {
@@ -85,7 +92,7 @@ export default defineEventHandler(async (event) => {
     // Return the credentials for client-side login
     return {
         success: true,
-        email,
+        email: authUser.user.email,
         tempPassword
     }
 })

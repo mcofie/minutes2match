@@ -5,7 +5,7 @@
  * to provide proper TypeScript type checking for Supabase operations.
  * 
  * Note: For full type safety, generate these using:
- * npx supabase gen types typescript --project-id YOUR_PROJECT_ID > types/supabase.ts
+ * npx supabase gen types typescript --project-id YOUR_PROJECT_ID > types/database.types.ts
  */
 
 export type Json =
@@ -16,10 +16,12 @@ export type Json =
     | { [key: string]: Json | undefined }
     | Json[]
 
-export type M2MDatabase = {
+export type Database = {
     public: M2MSchema
     m2m: M2MSchema
 }
+
+export type M2MDatabase = Database
 
 export type M2MSchema = {
     Tables: {

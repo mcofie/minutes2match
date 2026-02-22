@@ -36,8 +36,20 @@ declare module "nitropack/types" {
     '/api/cron/auto-match': {
       'get': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/cron/auto-match.get').default>>>>
     }
+    '/api/cron/auto-verify': {
+      'get': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/cron/auto-verify.get').default>>>>
+    }
     '/api/cron/match-expiration-reminder': {
       'get': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/cron/match-expiration-reminder.get').default>>>>
+    }
+    '/api/cron/match-feedback': {
+      'get': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/cron/match-feedback.get').default>>>>
+    }
+    '/api/cron/remind-profiles': {
+      'get': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/cron/remind-profiles.get').default>>>>
+    }
+    '/api/cron/vibe-refresh': {
+      'get': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/cron/vibe-refresh.get').default>>>>
     }
     '/api/enrich_matches': {
       'post': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/enrich_matches.post').default>>>>

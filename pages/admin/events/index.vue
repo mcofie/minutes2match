@@ -351,7 +351,9 @@ definePageMeta({
   middleware: ['admin']
 })
 
-const supabase = useSupabaseClient()
+import type { M2MDatabase } from '~/types/database.types'
+
+const supabase = useSupabaseClient<M2MDatabase>()
 
 // Helper: Get persona by ID
 const getPersona = (personaId: string) => personas[personaId] || null
@@ -474,7 +476,6 @@ const handleImageUpload = async (e: Event) => {
       
     if (uploadError) throw uploadError
     
-    // Get public URL
     const { data: { publicUrl } } = supabase.storage
       .from('events')
       .getPublicUrl(filePath)
@@ -509,12 +510,14 @@ const saveEvent = async () => {
     
     if (editingEvent.value) {
       await supabase
-        .from('events')
+        .schema('m2m')
+      .from('events')
         .update(eventData)
         .eq('id', editingEvent.value.id)
     } else {
       await supabase
-        .from('events')
+        .schema('m2m')
+      .from('events')
         .insert(eventData)
     }
     
@@ -549,16 +552,16 @@ const filterPersona = ref('')
 
 // Computed: Users who are qualified for current event
 const qualifiedUsers = computed(() => {
-  return allUsers.value.filter(u => qualifiedUserIds.value.includes(u.id))
+  return allUsers.value.filter((u: any) => qualifiedUserIds.value.includes(u.id))
 })
 
 // Computed: Capacity counts
 const qualifiedMaleCount = computed(() => {
-  return qualifiedUsers.value.filter(u => u.gender === 'male').length
+  return qualifiedUsers.value.filter((u: any) => u.gender === 'male').length
 })
 
 const qualifiedFemaleCount = computed(() => {
-  return qualifiedUsers.value.filter(u => u.gender === 'female').length
+  return qualifiedUsers.value.filter((u: any) => u.gender === 'female').length
 })
 
 const maleCapacityPercent = computed(() => {
@@ -573,22 +576,22 @@ const femaleCapacityPercent = computed(() => {
 
 // Computed: Users who are NOT qualified (available to add) with filters
 const filteredAvailableUsers = computed(() => {
-  let available = allUsers.value.filter(u => !qualifiedUserIds.value.includes(u.id))
+  let available = allUsers.value.filter((u: any) => !qualifiedUserIds.value.includes(u.id))
   
   // Apply gender filter
   if (filterGender.value) {
-    available = available.filter(u => u.gender === filterGender.value)
+    available = available.filter((u: any) => u.gender === filterGender.value)
   }
   
   // Apply persona filter
   if (filterPersona.value) {
-    available = available.filter(u => u.dating_persona === filterPersona.value)
+    available = available.filter((u: any) => u.dating_persona === filterPersona.value)
   }
   
   // Apply search filter
   if (userSearch.value.trim()) {
     const search = userSearch.value.toLowerCase()
-    available = available.filter(u => {
+    available = available.filter((u: any) => {
       const name = (u.display_name || '').toLowerCase()
       const phone = (u.phone || '').toLowerCase()
       return name.includes(search) || phone.includes(search)
@@ -644,6 +647,7 @@ const fetchAllUsers = async () => {
   loadingUsers.value = true
   
   const { data } = await supabase
+    .schema('m2m')
     .from('profiles')
     .select('id, display_name, phone, gender, dating_persona, interests')
     .eq('is_verified', true)
@@ -657,6 +661,7 @@ const fetchAllUsers = async () => {
 const fetchQualifiedUsers = async (eventId: string) => {
   // @ts-ignore - Supabase types issue
   const { data } = await supabase
+    .schema('m2m')
     .from('event_qualifications')
     .select('user_id')
     .eq('event_id', eventId)
@@ -670,6 +675,7 @@ const addQualification = async (userId: string) => {
   
   // @ts-ignore - Supabase types issue
   const { error } = await supabase
+    .schema('m2m')
     .from('event_qualifications')
     .insert({
       event_id: qualifyingEvent.value.id,
@@ -688,13 +694,14 @@ const removeQualification = async (userId: string) => {
   
   // @ts-ignore - Supabase types issue
   const { error } = await supabase
+    .schema('m2m')
     .from('event_qualifications')
     .delete()
     .eq('event_id', qualifyingEvent.value.id)
     .eq('user_id', userId)
   
   if (!error) {
-    qualifiedUserIds.value = qualifiedUserIds.value.filter(id => id !== userId)
+    qualifiedUserIds.value = qualifiedUserIds.value.filter((id: any) => id !== userId)
   }
 }
 
@@ -704,6 +711,7 @@ const clearQualifications = async () => {
   
   // @ts-ignore
   const { error } = await supabase
+    .schema('m2m')
     .from('event_qualifications')
     .delete()
     .eq('event_id', qualifyingEvent.value.id)
@@ -733,6 +741,7 @@ const notifyQualifiedUsers = async () => {
           // Mark as notified
           // @ts-ignore
           await supabase
+            .schema('m2m')
             .from('event_qualifications')
             .update({ notified_at: new Date().toISOString() })
             .eq('event_id', event.id)

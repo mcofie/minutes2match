@@ -5,7 +5,7 @@ import tailwindcss from "@tailwindcss/vite";
 export default defineNuxtConfig({
     compatibilityDate: '2024-11-01',
     devtools: { enabled: true },
-    modules: ['@nuxt/fonts', '@nuxtjs/supabase', '@pinia/nuxt', '@vite-pwa/nuxt'],
+    modules: ['@nuxt/fonts', '@nuxtjs/supabase', '@pinia/nuxt', '@vite-pwa/nuxt', '@nuxt/image'],
     css: [
         '~/assets/css/main.css',
         '~/assets/css/admin.css'
@@ -14,6 +14,16 @@ export default defineNuxtConfig({
         plugins: [
             tailwindcss(),
         ],
+    },
+    routeRules: {
+        '/me': { ssr: false },
+        '/me/**': { ssr: false },
+        '/matches': { ssr: false },
+        '/events': { ssr: false },
+    },
+    image: {
+        provider: 'none',
+        domains: ['ziglffbvcexvwguqopqm.supabase.co'],
     },
     devServer: {
         host: "0.0.0.0"
@@ -50,7 +60,7 @@ export default defineNuxtConfig({
             installPrompt: true,
         },
         devOptions: {
-            enabled: true,
+            enabled: false,
             type: 'module'
         }
     },
@@ -93,9 +103,20 @@ export default defineNuxtConfig({
             callback: '/me',
             exclude: ['/', '/vibe-check/**'],
         },
+        cookieOptions: {
+            maxAge: 60 * 60 * 24 * 7, // 7 days
+            sameSite: 'lax',
+            secure: process.env.NODE_ENV === 'production',
+        },
         clientOptions: {
             db: {
                 schema: 'm2m'
+            },
+            auth: {
+                flowType: 'pkce',
+                detectSessionInUrl: true,
+                persistSession: true,
+                autoRefreshToken: true,
             }
         }
     },
@@ -105,7 +126,7 @@ export default defineNuxtConfig({
         hubtelClientId: process.env.HUBTEL_CLIENT_ID,
         hubtelClientSecret: process.env.HUBTEL_CLIENT_SECRET,
         paystackSecretKey: process.env.PAYSTACK_SECRET_KEY,
-        supabaseServiceKey: process.env.SUPABASE_SERVICE_KEY,
+        supabaseServiceKey: process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_KEY,
         cronSecret: process.env.CRON_SECRET,
         discordWebhookUrl: process.env.DISCORD_WEBHOOK_URL,
         // Public keys (available client-side)

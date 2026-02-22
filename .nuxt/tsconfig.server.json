@@ -139,6 +139,7 @@
     "../node_modules/@nuxtjs/supabase/node_modules",
     "../node_modules/@pinia/nuxt/node_modules",
     "../node_modules/@vite-pwa/nuxt/node_modules",
+    "../node_modules/@nuxt/image/node_modules",
     "../node_modules/@nuxt/devtools/node_modules",
     "../node_modules/@nuxt/telemetry/node_modules",
     "../dist"
