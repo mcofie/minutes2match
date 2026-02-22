@@ -12,7 +12,7 @@
     <nav class="sticky top-0 z-50 bg-[#FFFCF8] border-b border-black">
       <div class="max-w-4xl mx-auto px-6 h-16 flex items-center justify-between">
         <NuxtLink to="/" class="flex items-center">
-          <img src="/logo-full.png" alt="minutes2match" class="h-12 w-auto object-contain hover:opacity-80 transition-opacity" />
+          <img src="/logo-full.png" alt="minutes2match" class="h-16 w-auto object-contain hover:opacity-80 transition-opacity" />
         </NuxtLink>
         <NuxtLink to="/" class="text-sm font-bold uppercase tracking-widest hover:text-rose-500 transition-colors">
           ← Back to Home

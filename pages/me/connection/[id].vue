@@ -7,7 +7,7 @@
       <div class="max-w-6xl mx-auto px-4 h-20 flex items-center justify-between">
         <!-- Logo -->
         <NuxtLink to="/me" class="flex items-center">
-           <img src="/logo-full.png" alt="minutes2match" class="h-20 w-auto object-contain hover:opacity-80 transition-opacity dark:invert" />
+           <img src="/logo-full.png" alt="minutes2match" class="h-28 w-auto object-contain hover:opacity-80 transition-opacity dark:invert" />
         </NuxtLink>
         
         <!-- User Info -->

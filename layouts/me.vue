@@ -19,7 +19,7 @@
       <nav class="sticky top-0 z-[60] bg-[#FFFCF8]/90 dark:bg-stone-950/90 backdrop-blur-md border-b border-stone-200 dark:border-stone-800 transition-colors duration-300 shadow-sm">
         <div class="max-w-6xl mx-auto px-4 h-16 md:h-20 flex items-center justify-between">
           <NuxtLink to="/" class="flex items-center -ml-2">
-             <img src="/logo-full.png" alt="minutes2match" class="h-9 md:h-14 w-auto object-contain hover:opacity-80 transition-opacity dark:invert" />
+             <img src="/logo-full.png" alt="minutes2match" class="h-14 md:h-16 w-auto object-contain hover:opacity-80 transition-opacity dark:invert" />
           </NuxtLink>
           
           <div class="flex items-center gap-2 md:gap-6">
