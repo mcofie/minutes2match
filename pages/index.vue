@@ -469,14 +469,14 @@
                       <li><a href="#" class="hover:text-rose-500 transition-colors">Manifesto</a></li>
                       <li><a href="#" class="hover:text-rose-500 transition-colors">How it Works</a></li>
                       <li><a href="#" class="hover:text-rose-500 transition-colors">Stories</a></li>
-                      <li><a href="#" class="hover:text-rose-500 transition-colors">Events</a></li>
+                      <li><NuxtLink to="/release-notes" class="hover:text-rose-500 transition-colors">Release Notes</NuxtLink></li>
                       <li><NuxtLink to="/pricing" class="hover:text-rose-500 transition-colors">Pricing</NuxtLink></li>
                    </ul>
                 </div>
                 <div>
                    <h4 class="font-bold uppercase tracking-widest !text-white mb-6 text-xs" style="color: white !important;">Social</h4>
                    <ul class="space-y-4 text-sm font-medium text-gray-300 dark:text-stone-400">
-                      <li><a href="#" class="hover:text-rose-500 transition-colors">Instagram</a></li>
+                       <li><a href="https://www.instagram.com/minutes2match" target="_blank" rel="noopener noreferrer" class="hover:text-rose-500 transition-colors">Instagram</a></li>
                       <li><a href="#" class="hover:text-rose-500 transition-colors">Twitter / X</a></li>
                       <li><a href="#" class="hover:text-rose-500 transition-colors">TikTok</a></li>
                    </ul>
@@ -499,7 +499,7 @@
           </div>
              <div class="text-xs font-mono text-gray-400 dark:text-stone-500 mb-4 md:mb-8 text-right">
                 © 2024 Minutes2Match Inc. • Accra, GH <br/>
-                All Rights Reserved.
+                All Rights Reserved. <span class="ml-2 opacity-50">v{{ config.public.appVersion }}</span>
              </div>
           </div>
        </div>
@@ -521,7 +521,7 @@ useHead({
   ]
 })
 
-// Mobile menu state
+const config = useRuntimeConfig()
 const mobileMenuOpen = ref(false)
 
 const scrollToSection = (id: string) => {

@@ -167,20 +167,26 @@
 
     <!-- Footer -->
     <footer class="border-t border-stone-200 bg-white/80 mt-16">
-      <div class="max-w-4xl mx-auto px-6 py-6">
+      <div class="max-w-4xl mx-auto px-6 py-8">
         <div class="flex flex-col md:flex-row items-center justify-between gap-4">
           <p class="text-xs text-stone-400 font-medium">
-            © {{ new Date().getFullYear() }} Minutes 2 Match. All rights reserved.
+            © {{ new Date().getFullYear() }} Minutes 2 Match. <span class="ml-2 opacity-50">v{{ config.public.appVersion }}</span>
           </p>
           <div class="flex items-center gap-6">
-            <NuxtLink to="/terms" class="text-xs text-stone-400 hover:text-black transition-colors font-medium">Terms</NuxtLink>
-            <NuxtLink to="/privacy" class="text-xs text-rose-500 font-bold">Privacy</NuxtLink>
+            <a href="https://www.instagram.com/minutes2match" target="_blank" class="text-xs text-stone-400 hover:text-rose-500 transition-colors font-medium">Instagram</a>
+            <NuxtLink to="/terms" class="text-xs text-stone-400 hover:text-rose-500 transition-colors font-medium" active-class="!text-rose-500 !font-bold">Terms</NuxtLink>
+            <NuxtLink to="/privacy" class="text-xs text-stone-400 hover:text-rose-500 transition-colors font-medium" active-class="!text-rose-500 !font-bold">Privacy</NuxtLink>
+            <NuxtLink to="/release-notes" class="text-xs text-stone-400 hover:text-rose-500 transition-colors font-medium" active-class="!text-rose-500 !font-bold">Updates</NuxtLink>
           </div>
         </div>
       </div>
     </footer>
   </div>
 </template>
+
+<script setup lang="ts">
+const config = useRuntimeConfig()
+</script>
 
 <style scoped>
 .font-serif {

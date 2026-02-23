@@ -5,7 +5,7 @@ import tailwindcss from "@tailwindcss/vite";
 export default defineNuxtConfig({
     compatibilityDate: '2024-11-01',
     devtools: { enabled: true },
-    modules: ['@nuxt/fonts', '@nuxtjs/supabase', '@pinia/nuxt', '@vite-pwa/nuxt', '@nuxt/image'],
+    modules: ['@nuxt/fonts', '@nuxtjs/supabase', '@pinia/nuxt', '@vite-pwa/nuxt', '@nuxt/image', '@nuxt/content'],
     css: [
         '~/assets/css/main.css',
         '~/assets/css/admin.css'
@@ -131,6 +131,7 @@ export default defineNuxtConfig({
         discordWebhookUrl: process.env.DISCORD_WEBHOOK_URL,
         // Public keys (available client-side)
         public: {
+            appVersion: '1.2.0',
             paystackPublicKey: process.env.PAYSTACK_PUBLIC_KEY,
             baseUrl: process.env.BASE_URL || 'http://localhost:3000',
         }

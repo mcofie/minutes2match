@@ -9,6 +9,7 @@
     "preview": "nuxt preview"
   },
   "dependencies": {
+    "@nuxt/content": "^3.11.2",
     "@nuxt/fonts": "^0.11.1",
     "@nuxt/image": "^2.0.0",
     "@nuxtjs/supabase": "^2.0.3",
@@ -25,6 +26,7 @@
   "devDependencies": {
     "@types/youtube": "^0.1.0",
     "@vite-pwa/nuxt": "^1.1.0",
+    "better-sqlite3": "^12.6.2",
     "nuxi": "^3.32.0"
   }
 }

@@ -60,16 +60,16 @@
         <!-- Global Ghost Mode Indicator -->
         <div v-if="profile?.is_active === false" class="ghost-banner mb-8 p-4 bg-stone-900 text-white rounded-xl border-2 border-dashed border-stone-500 flex flex-col sm:flex-row items-center justify-between gap-4 animate-in fade-in slide-in-from-top-4 duration-500 shadow-xl overflow-hidden relative group z-50 pointer-events-auto">
            <div class="absolute top-0 left-0 w-1 h-full bg-rose-500"></div>
-           <div class="flex items-center gap-4">
-              <div class="w-12 h-12 bg-stone-800 rounded-full flex items-center justify-center text-2xl border border-stone-700 shadow-inner animate-ghost">👻</div>
-              <div class="flex-1 text-center sm:text-left">
-                 <h3 class="text-xs md:text-sm font-black uppercase tracking-widest text-rose-400 mb-0.5">Incognito Mode Active</h3>
-                 <p class="text-[9px] md:text-[10px] text-stone-400 font-bold uppercase tracking-[0.15em] leading-relaxed">Your profile is currently hidden from the match pool. No one can find you.</p>
-              </div>
-           </div>
-           <button @click="toggleGhostMode" class="w-full sm:w-auto px-6 py-2.5 bg-white text-black text-[10px] font-black uppercase tracking-widest rounded-lg hover:bg-rose-500 hover:text-white transition-all shadow-[4px_4px_0px_0px_rgba(255,255,255,0.1)] active:translate-x-0.5 active:translate-y-0.5 flex-shrink-0">
-              Go Live ✨
-           </button>
+            <div class="flex items-center gap-4">
+               <div class="w-12 h-12 bg-stone-800 rounded-full flex items-center justify-center text-2xl border border-stone-700 shadow-inner animate-ghost">👻</div>
+               <div class="flex-1 text-center sm:text-left">
+                  <h3 class="text-xs md:text-sm font-black uppercase tracking-widest text-rose-400 mb-0.5">Incognito Mode Active</h3>
+                  <p class="text-[9px] md:text-[10px] text-stone-400 font-bold uppercase tracking-[0.15em] leading-relaxed">Your profile is currently hidden from the match pool. <span class="text-white">12 potential matches</span> missed your vibe today.</p>
+               </div>
+            </div>
+            <button @click="toggleGhostMode" class="w-full sm:w-auto px-6 py-2.5 bg-rose-500 text-white text-[10px] font-black uppercase tracking-widest rounded-lg hover:bg-rose-600 transition-all shadow-[4px_4px_0px_0px_rgba(0,0,0,0.3)] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] active:translate-x-0.5 active:translate-y-0.5 flex-shrink-0">
+               Go Live ✨
+            </button>
         </div>
 
         <!-- Incomplete Profile Nudge -->
@@ -122,8 +122,13 @@
       <footer class="border-t border-stone-200 dark:border-stone-800 bg-white/80 dark:bg-stone-900/80 backdrop-blur-sm mt-auto pb-24 md:pb-0 transition-colors">
         <div class="max-w-6xl mx-auto px-4 py-5">
           <div class="flex flex-col md:flex-row items-center justify-between gap-3">
-            <p class="text-xs text-stone-400 font-medium">© {{ new Date().getFullYear() }} Minutes 2 Match. All rights reserved.</p>
+            <p class="text-xs text-stone-400 font-medium">© {{ new Date().getFullYear() }} Minutes 2 Match. All rights reserved. <span class="ml-2 text-[10px] opacity-40">v{{ config.public.appVersion }}</span></p>
             <div class="flex items-center gap-6">
+              <NuxtLink to="/release-notes" class="relative group text-xs text-stone-400 hover:text-black dark:hover:text-white transition-colors font-medium">
+                Updates
+                <span class="absolute -top-1 -right-2 w-1.5 h-1.5 bg-rose-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(244,63,94,0.8)]"></span>
+              </NuxtLink>
+              <a href="https://www.instagram.com/minutes2match" target="_blank" rel="noopener noreferrer" class="text-xs text-stone-400 hover:text-black dark:hover:text-white transition-colors font-medium">Instagram</a>
               <NuxtLink to="/terms" class="text-xs text-stone-400 hover:text-black dark:hover:text-white transition-colors font-medium">Terms</NuxtLink>
               <NuxtLink to="/privacy" class="text-xs text-stone-400 hover:text-black dark:hover:text-white transition-colors font-medium">Privacy</NuxtLink>
               <span class="text-xs text-stone-300 dark:text-stone-700">Made with ❤️ in Accra</span>
@@ -159,6 +164,7 @@
 
 <script setup lang="ts">
 const route = useRoute()
+const config = useRuntimeConfig()
 const { authReady, profile, subscription, pendingMatchCount, isProfileIncomplete, initDashboard, toggleGhostMode } = useDashboard()
 const { unreadCount, fetchNotifications } = useNotifications()
 
@@ -169,12 +175,12 @@ onMounted(async () => {
 </script>
 
 <style>
-/* Gray out content when Ghost Mode is active */
+/* Gray out content when Ghost Mode is active but allow interaction */
 .is-ghost-mode main > .flex-1 > div:not(.ghost-banner) {
-  filter: grayscale(1) blur(1px) opacity(0.6);
+  filter: grayscale(0.8) contrast(1.1) opacity(0.85);
   transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-  pointer-events: none;
-  user-select: none;
+  pointer-events: auto;
+  user-select: auto;
 }
 
 /* Allow the indicator itself to remain vibrant */

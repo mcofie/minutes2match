@@ -59,8 +59,39 @@
             </p>
          </div>
 
+         <!-- Match Compatibility Radar -->
+         <div class="bg-white dark:bg-stone-900 p-5 rounded-xl border-2 border-black dark:border-stone-700 shadow-[8px_8px_0px_0px_rgba(244,63,94,0.1)] group overflow-hidden relative animate-in fade-in slide-in-from-bottom-4 duration-700 delay-100">
+            <div class="flex items-center justify-between mb-4">
+               <h4 class="text-[10px] font-black uppercase tracking-[0.2em] text-stone-900 dark:text-white">Compatibility Radar</h4>
+               <span class="px-2 py-0.5 bg-rose-50 dark:bg-rose-900/30 text-rose-500 text-[8px] font-black rounded border border-rose-200 dark:border-rose-900/50">LIVE</span>
+            </div>
+            <div class="space-y-4">
+               <div class="space-y-1.5">
+                  <div class="flex justify-between text-[8px] font-bold uppercase tracking-widest text-stone-400">
+                     <span>Vibe Harmony</span>
+                     <span class="text-stone-900 dark:text-white">88%</span>
+                  </div>
+                  <div class="h-1 bg-stone-100 dark:bg-stone-800 rounded-full overflow-hidden">
+                     <div class="h-full bg-rose-500 w-[88%] transform group-hover:scale-x-105 transition-transform origin-left"></div>
+                  </div>
+               </div>
+               <div class="space-y-1.5">
+                  <div class="flex justify-between text-[8px] font-bold uppercase tracking-widest text-stone-400">
+                     <span>Intent Alignment</span>
+                     <span class="text-stone-900 dark:text-white">72%</span>
+                  </div>
+                  <div class="h-1 bg-stone-100 dark:bg-stone-800 rounded-full overflow-hidden">
+                     <div class="h-full bg-black dark:bg-white w-[72%] transform group-hover:scale-x-105 transition-transform origin-left"></div>
+                  </div>
+               </div>
+            </div>
+            <div class="mt-4 pt-4 border-t border-stone-100 dark:border-stone-800">
+               <p class="text-[9px] text-stone-500 dark:text-stone-400 leading-tight">Your persona aligns best with <span class="text-stone-900 dark:text-white font-bold">"The Intellectual"</span> and <span class="text-stone-900 dark:text-white font-bold">"The Adventurer"</span> types this week.</p>
+            </div>
+         </div>
+
          <!-- Persona Detail Card -->
-         <div v-if="personaData" class="bg-white dark:bg-stone-900 p-5 rounded-xl border-2 border-black dark:border-stone-700 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] group hover:-translate-y-1 transition-all">
+         <div v-if="personaData" class="bg-white dark:bg-stone-900 p-5 rounded-xl border-2 border-black dark:border-stone-700 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] group hover:-translate-y-1 transition-all animate-in fade-in slide-in-from-bottom-4 duration-700 delay-200">
             <div class="flex items-center gap-3 mb-4">
                <div class="w-10 h-10 rounded-lg border-2 border-black bg-rose-500 flex items-center justify-center text-xl shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">{{ personaData.emoji }}</div>
                <div>
@@ -72,7 +103,7 @@
          </div>
 
          <!-- Community Health Card -->
-         <div class="bg-stone-900 text-white p-5 rounded-xl border-2 border-stone-800 shadow-[8px_8px_0px_0px_rgba(0,0,0,0.1)] overflow-hidden relative group">
+         <div class="bg-stone-900 text-white p-5 rounded-xl border-2 border-stone-800 shadow-[8px_8px_0px_0px_rgba(0,0,0,0.1)] overflow-hidden relative group animate-in fade-in slide-in-from-bottom-4 duration-700 delay-300">
             <div class="absolute -top-2 -right-2 p-4 opacity-5 text-6xl group-hover:scale-110 transition-transform">🛡️</div>
             <h4 class="text-[10px] font-black uppercase tracking-[0.25em] text-rose-500 mb-4">Pool Quality Control</h4>
             <div class="space-y-4">

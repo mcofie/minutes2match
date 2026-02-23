@@ -10,7 +10,7 @@
       <div class="max-w-[1440px] mx-auto px-4 md:px-6 h-20 md:h-28 flex items-center justify-between">
         <!-- Logo -->
         <NuxtLink to="/" class="flex items-center z-50 -ml-2 md:ml-0">
-           <img src="/logo-full.png" alt="minutes2match" class="h-20 md:h-28 w-auto object-contain hover:opacity-80 transition-opacity dark:invert" />
+           <NuxtImg format="webp" src="/logo-full.png" alt="minutes2match" class="h-20 md:h-28 w-auto object-contain hover:opacity-80 transition-opacity dark:invert" />
         </NuxtLink>
 
         <!-- Center Links (Desktop) -->
@@ -236,7 +236,7 @@
           <!-- Top Section -->
           <div class="grid md:grid-cols-2 gap-16 mb-24 border-b border-white/20 pb-24">
              <div>
-                <h2 class="text-5xl md:text-7xl font-serif mb-8 leading-none text-white">
+                <h2 class="text-5xl md:text-7xl font-serif mb-8 leading-none !text-white" style="color: white !important;">
                    Ready to find <br/><span class="italic text-rose-500">your person?</span>
                 </h2>
                 <NuxtLink to="/vibe-check" class="inline-block bg-white dark:bg-stone-100 text-black px-12 py-5 rounded-md text-lg font-bold uppercase tracking-widest hover:bg-rose-500 dark:hover:bg-rose-500 hover:text-white dark:hover:text-white transition-all shadow-[6px_6px_0px_0px_rgba(255,255,255,0.3)] dark:shadow-[6px_6px_0px_0px_rgba(255,255,255,0.1)] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px]">
@@ -246,28 +246,28 @@
              
              <div class="grid grid-cols-2 md:grid-cols-3 gap-8">
                 <div>
-                   <h4 class="font-bold uppercase tracking-widest text-white mb-6 text-xs">Company</h4>
+                   <h4 class="font-bold uppercase tracking-widest !text-white mb-6 text-xs" style="color: white !important;">Company</h4>
                    <ul class="space-y-4 text-sm font-medium text-gray-300 dark:text-stone-400">
                       <li><NuxtLink to="/#manifesto" class="hover:text-rose-500 transition-colors">Manifesto</NuxtLink></li>
                       <li><NuxtLink to="/#process" class="hover:text-rose-500 transition-colors">How it Works</NuxtLink></li>
                       <li><NuxtLink to="/#stories" class="hover:text-rose-500 transition-colors">Stories</NuxtLink></li>
-                      <li><a href="#" class="hover:text-rose-500 transition-colors">Events</a></li>
+                      <li><NuxtLink to="/release-notes" class="hover:text-rose-500 transition-colors">Release Notes</NuxtLink></li>
                       <li><NuxtLink to="/pricing" class="hover:text-rose-500 transition-colors">Pricing</NuxtLink></li>
                    </ul>
                 </div>
                 <div>
-                   <h4 class="font-bold uppercase tracking-widest text-white mb-6 text-xs">Social</h4>
+                   <h4 class="font-bold uppercase tracking-widest !text-white mb-6 text-xs" style="color: white !important;">Social</h4>
                    <ul class="space-y-4 text-sm font-medium text-gray-300 dark:text-stone-400">
-                      <li><a href="#" class="hover:text-rose-500 transition-colors">Instagram</a></li>
+                       <li><a href="https://www.instagram.com/minutes2match" target="_blank" rel="noopener noreferrer" class="hover:text-rose-500 transition-colors">Instagram</a></li>
                       <li><a href="#" class="hover:text-rose-500 transition-colors">Twitter / X</a></li>
                       <li><a href="#" class="hover:text-rose-500 transition-colors">TikTok</a></li>
                    </ul>
                 </div>
                 <div>
-                   <h4 class="font-bold uppercase tracking-widest text-white mb-6 text-xs">Legal</h4>
+                   <h4 class="font-bold uppercase tracking-widest !text-white mb-6 text-xs" style="color: white !important;">Legal</h4>
                    <ul class="space-y-4 text-sm font-medium text-gray-300 dark:text-stone-400">
-                      <li><a href="#" class="hover:text-rose-500 transition-colors">Terms</a></li>
-                      <li><a href="#" class="hover:text-rose-500 transition-colors">Privacy</a></li>
+                      <li><NuxtLink to="/terms" class="hover:text-rose-500 transition-colors">Terms</NuxtLink></li>
+                      <li><NuxtLink to="/privacy" class="hover:text-rose-500 transition-colors">Privacy</NuxtLink></li>
                       <li><a href="#" class="hover:text-rose-500 transition-colors">Safety</a></li>
                    </ul>
                 </div>
@@ -277,11 +277,11 @@
           <!-- Bottom Watermark -->
           <div class="flex flex-col md:flex-row justify-between items-end">
           <div class="flex items-end">
-             <img src="/logo-full.png" alt="minutes2match" class="h-24 w-auto object-contain brightness-0 invert opacity-90" />
+             <NuxtImg format="webp" src="/logo-full.png" alt="minutes2match" class="h-24 w-auto object-contain brightness-0 invert opacity-90" />
           </div>
              <div class="text-xs font-mono text-gray-400 dark:text-stone-500 mb-4 md:mb-8 text-right">
                 © 2024 Minutes2Match Inc. • Accra, GH <br/>
-                All Rights Reserved.
+                All Rights Reserved. <span class="ml-2 opacity-50">v{{ config.public.appVersion }}</span>
              </div>
           </div>
        </div>
@@ -296,6 +296,7 @@
 import LivePulse from '~/components/LivePulse.vue'
 const supabase = useSupabaseClient()
 
+const config = useRuntimeConfig()
 const mobileMenuOpen = ref(false)
 
 const prices = reactive({
