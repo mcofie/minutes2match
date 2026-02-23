@@ -3,12 +3,7 @@
  * GET /api/cron/auto-match
  * 
  * Automatically finds and matches users with 70%+ match scores.
- * Rules:
- * - Only specific user pairs that are already matched are excluded (users CAN have multiple matches)
- * - Male's age must be >= female's age
- * - All existing matching algorithm rules apply
- * 
- * Sends a detailed report to Discord when complete.
+ * Uses the "Ultra-Tight" Compatibility Algorithm.
  * 
  * Call via: https://cron-job.org/en/ with Authorization: Bearer <CRON_SECRET>
  */
@@ -38,7 +33,9 @@ interface UserProfile {
     phone?: string
     is_verified?: boolean
     dating_persona?: string
-    dealbreakers?: Record<string, string[]>
+    occupation?: string
+    badges?: string[]
+    dealbreakers?: string[]
     min_age?: number
     max_age?: number
 }
@@ -52,22 +49,15 @@ interface MatchResult {
 }
 
 // ====================
-// COMPATIBILITY LOGIC (Server-side version of useCompatibility)
+// COMPATIBILITY ENGINE (Ultra-Tight V2)
 // ====================
 
 const DIMENSION_WEIGHTS: Record<string, number> = {
-    love_language: 15,
-    communication: 15,
-    life_goals: 12,
-    social: 10,
-    pace: 8,
-    lifestyle: 5,
-    dealbreakers: 10,
-    finance: 5,
-    ambition: 5,
-    dating: 3,
-    affection: 3,
-    culture: 2
+    love_language: 10,
+    conflict_style: 5,
+    life_priority: 12,
+    social_energy: 8,
+    relationship_pace: 5
 }
 
 const COMPATIBILITY_MAP: Record<string, Record<string, string[]>> = {
@@ -86,7 +76,7 @@ const COMPATIBILITY_MAP: Record<string, Record<string, string[]>> = {
         'Write it out - Texting is easier 📝': ['Write it out - Texting is easier 📝', 'Take space first - I need time to process 🧘']
     },
     'social_energy': {
-        'Full homebody - My couch is my bestie 🛋️': ['Full homebody - My couch is my bestie 🛋️', 'Mostly introverted - Small gatherings only 🏠'],
+        'Full homebody - My couch is my bestie 🛋️': ['Full homebody - My couch is my bestie  Couch is my bestie 🛋️', 'Mostly introverted - Small gatherings only 🏠'],
         'Mostly introverted - Small gatherings only 🏠': ['Mostly introverted - Small gatherings only 🏠', 'Balanced - Depends on my mood ⚖️', 'Full homebody - My couch is my bestie 🛋️'],
         'Balanced - Depends on my mood ⚖️': ['Balanced - Depends on my mood ⚖️', 'Mostly introverted - Small gatherings only 🏠', 'Mostly extroverted - I love being out 🌟'],
         'Mostly extroverted - I love being out 🌟': ['Mostly extroverted - I love being out 🌟', 'Balanced - Depends on my mood ⚖️', 'Life of the party - Where\'s the next event? 🦋'],
@@ -98,274 +88,157 @@ const COMPATIBILITY_MAP: Record<string, Record<string, string[]>> = {
         'Traveling and experiencing life 🌍': ['Traveling and experiencing life 🌍', 'Finding inner peace and balance 🧘'],
         'Finding inner peace and balance 🧘': ['Finding inner peace and balance 🧘', 'Starting or growing a family 👨‍👩‍👧', 'Traveling and experiencing life 🌍'],
         'Making an impact in my community 🌱': ['Making an impact in my community 🌱', 'Building my career and wealth 💼', 'Finding inner peace and balance 🧘']
-    },
-    'relationship_pace': {
-        'Take it slow - Let\'s be friends first 🐢': ['Take it slow - Let\'s be friends first 🐢', 'Go with the flow - See where it goes 🌊'],
-        'Go with the flow - See where it goes 🌊': ['Go with the flow - See where it goes 🌊', 'Take it slow - Let\'s be friends first 🐢', 'Move with intention - I know what I want 🎯'],
-        'Move with intention - I know what I want 🎯': ['Move with intention - I know what I want 🎯', 'Go with the flow - See where it goes 🌊', 'Move fast if it feels right - Life is short 🚀'],
-        'Move fast if it feels right - Life is short 🚀': ['Move fast if it feels right - Life is short 🚀', 'Move with intention - I know what I want 🎯']
     }
 }
-
-const PERSONA_COMPATIBILITY: Record<string, string[]> = {
-    power_player: ['power_player', 'intellectual'],
-    romantic: ['romantic', 'adventurer'],
-    adventurer: ['adventurer', 'social_butterfly', 'romantic'],
-    intellectual: ['intellectual', 'power_player', 'homebody'],
-    social_butterfly: ['social_butterfly', 'adventurer'],
-    homebody: ['homebody', 'romantic', 'intellectual']
-}
-
-// ====================
-// HELPER FUNCTIONS
-// ====================
 
 function calculateAge(birthDate: string): number {
     const today = new Date()
     const birth = new Date(birthDate)
     let age = today.getFullYear() - birth.getFullYear()
-    const monthDiff = today.getMonth() - birth.getMonth()
-    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+    if (today.getMonth() < birth.getMonth() || (today.getMonth() === birth.getMonth() && today.getDate() < birth.getDate())) {
         age--
     }
     return age
 }
 
-function calculateVibeCompatibility(
-    user1Answers: VibeAnswer[],
-    user2Answers: VibeAnswer[]
-): { vibeScore: number; strengths: string[]; warnings: string[] } {
-    const answers1 = new Map(user1Answers.map(a => [a.question_key, a.answer]))
-    const answers2 = new Map(user2Answers.map(a => [a.question_key, a.answer]))
-
-    let vibePoints = 0
-    let maxVibePoints = 0
-    const strengths: string[] = []
-    const warnings: string[] = []
-
-    for (const [key, compatMap] of Object.entries(COMPATIBILITY_MAP)) {
-        const answer1 = answers1.get(key)
-        const answer2 = answers2.get(key)
-
-        if (answer1 && answer2) {
-            const weight = DIMENSION_WEIGHTS[key] || 5
-            maxVibePoints += weight
-
-            if (answer1 === answer2) {
-                vibePoints += weight
-                strengths.push(getStrengthMessage(key, 'exact'))
-            } else if (compatMap[answer1]?.includes(answer2)) {
-                vibePoints += weight * 0.7
-                strengths.push(getStrengthMessage(key, 'compatible'))
-            } else {
-                warnings.push(getWarningMessage(key))
-            }
-        }
-    }
-
-    const vibeScore = maxVibePoints > 0 ? Math.round((vibePoints / maxVibePoints) * 100) : 50
-
-    return { vibeScore, strengths: strengths.slice(0, 3), warnings: warnings.slice(0, 2) }
+function hasGenotypeRisk(g1: string, g2: string) {
+    const riskTraits = ['AS', 'SS', 'AC', 'SC'];
+    if (!riskTraits.includes(g1) || !riskTraits.includes(g2)) return false;
+    if (g1 === 'SS' || g2 === 'SS') return true;
+    return true;
 }
 
-function getStrengthMessage(key: string, type: 'exact' | 'compatible'): string {
-    const messages: Record<string, Record<string, string>> = {
-        love_language: { exact: 'Same love language! 💕', compatible: 'Compatible love languages' },
-        conflict_style: { exact: 'Same communication style! 🗣️', compatible: 'Compatible communication styles' },
-        social_energy: { exact: 'Same social energy! 🎉', compatible: 'Balanced social preferences' },
-        life_priority: { exact: 'Same life priorities! 🎯', compatible: 'Aligned life goals' },
-        relationship_pace: { exact: 'Same relationship pace! 💫', compatible: 'Compatible pace expectations' }
-    }
-    return messages[key]?.[type] || 'Good match on this dimension'
-}
-
-function getWarningMessage(key: string): string {
-    const warnings: Record<string, string> = {
-        love_language: 'Different love languages',
-        conflict_style: 'Different conflict styles',
-        social_energy: 'Different social energy levels',
-        life_priority: 'Different life priorities',
-        relationship_pace: 'Different relationship pace'
-    }
-    return warnings[key] || 'Different preferences'
+function isCompatibleProfession(p1: string, p2: string) {
+    const technology = ['tech', 'software', 'dev', 'engineer', 'it', 'cyber']
+    const legalFinance = ['law', 'fin', 'bank', 'acc', 'analyst', 'audit']
+    const health = ['med', 'nurse', 'doc', 'pharm']
+    const check = (list: string[]) => list.some(k => p1.includes(k)) && list.some(k => p2.includes(k))
+    return check(technology) || check(legalFinance) || check(health)
 }
 
 function calculateMatchScore(
     u1: UserProfile,
     u2: UserProfile,
-    u1Answers: VibeAnswer[],
-    u2Answers: VibeAnswer[]
+    ans1List: VibeAnswer[],
+    ans2List: VibeAnswer[]
 ): { score: number; reasons: string[]; warnings: string[] } {
-    let score = 0
-    const reasons: string[] = []
+
+    const strengths: string[] = []
     const warnings: string[] = []
+    const breakdown = { vibeMatch: 0, goalsMatch: 0, lifestyleMatch: 0, maturityMatch: 0, interestMatch: 0 }
+    let malus = 0
 
-    // 1. Gender / Interest Logic (Mutual)
-    const u1WantsU2 = !u1.interested_in || u1.interested_in === 'everyone' || u1.interested_in === u2.gender
-    const u2WantsU1 = !u2.interested_in || u2.interested_in === 'everyone' || u2.interested_in === u1.gender
+    // 1. HARD FILTER: GENDER & INTEREST
+    const u1InterestedInU2 = !u1.interested_in || u1.interested_in === 'everyone' || u1.interested_in === u2.gender
+    const u2InterestedInU1 = !u2.interested_in || u2.interested_in === 'everyone' || u2.interested_in === u1.gender
 
-    if (!u1WantsU2 || !u2WantsU1) {
-        return { score: 0, reasons: [], warnings: ['Gender Mismatch'] }
+    if (!u1InterestedInU2 || !u2InterestedInU1) {
+        return { score: 0, reasons: [], warnings: ['Gender Preference Mismatch'] }
     }
 
-    // 2. DEALBREAKER CHECKS
-    const parseDealbreakers = (db: any) => {
-        if (!db) return {}
-        if (typeof db === 'string') {
-            try { return JSON.parse(db) } catch (e) { return {} }
-        }
-        return db
-    }
+    const answers1 = new Map(ans1List.map(a => [a.question_key, a.answer]))
+    const answers2 = new Map(ans2List.map(a => [a.question_key, a.answer]))
 
-    const u1Dealbreakers = parseDealbreakers(u1.dealbreakers)
-    const u2Dealbreakers = parseDealbreakers(u2.dealbreakers)
-    const age1 = u1.birth_date ? calculateAge(u1.birth_date) : 25
-    const age2 = u2.birth_date ? calculateAge(u2.birth_date) : 25
-
-    // Check genotype dealbreakers
-    if (Array.isArray(u1Dealbreakers.genotype) && u2.genotype && !u1Dealbreakers.genotype.includes(u2.genotype)) {
-        return { score: 0, reasons: [], warnings: ['Dealbreaker: Genotype'] }
-    }
-    if (Array.isArray(u2Dealbreakers.genotype) && u1.genotype && !u2Dealbreakers.genotype.includes(u1.genotype)) {
-        return { score: 0, reasons: [], warnings: ['Dealbreaker: Genotype'] }
-    }
-
-    // Check intent dealbreakers
-    if (Array.isArray(u1Dealbreakers.intent) && u2.intent && !u1Dealbreakers.intent.includes(u2.intent)) {
-        return { score: 0, reasons: [], warnings: ['Dealbreaker: Intent'] }
-    }
-    if (Array.isArray(u2Dealbreakers.intent) && u1.intent && !u2Dealbreakers.intent.includes(u1.intent)) {
-        return { score: 0, reasons: [], warnings: ['Dealbreaker: Intent'] }
-    }
-
-    // Check religion dealbreakers
-    if (Array.isArray(u1Dealbreakers.religion) && u2.religion && !u1Dealbreakers.religion.includes(u2.religion)) {
-        return { score: 0, reasons: [], warnings: ['Dealbreaker: Religion'] }
-    }
-    if (Array.isArray(u2Dealbreakers.religion) && u1.religion && !u2Dealbreakers.religion.includes(u1.religion)) {
-        return { score: 0, reasons: [], warnings: ['Dealbreaker: Religion'] }
-    }
-
-    // Age range dealbreakers
-    if (u1.min_age && u1.max_age && (age2 < u1.min_age || age2 > u1.max_age)) {
-        return { score: 0, reasons: [], warnings: ['Dealbreaker: Age Range'] }
-    }
-    if (u2.min_age && u2.max_age && (age1 < u2.min_age || age1 > u2.max_age)) {
-        return { score: 0, reasons: [], warnings: ['Dealbreaker: Age Range'] }
-    }
-
-    // Opposite gender bonus
-    if (u1.gender !== u2.gender) score += 15
-
-    // 3. AGE RULE - Male's age must be >= female's age
-    // This is a KEY requirement from the user
-    let maleAge: number, femaleAge: number
-    if (u1.gender === 'male' && u2.gender === 'female') {
-        maleAge = age1
-        femaleAge = age2
-    } else if (u1.gender === 'female' && u2.gender === 'male') {
-        maleAge = age2
-        femaleAge = age1
-    } else {
-        // Same gender - skip this check
-        maleAge = femaleAge = age1
-    }
-
-    if (u1.gender !== u2.gender && maleAge < femaleAge) {
-        // Male is younger than female - skip this match
-        return { score: 0, reasons: [], warnings: ['Age Rule: Male must be older or same age'] }
-    }
-
-    // Age gap scoring
-    const gap = Math.abs(age1 - age2)
-    if (gap <= 3) { score += 10; reasons.push('Close Age') }
-    else if (gap <= 7) { score += 5 }
-    else if (gap > 10) { score -= 5 }
-
-    // 4. Genotype Compatibility (CRITICAL)
-    if (u1.genotype && u2.genotype) {
-        const g1 = u1.genotype
-        const g2 = u2.genotype
-
-        if ((g1 === 'SS' && g2 !== 'AA') || (g2 === 'SS' && g1 !== 'AA')) {
-            score -= 100
-            warnings.push('Medical Risk (SS)')
-        } else if ((g1.includes('S') || g1.includes('C')) && (g2.includes('S') || g2.includes('C'))) {
-            score -= 40
-            warnings.push('Genotype Risk')
-        } else if (g1 === 'AA' || g2 === 'AA') {
-            score += 5
-            reasons.push('Safe Genotype')
+    // 2. VIBE MATCH (40 pts)
+    let vibePoints = 0
+    let maxVibeWeight = 0
+    for (const [key, weight] of Object.entries(DIMENSION_WEIGHTS)) {
+        const a1 = answers1.get(key)
+        const a2 = answers2.get(key)
+        if (a1 && a2) {
+            maxVibeWeight += weight
+            if (a1 === a2) vibePoints += weight
+            else if (COMPATIBILITY_MAP[key]?.[a1]?.includes(a2)) vibePoints += weight * 0.5
         }
     }
+    breakdown.vibeMatch = maxVibeWeight > 0 ? Math.round((vibePoints / maxVibeWeight) * 40) : 0
+    if (breakdown.vibeMatch > 32) strengths.push('Deep Vibe Alignment ✨')
 
-    // 5. Intent (Goals)
+    // 3. GOALS & INTENT (20 pts)
     if (u1.intent && u2.intent) {
-        const serious = ['marriage', 'serious']
-        const casual = ['casual', 'friendship']
-
         if (u1.intent === u2.intent) {
-            score += 15
-            reasons.push('Same Goals')
-        } else if (serious.includes(u1.intent) && serious.includes(u2.intent)) {
-            score += 8
-        } else if ((serious.includes(u1.intent) && casual.includes(u2.intent)) ||
-            (casual.includes(u1.intent) && serious.includes(u2.intent))) {
-            score -= 20
-            warnings.push('Mismatched Goals')
+            breakdown.goalsMatch += 12
+            strengths.push('Shared Lifecycle Intent 💍')
+        } else if ((u1.intent === 'marriage' && u2.intent === 'serious') || (u1.intent === 'serious' && u2.intent === 'marriage')) {
+            breakdown.goalsMatch += 6
+        } else {
+            malus += 15
+            warnings.push('Conflict in relationship goals')
         }
     }
+    if (u1.religion && u2.religion && u1.religion === u2.religion) {
+        breakdown.goalsMatch += 8
+        strengths.push('Shared Belief System 🙏')
+    }
 
-    // 6. Persona Synergy
+    // 4. LIFESTYLE & CAREER (20 pts)
     if (u1.dating_persona && u2.dating_persona) {
-        const p1 = u1.dating_persona
-        const p2 = u2.dating_persona
-        if (PERSONA_COMPATIBILITY[p1]?.includes(p2) || PERSONA_COMPATIBILITY[p2]?.includes(p1)) {
-            score += 10
-            reasons.push('Great Vibe')
-        } else if (p1 === p2) {
-            score += 5
-            reasons.push('Similar Vibe')
-        }
+        breakdown.lifestyleMatch += (u1.dating_persona === u2.dating_persona) ? 10 : 5
     }
-
-    // 7. Religion
-    if (u1.religion && u2.religion && u1.religion !== 'None' && u2.religion !== 'None') {
-        if (u1.religion === u2.religion) {
-            score += 8
-            reasons.push('Shared Faith')
-        }
+    if (u1.occupation && u2.occupation) {
+        const occ1 = u1.occupation.toLowerCase(), occ2 = u2.occupation.toLowerCase()
+        if (occ1 === occ2) { breakdown.lifestyleMatch += 5; strengths.push('Same professional world 💼'); }
+        else if (isCompatibleProfession(occ1, occ2)) { breakdown.lifestyleMatch += 3; strengths.push('Career Synergy'); }
     }
-
-    // 8. Location
     if (u1.location && u2.location && u1.location === u2.location) {
-        score += 7
-        reasons.push('Same City')
+        breakdown.lifestyleMatch += 5
+        strengths.push(`Local Connection (${u1.location}) 📍`)
     }
 
-    // 9. Vibe Answers Compatibility (up to 30 bonus points)
-    if (u1Answers.length > 0 && u2Answers.length > 0) {
-        const vibeResult = calculateVibeCompatibility(u1Answers, u2Answers)
-        const vibeBonus = Math.round(vibeResult.vibeScore * 0.3)
-        score += vibeBonus
+    // 5. MATURITY & AGE (10 pts)
+    if (u1.birth_date && u2.birth_date) {
+        const age1 = calculateAge(u1.birth_date), age2 = calculateAge(u2.birth_date)
+        const maleAge = u1.gender === 'male' ? age1 : age2
+        const femaleAge = u1.gender === 'female' ? age1 : age2
+        const ageGap = Math.abs(age1 - age2)
 
-        if (vibeResult.strengths.length > 0) {
-            reasons.push(...vibeResult.strengths.slice(0, 2))
-        }
-        if (vibeResult.warnings.length > 0) {
-            warnings.push(...vibeResult.warnings.slice(0, 1))
+        if (maleAge > femaleAge) {
+            breakdown.maturityMatch += 8
+            if (maleAge - femaleAge <= 5) breakdown.maturityMatch += 2
+        } else if (maleAge === femaleAge) {
+            breakdown.maturityMatch += 6
+        } else {
+            malus += 20
+            warnings.push('Age dynamic outside typical preference')
         }
 
-        if (vibeBonus >= 20) {
-            reasons.unshift('💕 High Vibe Match')
-        } else if (vibeBonus >= 10) {
-            reasons.unshift('✨ Good Vibe Match')
+        if ((u1.min_age && age2 < u1.min_age) || (u1.max_age && age2 > u1.max_age) ||
+            (u2.min_age && age1 < u2.min_age) || (u2.max_age && age1 > u2.max_age)) {
+            malus += 30
+            warnings.push('Outside preferred age range')
+        }
+        if (ageGap > 10) { malus += 15; warnings.push('Significant age difference'); }
+    }
+
+    // 6. INTERESTS (10 pts)
+    const b1 = Array.isArray(u1.badges) ? u1.badges : []
+    const b2 = Array.isArray(u2.badges) ? u2.badges : []
+    if (b1.length && b2.length) {
+        const common = b1.filter(b => b2.includes(b))
+        if (common.length >= 3) {
+            breakdown.interestMatch = 10
+            strengths.push('Numerous shared hobbies 🎨')
+        } else if (common.length >= 1) {
+            breakdown.interestMatch = 5
         }
     }
+
+    // 7. DEALBREAKERS
+    if (u1.genotype && u2.genotype && hasGenotypeRisk(u1.genotype, u2.genotype)) {
+        malus += 80
+        warnings.push('⚠️ Critical Genotype Incompatibility')
+    }
+    const db1 = Array.isArray(u1.dealbreakers) ? u1.dealbreakers : []
+    const db2 = Array.isArray(u2.dealbreakers) ? u2.dealbreakers : []
+    if (db1.length && b2.length && db1.some(d => b2.includes(d))) { malus += 50; warnings.push('Matched User A\'s dealbreaker'); }
+    if (db2.length && b1.length && db2.some(d => b1.includes(d))) { malus += 50; warnings.push('Matched User B\'s dealbreaker'); }
+
+    const rawScore = breakdown.vibeMatch + breakdown.goalsMatch + breakdown.lifestyleMatch + breakdown.maturityMatch + breakdown.interestMatch
+    const finalScore = Math.max(0, Math.min(100, Math.round(rawScore - malus)))
 
     return {
-        score: Math.max(0, Math.min(score, 100)),
-        reasons: reasons.slice(0, 5),
+        score: finalScore,
+        reasons: strengths.slice(0, 5),
         warnings: warnings.slice(0, 3)
     }
 }
@@ -378,16 +251,13 @@ export default defineEventHandler(async (event) => {
     const config = useRuntimeConfig()
     const startTime = Date.now()
 
-    // Simple API key check for cron security
     const authHeader = getHeader(event, 'authorization')
     if (authHeader !== `Bearer ${config.cronSecret}`) {
-        console.log('[AutoMatch Cron] Unauthorized access attempt')
         throw createError({ statusCode: 401, statusMessage: 'Unauthorized' })
     }
 
     const supabaseUrl = config.supabaseUrl || process.env.SUPABASE_URL
     const supabaseServiceKey = config.supabaseServiceKey
-
     if (!supabaseUrl || !supabaseServiceKey) {
         throw createError({ statusCode: 500, message: 'Server configuration error' })
     }
@@ -396,148 +266,79 @@ export default defineEventHandler(async (event) => {
         db: { schema: 'm2m' }
     })
 
-    console.log('[AutoMatch Cron] Starting automatic matching job...')
-
     try {
-        // 1. Fetch all verified users
         const { data: users, error: usersError } = await supabase
             .from('profiles')
             .select('*')
             .eq('is_verified', true)
             .eq('is_active', true)
 
-        if (usersError) {
-            console.error('[AutoMatch Cron] Failed to fetch users:', usersError)
-            throw createError({ statusCode: 500, message: 'Failed to fetch users' })
-        }
+        if (usersError) throw createError({ statusCode: 500, message: 'Failed to fetch users' })
 
-        console.log(`[AutoMatch Cron] Found ${users?.length || 0} verified users`)
-
-        // 2. Fetch existing matches to exclude
         const { data: existingMatches, error: matchError } = await supabase
             .from('matches')
             .select('user_1_id, user_2_id')
 
-        if (matchError) {
-            console.error('[AutoMatch Cron] Failed to fetch existing matches:', matchError)
-            throw createError({ statusCode: 500, message: 'Failed to fetch matches' })
-        }
+        if (matchError) throw createError({ statusCode: 500, message: 'Failed to fetch matches' })
 
         const matchedPairs = new Set<string>()
-
         existingMatches?.forEach(m => {
-            // Track both directions of the pair
             matchedPairs.add(`${m.user_1_id}-${m.user_2_id}`)
             matchedPairs.add(`${m.user_2_id}-${m.user_1_id}`)
         })
 
-        console.log(`[AutoMatch Cron] Found ${existingMatches?.length || 0} existing match pairs`)
-
-        // 3. Fetch all vibe answers
         const { data: vibeAnswers, error: vibeError } = await supabase
             .from('vibe_answers')
-            .select('user_id, question_key, answer')
-
-        if (vibeError) {
-            console.error('[AutoMatch Cron] Failed to fetch vibe answers:', vibeError)
-        }
+            .select('user_id, question_key, answer_value')
 
         const userVibeAnswers = new Map<string, VibeAnswer[]>()
         vibeAnswers?.forEach((row: any) => {
             const existing = userVibeAnswers.get(row.user_id) || []
-            existing.push({ question_key: row.question_key, answer: row.answer })
+            existing.push({ question_key: row.question_key, answer: row.answer_value })
             userVibeAnswers.set(row.user_id, existing)
         })
 
-        // 4. All verified users are eligible - we only exclude specific pairs that already exist
         const eligibleUsers = (users || []) as UserProfile[]
-        console.log(`[AutoMatch Cron] ${eligibleUsers.length} verified users available for matching`)
-
-        // Split users by gender for faster lookup if possible
         const males = eligibleUsers.filter(u => u.gender === 'male')
         const females = eligibleUsers.filter(u => u.gender === 'female')
 
-        console.log(`[AutoMatch Cron] ${males.length} males, ${females.length} females`)
-
-        // 5. Find potential matches (Heterosexual focus for efficiency, others included)
-        const MIN_SCORE = 70
+        const MIN_SCORE = 75 // Increased for cron for better quality auto-matches
         const potentialMatches: MatchResult[] = []
         const usedPairs = new Set<string>()
 
-        // Helper to evaluate a pair
         const evaluatePair = (u1: any, u2: any) => {
             const pairKey = [u1.id, u2.id].sort().join('-')
-            if (matchedPairs.has(`${u1.id}-${u2.id}`) || matchedPairs.has(`${u2.id}-${u1.id}`) || usedPairs.has(pairKey)) {
-                return
-            }
+            if (matchedPairs.has(`${u1.id}-${u2.id}`) || matchedPairs.has(`${u2.id}-${u1.id}`) || usedPairs.has(pairKey)) return
 
-            const u1Answers = userVibeAnswers.get(u1.id) || []
-            const u2Answers = userVibeAnswers.get(u2.id) || []
-
-            const result = calculateMatchScore(u1, u2, u1Answers, u2Answers)
+            const result = calculateMatchScore(u1, u2, userVibeAnswers.get(u1.id) || [], userVibeAnswers.get(u2.id) || [])
 
             if (result.score >= MIN_SCORE && result.warnings.length === 0) {
-                potentialMatches.push({
-                    user1: u1,
-                    user2: u2,
-                    score: result.score,
-                    reasons: result.reasons,
-                    warnings: result.warnings
-                })
+                potentialMatches.push({ user1: u1, user2: u2, score: result.score, reasons: result.reasons, warnings: result.warnings })
                 usedPairs.add(pairKey)
             }
         }
 
-        // Optimized matching: Compare cross-gender primarily
+        // Cross-gender primarily
         for (const male of males) {
             for (const female of females) {
                 evaluatePair(male, female)
             }
         }
 
-        // Optional: Same-gender matches if interests allow
-        const malesWhoWantMales = males.filter(u => u.interested_in === 'male' || u.interested_in === 'everyone')
-        if (malesWhoWantMales.length > 1) {
-            for (let i = 0; i < malesWhoWantMales.length; i++) {
-                for (let j = i + 1; j < malesWhoWantMales.length; j++) {
-                    evaluatePair(malesWhoWantMales[i], malesWhoWantMales[j])
-                }
-            }
-        }
-
-        const femalesWhoWantFemales = females.filter(u => u.interested_in === 'female' || u.interested_in === 'everyone')
-        if (femalesWhoWantFemales.length > 1) {
-            for (let i = 0; i < femalesWhoWantFemales.length; i++) {
-                for (let j = i + 1; j < femalesWhoWantFemales.length; j++) {
-                    evaluatePair(femalesWhoWantFemales[i], femalesWhoWantFemales[j])
-                }
-            }
-        }
-
-        // Sort by score descending
         potentialMatches.sort((a, b) => b.score - a.score)
 
-        console.log(`[AutoMatch Cron] Found ${potentialMatches.length} potential matches with 70%+ score`)
-
-        // 6. Greedy selection - ensure each user is only matched once
         const selectedMatches: MatchResult[] = []
         const usedUsers = new Set<string>()
 
         for (const match of potentialMatches) {
-            const u1Id = match.user1.id
-            const u2Id = match.user2.id
-
-            if (!usedUsers.has(u1Id) && !usedUsers.has(u2Id)) {
+            if (!usedUsers.has(match.user1.id) && !usedUsers.has(match.user2.id)) {
                 selectedMatches.push(match)
-                usedUsers.add(u1Id)
-                usedUsers.add(u2Id)
+                usedUsers.add(match.user1.id)
+                usedUsers.add(match.user2.id)
             }
         }
 
-        console.log(`[AutoMatch Cron] Selected ${selectedMatches.length} matches after deduplication`)
-
-        // 7. Create the matches in database (BULK INSERT)
-        const UNLOCK_PRICE = 15 // Default unlock price
+        const UNLOCK_PRICE = 15
         const matchesToInsert = selectedMatches.map(match => ({
             user_1_id: match.user1.id,
             user_2_id: match.user2.id,
@@ -549,107 +350,39 @@ export default defineEventHandler(async (event) => {
         }))
 
         let createdCount = 0
-        const createdMatches: { user1: string; user2: string; score: number }[] = []
-
         if (matchesToInsert.length > 0) {
-            const { error: insertError } = await supabase
-                .from('matches')
-                .insert(matchesToInsert)
-
-            if (!insertError) {
-                createdCount = matchesToInsert.length
-                selectedMatches.forEach(m => {
-                    createdMatches.push({
-                        user1: m.user1.display_name || 'Unknown',
-                        user2: m.user2.display_name || 'Unknown',
-                        score: m.score
-                    })
-                })
-            } else {
-                console.error(`[AutoMatch Cron] Bulk insert failed:`, insertError)
-                // Fallback to one by one if bulk fails for some reason (e.g. unique constraint)
-                for (const match of selectedMatches) {
-                    const { error: singleError } = await supabase
-                        .from('matches')
-                        .insert({
-                            user_1_id: match.user1.id,
-                            user_2_id: match.user2.id,
-                            unlock_price: UNLOCK_PRICE,
-                            status: 'pending_payment',
-                            match_score: match.score,
-                            match_reasons: match.reasons,
-                            match_warnings: match.warnings
-                        })
-                    if (!singleError) {
-                        createdCount++
-                        createdMatches.push({
-                            user1: match.user1.display_name || 'Unknown',
-                            user2: match.user2.display_name || 'Unknown',
-                            score: match.score
-                        })
-                    }
-                }
-            }
+            const { error: insertError } = await supabase.from('matches').insert(matchesToInsert)
+            if (!insertError) createdCount = matchesToInsert.length
         }
 
         const elapsedTime = ((Date.now() - startTime) / 1000).toFixed(2)
 
-        // 8. Send Discord report
-        const matchDetailsText = createdMatches.length > 0
-            ? createdMatches.slice(0, 10).map((m, i) => `${i + 1}. **${m.user1}** ↔ **${m.user2}** (${m.score}%)`).join('\n')
+        const matchDetailsText = selectedMatches.length > 0
+            ? selectedMatches.slice(0, 10).map((m, i) => `${i + 1}. **${m.user1.display_name}** ↔ **${m.user2.display_name}** (${m.score}%)`).join('\n')
             : '_No matches created_'
 
-        const moreText = createdMatches.length > 10
-            ? `\n_...and ${createdMatches.length - 10} more_`
-            : ''
-
         await notifyDiscord({
-            title: '🤖 Auto Matchmaker Report',
-            description: `Automatic matching job completed successfully.`,
+            title: '🤖 Auto Matchmaker Report (V2 Engine)',
+            description: `Automatic matching job completed with Ultra-Tight logic.`,
             color: createdCount > 0 ? DiscordColors.match : DiscordColors.info,
             fields: [
                 {
                     name: '📊 Statistics', value: [
                         `**Total Users Checked:** ${users?.length || 0}`,
-                        `**Eligible Users:** ${eligibleUsers.length}`,
-                        `**Potential Matches (70%+):** ${potentialMatches.length}`,
+                        `**Potential Matches (75%+):** ${potentialMatches.length}`,
                         `**Matches Created:** ${createdCount}`
                     ].join('\n'), inline: false
                 },
-                { name: '💕 New Matches', value: matchDetailsText + moreText, inline: false },
+                { name: '💕 New Matches', value: matchDetailsText, inline: false },
                 { name: '⏱️ Runtime', value: `${elapsedTime} seconds`, inline: true }
             ],
             footer: `Auto Match Cron Job • ${new Date().toISOString()}`
         })
 
-        console.log(`[AutoMatch Cron] Job completed: ${createdCount} matches created in ${elapsedTime}s`)
-
-        return {
-            success: true,
-            summary: {
-                totalUsers: users?.length || 0,
-                eligibleUsers: eligibleUsers.length,
-                potentialMatches: potentialMatches.length,
-                matchesCreated: createdCount,
-                runtime: `${elapsedTime}s`
-            },
-            matches: createdMatches
-        }
+        return { success: true, summary: { totalUsers: users?.length || 0, potentialMatches: potentialMatches.length, matchesCreated: createdCount, runtime: `${elapsedTime}s` } }
 
     } catch (err: any) {
-        console.error('[AutoMatch Cron] Error:', err)
-
-        // Send error notification to Discord
-        await notifyDiscord({
-            title: '🚨 Auto Matchmaker Error',
-            description: err.message || 'Unknown error occurred',
-            color: DiscordColors.error
-        })
-
-        throw createError({
-            statusCode: 500,
-            statusMessage: 'Auto Matching Job Failed',
-            data: { error: err.message || err }
-        })
+        await notifyDiscord({ title: '🚨 Auto Matchmaker Error', description: err.message || 'Unknown error occurred', color: DiscordColors.error })
+        throw createError({ statusCode: 500, statusMessage: 'Auto Matching Job Failed', data: { error: err.message || err } })
     }
 })

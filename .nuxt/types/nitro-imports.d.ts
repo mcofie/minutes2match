@@ -9,6 +9,7 @@ declare global {
   const appendResponseHeader: typeof import('../../node_modules/h3').appendResponseHeader
   const appendResponseHeaders: typeof import('../../node_modules/h3').appendResponseHeaders
   const assertMethod: typeof import('../../node_modules/h3').assertMethod
+  const auditProfileWithAI: typeof import('../../server/utils/ai').auditProfileWithAI
   const cachedEventHandler: typeof import('../../node_modules/nitropack/dist/runtime/internal/cache').cachedEventHandler
   const cachedFunction: typeof import('../../node_modules/nitropack/dist/runtime/internal/cache').cachedFunction
   const callNodeListener: typeof import('../../node_modules/h3').callNodeListener
@@ -48,6 +49,7 @@ declare global {
   const fromWebHandler: typeof import('../../node_modules/h3').fromWebHandler
   const getClientIP: typeof import('../../server/utils/rateLimiter').getClientIP
   const getCookie: typeof import('../../node_modules/h3').getCookie
+  const getGeminiModel: typeof import('../../server/utils/ai').getGeminiModel
   const getHeader: typeof import('../../node_modules/h3').getHeader
   const getHeaders: typeof import('../../node_modules/h3').getHeaders
   const getMethod: typeof import('../../node_modules/h3').getMethod
@@ -168,6 +170,7 @@ export { useImage } from '/Users/maxwellcofie/WebstormProjects/minutes2match/nod
 export { queryCollection, queryCollectionSearchSections, queryCollectionNavigation, queryCollectionItemSurroundings } from '/Users/maxwellcofie/WebstormProjects/minutes2match/node_modules/@nuxt/content/dist/runtime/nitro';
 export { parseMarkdown } from '/Users/maxwellcofie/WebstormProjects/minutes2match/node_modules/@nuxtjs/mdc/dist/runtime/parser';
 export { stringifyMarkdown } from '/Users/maxwellcofie/WebstormProjects/minutes2match/node_modules/@nuxtjs/mdc/dist/runtime/stringify';
+export { getGeminiModel, auditProfileWithAI } from '/Users/maxwellcofie/WebstormProjects/minutes2match/server/utils/ai';
 export { DiscordColors, notifyDiscord, notifyNewSignup, notifyPaymentSuccess, notifyMatchUnlocked, notifyEventBooking, notifyError, notifyUserLogin } from '/Users/maxwellcofie/WebstormProjects/minutes2match/server/utils/discord';
 export { unlockMatch } from '/Users/maxwellcofie/WebstormProjects/minutes2match/server/utils/match';
 export { checkRateLimit, getClientIP, enforceRateLimit } from '/Users/maxwellcofie/WebstormProjects/minutes2match/server/utils/rateLimiter';

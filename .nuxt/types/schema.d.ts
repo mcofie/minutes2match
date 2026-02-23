@@ -221,6 +221,8 @@ declare module 'nuxt/schema' {
 
    discordWebhookUrl: string,
 
+   geminiApiKey: string,
+
    nitro: {
       envPrefix: string,
    },

@@ -276,6 +276,11 @@ export type M2MSchema = {
                 user_2_contacted: boolean
                 contact_exchanged: boolean
                 user_notes: string | null
+                match_score: number | null
+                match_reasons: Json | null
+                match_warnings: Json | null
+                last_payment_reminder_at: string | null
+                payment_reminder_count: number
             }
             Insert: {
                 id?: string
@@ -298,6 +303,11 @@ export type M2MSchema = {
                 user_2_contacted?: boolean
                 contact_exchanged?: boolean
                 user_notes?: string | null
+                match_score?: number | null
+                match_reasons?: Json | null
+                match_warnings?: Json | null
+                last_payment_reminder_at?: string | null
+                payment_reminder_count?: number
             }
             Update: {
                 user_1_id?: string | null
@@ -317,6 +327,11 @@ export type M2MSchema = {
                 user_2_contacted?: boolean
                 contact_exchanged?: boolean
                 user_notes?: string | null
+                match_score?: number | null
+                match_reasons?: Json | null
+                match_warnings?: Json | null
+                last_payment_reminder_at?: string | null
+                payment_reminder_count?: number
             }
             Relationships: []
         }

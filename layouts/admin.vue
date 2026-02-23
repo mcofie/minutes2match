@@ -47,6 +47,12 @@
           </svg>
           <span class="label">Match Queue</span>
         </NuxtLink>
+        <NuxtLink to="/admin/integrity" class="sidebar-link" @click="sidebarOpen = false">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+          </svg>
+          <span class="label">Platform Integrity</span>
+        </NuxtLink>
         <NuxtLink to="/admin/events" class="sidebar-link" @click="sidebarOpen = false">
           <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
@@ -148,6 +154,7 @@ const pageTitle = computed(() => {
   if (path === '/admin') return 'Dashboard Overview'
   if (path.startsWith('/admin/users')) return 'User Management'
   if (path === '/admin/matches/queue') return 'Smart Match Queue'
+  if (path === '/admin/matches/scoring-logic') return 'Scoring Logic Breakdown'
   if (path.startsWith('/admin/matches')) return 'Matchmaker Tool'
   if (path.startsWith('/admin/events')) return 'Event Management'
   if (path === '/admin/messaging/history') return 'SMS History'

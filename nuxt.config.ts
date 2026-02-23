@@ -129,6 +129,7 @@ export default defineNuxtConfig({
         supabaseServiceKey: process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_KEY,
         cronSecret: process.env.CRON_SECRET,
         discordWebhookUrl: process.env.DISCORD_WEBHOOK_URL,
+        geminiApiKey: process.env.GEMINI_API_KEY,
         // Public keys (available client-side)
         public: {
             appVersion: '1.2.0',
