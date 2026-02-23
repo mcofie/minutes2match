@@ -15,6 +15,9 @@ declare module "nitropack/types" {
     '/api/admin/notify-missing-details': {
       'post': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/admin/notify-missing-details.post').default>>>>
     }
+    '/api/admin/notify-user-missing-details': {
+      'post': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/admin/notify-user-missing-details.post').default>>>>
+    }
     '/api/admin/request-match-feedback': {
       'post': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/admin/request-match-feedback.post').default>>>>
     }

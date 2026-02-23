@@ -11,6 +11,7 @@
     <main 
       v-else 
       class="min-h-screen bg-[#FFFCF8] dark:bg-stone-950 text-stone-900 dark:text-stone-100 font-sans relative flex flex-col transition-colors duration-300 pb-24 md:pb-0"
+      :class="{ 'is-ghost-mode': profile?.is_active === false }"
     >
       <!-- Dot Pattern Background -->
       <div class="absolute inset-0 opacity-[0.03] dark:opacity-[0.1] pointer-events-none" style="background-image: radial-gradient(#000 1px, transparent 1px); background-size: 24px 24px;"></div>
@@ -29,7 +30,10 @@
             </NuxtLink>
 
             <div class="hidden sm:flex text-right flex-col items-end">
-               <p class="text-xs md:text-sm font-bold text-black dark:text-stone-100 uppercase tracking-widest truncate max-w-[120px]">{{ profile?.display_name }}</p>
+               <div class="flex items-center gap-1.5">
+                  <span v-if="profile?.is_active === false" class="text-xs animate-ghost" title="Ghost Mode Active">👻</span>
+                  <p class="text-xs md:text-sm font-bold text-black dark:text-stone-100 uppercase tracking-widest truncate max-w-[120px]">{{ profile?.display_name }}</p>
+               </div>
                <div v-if="subscription" class="mt-0.5 flex items-center justify-end gap-1">
                   <span class="bg-black text-amber-300 px-1.5 py-[1px] rounded-[3px] border border-amber-400/50 shadow-[1px_1px_0px_0px_rgba(251,191,36,1)] text-[8px] font-bold uppercase tracking-widest leading-none">
                      👑 PREMIUM
@@ -53,6 +57,21 @@
 
       <!-- Main Content Area -->
       <div class="flex-1 max-w-6xl mx-auto px-4 py-8 pb-16 relative z-10 w-full min-w-0">
+        <!-- Global Ghost Mode Indicator -->
+        <div v-if="profile?.is_active === false" class="ghost-banner mb-8 p-4 bg-stone-900 text-white rounded-xl border-2 border-dashed border-stone-500 flex flex-col sm:flex-row items-center justify-between gap-4 animate-in fade-in slide-in-from-top-4 duration-500 shadow-xl overflow-hidden relative group z-50 pointer-events-auto">
+           <div class="absolute top-0 left-0 w-1 h-full bg-rose-500"></div>
+           <div class="flex items-center gap-4">
+              <div class="w-12 h-12 bg-stone-800 rounded-full flex items-center justify-center text-2xl border border-stone-700 shadow-inner animate-ghost">👻</div>
+              <div class="flex-1 text-center sm:text-left">
+                 <h3 class="text-xs md:text-sm font-black uppercase tracking-widest text-rose-400 mb-0.5">Incognito Mode Active</h3>
+                 <p class="text-[9px] md:text-[10px] text-stone-400 font-bold uppercase tracking-[0.15em] leading-relaxed">Your profile is currently hidden from the match pool. No one can find you.</p>
+              </div>
+           </div>
+           <button @click="toggleGhostMode" class="w-full sm:w-auto px-6 py-2.5 bg-white text-black text-[10px] font-black uppercase tracking-widest rounded-lg hover:bg-rose-500 hover:text-white transition-all shadow-[4px_4px_0px_0px_rgba(255,255,255,0.1)] active:translate-x-0.5 active:translate-y-0.5 flex-shrink-0">
+              Go Live ✨
+           </button>
+        </div>
+
         <!-- Incomplete Profile Nudge -->
         <div v-if="isProfileIncomplete && route.path !== '/me'" class="mb-8 p-4 md:p-6 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-stone-900 dark:to-stone-800 border-2 border-amber-200 dark:border-stone-700 rounded-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-sm animate-in fade-in slide-in-from-top-4 duration-500">
           <div class="flex items-start gap-4">
@@ -140,7 +159,7 @@
 
 <script setup lang="ts">
 const route = useRoute()
-const { authReady, profile, subscription, pendingMatchCount, isProfileIncomplete, initDashboard } = useDashboard()
+const { authReady, profile, subscription, pendingMatchCount, isProfileIncomplete, initDashboard, toggleGhostMode } = useDashboard()
 const { unreadCount, fetchNotifications } = useNotifications()
 
 onMounted(async () => {
@@ -148,3 +167,46 @@ onMounted(async () => {
     fetchNotifications()
 })
 </script>
+
+<style>
+/* Gray out content when Ghost Mode is active */
+.is-ghost-mode main > .flex-1 > div:not(.ghost-banner) {
+  filter: grayscale(1) blur(1px) opacity(0.6);
+  transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  pointer-events: none;
+  user-select: none;
+}
+
+/* Allow the indicator itself to remain vibrant */
+.is-ghost-mode .ghost-banner {
+  filter: none !important;
+  opacity: 1 !important;
+  pointer-events: auto !important;
+  user-select: auto !important;
+  z-index: 100 !important;
+}
+
+.is-ghost-mode nav,
+.is-ghost-mode footer {
+  filter: none !important;
+  opacity: 1 !important;
+  pointer-events: auto !important;
+  user-select: auto !important;
+  backdrop-filter: none !important;
+}
+
+/* Specific overrides to allow navigation and status toggle */
+.is-ghost-mode .ghost-banner button,
+.is-ghost-mode .ghost-banner a {
+  pointer-events: auto !important;
+}
+
+@keyframes ghost-float {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-5px) rotate(5deg); }
+}
+
+.is-ghost-mode .animate-ghost {
+  animation: ghost-float 3s ease-in-out infinite;
+}
+</style>

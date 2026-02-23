@@ -3,9 +3,27 @@
     <Head>
       <Title>Matches | Minutes 2 Match</Title>
     </Head>
-    <div class="flex items-center justify-between">
+    <div class="flex items-center justify-between flex-wrap gap-4">
        <h2 class="text-2xl font-bold tracking-tight dark:text-white">Your Connections</h2>
-       <span class="text-sm font-medium text-stone-500 dark:text-stone-400 bg-stone-100 dark:bg-stone-800 px-3 py-1 rounded-full">{{ matches.length }} matches</span>
+       <div class="flex items-center gap-3">
+          <div class="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-emerald-50 dark:bg-emerald-900/10 border border-emerald-100 dark:border-emerald-900/30 rounded-full">
+             <span class="relative flex h-1.5 w-1.5">
+                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                <span class="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span>
+             </span>
+             <span class="text-[9px] font-black uppercase tracking-widest text-emerald-700 dark:text-emerald-400">High Quality Pool Verified</span>
+          </div>
+          <span class="text-sm font-medium text-stone-500 dark:text-stone-400 bg-stone-100 dark:bg-stone-800 px-3 py-1 rounded-full">{{ matches.length }} matches</span>
+       </div>
+    </div>
+
+    <!-- Quality Assurance Banner -->
+    <div class="p-4 bg-emerald-50/40 dark:bg-emerald-900/10 border-2 border-emerald-100 dark:border-emerald-900/30 rounded-2xl flex items-center gap-4 animate-in fade-in slide-in-from-top-2 duration-700">
+       <div class="w-10 h-10 bg-white dark:bg-stone-900 rounded-xl flex items-center justify-center text-xl shadow-sm border border-emerald-100 dark:border-emerald-900/50">🛡️</div>
+       <div class="flex-1">
+          <h4 class="text-[10px] font-black uppercase tracking-[0.2em] text-emerald-800 dark:text-emerald-400 mb-0.5">Community Purity Protocol</h4>
+          <p class="text-[10px] text-emerald-600 dark:text-emerald-500 font-bold uppercase tracking-wider leading-relaxed opacity-80">We actively purge inactive accounts every 48 hours. Your matches are guaranteed to be high-quality and verified responsive.</p>
+       </div>
     </div>
 
     <!-- Skeleton Loaders -->

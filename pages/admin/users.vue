@@ -100,6 +100,9 @@
               <span class="badge" :class="user.is_verified ? 'badge--green' : 'badge--yellow'">
                 {{ user.is_verified ? 'Verified' : 'Pending' }}
               </span>
+              <span v-if="user.is_active === false" class="badge badge--gray ml-1" title="User is incognito (Ghost Mode)">
+                Paused
+              </span>
             </td>
             <td>{{ formatDate(user.created_at) }}</td>
             <td>
@@ -359,6 +362,14 @@
                       </span>
                     </div>
                     <div class="info-row">
+                       <span class="info-label">Visibility</span>
+                       <span class="info-value">
+                         <span class="status-badge" :class="selectedUser.is_active !== false ? 'status-verified' : 'status-incognito'">
+                           {{ selectedUser.is_active !== false ? '🌐 Public' : '👻 Incognito' }}
+                         </span>
+                       </span>
+                     </div>
+                    <div class="info-row">
                       <span class="info-label">Joined</span>
                       <span class="info-value">{{ formatDate(selectedUser.created_at) }}</span>
                     </div>
@@ -366,6 +377,63 @@
                       <span class="info-label">Last Updated</span>
                       <span class="info-value">{{ selectedUser.updated_at ? formatDate(selectedUser.updated_at) : 'Never' }}</span>
                     </div>
+                  </div>
+                  <div class="mt-4 pt-4 border-t">
+                    <!-- Preview Section -->
+                    <div v-if="reminderPreview" class="mb-4 bg-orange-50 border border-orange-100 rounded-lg p-3 animate-in fade-in zoom-in duration-300">
+                      <div class="flex items-center justify-between mb-2">
+                        <span class="text-[10px] font-bold uppercase tracking-widest text-orange-600">Message Preview</span>
+                        <button @click="reminderPreview = null" class="text-stone-400 hover:text-stone-600">
+                          <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+                        </button>
+                      </div>
+                      <div class="space-y-3">
+                        <div>
+                          <p class="text-[9px] font-bold text-stone-400 uppercase mb-1">SMS to {{ reminderPreview.phoneNumber }}</p>
+                          <textarea 
+                            v-model="reminderPreview.smsMessage"
+                            class="w-full text-[11px] bg-white p-2 rounded border border-orange-200 text-stone-700 leading-relaxed focus:outline-none focus:border-orange-400 resize-none"
+                            rows="3"
+                          ></textarea>
+                        </div>
+                        <div>
+                          <p class="text-[9px] font-bold text-stone-400 uppercase mb-1">Internal Notification</p>
+                          <textarea 
+                            v-model="reminderPreview.notificationMessage"
+                            class="w-full text-[11px] bg-white p-2 rounded border border-orange-200 text-stone-700 leading-relaxed focus:outline-none focus:border-orange-400 resize-none"
+                            rows="2"
+                          ></textarea>
+                        </div>
+                      </div>
+                      <button 
+                        class="btn-primary btn-sm w-full mt-3 flex items-center justify-center gap-2"
+                        :disabled="sendingReminder"
+                        @click="confirmSendReminder"
+                      >
+                        <svg v-if="sendingReminder" class="w-3 h-3 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                           <path d="M21 12a9 9 0 1 1-6.219-8.56" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        </svg>
+                        <span v-if="!sendingReminder">Confirm & Send Now</span>
+                        <span v-else>Sending...</span>
+                      </button>
+                    </div>
+
+                    <!-- Initial Trigger Button -->
+                    <button 
+                      v-else
+                      class="btn-secondary btn-sm w-full flex items-center justify-center gap-2"
+                      :disabled="fetchingPreview"
+                      @click="fetchReminderPreview"
+                    >
+                      <svg v-if="fetchingPreview" class="w-3 h-3 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 12a9 9 0 1 1-6.219-8.56" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                      </svg>
+                      <svg v-else class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+                      </svg>
+                      {{ fetchingPreview ? 'Analyzing profile...' : 'Send Profile Reminder' }}
+                    </button>
+                    <p v-if="reminderSent" class="text-[10px] text-green-600 mt-2 text-center font-bold animate-in fade-in">✓ Reminder sent (SMS + Notification)</p>
                   </div>
                 </div>
 
@@ -428,6 +496,126 @@
                       </span>
                     </div>
                   </div>
+                </div>
+
+                <!-- Referral Information Card -->
+                <div class="info-card">
+                  <h4 class="info-card__title">
+                    <svg class="card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                      <circle cx="8.5" cy="7" r="4"/>
+                      <polyline points="17 11 19 13 23 9"/>
+                    </svg>
+                    Referral Information
+                  </h4>
+                  <div class="info-rows">
+                    <div class="info-row">
+                      <span class="info-label">My Code</span>
+                      <span class="info-value font-mono">{{ selectedUser.referral_code || 'None' }}</span>
+                    </div>
+                    <div class="info-row">
+                      <span class="info-label">Referred By</span>
+                      <span class="info-value">
+                        <span v-if="referrerName" class="text-brand-600 font-bold">{{ referrerName }}</span>
+                        <span v-else class="info-value--muted">Organic</span>
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Social & Contact Card -->
+                <div class="info-card">
+                  <h4 class="info-card__title">
+                    <svg class="card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/>
+                    </svg>
+                    Social & Reveal
+                  </h4>
+                  <div class="info-rows">
+                    <div class="info-row">
+                      <span class="info-label">Instagram</span>
+                      <span class="info-value">
+                        <span v-if="selectedUser.instagram_handle" class="text-pink-600">@{{ selectedUser.instagram_handle }}</span>
+                        <span v-else class="info-value--muted">Not linked</span>
+                      </span>
+                    </div>
+                    <div class="info-row">
+                      <span class="info-label">Snapchat</span>
+                      <span class="info-value">
+                        <span v-if="selectedUser.snapchat_handle" class="text-yellow-600">👻 {{ selectedUser.snapchat_handle }}</span>
+                        <span v-else class="info-value--muted">Not linked</span>
+                      </span>
+                    </div>
+                    <div class="info-row">
+                      <span class="info-label">Preferred Reveal</span>
+                      <span class="info-value capitalize">{{ selectedUser.preferred_contact_method || 'Phone' }}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Engagement Stats Card -->
+                <div class="info-card">
+                  <h4 class="info-card__title">
+                    <svg class="card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M12 20V10M18 20V4M6 20v-4"/>
+                    </svg>
+                    Engagement Stats
+                  </h4>
+                  <div class="info-rows">
+                    <div class="info-row">
+                      <span class="info-label">Trust Score</span>
+                      <span class="info-value">
+                        <span class="font-bold" :class="getTrustScoreColor(selectedUser.trust_score)">
+                          {{ selectedUser.trust_score || 60 }}%
+                        </span>
+                      </span>
+                    </div>
+                    <div class="info-row">
+                      <span class="info-label">Events Attended</span>
+                      <span class="info-value">{{ selectedUser.events_attended || 0 }}</span>
+                    </div>
+                    <div class="info-row">
+                      <span class="info-label">Avg Response</span>
+                      <span class="info-value">{{ selectedUser.avg_response_time_hours ? selectedUser.avg_response_time_hours + 'h' : 'N/A' }}</span>
+                    </div>
+                    <div class="info-row">
+                      <span class="info-label">Free Unlock</span>
+                      <span class="info-value">{{ selectedUser.has_used_free_unlock ? 'Used' : 'Available' }}</span>
+                    </div>
+                    <div class="info-row">
+                      <span class="info-label">Profile Status</span>
+                      <span class="info-value">
+                        <span :class="selectedUser.is_active !== false ? 'text-green-600' : 'text-red-600'">
+                          {{ selectedUser.is_active !== false ? 'Active' : 'Paused' }}
+                        </span>
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Dealbreakers Card -->
+                <div class="info-card info-card--full">
+                  <h4 class="info-card__title">
+                    <svg class="card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/>
+                    </svg>
+                    Dealbreakers
+                  </h4>
+                  <div v-if="hasDealbreakers" class="dealbreakers-list">
+                    <div v-for="(values, category) in selectedUser.dealbreakers" :key="category" class="mb-3">
+                      <span class="block text-[10px] font-bold uppercase text-stone-400 mb-1">{{ formatKey(category as string) }}</span>
+                      <div class="flex flex-wrap gap-1">
+                        <span 
+                          v-for="val in values" 
+                          :key="val" 
+                          class="px-2 py-0.5 bg-rose-50 text-rose-600 border border-rose-100 rounded text-[10px] font-bold"
+                        >
+                          {{ val }}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                  <p v-else class="bio-text--empty">No dealbreakers set</p>
                 </div>
 
                 <!-- Badge Management Card -->
@@ -634,12 +822,17 @@ const badgeSaveSuccess = ref(false)
 
 const suggestedMatches = ref<any[]>([])
 const loadingSuggestions = ref(false)
+const fetchingPreview = ref(false)
+const sendingReminder = ref(false)
+const reminderSent = ref(false)
+const reminderPreview = ref<any>(null)
 
 const userAnswers = ref<any[]>([])
 const loadingAnswers = ref(false)
 const questionsMap = ref<Record<string, string>>({})
 const activeTab = ref<'profile' | 'activity' | 'vibes'>('profile')
 const loadingActivity = ref(false)
+const referrerName = ref('')
 const userActivity = reactive({
   totalMatches: 0,
   unlockedMatches: 0,
@@ -884,6 +1077,14 @@ const viewUser = async (user: any) => {
   userBadges.value = [...(user.badges || [])]
   badgeSaveSuccess.value = false
   
+  // Set Referrer
+  referrerName.value = ''
+  if (user.referred_by) {
+    supabase.from('profiles').select('display_name').eq('id', user.referred_by).single().then(({ data }: any) => {
+      if (data) referrerName.value = data.display_name || 'Anonymous'
+    })
+  }
+
   // Fetch Suggestions
   fetchSuggestions(user)
 
@@ -914,6 +1115,60 @@ const closeModal = () => {
   showModal.value = false
   selectedUser.value = null
   activeTab.value = 'profile'
+  reminderSent.value = false
+  reminderPreview.value = null
+}
+
+const fetchReminderPreview = async () => {
+  if (!selectedUser.value) return
+  
+  fetchingPreview.value = true
+  try {
+    const response = await $fetch('/api/admin/notify-user-missing-details', {
+      method: 'POST',
+      body: { userId: selectedUser.value.id, dryRun: true }
+    }) as any
+    
+    if (response.success) {
+      if (response.missingFields?.length === 0) {
+        alert('Profile is already complete!')
+      } else {
+        reminderPreview.value = response
+      }
+    }
+  } catch (err: any) {
+    console.error('Failed to fetch preview:', err)
+    alert(err.data?.message || 'Failed to analyze profile')
+  } finally {
+    fetchingPreview.value = false
+  }
+}
+
+const confirmSendReminder = async () => {
+  if (!selectedUser.value) return
+  
+  sendingReminder.value = true
+  try {
+    const response = await $fetch('/api/admin/notify-user-missing-details', {
+      method: 'POST',
+      body: { 
+        userId: selectedUser.value.id,
+        customSms: reminderPreview.value.smsMessage,
+        customNotification: reminderPreview.value.notificationMessage
+      }
+    })
+    
+    if (response.success) {
+      reminderSent.value = true
+      reminderPreview.value = null
+      setTimeout(() => { reminderSent.value = false }, 5000)
+    }
+  } catch (err: any) {
+    console.error('Failed to send reminder:', err)
+    alert(err.data?.message || 'Failed to send reminder')
+  } finally {
+    sendingReminder.value = false
+  }
 }
 
 const selectForMatch = (user: any) => {
@@ -1026,6 +1281,7 @@ const fetchSuggestions = async (user: any) => {
     .select('id, display_name, photo_url, gender, birth_date, location')
     .eq('gender', targetGender)
     .eq('is_verified', true)
+    .eq('is_active', true)
     .neq('id', user.id)
     .limit(4)
     
@@ -1081,6 +1337,17 @@ const formatDate = (dateStr: string) => {
 }
 
 const capitalize = (str: string) => str ? str.charAt(0).toUpperCase() + str.slice(1) : ''
+
+const hasDealbreakers = computed(() => {
+  if (!selectedUser.value?.dealbreakers) return false
+  return Object.values(selectedUser.value.dealbreakers).some((v: any) => v && v.length > 0)
+})
+
+const getTrustScoreColor = (score: number) => {
+  if (!score || score < 50) return 'text-red-500'
+  if (score < 80) return 'text-yellow-600'
+  return 'text-green-600'
+}
 
 // Height converter
 const cmToFeet = (cm: number): string => {
@@ -2228,5 +2495,20 @@ onMounted(() => {
   color: #059669;
   font-size: 0.75rem;
   font-weight: 600;
+}
+
+/* Dealbreakers */
+.dealbreakers-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.text-brand-600 {
+  color: #000000;
+}
+.status-incognito {
+  background: #F3F4F6;
+  color: #6B7280;
 }
 </style>

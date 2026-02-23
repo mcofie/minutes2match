@@ -84,6 +84,7 @@ const getIcon = (type: string) => {
         case 'match_created': return '💕'
         case 'match_unlocked': return '🔓'
         case 'event_reminder': return '📅'
+        case 'profile_reminder': return '✍️'
         case 'sms': return '💬'
         default: return '🔔'
     }
@@ -95,6 +96,7 @@ const getIconContainerClass = (type: string) => {
         case 'match_created': return 'bg-rose-100 border-rose-300'
         case 'match_unlocked': return 'bg-emerald-100 border-emerald-300'
         case 'event_reminder': return 'bg-indigo-100 border-indigo-300'
+        case 'profile_reminder': return 'bg-orange-100 border-orange-300'
         default: return 'bg-stone-100 border-stone-300 dark:bg-stone-800 dark:border-stone-700'
     }
 }
@@ -118,5 +120,6 @@ const handleNotificationClick = (notification: any) => {
     // Logic to navigate if notification has a target
     if (notification.data?.match_id) navigateTo(`/me/connection/${notification.data.match_id}`)
     else if (notification.data?.event_id) navigateTo('/events')
+    else if (notification.type === 'profile_reminder') navigateTo('/me')
 }
 </script>

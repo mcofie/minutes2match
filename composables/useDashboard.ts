@@ -173,6 +173,24 @@ export const useDashboard = () => {
         }
     }
 
+    const toggleGhostMode = async () => {
+        const userId = currentUserId.value
+        if (!userId || !profile.value) return
+
+        try {
+            const newStatus = !profile.value.is_active
+            const { error } = await supabase.from('profiles').update({ is_active: newStatus } as any).eq('id', userId)
+            if (error) throw error
+
+            profile.value.is_active = newStatus
+            toast.success(newStatus ? 'Profile Active!' : 'Ghost Mode Active')
+            return true
+        } catch (err) {
+            toast.error('Failed to update status')
+            return false
+        }
+    }
+
     return {
         authReady,
         currentUserId,
@@ -186,6 +204,7 @@ export const useDashboard = () => {
         fetchProfileById,
         fetchSubscription,
         fetchPendingMatchCount,
+        toggleGhostMode,
         logout
     }
 }

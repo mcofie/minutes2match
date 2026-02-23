@@ -204,9 +204,9 @@ const fetchTimeline = async () => {
     }
   })
 
-  // 4. Event registrations
+  // 4. Event registrations (bookings)
   const { data: registrations } = await supabase
-    .from('event_registrations')
+    .from('event_bookings')
     .select(`
       id, created_at,
       event:event_id(title)

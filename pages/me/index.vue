@@ -71,6 +71,33 @@
             <p class="text-[11px] text-stone-600 dark:text-stone-300 leading-relaxed italic">"{{ personaData.description }}"</p>
          </div>
 
+         <!-- Community Health Card -->
+         <div class="bg-stone-900 text-white p-5 rounded-xl border-2 border-stone-800 shadow-[8px_8px_0px_0px_rgba(0,0,0,0.1)] overflow-hidden relative group">
+            <div class="absolute -top-2 -right-2 p-4 opacity-5 text-6xl group-hover:scale-110 transition-transform">🛡️</div>
+            <h4 class="text-[10px] font-black uppercase tracking-[0.25em] text-rose-500 mb-4">Pool Quality Control</h4>
+            <div class="space-y-4">
+               <div class="flex items-center justify-between">
+                  <span class="text-[9px] font-bold uppercase tracking-widest text-stone-400">Match Pool Purity</span>
+                  <span class="text-xs font-black text-emerald-400">98.4%</span>
+               </div>
+               <div class="h-1.5 w-full bg-stone-800 rounded-full overflow-hidden border border-stone-700">
+                  <div class="h-full bg-emerald-500 w-[98%] shadow-[0_0_8px_rgba(16,185,129,0.5)]"></div>
+               </div>
+               <div class="pt-2 border-t border-stone-800/50">
+                  <p class="text-[10px] text-stone-300 leading-relaxed">
+                     <span class="text-rose-500 font-black">ACTIVE PURGE:</span> Our algorithm recently removed <span class="text-white font-bold">14 inactive or low-quality profiles</span> to maintain your connection standards.
+                  </p>
+               </div>
+               <div class="flex items-center gap-2 text-[8px] font-bold uppercase tracking-[0.2em] text-stone-500">
+                  <span class="relative flex h-2 w-2">
+                     <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                     <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                  </span>
+                  Vetting Pulse: Healthy
+               </div>
+            </div>
+         </div>
+
          <!-- Section Navigation (Sidebar) -->
          <div class="bg-white dark:bg-stone-900 rounded-xl border-2 border-black dark:border-stone-700 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] dark:shadow-[8px_8px_0px_0px_rgba(255,255,255,0.05)] overflow-hidden">
             <button 

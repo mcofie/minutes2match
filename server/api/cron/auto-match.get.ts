@@ -404,6 +404,7 @@ export default defineEventHandler(async (event) => {
             .from('profiles')
             .select('*')
             .eq('is_verified', true)
+            .eq('is_active', true)
 
         if (usersError) {
             console.error('[AutoMatch Cron] Failed to fetch users:', usersError)

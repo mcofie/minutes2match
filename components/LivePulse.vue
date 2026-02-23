@@ -29,7 +29,10 @@ const messages = [
   "Speed Dating (Feb 20) is 80% Full 🔥",
   "A user just unlocked a connection 🔓",
   "New Vibe Check completed in Osu 📝",
-  "3 people are looking for dates now 👀"
+  "3 people are looking for dates now 👀",
+  "Security: 14 inactive profiles purged for pool quality 🛡️",
+  "Community: 100% of today's matches verified responsive ✅",
+  "Trust: High-quality pool maintained. No bots detected 🤖"
 ]
 
 const showNextMessage = () => {
