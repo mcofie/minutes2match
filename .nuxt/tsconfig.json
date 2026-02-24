@@ -50,10 +50,10 @@
         "../node_modules/@nuxtjs/mdc"
       ],
       "#content/components": [
-        "./content/components"
+        "./content/components.ts"
       ],
       "#content/manifest": [
-        "./content/manifest"
+        "./content/manifest.ts"
       ],
       "~": [
         ".."
@@ -119,16 +119,16 @@
         "./imports"
       ],
       "#mdc-configs": [
-        "./mdc-configs"
+        "./mdc-configs.mjs"
       ],
       "#mdc-highlighter": [
-        "./mdc-highlighter"
+        "./mdc-highlighter.mjs"
       ],
       "#mdc-imports": [
-        "./mdc-imports"
+        "./mdc-imports.mjs"
       ],
       "#app-manifest": [
-        "./manifest/meta/679c77be-c9dc-4d61-9c13-fcd9c186b8b0.json"
+        "./manifest/meta/777bf48d-feb9-448d-b491-baeca407b048.json"
       ],
       "#components": [
         "./components"

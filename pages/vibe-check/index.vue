@@ -2,9 +2,7 @@
   <main class="min-h-screen bg-[#FFFCF8] dark:bg-stone-950 flex flex-col font-sans text-stone-900 dark:text-stone-100 relative overflow-hidden transition-colors duration-300">
     <!-- Fonts -->
     <Head>
-      <Link rel="preconnect" href="https://fonts.googleapis.com" />
-      <Link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="" />
-      <Link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+      <Title>Vibe Check | Minutes 2 Match</Title>
     </Head>
 
     <!-- Dot Pattern Background -->

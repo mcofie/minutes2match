@@ -17,7 +17,7 @@ interface RateLimitEntry {
 const rateLimitStore = new Map<string, RateLimitEntry>()
 
 // Cleanup old entries every 5 minutes
-setInterval(() => {
+const cleanupInterval = setInterval(() => {
     const now = Date.now()
     for (const [key, entry] of rateLimitStore.entries()) {
         if (entry.resetAt < now) {
@@ -25,6 +25,11 @@ setInterval(() => {
         }
     }
 }, 5 * 60 * 1000)
+
+// Unref the interval so it doesn't keep the process alive during build or on server exit
+if (cleanupInterval.unref) {
+    cleanupInterval.unref()
+}
 
 export interface RateLimitConfig {
     /** Maximum number of requests allowed in the window */

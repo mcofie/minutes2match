@@ -29,6 +29,7 @@ export default defineNuxtConfig({
         host: "0.0.0.0"
     },
     pwa: {
+        disable: process.env.NODE_ENV === 'production' || !!process.env.NETLIFY,
         registerType: 'autoUpdate',
         manifest: {
             name: 'Minutes 2 Match',

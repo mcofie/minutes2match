@@ -17,9 +17,7 @@ useHead({
   <div class="min-h-screen bg-[#FFFCF8] text-stone-900 font-sans flex flex-col transition-colors duration-300">
     <!-- Fonts -->
     <Head>
-      <Link rel="preconnect" href="https://fonts.googleapis.com" />
-      <Link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="" />
-      <Link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+      <Title>{{ statusCode }} Error | Minutes 2 Match</Title>
     </Head>
 
     <!-- Dot Pattern Background -->

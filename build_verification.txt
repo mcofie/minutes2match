@@ -1,0 +1,577 @@
+
+> build
+> nuxt build
+
+┌  Building Nuxt for production...
+│
+●  Nuxt 3.20.2 (with Nitro 2.13.1, Vite 7.3.1 and Vue 3.5.26)
+[@nuxt/content] ✔ Processed 2 collections and 3 files in 26.07ms (3 cached, 0 parsed)
+│
+●  Nitro preset: node-server
+ℹ Building client...
+ℹ vite v7.3.1 building client environment for production...
+ℹ transforming...
+ℹ ✓ 522 modules transformed.
+ℹ rendering chunks...
+ℹ computing gzip size...
+ℹ .nuxt/dist/client/_nuxt/sqlite3-opfs-async-proxy-C_otN2ZJ.js            9.45 kB
+ℹ .nuxt/dist/client/manifest.json                                        26.65 kB │ gzip:   3.01 kB
+ℹ .nuxt/dist/client/_nuxt/sqlite3-worker1-bundler-friendly-Bv6ABw9v.js  196.87 kB
+ℹ .nuxt/dist/client/_nuxt/sqlite3.DBpDb1lf.wasm                         856.45 kB │ gzip: 392.20 kB
+ℹ .nuxt/dist/client/_nuxt/sqlite3-DBpDb1lf.wasm                         856.45 kB │ gzip: 392.20 kB
+ℹ .nuxt/dist/client/_nuxt/ProsePre.D5orA6B_.css                           0.03 kB │ gzip:   0.05 kB
+ℹ .nuxt/dist/client/_nuxt/callback.u5uGF_WY.css                           0.16 kB │ gzip:   0.14 kB
+ℹ .nuxt/dist/client/_nuxt/index.BLVHGNKX.css                              0.20 kB │ gzip:   0.14 kB
+ℹ .nuxt/dist/client/_nuxt/index.CLLzD7mW.css                              0.36 kB │ gzip:   0.24 kB
+ℹ .nuxt/dist/client/_nuxt/integrity.BReeGntI.css                          0.41 kB │ gzip:   0.24 kB
+ℹ .nuxt/dist/client/_nuxt/useHaptic.DKxQ7GU5.css                          0.80 kB │ gzip:   0.36 kB
+ℹ .nuxt/dist/client/_nuxt/scoring-logic.DjudcnWd.css                      0.85 kB │ gzip:   0.43 kB
+ℹ .nuxt/dist/client/_nuxt/me.Cp8VmByT.css                                 0.91 kB │ gzip:   0.36 kB
+ℹ .nuxt/dist/client/_nuxt/commerce-hero.oRyTsJ1W.css                      1.17 kB │ gzip:   0.31 kB
+ℹ .nuxt/dist/client/_nuxt/index.DiVGvY1v.css                              1.31 kB │ gzip:   0.44 kB
+ℹ .nuxt/dist/client/_nuxt/settings.CzDWA-m3.css                           1.36 kB │ gzip:   0.46 kB
+ℹ .nuxt/dist/client/_nuxt/Pagination.Dg6cNmJX.css                         1.39 kB │ gzip:   0.49 kB
+ℹ .nuxt/dist/client/_nuxt/_id_.DKpAwwC5.css                               1.48 kB │ gzip:   0.49 kB
+ℹ .nuxt/dist/client/_nuxt/index.FbGOV7XV.css                              2.12 kB │ gzip:   0.69 kB
+ℹ .nuxt/dist/client/_nuxt/verify.28mMlbsC.css                             2.29 kB │ gzip:   1.07 kB
+ℹ .nuxt/dist/client/_nuxt/terms.mH_EmGrQ.css                              4.32 kB │ gzip:   1.28 kB
+ℹ .nuxt/dist/client/_nuxt/privacy.CK8xpV84.css                            4.32 kB │ gzip:   1.28 kB
+ℹ .nuxt/dist/client/_nuxt/release-notes.CTnGjwHW.css                      4.32 kB │ gzip:   1.28 kB
+ℹ .nuxt/dist/client/_nuxt/entry.FWulhkXK.css                              4.43 kB │ gzip:   1.35 kB
+ℹ .nuxt/dist/client/_nuxt/index.C2Z5QsYC.css                              6.28 kB │ gzip:   2.05 kB
+ℹ .nuxt/dist/client/_nuxt/reports.D6cJVGTm.css                            6.72 kB │ gzip:   1.67 kB
+ℹ .nuxt/dist/client/_nuxt/payments.18zPXfZt.css                           6.72 kB │ gzip:   1.69 kB
+ℹ .nuxt/dist/client/_nuxt/login.OjtQODy2.css                              7.84 kB │ gzip:   2.42 kB
+ℹ .nuxt/dist/client/_nuxt/admin.BV0VENgq.css                              9.65 kB │ gzip:   2.82 kB
+ℹ .nuxt/dist/client/_nuxt/index.BGuXReXx.css                             10.26 kB │ gzip:   2.66 kB
+ℹ .nuxt/dist/client/_nuxt/matchmaker.BT9m8NVm.css                        11.79 kB │ gzip:   2.70 kB
+ℹ .nuxt/dist/client/_nuxt/users.pikXLl10.css                             24.37 kB │ gzip:   5.19 kB
+ℹ .nuxt/dist/client/_nuxt/CI9w6biH.js                                     0.08 kB │ gzip:   0.10 kB
+ℹ .nuxt/dist/client/_nuxt/CE1U5QfC.js                                     0.14 kB │ gzip:   0.15 kB
+ℹ .nuxt/dist/client/_nuxt/DHWxoGMJ.js                                     0.18 kB │ gzip:   0.16 kB
+ℹ .nuxt/dist/client/_nuxt/DludZOHg.js                                     0.18 kB │ gzip:   0.16 kB
+ℹ .nuxt/dist/client/_nuxt/DPlexgoI.js                                     0.18 kB │ gzip:   0.16 kB
+ℹ .nuxt/dist/client/_nuxt/vaBcMEsp.js                                     0.18 kB │ gzip:   0.16 kB
+ℹ .nuxt/dist/client/_nuxt/yc98759F.js                                     0.18 kB │ gzip:   0.16 kB
+ℹ .nuxt/dist/client/_nuxt/B4JtKrDC.js                                     0.18 kB │ gzip:   0.17 kB
+ℹ .nuxt/dist/client/_nuxt/0hq3f8KA.js                                     0.18 kB │ gzip:   0.16 kB
+ℹ .nuxt/dist/client/_nuxt/CCEqbXPD.js                                     0.18 kB │ gzip:   0.16 kB
+ℹ .nuxt/dist/client/_nuxt/eCyK41vA.js                                     0.18 kB │ gzip:   0.17 kB
+ℹ .nuxt/dist/client/_nuxt/Ds_qrBd7.js                                     0.18 kB │ gzip:   0.17 kB
+ℹ .nuxt/dist/client/_nuxt/DdRtkjCv.js                                     0.18 kB │ gzip:   0.17 kB
+ℹ .nuxt/dist/client/_nuxt/BLVFSpw3.js                                     0.18 kB │ gzip:   0.17 kB
+ℹ .nuxt/dist/client/_nuxt/lANTaINl.js                                     0.19 kB │ gzip:   0.17 kB
+ℹ .nuxt/dist/client/_nuxt/BSxsgQQV.js                                     0.19 kB │ gzip:   0.17 kB
+ℹ .nuxt/dist/client/_nuxt/Cw4Zb29m.js                                     0.35 kB │ gzip:   0.26 kB
+ℹ .nuxt/dist/client/_nuxt/CSrEJ4Nm.js                                     0.39 kB │ gzip:   0.29 kB
+ℹ .nuxt/dist/client/_nuxt/BzPQRvkh.js                                     0.41 kB │ gzip:   0.25 kB
+ℹ .nuxt/dist/client/_nuxt/BhdQCrd7.js                                     0.47 kB │ gzip:   0.33 kB
+ℹ .nuxt/dist/client/_nuxt/B_4XkmnG.js                                     0.49 kB │ gzip:   0.34 kB
+ℹ .nuxt/dist/client/_nuxt/MFezZNQ8.js                                     0.50 kB │ gzip:   0.34 kB
+ℹ .nuxt/dist/client/_nuxt/2K7aUDXW.js                                     0.50 kB │ gzip:   0.34 kB
+ℹ .nuxt/dist/client/_nuxt/DdT-yeCd.js                                     0.50 kB │ gzip:   0.34 kB
+ℹ .nuxt/dist/client/_nuxt/Dsdm_mPE.js                                     0.50 kB │ gzip:   0.34 kB
+ℹ .nuxt/dist/client/_nuxt/BGGvEyp7.js                                     0.50 kB │ gzip:   0.34 kB
+ℹ .nuxt/dist/client/_nuxt/D7HngORi.js                                     0.59 kB │ gzip:   0.38 kB
+ℹ .nuxt/dist/client/_nuxt/KoNXrOy7.js                                     0.60 kB │ gzip:   0.42 kB
+ℹ .nuxt/dist/client/_nuxt/DQ0QQP5s.js                                     0.62 kB │ gzip:   0.37 kB
+ℹ .nuxt/dist/client/_nuxt/DVvuuWwW.js                                     0.63 kB │ gzip:   0.37 kB
+ℹ .nuxt/dist/client/_nuxt/BwYqPB-M.js                                     0.91 kB │ gzip:   0.54 kB
+ℹ .nuxt/dist/client/_nuxt/Dvl3LTN1.js                                     0.91 kB │ gzip:   0.51 kB
+ℹ .nuxt/dist/client/_nuxt/B6zYD-0a.js                                     0.91 kB │ gzip:   0.50 kB
+ℹ .nuxt/dist/client/_nuxt/BO3wWtM6.js                                     1.08 kB │ gzip:   0.55 kB
+ℹ .nuxt/dist/client/_nuxt/4Z3_Q5C-.js                                     1.18 kB │ gzip:   0.56 kB
+ℹ .nuxt/dist/client/_nuxt/CWElKJrY.js                                     1.90 kB │ gzip:   1.06 kB
+ℹ .nuxt/dist/client/_nuxt/CSFFUGeT.js                                     2.13 kB │ gzip:   1.02 kB
+ℹ .nuxt/dist/client/_nuxt/B5GOc3Pn.js                                     2.36 kB │ gzip:   1.16 kB
+ℹ .nuxt/dist/client/_nuxt/Cn-pHsNg.js                                     2.56 kB │ gzip:   1.10 kB
+ℹ .nuxt/dist/client/_nuxt/Dg6H8KfV.js                                     2.85 kB │ gzip:   1.37 kB
+ℹ .nuxt/dist/client/_nuxt/DqUqO9Yq.js                                     2.99 kB │ gzip:   1.29 kB
+ℹ .nuxt/dist/client/_nuxt/DfOK4OFu.js                                     3.60 kB │ gzip:   1.67 kB
+ℹ .nuxt/dist/client/_nuxt/DZcgSSDK.js                                     4.00 kB │ gzip:   1.77 kB
+ℹ .nuxt/dist/client/_nuxt/CN_U3G42.js                                     4.10 kB │ gzip:   1.82 kB
+ℹ .nuxt/dist/client/_nuxt/CpZUYUV6.js                                     4.53 kB │ gzip:   2.06 kB
+ℹ .nuxt/dist/client/_nuxt/FczKSfaJ.js                                     5.27 kB │ gzip:   1.82 kB
+ℹ .nuxt/dist/client/_nuxt/BIl4cyR9.js                                     5.76 kB │ gzip:   2.37 kB
+ℹ .nuxt/dist/client/_nuxt/DIJkrlkW.js                                     5.92 kB │ gzip:   2.53 kB
+ℹ .nuxt/dist/client/_nuxt/DF-aSfoH.js                                     6.82 kB │ gzip:   2.87 kB
+ℹ .nuxt/dist/client/_nuxt/BcrFKGaT.js                                     7.41 kB │ gzip:   3.14 kB
+ℹ .nuxt/dist/client/_nuxt/B-L6QJNH.js                                     7.72 kB │ gzip:   2.25 kB
+ℹ .nuxt/dist/client/_nuxt/Du48RIzS.js                                     8.55 kB │ gzip:   2.82 kB
+ℹ .nuxt/dist/client/_nuxt/DLUVdTVd.js                                     8.61 kB │ gzip:   2.97 kB
+ℹ .nuxt/dist/client/_nuxt/a0-VhLV-.js                                     9.01 kB │ gzip:   3.20 kB
+ℹ .nuxt/dist/client/_nuxt/B-Ci79B6.js                                    10.03 kB │ gzip:   3.87 kB
+ℹ .nuxt/dist/client/_nuxt/BB4E6scD.js                                    10.04 kB │ gzip:   3.55 kB
+ℹ .nuxt/dist/client/_nuxt/Dq3KXKPT.js                                    10.19 kB │ gzip:   3.17 kB
+ℹ .nuxt/dist/client/_nuxt/CHG5Fpld.js                                    10.43 kB │ gzip:   3.25 kB
+ℹ .nuxt/dist/client/_nuxt/D6E8KbZi.js                                    12.44 kB │ gzip:   4.03 kB
+ℹ .nuxt/dist/client/_nuxt/Ctp-5HXV.js                                    12.67 kB │ gzip:   4.60 kB
+ℹ .nuxt/dist/client/_nuxt/Pc4TquSc.js                                    14.01 kB │ gzip:   4.30 kB
+ℹ .nuxt/dist/client/_nuxt/BvlNILnD.js                                    14.26 kB │ gzip:   4.86 kB
+ℹ .nuxt/dist/client/_nuxt/CkSR1Q_N.js                                    14.70 kB │ gzip:   4.61 kB
+ℹ .nuxt/dist/client/_nuxt/TmXWx-4Y.js                                    16.01 kB │ gzip:   5.36 kB
+ℹ .nuxt/dist/client/_nuxt/XQgyYtoS.js                                    16.50 kB │ gzip:   6.27 kB
+ℹ .nuxt/dist/client/_nuxt/CWj_WynM.js                                    18.08 kB │ gzip:   4.54 kB
+ℹ .nuxt/dist/client/_nuxt/D8nX5sWe.js                                    19.19 kB │ gzip:   6.25 kB
+ℹ .nuxt/dist/client/_nuxt/TyhctOO6.js                                    22.12 kB │ gzip:   7.24 kB
+ℹ .nuxt/dist/client/_nuxt/DlorPni9.js                                    28.72 kB │ gzip:   6.99 kB
+ℹ .nuxt/dist/client/_nuxt/DKtnf9du.js                                    31.16 kB │ gzip:   7.96 kB
+ℹ .nuxt/dist/client/_nuxt/DCGJOwrG.js                                    31.62 kB │ gzip:   9.24 kB
+ℹ .nuxt/dist/client/_nuxt/CTCEqNQG.js                                    41.67 kB │ gzip:  12.42 kB
+ℹ .nuxt/dist/client/_nuxt/q-kfE8v3.js                                    45.06 kB │ gzip:  12.40 kB
+ℹ .nuxt/dist/client/_nuxt/D4hStpGE.js                                    45.39 kB │ gzip:  13.13 kB
+ℹ .nuxt/dist/client/_nuxt/C0fWzbrO.js                                    46.33 kB │ gzip:  11.10 kB
+ℹ .nuxt/dist/client/_nuxt/G7VrmQTv.js                                    51.27 kB │ gzip:  15.07 kB
+ℹ .nuxt/dist/client/_nuxt/GxYqI8Tt.js                                    51.81 kB │ gzip:  12.61 kB
+ℹ .nuxt/dist/client/_nuxt/75X2o9Mb.js                                   199.77 kB │ gzip:  58.77 kB
+ℹ .nuxt/dist/client/_nuxt/JiWLD5BW.js                                   394.77 kB │ gzip: 126.66 kB
+ℹ ✓ built in 4.53s
+✔ Client built in 4546ms
+ℹ Building server...
+ℹ vite v7.3.1 building ssr environment for production...
+ℹ transforming...
+ℹ ✓ 420 modules transformed.
+ℹ rendering chunks...
+
+ WARN  [plugin @tailwindcss/vite:generate:build] Sourcemap is likely to be incorrect: a plugin (@tailwindcss/vite:generate:build) was used to transform files, but didn't generate a sourcemap for the transformation. Consult the plugin documentation for help
+
+
+ WARN  [plugin @tailwindcss/vite:generate:build] Sourcemap is likely to be incorrect: a plugin (@tailwindcss/vite:generate:build) was used to transform files, but didn't generate a sourcemap for the transformation. Consult the plugin documentation for help (x2)
+
+
+ WARN  [plugin @tailwindcss/vite:generate:build] Sourcemap is likely to be incorrect: a plugin (@tailwindcss/vite:generate:build) was used to transform files, but didn't generate a sourcemap for the transformation. Consult the plugin documentation for help (x3)
+
+
+ WARN  [plugin @tailwindcss/vite:generate:build] Sourcemap is likely to be incorrect: a plugin (@tailwindcss/vite:generate:build) was used to transform files, but didn't generate a sourcemap for the transformation. Consult the plugin documentation for help (x4)
+
+
+ WARN  [plugin @tailwindcss/vite:generate:build] Sourcemap is likely to be incorrect: a plugin (@tailwindcss/vite:generate:build) was used to transform files, but didn't generate a sourcemap for the transformation. Consult the plugin documentation for help (x5)
+
+
+ WARN  [plugin @tailwindcss/vite:generate:build] Sourcemap is likely to be incorrect: a plugin (@tailwindcss/vite:generate:build) was used to transform files, but didn't generate a sourcemap for the transformation. Consult the plugin documentation for help (x6)
+
+
+ WARN  [plugin @tailwindcss/vite:generate:build] Sourcemap is likely to be incorrect: a plugin (@tailwindcss/vite:generate:build) was used to transform files, but didn't generate a sourcemap for the transformation. Consult the plugin documentation for help (x7)
+
+
+ WARN  [plugin @tailwindcss/vite:generate:build] Sourcemap is likely to be incorrect: a plugin (@tailwindcss/vite:generate:build) was used to transform files, but didn't generate a sourcemap for the transformation. Consult the plugin documentation for help (x8)
+
+
+ WARN  [plugin @tailwindcss/vite:generate:build] Sourcemap is likely to be incorrect: a plugin (@tailwindcss/vite:generate:build) was used to transform files, but didn't generate a sourcemap for the transformation. Consult the plugin documentation for help (x9)
+
+
+ WARN  [plugin @tailwindcss/vite:generate:build] Sourcemap is likely to be incorrect: a plugin (@tailwindcss/vite:generate:build) was used to transform files, but didn't generate a sourcemap for the transformation. Consult the plugin documentation for help (x10)
+
+
+ WARN  [plugin @tailwindcss/vite:generate:build] Sourcemap is likely to be incorrect: a plugin (@tailwindcss/vite:generate:build) was used to transform files, but didn't generate a sourcemap for the transformation. Consult the plugin documentation for help (x11)
+
+
+ WARN  [plugin @tailwindcss/vite:generate:build] Sourcemap is likely to be incorrect: a plugin (@tailwindcss/vite:generate:build) was used to transform files, but didn't generate a sourcemap for the transformation. Consult the plugin documentation for help (x12)
+
+
+ WARN  [plugin @tailwindcss/vite:generate:build] Sourcemap is likely to be incorrect: a plugin (@tailwindcss/vite:generate:build) was used to transform files, but didn't generate a sourcemap for the transformation. Consult the plugin documentation for help (x13)
+
+
+ WARN  [plugin @tailwindcss/vite:generate:build] Sourcemap is likely to be incorrect: a plugin (@tailwindcss/vite:generate:build) was used to transform files, but didn't generate a sourcemap for the transformation. Consult the plugin documentation for help (x14)
+
+
+ WARN  [plugin @tailwindcss/vite:generate:build] Sourcemap is likely to be incorrect: a plugin (@tailwindcss/vite:generate:build) was used to transform files, but didn't generate a sourcemap for the transformation. Consult the plugin documentation for help (x15)
+
+
+ WARN  [plugin @tailwindcss/vite:generate:build] Sourcemap is likely to be incorrect: a plugin (@tailwindcss/vite:generate:build) was used to transform files, but didn't generate a sourcemap for the transformation. Consult the plugin documentation for help (x16)
+
+
+ WARN  [plugin @tailwindcss/vite:generate:build] Sourcemap is likely to be incorrect: a plugin (@tailwindcss/vite:generate:build) was used to transform files, but didn't generate a sourcemap for the transformation. Consult the plugin documentation for help (x17)
+
+
+ WARN  [plugin @tailwindcss/vite:generate:build] Sourcemap is likely to be incorrect: a plugin (@tailwindcss/vite:generate:build) was used to transform files, but didn't generate a sourcemap for the transformation. Consult the plugin documentation for help (x18)
+
+
+ WARN  [plugin @tailwindcss/vite:generate:build] Sourcemap is likely to be incorrect: a plugin (@tailwindcss/vite:generate:build) was used to transform files, but didn't generate a sourcemap for the transformation. Consult the plugin documentation for help (x19)
+
+
+ WARN  [plugin @tailwindcss/vite:generate:build] Sourcemap is likely to be incorrect: a plugin (@tailwindcss/vite:generate:build) was used to transform files, but didn't generate a sourcemap for the transformation. Consult the plugin documentation for help (x20)
+
+
+ WARN  [plugin @tailwindcss/vite:generate:build] Sourcemap is likely to be incorrect: a plugin (@tailwindcss/vite:generate:build) was used to transform files, but didn't generate a sourcemap for the transformation. Consult the plugin documentation for help (x21)
+
+
+ WARN  [plugin @tailwindcss/vite:generate:build] Sourcemap is likely to be incorrect: a plugin (@tailwindcss/vite:generate:build) was used to transform files, but didn't generate a sourcemap for the transformation. Consult the plugin documentation for help (x22)
+
+
+ WARN  [plugin @tailwindcss/vite:generate:build] Sourcemap is likely to be incorrect: a plugin (@tailwindcss/vite:generate:build) was used to transform files, but didn't generate a sourcemap for the transformation. Consult the plugin documentation for help (x23)
+
+
+ WARN  [plugin @tailwindcss/vite:generate:build] Sourcemap is likely to be incorrect: a plugin (@tailwindcss/vite:generate:build) was used to transform files, but didn't generate a sourcemap for the transformation. Consult the plugin documentation for help (x24)
+
+
+ WARN  [plugin @tailwindcss/vite:generate:build] Sourcemap is likely to be incorrect: a plugin (@tailwindcss/vite:generate:build) was used to transform files, but didn't generate a sourcemap for the transformation. Consult the plugin documentation for help (x25)
+
+
+ WARN  [plugin @tailwindcss/vite:generate:build] Sourcemap is likely to be incorrect: a plugin (@tailwindcss/vite:generate:build) was used to transform files, but didn't generate a sourcemap for the transformation. Consult the plugin documentation for help (x26)
+
+
+ WARN  [plugin @tailwindcss/vite:generate:build] Sourcemap is likely to be incorrect: a plugin (@tailwindcss/vite:generate:build) was used to transform files, but didn't generate a sourcemap for the transformation. Consult the plugin documentation for help (x27)
+
+
+ WARN  [plugin @tailwindcss/vite:generate:build] Sourcemap is likely to be incorrect: a plugin (@tailwindcss/vite:generate:build) was used to transform files, but didn't generate a sourcemap for the transformation. Consult the plugin documentation for help (x28)
+
+
+ WARN  [plugin @tailwindcss/vite:generate:build] Sourcemap is likely to be incorrect: a plugin (@tailwindcss/vite:generate:build) was used to transform files, but didn't generate a sourcemap for the transformation. Consult the plugin documentation for help (x29)
+
+
+ WARN  [plugin @tailwindcss/vite:generate:build] Sourcemap is likely to be incorrect: a plugin (@tailwindcss/vite:generate:build) was used to transform files, but didn't generate a sourcemap for the transformation. Consult the plugin documentation for help (x30)
+
+
+ WARN  [plugin @tailwindcss/vite:generate:build] Sourcemap is likely to be incorrect: a plugin (@tailwindcss/vite:generate:build) was used to transform files, but didn't generate a sourcemap for the transformation. Consult the plugin documentation for help (x31)
+
+
+ WARN  [plugin @tailwindcss/vite:generate:build] Sourcemap is likely to be incorrect: a plugin (@tailwindcss/vite:generate:build) was used to transform files, but didn't generate a sourcemap for the transformation. Consult the plugin documentation for help (x32)
+
+
+ WARN  [plugin @tailwindcss/vite:generate:build] Sourcemap is likely to be incorrect: a plugin (@tailwindcss/vite:generate:build) was used to transform files, but didn't generate a sourcemap for the transformation. Consult the plugin documentation for help (x33)
+
+
+ WARN  [plugin @tailwindcss/vite:generate:build] Sourcemap is likely to be incorrect: a plugin (@tailwindcss/vite:generate:build) was used to transform files, but didn't generate a sourcemap for the transformation. Consult the plugin documentation for help (x34)
+
+ℹ ✓ built in 3.65s
+✔ Server built in 3674ms
+[nitro] ℹ Initializing prerenderer
+
+ WARN  "PostgrestError" is imported from external module "file:///Users/maxwellcofie/WebstormProjects/minutes2match/node_modules/@supabase/postgrest-js/dist/index.mjs" but never used in "node_modules/@supabase/supabase-js/dist/index.mjs".
+
+
+ WARN  "FunctionRegion", "FunctionsError", "FunctionsFetchError", "FunctionsHttpError" and "FunctionsRelayError" are imported from external module "file:///Users/maxwellcofie/WebstormProjects/minutes2match/node_modules/@supabase/functions-js/dist/main/index.js" but never used in "node_modules/@supabase/supabase-js/dist/index.mjs".
+
+[nitro] ℹ Prerendering 1 routes
+[nitro]   ├─ /__nuxt_content/releaseNotes/sql_dump.txt (3ms)
+[nitro] ℹ Prerendered 1 routes in 2.926 seconds
+[nitro] ✔ Generated public .output/public
+
+PWA v1.2.0
+mode      generateSW
+precache  117 entries (3880.47 KiB)
+files generated
+  .output/public/sw.js
+  .output/public/workbox-8c29f6e4.js
+warnings
+  One of the glob patterns doesn't match any files. Please remove or fix the following: {
+  "globDirectory": "/Users/maxwellcofie/WebstormProjects/minutes2match/.output/public",
+  "globPattern": "**/_payload.json",
+  "globIgnores": [
+    "**/node_modules/**/*",
+    "sw.js",
+    "workbox-*.js"
+  ]
+}
+
+[nitro] ℹ Building Nuxt Nitro server (preset: node-server, compatibility date: 2024-11-01)
+"PostgrestError" is imported from external module "@supabase/postgrest-js" but never used in "node_modules/@supabase/supabase-js/dist/index.mjs".
+"FunctionRegion", "FunctionsError", "FunctionsFetchError", "FunctionsHttpError" and "FunctionsRelayError" are imported from external module "@supabase/functions-js" but never used in "node_modules/@supabase/supabase-js/dist/index.mjs".
+[nitro] ✔ Nuxt Nitro server built
+  ├─ .output/server/chunks/_/error-500.mjs (4.87 kB) (2.05 kB gzip)
+  ├─ .output/server/chunks/_/error-500.mjs.map (181 B) (157 B gzip)
+  ├─ .output/server/chunks/_/serverSupabaseServiceRole.mjs (1.6 kB) (712 B gzip)
+  ├─ .output/server/chunks/_/serverSupabaseServiceRole.mjs.map (297 B) (186 B gzip)
+  ├─ .output/server/chunks/_/serverSupabaseUser.mjs (1.63 kB) (659 B gzip)
+  ├─ .output/server/chunks/_/serverSupabaseUser.mjs.map (378 B) (189 B gzip)
+  ├─ .output/server/chunks/build/_id_-BcdJqcda.mjs (7.3 kB) (2.2 kB gzip)
+  ├─ .output/server/chunks/build/_id_-BcdJqcda.mjs.map (3.42 kB) (952 B gzip)
+  ├─ .output/server/chunks/build/_id_-CDkLJAJ3.mjs (54.5 kB) (12.3 kB gzip)
+  ├─ .output/server/chunks/build/_id_-CDkLJAJ3.mjs.map (20.6 kB) (4.16 kB gzip)
+  ├─ .output/server/chunks/build/_id_-DWxGBvoD.mjs (5.67 kB) (2.14 kB gzip)
+  ├─ .output/server/chunks/build/_id_-DWxGBvoD.mjs.map (1.43 kB) (547 B gzip)
+  ├─ .output/server/chunks/build/_id_-styles.COHdwy-5.mjs (1.73 kB) (614 B gzip)
+  ├─ .output/server/chunks/build/_id_-styles.COHdwy-5.mjs.map (188 B) (154 B gzip)
+  ├─ .output/server/chunks/build/admin-BWDK629v.mjs (22.5 kB) (3.33 kB gzip)
+  ├─ .output/server/chunks/build/admin-BWDK629v.mjs.map (10 kB) (1.5 kB gzip)
+  ├─ .output/server/chunks/build/admin-DjdxWiuK.mjs (2.32 kB) (833 B gzip)
+  ├─ .output/server/chunks/build/admin-DjdxWiuK.mjs.map (1.72 kB) (515 B gzip)
+  ├─ .output/server/chunks/build/admin-styles.DDNGzPE3.mjs (10.7 kB) (3.12 kB gzip)
+  ├─ .output/server/chunks/build/admin-styles.DDNGzPE3.mjs.map (207 B) (156 B gzip)
+  ├─ .output/server/chunks/build/app-styles.BDZ-otCf.mjs (255 B) (191 B gzip)
+  ├─ .output/server/chunks/build/app-styles.BDZ-otCf.mjs.map (186 B) (150 B gzip)
+  ├─ .output/server/chunks/build/auth-DA446mGQ.mjs (1.34 kB) (570 B gzip)
+  ├─ .output/server/chunks/build/auth-DA446mGQ.mjs.map (581 B) (275 B gzip)
+  ├─ .output/server/chunks/build/BlindProfileCard-styles.CpEeIoQN.mjs (1.11 kB) (502 B gzip)
+  ├─ .output/server/chunks/build/BlindProfileCard-styles.CpEeIoQN.mjs.map (212 B) (161 B gzip)
+  ├─ .output/server/chunks/build/Button-xmJy6LrV.mjs (2.08 kB) (896 B gzip)
+  ├─ .output/server/chunks/build/Button-xmJy6LrV.mjs.map (712 B) (271 B gzip)
+  ├─ .output/server/chunks/build/callback-C3JiZK0I.mjs (6.23 kB) (2.1 kB gzip)
+  ├─ .output/server/chunks/build/callback-C3JiZK0I.mjs.map (1.56 kB) (597 B gzip)
+  ├─ .output/server/chunks/build/callback-styles.BS9AEsDK.mjs (398 B) (260 B gzip)
+  ├─ .output/server/chunks/build/callback-styles.BS9AEsDK.mjs.map (196 B) (156 B gzip)
+  ├─ .output/server/chunks/build/client.precomputed.mjs (56.5 kB) (5.15 kB gzip)
+  ├─ .output/server/chunks/build/client.precomputed.mjs.map (54.1 kB) (1.97 kB gzip)
+  ├─ .output/server/chunks/build/commerce-hero-_tw5F85A.mjs (25.8 kB) (4.63 kB gzip)
+  ├─ .output/server/chunks/build/commerce-hero-_tw5F85A.mjs.map (8.8 kB) (1.94 kB gzip)
+  ├─ .output/server/chunks/build/CommerceHero-styles.CPV5AGOW.mjs (482 B) (286 B gzip)
+  ├─ .output/server/chunks/build/CommerceHero-styles.CPV5AGOW.mjs.map (204 B) (159 B gzip)
+  ├─ .output/server/chunks/build/CompatibilityBreakdown-styles.CcLNPkib.mjs (391 B) (211 B gzip)
+  ├─ .output/server/chunks/build/CompatibilityBreakdown-styles.CcLNPkib.mjs.map (224 B) (167 B gzip)
+  ├─ .output/server/chunks/build/database.compressed.mjs (2.48 kB) (1.93 kB gzip)
+  ├─ .output/server/chunks/build/database.compressed.mjs.map (158 B) (134 B gzip)
+  ├─ .output/server/chunks/build/entry-styles-4.mjs-Du_x7zT9.mjs (276 B) (203 B gzip)
+  ├─ .output/server/chunks/build/entry-styles-4.mjs-Du_x7zT9.mjs.map (96 B) (104 B gzip)
+  ├─ .output/server/chunks/build/entry-styles-5.mjs-yjB7CZO3.mjs (4.82 kB) (1.44 kB gzip)
+  ├─ .output/server/chunks/build/entry-styles-5.mjs-yjB7CZO3.mjs.map (98 B) (104 B gzip)
+  ├─ .output/server/chunks/build/entry-styles.BIkHrD4N.mjs (156 kB) (25.9 kB gzip)
+  ├─ .output/server/chunks/build/entry-styles.BIkHrD4N.mjs.map (319 B) (188 B gzip)
+  ├─ .output/server/chunks/build/error-styles.BpROYXkf.mjs (706 B) (329 B gzip)
+  ├─ .output/server/chunks/build/error-styles.BpROYXkf.mjs.map (206 B) (155 B gzip)
+  ├─ .output/server/chunks/build/events-CmhSov7R.mjs (21.2 kB) (5.39 kB gzip)
+  ├─ .output/server/chunks/build/events-CmhSov7R.mjs.map (7.67 kB) (1.97 kB gzip)
+  ├─ .output/server/chunks/build/guest-C2xhHt8b.mjs (1.12 kB) (463 B gzip)
+  ├─ .output/server/chunks/build/guest-C2xhHt8b.mjs.map (345 B) (207 B gzip)
+  ├─ .output/server/chunks/build/history-Dg4XEE1g.mjs (11.3 kB) (3.15 kB gzip)
+  ├─ .output/server/chunks/build/history-Dg4XEE1g.mjs.map (4.61 kB) (1.31 kB gzip)
+  ├─ .output/server/chunks/build/index-Bd8btGVT.mjs (37.9 kB) (7.23 kB gzip)
+  ├─ .output/server/chunks/build/index-Bd8btGVT.mjs.map (8.2 kB) (1.66 kB gzip)
+  ├─ .output/server/chunks/build/index-Bl65PBzd.mjs (18.9 kB) (4.58 kB gzip)
+  ├─ .output/server/chunks/build/index-Bl65PBzd.mjs.map (8 kB) (1.95 kB gzip)
+  ├─ .output/server/chunks/build/index-C9DF8_k-.mjs (56.3 kB) (10.8 kB gzip)
+  ├─ .output/server/chunks/build/index-C9DF8_k-.mjs.map (23.6 kB) (4.5 kB gzip)
+  ├─ .output/server/chunks/build/index-CxMVMyUa.mjs (26.5 kB) (5.61 kB gzip)
+  ├─ .output/server/chunks/build/index-CxMVMyUa.mjs.map (14.8 kB) (3.1 kB gzip)
+  ├─ .output/server/chunks/build/index-Dn1mbCDH.mjs (50.9 kB) (10.3 kB gzip)
+  ├─ .output/server/chunks/build/index-Dn1mbCDH.mjs.map (24.1 kB) (4.78 kB gzip)
+  ├─ .output/server/chunks/build/index-JSBmt9mT.mjs (72.1 kB) (11.3 kB gzip)
+  ├─ .output/server/chunks/build/index-JSBmt9mT.mjs.map (29.9 kB) (5.15 kB gzip)
+  ├─ .output/server/chunks/build/index-styles.Bjxu-cYw.mjs (7.37 kB) (2.35 kB gzip)
+  ├─ .output/server/chunks/build/index-styles.Bjxu-cYw.mjs.map (207 B) (153 B gzip)
+  ├─ .output/server/chunks/build/index-styles.CLRMHELl.mjs (2.37 kB) (824 B gzip)
+  ├─ .output/server/chunks/build/index-styles.CLRMHELl.mjs.map (190 B) (155 B gzip)
+  ├─ .output/server/chunks/build/index-styles.DeI37TWh.mjs (11.6 kB) (2.95 kB gzip)
+  ├─ .output/server/chunks/build/index-styles.DeI37TWh.mjs.map (207 B) (155 B gzip)
+  ├─ .output/server/chunks/build/index-styles.DKYtFZXR.mjs (456 B) (258 B gzip)
+  ├─ .output/server/chunks/build/index-styles.DKYtFZXR.mjs.map (190 B) (156 B gzip)
+  ├─ .output/server/chunks/build/index-styles.Dsk_KCPg.mjs (1.56 kB) (560 B gzip)
+  ├─ .output/server/chunks/build/index-styles.Dsk_KCPg.mjs.map (190 B) (154 B gzip)
+  ├─ .output/server/chunks/build/index-styles.SkkXD4XG.mjs (615 B) (360 B gzip)
+  ├─ .output/server/chunks/build/index-styles.SkkXD4XG.mjs.map (190 B) (156 B gzip)
+  ├─ .output/server/chunks/build/index-Witn1XRy.mjs (42.8 kB) (7.19 kB gzip)
+  ├─ .output/server/chunks/build/index-Witn1XRy.mjs.map (15.9 kB) (3.25 kB gzip)
+  ├─ .output/server/chunks/build/integrity-DGOViVrW.mjs (12.5 kB) (3.32 kB gzip)
+  ├─ .output/server/chunks/build/integrity-DGOViVrW.mjs.map (3.7 kB) (1.08 kB gzip)
+  ├─ .output/server/chunks/build/integrity-styles.DXxZ2roq.mjs (678 B) (364 B gzip)
+  ├─ .output/server/chunks/build/integrity-styles.DXxZ2roq.mjs.map (198 B) (155 B gzip)
+  ├─ .output/server/chunks/build/LivePulse-Cb3Yd89n.mjs (1.53 kB) (785 B gzip)
+  ├─ .output/server/chunks/build/LivePulse-Cb3Yd89n.mjs.map (451 B) (268 B gzip)
+  ├─ .output/server/chunks/build/login-9tPmDFqy.mjs (9.53 kB) (2.86 kB gzip)
+  ├─ .output/server/chunks/build/login-9tPmDFqy.mjs.map (3.43 kB) (997 B gzip)
+  ├─ .output/server/chunks/build/login-DXHZQFDU.mjs (4.23 kB) (1.55 kB gzip)
+  ├─ .output/server/chunks/build/login-DXHZQFDU.mjs.map (1.33 kB) (485 B gzip)
+  ├─ .output/server/chunks/build/login-styles.nqrHJFTM.mjs (8.93 kB) (2.72 kB gzip)
+  ├─ .output/server/chunks/build/login-styles.nqrHJFTM.mjs.map (207 B) (156 B gzip)
+  ├─ .output/server/chunks/build/matches-DuTDOzUr.mjs (17.4 kB) (4.97 kB gzip)
+  ├─ .output/server/chunks/build/matches-DuTDOzUr.mjs.map (10.4 kB) (2.55 kB gzip)
+  ├─ .output/server/chunks/build/matchmaker-BOpLc_QP.mjs (63.4 kB) (12.2 kB gzip)
+  ├─ .output/server/chunks/build/matchmaker-BOpLc_QP.mjs.map (33.1 kB) (6.38 kB gzip)
+  ├─ .output/server/chunks/build/matchmaker-styles.DoX1cOlM.mjs (12 kB) (2.79 kB gzip)
+  ├─ .output/server/chunks/build/matchmaker-styles.DoX1cOlM.mjs.map (200 B) (157 B gzip)
+  ├─ .output/server/chunks/build/me-BGdRJ3Ks.mjs (26.1 kB) (5.25 kB gzip)
+  ├─ .output/server/chunks/build/me-BGdRJ3Ks.mjs.map (7.96 kB) (1.78 kB gzip)
+  ├─ .output/server/chunks/build/me-styles.DRhtXuR7.mjs (1.11 kB) (478 B gzip)
+  ├─ .output/server/chunks/build/me-styles.DRhtXuR7.mjs.map (184 B) (152 B gzip)
+  ├─ .output/server/chunks/build/notifications-D19gd3Kc.mjs (7.36 kB) (2.34 kB gzip)
+  ├─ .output/server/chunks/build/notifications-D19gd3Kc.mjs.map (2.96 kB) (911 B gzip)
+  ├─ .output/server/chunks/build/NuxtImg-BIskjYEP.mjs (15.7 kB) (4.57 kB gzip)
+  ├─ .output/server/chunks/build/NuxtImg-BIskjYEP.mjs.map (777 B) (296 B gzip)
+  ├─ .output/server/chunks/build/Pagination-C7tCZbtj.mjs (4.17 kB) (1.35 kB gzip)
+  ├─ .output/server/chunks/build/Pagination-C7tCZbtj.mjs.map (2.43 kB) (709 B gzip)
+  ├─ .output/server/chunks/build/Pagination-styles.BFkdj93M.mjs (1.66 kB) (613 B gzip)
+  ├─ .output/server/chunks/build/Pagination-styles.BFkdj93M.mjs.map (200 B) (156 B gzip)
+  ├─ .output/server/chunks/build/payments-BndVnydw.mjs (29.4 kB) (6.32 kB gzip)
+  ├─ .output/server/chunks/build/payments-BndVnydw.mjs.map (14.1 kB) (3.19 kB gzip)
+  ├─ .output/server/chunks/build/payments-styles.BGI651Sc.mjs (6.99 kB) (1.82 kB gzip)
+  ├─ .output/server/chunks/build/payments-styles.BGI651Sc.mjs.map (196 B) (157 B gzip)
+  ├─ .output/server/chunks/build/pricing-D-FGEN7e.mjs (28.2 kB) (4.66 kB gzip)
+  ├─ .output/server/chunks/build/pricing-D-FGEN7e.mjs.map (7.05 kB) (1.32 kB gzip)
+  ├─ .output/server/chunks/build/privacy-i6dY7kKl.mjs (14.9 kB) (3.82 kB gzip)
+  ├─ .output/server/chunks/build/privacy-i6dY7kKl.mjs.map (2.31 kB) (682 B gzip)
+  ├─ .output/server/chunks/build/privacy-styles.CVkpDvQm.mjs (5.26 kB) (1.59 kB gzip)
+  ├─ .output/server/chunks/build/privacy-styles.CVkpDvQm.mjs.map (211 B) (156 B gzip)
+  ├─ .output/server/chunks/build/ProfileBadges-styles.DgLmV9G5.mjs (1.77 kB) (593 B gzip)
+  ├─ .output/server/chunks/build/ProfileBadges-styles.DgLmV9G5.mjs.map (206 B) (160 B gzip)
+  ├─ .output/server/chunks/build/ProseA-CN_l8ToP.mjs (2.09 kB) (838 B gzip)
+  ├─ .output/server/chunks/build/ProseA-CN_l8ToP.mjs.map (216 B) (182 B gzip)
+  ├─ .output/server/chunks/build/ProseBlockquote-BipOirYY.mjs (1.52 kB) (644 B gzip)
+  ├─ .output/server/chunks/build/ProseBlockquote-BipOirYY.mjs.map (134 B) (104 B gzip)
+  ├─ .output/server/chunks/build/ProseCode-BReGL0Bm.mjs (1.49 kB) (638 B gzip)
+  ├─ .output/server/chunks/build/ProseCode-BReGL0Bm.mjs.map (128 B) (98 B gzip)
+  ├─ .output/server/chunks/build/ProseEm-C0YkHPYk.mjs (1.48 kB) (638 B gzip)
+  ├─ .output/server/chunks/build/ProseEm-C0YkHPYk.mjs.map (126 B) (96 B gzip)
+  ├─ .output/server/chunks/build/ProseH1-C7l-fiG4.mjs (2.3 kB) (904 B gzip)
+  ├─ .output/server/chunks/build/ProseH1-C7l-fiG4.mjs.map (195 B) (171 B gzip)
+  ├─ .output/server/chunks/build/ProseH2-D4Ctv4P7.mjs (2.31 kB) (907 B gzip)
+  ├─ .output/server/chunks/build/ProseH2-D4Ctv4P7.mjs.map (195 B) (171 B gzip)
+  ├─ .output/server/chunks/build/ProseH3-C1RH9JL6.mjs (2.31 kB) (908 B gzip)
+  ├─ .output/server/chunks/build/ProseH3-C1RH9JL6.mjs.map (195 B) (172 B gzip)
+  ├─ .output/server/chunks/build/ProseH4-D4WwGv6d.mjs (2.31 kB) (908 B gzip)
+  ├─ .output/server/chunks/build/ProseH4-D4WwGv6d.mjs.map (195 B) (173 B gzip)
+  ├─ .output/server/chunks/build/ProseH5-BuKU0o3e.mjs (2.31 kB) (906 B gzip)
+  ├─ .output/server/chunks/build/ProseH5-BuKU0o3e.mjs.map (195 B) (171 B gzip)
+  ├─ .output/server/chunks/build/ProseH6-B6gqBSJL.mjs (2.31 kB) (907 B gzip)
+  ├─ .output/server/chunks/build/ProseH6-B6gqBSJL.mjs.map (195 B) (172 B gzip)
+  ├─ .output/server/chunks/build/ProseHr-CzXbMEOo.mjs (1.38 kB) (601 B gzip)
+  ├─ .output/server/chunks/build/ProseHr-CzXbMEOo.mjs.map (124 B) (96 B gzip)
+  ├─ .output/server/chunks/build/ProseImg-dfqBKnQm.mjs (2.46 kB) (983 B gzip)
+  ├─ .output/server/chunks/build/ProseImg-dfqBKnQm.mjs.map (228 B) (184 B gzip)
+  ├─ .output/server/chunks/build/ProseLi-8oGZ6PJG.mjs (1.48 kB) (638 B gzip)
+  ├─ .output/server/chunks/build/ProseLi-8oGZ6PJG.mjs.map (126 B) (96 B gzip)
+  ├─ .output/server/chunks/build/ProseOl-kd7O42CH.mjs (1.48 kB) (639 B gzip)
+  ├─ .output/server/chunks/build/ProseOl-kd7O42CH.mjs.map (126 B) (96 B gzip)
+  ├─ .output/server/chunks/build/ProseP-B7zzkIkt.mjs (1.47 kB) (637 B gzip)
+  ├─ .output/server/chunks/build/ProseP-B7zzkIkt.mjs.map (125 B) (95 B gzip)
+  ├─ .output/server/chunks/build/ProsePre-ByG-rB1z.mjs (1.25 kB) (555 B gzip)
+  ├─ .output/server/chunks/build/ProsePre-ByG-rB1z.mjs.map (197 B) (171 B gzip)
+  ├─ .output/server/chunks/build/ProsePre-styles.CPQfztSD.mjs (265 B) (179 B gzip)
+  ├─ .output/server/chunks/build/ProsePre-styles.CPQfztSD.mjs.map (196 B) (155 B gzip)
+  ├─ .output/server/chunks/build/ProseScript-B3ujpe25.mjs (1.07 kB) (572 B gzip)
+  ├─ .output/server/chunks/build/ProseScript-B3ujpe25.mjs.map (203 B) (173 B gzip)
+  ├─ .output/server/chunks/build/ProseStrong-AttXcuc4.mjs (1.5 kB) (639 B gzip)
+  ├─ .output/server/chunks/build/ProseStrong-AttXcuc4.mjs.map (130 B) (100 B gzip)
+  ├─ .output/server/chunks/build/ProseTable-CTUxqz7y.mjs (1.5 kB) (641 B gzip)
+  ├─ .output/server/chunks/build/ProseTable-CTUxqz7y.mjs.map (129 B) (99 B gzip)
+  ├─ .output/server/chunks/build/ProseTbody-oona66Dr.mjs (1.5 kB) (639 B gzip)
+  ├─ .output/server/chunks/build/ProseTbody-oona66Dr.mjs.map (129 B) (99 B gzip)
+  ├─ .output/server/chunks/build/ProseTd-BHOLft7z.mjs (1.48 kB) (638 B gzip)
+  ├─ .output/server/chunks/build/ProseTd-BHOLft7z.mjs.map (126 B) (96 B gzip)
+  ├─ .output/server/chunks/build/ProseTh-Ms5Ktq23.mjs (1.48 kB) (637 B gzip)
+  ├─ .output/server/chunks/build/ProseTh-Ms5Ktq23.mjs.map (126 B) (96 B gzip)
+  ├─ .output/server/chunks/build/ProseThead-Bupe5OJq.mjs (1.5 kB) (640 B gzip)
+  ├─ .output/server/chunks/build/ProseThead-Bupe5OJq.mjs.map (129 B) (99 B gzip)
+  ├─ .output/server/chunks/build/ProseTr-iqXZSYwe.mjs (1.48 kB) (636 B gzip)
+  ├─ .output/server/chunks/build/ProseTr-iqXZSYwe.mjs.map (126 B) (96 B gzip)
+  ├─ .output/server/chunks/build/ProseUl-iDNud3o1.mjs (1.48 kB) (635 B gzip)
+  ├─ .output/server/chunks/build/ProseUl-iDNud3o1.mjs.map (126 B) (96 B gzip)
+  ├─ .output/server/chunks/build/questions-Octe4DEd.mjs (15.7 kB) (3.92 kB gzip)
+  ├─ .output/server/chunks/build/questions-Octe4DEd.mjs.map (6.28 kB) (1.44 kB gzip)
+  ├─ .output/server/chunks/build/queue-DqFCJt4u.mjs (17 kB) (4.26 kB gzip)
+  ├─ .output/server/chunks/build/queue-DqFCJt4u.mjs.map (7.62 kB) (1.92 kB gzip)
+  ├─ .output/server/chunks/build/release-notes-B_41pnQ3.mjs (30.1 kB) (7.18 kB gzip)
+  ├─ .output/server/chunks/build/release-notes-B_41pnQ3.mjs.map (701 B) (364 B gzip)
+  ├─ .output/server/chunks/build/release-notes-styles.CcrWLH-q.mjs (5.29 kB) (1.6 kB gzip)
+  ├─ .output/server/chunks/build/release-notes-styles.CcrWLH-q.mjs.map (223 B) (159 B gzip)
+  ├─ .output/server/chunks/build/reports-CvMXnbJk.mjs (19.7 kB) (4.91 kB gzip)
+  ├─ .output/server/chunks/build/reports-CvMXnbJk.mjs.map (10.3 kB) (2.49 kB gzip)
+  ├─ .output/server/chunks/build/reports-styles.BrZLHX7_.mjs (6.98 kB) (1.79 kB gzip)
+  ├─ .output/server/chunks/build/reports-styles.BrZLHX7_.mjs.map (194 B) (156 B gzip)
+  ├─ .output/server/chunks/build/scoring-logic-styles.nLNH_f35.mjs (1.13 kB) (559 B gzip)
+  ├─ .output/server/chunks/build/scoring-logic-styles.nLNH_f35.mjs.map (206 B) (160 B gzip)
+  ├─ .output/server/chunks/build/scoring-logic-xCRDQNOR.mjs (14.6 kB) (4.07 kB gzip)
+  ├─ .output/server/chunks/build/scoring-logic-xCRDQNOR.mjs.map (4.5 kB) (1.09 kB gzip)
+  ├─ .output/server/chunks/build/server.mjs (79.6 kB) (19.1 kB gzip)
+  ├─ .output/server/chunks/build/server.mjs.map (5.95 kB) (2 kB gzip)
+  ├─ .output/server/chunks/build/settings-DjEIfXmv.mjs (5.76 kB) (1.68 kB gzip)
+  ├─ .output/server/chunks/build/settings-DjEIfXmv.mjs.map (1.53 kB) (551 B gzip)
+  ├─ .output/server/chunks/build/settings-styles.DxP2bQjr.mjs (1.63 kB) (596 B gzip)
+  ├─ .output/server/chunks/build/settings-styles.DxP2bQjr.mjs.map (196 B) (155 B gzip)
+  ├─ .output/server/chunks/build/Sheet-styles.Dh50zu5Y.mjs (1.22 kB) (354 B gzip)
+  ├─ .output/server/chunks/build/Sheet-styles.Dh50zu5Y.mjs.map (190 B) (156 B gzip)
+  ├─ .output/server/chunks/build/styles.mjs (8.13 kB) (1.34 kB gzip)
+  ├─ .output/server/chunks/build/styles.mjs.map (4.73 kB) (704 B gzip)
+  ├─ .output/server/chunks/build/SubscriptionCard-CnSHVpcX.mjs (40.8 kB) (8.99 kB gzip)
+  ├─ .output/server/chunks/build/SubscriptionCard-CnSHVpcX.mjs.map (12.4 kB) (2.9 kB gzip)
+  ├─ .output/server/chunks/build/terms-DE6Aunsd.mjs (13.3 kB) (3.48 kB gzip)
+  ├─ .output/server/chunks/build/terms-DE6Aunsd.mjs.map (2.3 kB) (677 B gzip)
+  ├─ .output/server/chunks/build/terms-styles.CWxvQOkM.mjs (5.25 kB) (1.59 kB gzip)
+  ├─ .output/server/chunks/build/terms-styles.CWxvQOkM.mjs.map (207 B) (156 B gzip)
+  ├─ .output/server/chunks/build/useDashboard-DK1HTjHH.mjs (6.08 kB) (1.74 kB gzip)
+  ├─ .output/server/chunks/build/useDashboard-DK1HTjHH.mjs.map (6.09 kB) (1.6 kB gzip)
+  ├─ .output/server/chunks/build/useNotifications-Du0MElvj.mjs (2.23 kB) (742 B gzip)
+  ├─ .output/server/chunks/build/useNotifications-Du0MElvj.mjs.map (2.31 kB) (710 B gzip)
+  ├─ .output/server/chunks/build/usePaystack-Dz8LLGVR.mjs (1.83 kB) (747 B gzip)
+  ├─ .output/server/chunks/build/usePaystack-Dz8LLGVR.mjs.map (1.77 kB) (624 B gzip)
+  ├─ .output/server/chunks/build/usePersona-BkrR6WC0.mjs (3.66 kB) (1.39 kB gzip)
+  ├─ .output/server/chunks/build/usePersona-BkrR6WC0.mjs.map (3.43 kB) (921 B gzip)
+  ├─ .output/server/chunks/build/UserActivityTimeline-styles.Ba-mHNym.mjs (2.4 kB) (863 B gzip)
+  ├─ .output/server/chunks/build/UserActivityTimeline-styles.Ba-mHNym.mjs.map (220 B) (164 B gzip)
+  ├─ .output/server/chunks/build/users-DMj__0Ce.mjs (69.6 kB) (13.3 kB gzip)
+  ├─ .output/server/chunks/build/users-DMj__0Ce.mjs.map (33.8 kB) (6.81 kB gzip)
+  ├─ .output/server/chunks/build/users-styles.BFp7cjv2.mjs (21.7 kB) (4.79 kB gzip)
+  ├─ .output/server/chunks/build/users-styles.BFp7cjv2.mjs.map (207 B) (153 B gzip)
+  ├─ .output/server/chunks/build/useSupabaseClient-DykwVqLQ.mjs (218 B) (170 B gzip)
+  ├─ .output/server/chunks/build/useSupabaseClient-DykwVqLQ.mjs.map (206 B) (173 B gzip)
+  ├─ .output/server/chunks/build/useToast-Cgwp71Zz.mjs (1.28 kB) (527 B gzip)
+  ├─ .output/server/chunks/build/useToast-Cgwp71Zz.mjs.map (1.74 kB) (555 B gzip)
+  ├─ .output/server/chunks/build/verify-LRXnjTrC.mjs (1.96 kB) (842 B gzip)
+  ├─ .output/server/chunks/build/verify-LRXnjTrC.mjs.map (561 B) (286 B gzip)
+  ├─ .output/server/chunks/build/verify-styles.CMDE9o2L.mjs (3.08 kB) (1.35 kB gzip)
+  ├─ .output/server/chunks/build/verify-styles.CMDE9o2L.mjs.map (209 B) (155 B gzip)
+  ├─ .output/server/chunks/nitro/nitro.mjs (260 kB) (66.4 kB gzip)
+  ├─ .output/server/chunks/nitro/nitro.mjs.map (4.1 kB) (981 B gzip)
+  ├─ .output/server/chunks/routes/api/admin/analytics.get.mjs (5.32 kB) (1.32 kB gzip)
+  ├─ .output/server/chunks/routes/api/admin/analytics.get.mjs.map (5.43 kB) (697 B gzip)
+  ├─ .output/server/chunks/routes/api/admin/bulk-sms.post.mjs (4.5 kB) (1.64 kB gzip)
+  ├─ .output/server/chunks/routes/api/admin/bulk-sms.post.mjs.map (4.17 kB) (823 B gzip)
+  ├─ .output/server/chunks/routes/api/admin/notify-incomplete-profiles.post.mjs (5.05 kB) (1.66 kB gzip)
+  ├─ .output/server/chunks/routes/api/admin/notify-incomplete-profiles.post.mjs.map (4.31 kB) (796 B gzip)
+  ├─ .output/server/chunks/routes/api/admin/notify-missing-details.post.mjs (5.72 kB) (1.96 kB gzip)
+  ├─ .output/server/chunks/routes/api/admin/notify-missing-details.post.mjs.map (5.04 kB) (961 B gzip)
+  ├─ .output/server/chunks/routes/api/admin/notify-user-missing-details.post.mjs (5.24 kB) (1.84 kB gzip)
+  ├─ .output/server/chunks/routes/api/admin/notify-user-missing-details.post.mjs.map (4.54 kB) (841 B gzip)
+  ├─ .output/server/chunks/routes/api/admin/quality-audit.post.mjs (6.19 kB) (2.08 kB gzip)
+  ├─ .output/server/chunks/routes/api/admin/quality-audit.post.mjs.map (5.71 kB) (1.03 kB gzip)
+  ├─ .output/server/chunks/routes/api/admin/request-match-feedback.post.mjs (6.58 kB) (2.01 kB gzip)
+  ├─ .output/server/chunks/routes/api/admin/request-match-feedback.post.mjs.map (5.72 kB) (977 B gzip)
+  ├─ .output/server/chunks/routes/api/admin/seed-users.post.mjs (7.51 kB) (3.03 kB gzip)
+  ├─ .output/server/chunks/routes/api/admin/seed-users.post.mjs.map (5.94 kB) (1 kB gzip)
+  ├─ .output/server/chunks/routes/api/admin/users/_id_.delete.mjs (2.88 kB) (1 kB gzip)
+  ├─ .output/server/chunks/routes/api/admin/users/_id_.delete.mjs.map (2.29 kB) (513 B gzip)
+  ├─ .output/server/chunks/routes/api/auth/check-existing-user.post.mjs (3 kB) (1.13 kB gzip)
+  ├─ .output/server/chunks/routes/api/auth/check-existing-user.post.mjs.map (2.44 kB) (546 B gzip)
+  ├─ .output/server/chunks/routes/api/auth/login.post.mjs (3.88 kB) (1.39 kB gzip)
+  ├─ .output/server/chunks/routes/api/auth/login.post.mjs.map (3.4 kB) (664 B gzip)
+  ├─ .output/server/chunks/routes/api/auth/signup.post.mjs (5.44 kB) (1.86 kB gzip)
+  ├─ .output/server/chunks/routes/api/auth/signup.post.mjs.map (5.01 kB) (963 B gzip)
+  ├─ .output/server/chunks/routes/api/cron/auto-match.get.mjs (15.9 kB) (4.8 kB gzip)
+  ├─ .output/server/chunks/routes/api/cron/auto-match.get.mjs.map (14.1 kB) (2.05 kB gzip)
+  ├─ .output/server/chunks/routes/api/cron/auto-verify.get.mjs (3.09 kB) (1.27 kB gzip)
+  ├─ .output/server/chunks/routes/api/cron/auto-verify.get.mjs.map (2.61 kB) (600 B gzip)
+  ├─ .output/server/chunks/routes/api/cron/match-expiration-reminder.get.mjs (3.92 kB) (1.49 kB gzip)
+  ├─ .output/server/chunks/routes/api/cron/match-expiration-reminder.get.mjs.map (3.06 kB) (682 B gzip)
+  ├─ .output/server/chunks/routes/api/cron/match-feedback.get.mjs (3.17 kB) (1.33 kB gzip)
+  ├─ .output/server/chunks/routes/api/cron/match-feedback.get.mjs.map (2.54 kB) (596 B gzip)
+  ├─ .output/server/chunks/routes/api/cron/remind-profiles.get.mjs (3.05 kB) (1.32 kB gzip)
+  ├─ .output/server/chunks/routes/api/cron/remind-profiles.get.mjs.map (2.37 kB) (570 B gzip)
+  ├─ .output/server/chunks/routes/api/cron/vibe-refresh.get.mjs (2.83 kB) (1.26 kB gzip)
+  ├─ .output/server/chunks/routes/api/cron/vibe-refresh.get.mjs.map (2.29 kB) (549 B gzip)
+  ├─ .output/server/chunks/routes/api/enrich_matches.post.mjs (1.78 kB) (725 B gzip)
+  ├─ .output/server/chunks/routes/api/enrich_matches.post.mjs.map (1.34 kB) (376 B gzip)
+  ├─ .output/server/chunks/routes/api/index.get.mjs (2.72 kB) (983 B gzip)
+  ├─ .output/server/chunks/routes/api/index.get.mjs.map (2.4 kB) (512 B gzip)
+  ├─ .output/server/chunks/routes/api/matches.get.mjs (2.16 kB) (844 B gzip)
+  ├─ .output/server/chunks/routes/api/matches.get.mjs.map (1.52 kB) (411 B gzip)
+  ├─ .output/server/chunks/routes/api/me/notifications.get.mjs (2.01 kB) (782 B gzip)
+  ├─ .output/server/chunks/routes/api/me/notifications.get.mjs.map (1.67 kB) (400 B gzip)
+  ├─ .output/server/chunks/routes/api/paystack/initialize.post.mjs (6.31 kB) (1.9 kB gzip)
+  ├─ .output/server/chunks/routes/api/paystack/initialize.post.mjs.map (5.29 kB) (934 B gzip)
+  ├─ .output/server/chunks/routes/api/paystack/verify.get.mjs (6.89 kB) (1.96 kB gzip)
+  ├─ .output/server/chunks/routes/api/paystack/verify.get.mjs.map (6.09 kB) (1.08 kB gzip)
+  ├─ .output/server/chunks/routes/api/paystack/webhook-test.get.mjs (807 B) (410 B gzip)
+  ├─ .output/server/chunks/routes/api/paystack/webhook-test.get.mjs.map (394 B) (206 B gzip)
+  ├─ .output/server/chunks/routes/api/paystack/webhook.post.mjs (10.4 kB) (2.88 kB gzip)
+  ├─ .output/server/chunks/routes/api/paystack/webhook.post.mjs.map (8.63 kB) (1.35 kB gzip)
+  ├─ .output/server/chunks/routes/api/profiles/create.post.mjs (2.6 kB) (998 B gzip)
+  ├─ .output/server/chunks/routes/api/profiles/create.post.mjs.map (2.16 kB) (505 B gzip)
+  ├─ .output/server/chunks/routes/api/referrals/track.post.mjs (2.4 kB) (893 B gzip)
+  ├─ .output/server/chunks/routes/api/referrals/track.post.mjs.map (1.94 kB) (459 B gzip)
+  ├─ .output/server/chunks/routes/api/reports.post.mjs (3.03 kB) (1.15 kB gzip)
+  ├─ .output/server/chunks/routes/api/reports.post.mjs.map (2.44 kB) (508 B gzip)
+  ├─ .output/server/chunks/routes/api/send-sms.post.mjs (1.84 kB) (806 B gzip)
+  ├─ .output/server/chunks/routes/api/send-sms.post.mjs.map (1.36 kB) (363 B gzip)
+  ├─ .output/server/chunks/routes/api/sitemap.xml.get.mjs (2.36 kB) (1.05 kB gzip)
+  ├─ .output/server/chunks/routes/api/sitemap.xml.get.mjs.map (1.94 kB) (504 B gzip)
+  ├─ .output/server/chunks/routes/api/verify-admin-login.post.mjs (3.08 kB) (1.22 kB gzip)
+  ├─ .output/server/chunks/routes/api/verify-admin-login.post.mjs.map (2.9 kB) (582 B gzip)
+  ├─ .output/server/chunks/routes/renderer.mjs (15 kB) (4.66 kB gzip)
+  ├─ .output/server/chunks/routes/renderer.mjs.map (763 B) (268 B gzip)
+  ├─ .output/server/chunks/virtual/_virtual_spa-template.mjs (94 B) (100 B gzip)
+  ├─ .output/server/chunks/virtual/_virtual_spa-template.mjs.map (90 B) (98 B gzip)
+  ├─ .output/server/index.mjs (567 B) (280 B gzip)
+  └─ .output/server/package.json (6.27 kB) (1.72 kB gzip)
+Σ Total size: 11.9 MB (3.35 MB gzip)
+[nitro] ✔ You can preview this build using node .output/server/index.mjs
+│
+└  ✨ Build complete!
