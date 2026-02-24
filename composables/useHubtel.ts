@@ -5,7 +5,7 @@ import type { M2MDatabase } from '~/types/database.types'
  * Handles SMS sending and OTP verification via server API
  */
 export const useHubtel = () => {
-    const supabase = useSupabaseClient<M2MDatabase>() as any
+    const supabase = useSupabaseClient<M2MDatabase>()
     const config = useRuntimeConfig()
 
     /**
@@ -40,15 +40,15 @@ export const useHubtel = () => {
             console.log('💾 Attempting to store OTP in database...')
 
             // Store OTP in database 
-            // @ts-ignore
             const { data, error } = await supabase
+                .schema('m2m')
                 .from('otp_codes')
                 .upsert({
                     phone,
                     code: otp,
                     expires_at: expiresAt.toISOString(),
                     used: false
-                } as any, { onConflict: 'phone' })
+                }, { onConflict: 'phone' })
                 .select()
 
             if (error) {
@@ -89,15 +89,15 @@ export const useHubtel = () => {
         console.log('🔍 Verifying OTP for:', phone, 'Code:', code)
 
         try {
-            // @ts-ignore
             const { data, error } = await supabase
+                .schema('m2m')
                 .from('otp_codes')
                 .select('*')
                 .eq('phone', phone)
                 .eq('code', code)
                 .eq('used', false)
                 .gt('expires_at', new Date().toISOString())
-                .maybeSingle() // Use maybeSingle() instead of single() to avoid error on no results
+                .maybeSingle()
 
             if (error) {
                 console.error('❌ OTP query error:', error)
@@ -114,10 +114,10 @@ export const useHubtel = () => {
             console.log('✅ OTP verified successfully!')
 
             // Mark OTP as used
-            // @ts-ignore
             await supabase
+                .schema('m2m')
                 .from('otp_codes')
-                .update({ used: true } as any)
+                .update({ used: true })
                 .eq('phone', phone)
                 .eq('code', code)
 

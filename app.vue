@@ -1,56 +1,24 @@
 <template>
   <div class="app-wrapper">
-    <!-- Page Loading Overlay removed to prevent covering persistent navigation. -->
     <NuxtLayout>
-      <NuxtPage :transition="{
-        name: 'page',
-        mode: 'out-in'
-      }" />
+      <NuxtPage />
     </NuxtLayout>
-    
-    <!-- Global Toast Container -->
-    <UiToastContainer />
-    
-    <!-- Global Confetti Container -->
-    <UiConfettiContainer />
+    <UNavbar />
   </div>
 </template>
 
 <script setup lang="ts">
-// Using Nuxt's default page transitions.
+// Global app logic
 </script>
 
 <style>
-/* Page Transition Animations */
-.page-enter-active {
-  transition: all 0.4s cubic-bezier(0.22, 1, 0.36, 1);
-}
-
+.page-enter-active,
 .page-leave-active {
-  transition: all 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+  transition: all 0.2s;
 }
-
-.page-enter-from {
-  opacity: 0;
-  transform: translateY(20px) scale(0.98);
-  filter: blur(4px);
-}
-
+.page-enter-from,
 .page-leave-to {
   opacity: 0;
-  transform: translateY(-10px) scale(0.99);
+  filter: blur(1rem);
 }
-
-/* Loading overlay transition */
-.loading-enter-active,
-.loading-leave-active {
-  transition: opacity 0.3s ease;
-}
-
-.loading-enter-from,
-.loading-leave-to {
-  opacity: 0;
-}
-
-
 </style>

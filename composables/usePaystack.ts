@@ -45,7 +45,7 @@ export const usePaystack = () => {
      * Verify payment status
      */
     const verifyPayment = async (reference: string) => {
-        const response = await $fetch<{ status: string; data: any }>('/api/paystack/verify', {
+        const response = await $fetch<{ status: string; reference: string; amount: number; currency: string; metadata: any }>('/api/paystack/verify', {
             method: 'GET',
             query: { reference }
         })

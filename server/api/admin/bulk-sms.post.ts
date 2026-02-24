@@ -6,7 +6,8 @@
  * Requires admin authentication.
  */
 
-import { createClient } from '@supabase/supabase-js'
+import { serverSupabaseServiceRole, serverSupabaseUser } from '#supabase/server'
+import type { M2MDatabase } from '~/types/database.types'
 
 interface SMSRecipient {
     phone: string
@@ -75,42 +76,28 @@ async function sendSingleSMS(
 }
 
 export default defineEventHandler(async (event) => {
-    const config = useRuntimeConfig()
-
-    // Create admin client for auth check
-    const supabaseAdmin = createClient(
-        config.supabaseUrl,
-        config.supabaseServiceKey,
-        { db: { schema: 'm2m' } }
-    )
-
-    // Get auth header
-    const authHeader = getHeader(event, 'authorization')
-    if (!authHeader?.startsWith('Bearer ')) {
+    // 1. Verify user is authenticated
+    const user = await serverSupabaseUser(event)
+    if (!user) {
         throw createError({ statusCode: 401, message: 'Unauthorized' })
     }
 
-    const token = authHeader.replace('Bearer ', '')
+    const config = useRuntimeConfig()
+    const supabase = serverSupabaseServiceRole<M2MDatabase>(event)
 
-    // Verify the user and check if admin
-    const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(token)
-
-    if (authError || !user) {
-        throw createError({ statusCode: 401, message: 'Invalid token' })
-    }
-
-    // Check admin status
-    const { data: adminRecord } = await supabaseAdmin
+    // 2. Check admin status in m2m schema
+    const { data: adminRecord } = await supabase
+        .schema('m2m')
         .from('admins')
         .select('role')
         .eq('id', user.id)
-        .single()
+        .maybeSingle()
 
     if (!adminRecord) {
         throw createError({ statusCode: 403, message: 'Admin access required' })
     }
 
-    // Parse request body
+    // 3. Parse request body
     const body = await readBody(event)
     const { recipients, message } = body as { recipients: SMSRecipient[]; message: string }
 
@@ -171,12 +158,12 @@ export default defineEventHandler(async (event) => {
             failCount++
         }
 
-        // Log progress every 10 messages
+        // Log progress
         if ((i + 1) % 10 === 0) {
             console.log(`[Bulk SMS] Progress: ${i + 1}/${recipients.length} (${successCount} success, ${failCount} failed)`)
         }
 
-        // Delay before next SMS (except for last one)
+        // Delay before next SMS
         if (i < recipients.length - 1) {
             await delay(DELAY_BETWEEN_SMS_MS)
         }

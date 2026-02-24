@@ -128,7 +128,7 @@
         "./mdc-imports"
       ],
       "#app-manifest": [
-        "./manifest/meta/dev"
+        "./manifest/meta/679c77be-c9dc-4d61-9c13-fcd9c186b8b0.json"
       ],
       "#components": [
         "./components"
@@ -181,6 +181,6 @@
     "../.data",
     "../node_modules/runtime/server",
     "../node_modules/dist/runtime/server",
-    "dev"
+    "../.output"
   ]
 }

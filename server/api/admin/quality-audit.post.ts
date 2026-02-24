@@ -7,7 +7,7 @@
  */
 
 import { serverSupabaseServiceRole, serverSupabaseUser } from '#supabase/server'
-import { createClient } from '@supabase/supabase-js'
+import type { M2MDatabase } from '~/types/database.types'
 import { auditProfileWithAI } from '~/server/utils/ai'
 
 export default defineEventHandler(async (event) => {
@@ -19,16 +19,15 @@ export default defineEventHandler(async (event) => {
     }
 
     const config = useRuntimeConfig()
-    const supabase = createClient(config.supabaseUrl!, config.supabaseServiceKey!, {
-        db: { schema: 'm2m' }
-    })
+    const supabase = serverSupabaseServiceRole<M2MDatabase>(event)
 
     // Check admin role
     const { data: admin } = await supabase
+        .schema('m2m')
         .from('admins')
         .select('role')
         .eq('id', userId)
-        .single()
+        .maybeSingle()
 
     if (!admin) {
         throw createError({ statusCode: 403, message: 'Admin access required' })
@@ -36,19 +35,17 @@ export default defineEventHandler(async (event) => {
 
     try {
         // 2. Fetch Data Aggregates
-        // Fetch all verified users + their match counts + their feedback stats
         const [
             { data: profiles },
             { data: matches },
             { data: vibeAnswers }
         ] = await Promise.all([
-            supabase.from('profiles').select('*').eq('is_verified', true),
-            supabase.from('matches').select('user_1_id, user_2_id, status, feedback_status, created_at'),
-            supabase.from('vibe_answers').select('user_id, question_key, answer_value')
+            supabase.schema('m2m').from('profiles').select('*').eq('is_verified', true),
+            supabase.schema('m2m').from('matches').select('user_1_id, user_2_id, status, feedback_status, created_at'),
+            supabase.schema('m2m').from('vibe_answers').select('user_id, question_key, answer_value')
         ])
 
         const body = await readBody(event).catch(() => ({}))
-
         if (!profiles) return { success: true, count: 0, results: [] }
 
         // 3. Process Logic
@@ -56,18 +53,16 @@ export default defineEventHandler(async (event) => {
         const sixtyDaysAgo = new Date(now.getTime() - 60 * 24 * 60 * 60 * 1000)
         const fortyEightHoursAgo = new Date(now.getTime() - 48 * 60 * 60 * 1000)
 
-        // Map vibe answers counts
         const vibeCounts = new Map<string, number>()
         vibeAnswers?.forEach(v => {
             const current = vibeCounts.get(v.user_id) || 0
             vibeCounts.set(v.user_id, current + 1)
         })
 
-        const auditResults = profiles.map((p: any) => {
+        const auditResults = profiles.map((p) => {
             const reasons: string[] = []
-            let qualityScore = 100 // Out of 100
+            let qualityScore = 100
 
-            // A. Payment Bouncers: 3+ pending matches > 48h
             const userMatches = matches?.filter(m => m.user_1_id === p.id || m.user_2_id === p.id) || []
             const pendingMatches = userMatches.filter(m =>
                 m.status === 'pending_payment' &&
@@ -78,26 +73,18 @@ export default defineEventHandler(async (event) => {
                 qualityScore -= 40
             }
 
-            // B. Ghosters: Unlocked matches but partners reported no response
-            const ghosterMatches = userMatches.filter(m => {
-                const isUser1 = m.user_1_id === p.id
-                // Partner feedback about THIS user
-                if (isUser1) return m.feedback_status === 'no_response' // simplified: usually feedback table would be separate
-                return m.feedback_status === 'no_response'
-            })
+            const ghosterMatches = userMatches.filter(m => m.feedback_status === 'no_response')
             if (ghosterMatches.length >= 2) {
                 reasons.push('High Ghosting Rate (Partner reported)')
                 qualityScore -= 50
             }
 
-            // C. Stale Activity: No update > 60 days AND 0 events attended
             const lastUpdated = new Date(p.updated_at)
             if (lastUpdated < sixtyDaysAgo && p.events_attended === 0) {
                 reasons.push('Inactive/Stale (No updates > 60 days)')
                 qualityScore -= 30
             }
 
-            // D. Low-Effort Profile: Missing key fields or low badge count
             const missingFields = []
             if (!p.occupation) missingFields.push('occupation')
             if (!p.genotype) missingFields.push('genotype')
@@ -127,21 +114,18 @@ export default defineEventHandler(async (event) => {
             }
         })
 
-        // 4. AI Deep Dive (Optional)
         const runAIDeepDive = body.runAIDeepDive === true
-
-        // Final Purge List (Score < 70 OR has specific reasons)
         let purgeList = auditResults
             .filter(r => r.quality_score < 70 || r.reasons.length > 0)
             .sort((a, b) => a.quality_score - b.quality_score)
 
-        const candidatesForAI = purgeList.slice(0, 10) // Audit up to 10 candidates
+        const candidatesForAI = purgeList.slice(0, 10)
 
         if (runAIDeepDive && candidatesForAI.length > 0) {
-            console.log(`[QualityAudit] Running AI Deep Dive for ${candidatesForAI.length} candidates...`)
             await Promise.all(candidatesForAI.map(async (candidate: any) => {
                 try {
                     const p = profiles.find(pr => pr.id === candidate.id)
+                    if (!p) return
                     const answers = vibeAnswers?.filter(v => v.user_id === candidate.id).map(v => ({
                         question: v.question_key,
                         answer: v.answer_value
@@ -159,21 +143,15 @@ export default defineEventHandler(async (event) => {
                         candidate.ai_analysis = aiResult
                         if (aiResult.coherence_score < 40) candidate.reasons.push(`AI: Low Coherence (${aiResult.coherence_score}%)`)
                         if (aiResult.effort_score < 30) candidate.reasons.push(`AI: Low Effort detected`)
-                    } else {
-                        candidate.reasons.push('AI Audit: No response from model')
                     }
                 } catch (err: any) {
                     console.error('[AI Audit Error]', err)
-                    candidate.reasons.push(`AI Audit Error: ${err.message || 'Unknown'}`)
                 }
             }))
 
-            // Re-sync purgeList to ensure reasons are updated
             purgeList = auditResults
                 .filter(r => r.quality_score < 70 || r.reasons.length > 0)
                 .sort((a, b) => a.quality_score - b.quality_score)
-        } else if (runAIDeepDive) {
-            console.log('[QualityAudit] RunAIDeepDive requested but no candidates < 70 score found.')
         }
 
         return {

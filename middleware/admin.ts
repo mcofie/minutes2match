@@ -50,12 +50,18 @@ export default defineNuxtRouteMiddleware(async (to) => {
         return navigateTo('/admin/login')
     }
 
-    const { data: admin, error } = await supabase
+    interface Admin {
+        role: 'super_admin' | 'moderator' | 'support'
+    }
+
+    const { data, error } = await supabase
         .schema('m2m')
         .from('admins')
         .select('role')
         .eq('id', userId)
-        .single()
+        .maybeSingle()
+
+    const admin = data as unknown as Admin | null
 
     if (error || !admin) {
         console.log('[Admin Middleware] Not an admin, redirecting to login', error)

@@ -6,7 +6,20 @@
  * Uses service role client to bypass RLS
  */
 
-import { createClient } from '@supabase/supabase-js'
+import { serverSupabaseServiceRole } from '#supabase/server'
+import type { M2MDatabase } from '~/types/database.types'
+
+interface PaystackResponse {
+    status: boolean
+    message: string
+    data: {
+        status: string
+        reference: string
+        amount: number
+        currency: string
+        metadata: any
+    }
+}
 
 export default defineEventHandler(async (event) => {
     const query = getQuery(event)
@@ -20,33 +33,19 @@ export default defineEventHandler(async (event) => {
     }
 
     const config = useRuntimeConfig()
-
-    // Use service role client to bypass RLS for payment updates
-    const supabaseUrl = config.supabaseUrl
-    const supabaseServiceKey = config.supabaseServiceKey
-
-    if (!supabaseUrl || !supabaseServiceKey) {
-        console.error('[Verify] Missing Supabase configuration')
-        throw createError({
-            statusCode: 500,
-            message: 'Server configuration error'
-        })
-    }
-
-    // Create client with m2m schema
-    const supabase = createClient(supabaseUrl, supabaseServiceKey, {
-        db: { schema: 'm2m' }
-    })
+    const supabase = serverSupabaseServiceRole<M2MDatabase>(event)
 
     console.log('[Verify] Processing payment verification for reference:', reference)
 
     try {
         // IDEMPOTENCY CHECK: Check if payment was already processed
+        // We use .schema('m2m') explicitly to be safe, though config says it's default
         const { data: existingPayment } = await supabase
+            .schema('m2m')
             .from('payments')
-            .select('id, status')
+            .select('id, status, metadata')
             .eq('provider_ref', reference)
-            .single()
+            .maybeSingle()
 
         if (existingPayment?.status === 'success') {
             console.log('[Verify] Payment already processed, returning cached result')
@@ -54,22 +53,13 @@ export default defineEventHandler(async (event) => {
                 status: 'success',
                 reference,
                 message: 'Payment already processed',
-                alreadyProcessed: true
+                alreadyProcessed: true,
+                metadata: existingPayment.metadata
             }
         }
 
         // Verify with Paystack
-        const response = await $fetch<{
-            status: boolean
-            message: string
-            data: {
-                status: string
-                reference: string
-                amount: number
-                currency: string
-                metadata: any
-            }
-        }>(`https://api.paystack.co/transaction/verify/${reference}`, {
+        const response = await $fetch<PaystackResponse>(`https://api.paystack.co/transaction/verify/${reference}`, {
             method: 'GET',
             headers: {
                 'Authorization': `Bearer ${config.paystackSecretKey}`
@@ -84,85 +74,59 @@ export default defineEventHandler(async (event) => {
         console.log('[Verify] Metadata:', JSON.stringify(metadata))
 
         // First check if payment record exists (for upsert)
-        const { data: paymentRecord, error: fetchError } = await supabase
+        const { data: paymentRecord } = await supabase
+            .schema('m2m')
             .from('payments')
             .select('id, status')
             .eq('provider_ref', reference)
             .maybeSingle()
 
-        if (fetchError) {
-            console.error('[Verify] Error fetching payment record:', fetchError)
-        }
-
-        let paymentRecordId = paymentRecord?.id
-
         if (paymentRecord) {
             // Update existing record
-            const { error: updateError } = await supabase
+            await supabase
+                .schema('m2m')
                 .from('payments')
                 .update({
-                    status: paymentSuccess ? 'success' : 'failed'
+                    status: (paymentSuccess ? 'success' : 'failed') as any
                 })
                 .eq('id', paymentRecord.id)
-
-            if (updateError) {
-                console.error('[Verify] Failed to update payment record:', updateError)
-            } else {
-                console.log('[Verify] Payment record updated:', paymentRecord.id)
-            }
         } else {
-            // Create new record if it doesn't exist
-            console.log('[Verify] No existing payment record found, creating one')
-            const { data: newPayment, error: insertError } = await supabase
+            // Create new record
+            await supabase
+                .schema('m2m')
                 .from('payments')
                 .insert({
                     user_id: metadata.userId,
-                    amount: response.data.amount / 100, // Convert from pesewas to cedis
+                    amount: response.data.amount / 100,
                     currency: response.data.currency || 'GHS',
                     provider: 'paystack',
                     provider_ref: reference,
                     purpose: metadata.purpose || 'match_unlock',
-                    status: paymentSuccess ? 'success' : 'failed',
+                    status: (paymentSuccess ? 'success' : 'failed') as any,
                     metadata: { ...metadata, paystack_response: response.data }
                 })
-                .select()
-                .single()
-
-            if (insertError) {
-                console.error('[Verify] Failed to create payment record:', insertError)
-            } else {
-                paymentRecordId = newPayment?.id
-                console.log('[Verify] Payment record CREATED:', paymentRecordId)
-            }
         }
 
-        // If payment successful, handle the purpose-specific logic
+        // Handle specific purposes
         if (paymentSuccess && metadata.purpose) {
             if (metadata.purpose === 'event_ticket' && metadata.eventId) {
-                // Update event booking to confirmed - this triggers the ticket count update
-                const { error: bookingError } = await supabase
+                await supabase
+                    .schema('m2m')
                     .from('event_bookings')
                     .update({ status: 'confirmed' })
                     .eq('event_id', metadata.eventId)
                     .eq('user_id', metadata.userId)
                     .eq('status', 'pending')
 
-                if (bookingError) {
-                    console.error('Failed to update booking:', bookingError)
-                } else {
-                    console.log('Event booking confirmed for user:', metadata.userId, 'event:', metadata.eventId)
-                }
-
             } else if (metadata.purpose === 'match_unlock' && metadata.matchId) {
-                // Get match details with user profiles
                 const { data: match } = await supabase
+                    .schema('m2m')
                     .from('matches')
                     .select('user_1_id, user_2_id, user_1_paid, user_2_paid')
                     .eq('id', metadata.matchId)
                     .single()
 
                 if (match) {
-                    // Determine which user paid
                     const isUser1 = match.user_1_id === metadata.userId
                     const otherUserId = isUser1 ? match.user_2_id : match.user_1_id
                     const updateData: any = {}
@@ -175,82 +139,45 @@ export default defineEventHandler(async (event) => {
                         updateData.user_2_paid_at = new Date().toISOString()
                     }
 
-                    // Check if both have now paid (including current payment)
-                    // isUser1 means we're setting user_1_paid = true now
-                    // So bothPaid = (we're user1 AND user2 already paid) OR (we're user2 AND user1 already paid)
-                    const user1WillBePaid = isUser1 ? true : match.user_1_paid
-                    const user2WillBePaid = isUser1 ? match.user_2_paid : true
-                    const bothPaid = user1WillBePaid && user2WillBePaid
+                    const user1Paid = isUser1 ? true : match.user_1_paid
+                    const user2Paid = isUser1 ? match.user_2_paid : true
 
-                    if (bothPaid) {
+                    if (user1Paid && user2Paid) {
                         updateData.status = 'unlocked'
-                        console.log('[Match Unlock] Both users have paid, unlocking match:', metadata.matchId)
                     } else {
-                        // First payment - set partial payment status and expiration
                         updateData.status = 'partial_payment'
-                        // Set expiration to 72 hours from now
-                        const expirationDate = new Date()
-                        expirationDate.setHours(expirationDate.getHours() + 72)
-                        updateData.expires_at = expirationDate.toISOString()
-                        console.log('[Match Unlock] First payment, setting partial_payment status:', metadata.matchId)
+                        const exp = new Date()
+                        exp.setHours(exp.getHours() + 72)
+                        updateData.expires_at = exp.toISOString()
 
-                        // Send SMS nudge to the other user
+                        // SMS nudge
                         try {
-                            // Get other user's profile
                             const { data: otherUser } = await supabase
+                                .schema('m2m')
                                 .from('profiles')
-                                .select('phone, display_name')
+                                .select('phone')
                                 .eq('id', otherUserId)
                                 .single()
 
                             if (otherUser?.phone) {
-                                const smsMessage = `Someone just paid to connect with you on Minutes2Match! 💕 Log in now to see who and unlock them back. Match expires in 72 hours. https://minutes2match.com/me`
-
-                                // Send SMS via our API endpoint
                                 await $fetch('/api/send-sms', {
                                     method: 'POST',
                                     baseURL: config.public?.baseUrl || 'http://localhost:3000',
-                                    body: {
-                                        to: otherUser.phone,
-                                        message: smsMessage
-                                    }
-                                }).catch(err => {
-                                    console.error('Failed to send match SMS:', err)
-                                })
+                                    body: { to: otherUser.phone, message: 'Someone paid to connect with you! Check out minutes2match.com/me' }
+                                }).catch(() => { })
                             }
-                        } catch (smsError) {
-                            console.error('Error sending match notification SMS:', smsError)
-                            // Don't fail the payment if SMS fails
-                        }
+                        } catch { }
                     }
 
-                    // ALWAYS update the match record
-                    console.log('[Match Unlock] Updating match:', metadata.matchId, 'with data:', updateData)
-
-                    const { error: updateError } = await supabase
+                    await supabase
+                        .schema('m2m')
                         .from('matches')
                         .update(updateData)
                         .eq('id', metadata.matchId)
-
-                    if (updateError) {
-                        console.error('[Match Unlock] Failed to update match:', updateError)
-                    } else {
-                        console.log('[Match Unlock] Match updated successfully:', metadata.matchId, 'New status:', updateData.status)
-                    }
-                } else {
-                    console.error('[Match Unlock] Match not found:', metadata.matchId)
                 }
             } else if (metadata.purpose === 'subscription') {
-                // Handle Subscription Activation
-                console.log('[Subscription] Activating subscription for user:', metadata.userId)
-
-                // Calculate subscription period (1 month)
-                const startDate = new Date()
-                const endDate = new Date()
-                endDate.setMonth(endDate.getMonth() + 1)
-
-                // 1. Check for existing active subscription
                 const { data: existingSub } = await supabase
+                    .schema('m2m')
                     .from('subscriptions')
                     .select('id, end_date')
                     .eq('user_id', metadata.userId)
@@ -258,42 +185,34 @@ export default defineEventHandler(async (event) => {
                     .gt('end_date', new Date().toISOString())
                     .maybeSingle()
 
+                const end = new Date()
+                end.setMonth(end.getMonth() + 1)
+
                 if (existingSub) {
-                    // Extend existing subscription
-                    console.log('[Subscription] Extending existing subscription:', existingSub.id)
-                    const currentEndDate = new Date(existingSub.end_date)
-                    currentEndDate.setMonth(currentEndDate.getMonth() + 1)
-
-                    const { error: subError } = await supabase
+                    const nextEnd = new Date(existingSub.end_date)
+                    nextEnd.setMonth(nextEnd.getMonth() + 1)
+                    await supabase
+                        .schema('m2m')
                         .from('subscriptions')
-                        .update({
-                            end_date: currentEndDate.toISOString(),
-                            updated_at: new Date().toISOString()
-                        })
+                        .update({ end_date: nextEnd.toISOString() })
                         .eq('id', existingSub.id)
-
-                    if (subError) console.error('[Subscription] Failed to extend subscription:', subError)
                 } else {
-                    // Create new subscription
-                    console.log('[Subscription] Creating new subscription')
-                    const { error: subError } = await supabase
+                    await supabase
+                        .schema('m2m')
                         .from('subscriptions')
                         .insert({
                             user_id: metadata.userId,
                             status: 'active',
-                            start_date: startDate.toISOString(),
-                            end_date: endDate.toISOString(),
-                            auto_renew: false // Manual only for now via Paystack one-off
+                            start_date: new Date().toISOString(),
+                            end_date: end.toISOString(),
+                            auto_renew: false
                         })
-
-                    if (subError) console.error('[Subscription] Failed to create subscription:', subError)
                 }
             }
         }
 
-        // Log failed payments for admin alerts
         if (!paymentSuccess) {
-            const { error: alertError } = await supabase.from('payment_alerts').insert({
+            await supabase.schema('m2m').from('payment_alerts').insert({
                 payment_ref: reference,
                 user_id: metadata.userId,
                 amount: response.data.amount / 100,
@@ -302,30 +221,18 @@ export default defineEventHandler(async (event) => {
                 alert_type: 'payment_failed',
                 resolved: false
             })
-            if (alertError) console.error('[Verify] Failed to log payment alert:', alertError)
         }
 
         return {
             status: paymentSuccess ? 'success' : 'failed',
             reference: response.data.reference,
-            amount: response.data.amount / 100, // Convert back to GHS
+            amount: response.data.amount / 100,
             currency: response.data.currency,
             metadata: response.data.metadata
         }
+
     } catch (error: any) {
-        console.error('Paystack Verify Error:', error)
-
-        // Log critical errors for admin
-        await supabase.from('payment_alerts').insert({
-            payment_ref: reference,
-            error_message: error.message || 'Unknown error',
-            alert_type: 'verification_error',
-            resolved: false
-        })
-
-        throw createError({
-            statusCode: 500,
-            message: 'Failed to verify payment'
-        })
+        console.error('Verify Error:', error)
+        throw createError({ statusCode: 500, message: 'Verification failed' })
     }
 })

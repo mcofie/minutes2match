@@ -141,7 +141,6 @@ declare global {
   const useNotifications: typeof import('../../composables/useNotifications').useNotifications
   const useNuxtApp: typeof import('../../node_modules/nuxt/dist/app/nuxt').useNuxtApp
   const useNuxtData: typeof import('../../node_modules/nuxt/dist/app/composables/asyncData').useNuxtData
-  const useNuxtDevTools: typeof import('../../node_modules/@nuxt/devtools/dist/runtime/use-nuxt-devtools').useNuxtDevTools
   const usePWA: typeof import('../../node_modules/@vite-pwa/nuxt/dist/runtime/composables/index').usePWA
   const usePaystack: typeof import('../../composables/usePaystack').usePaystack
   const usePersona: typeof import('../../composables/usePersona').usePersona
@@ -388,7 +387,6 @@ declare module 'vue' {
     readonly useNotifications: UnwrapRef<typeof import('../../composables/useNotifications')['useNotifications']>
     readonly useNuxtApp: UnwrapRef<typeof import('../../node_modules/nuxt/dist/app/nuxt')['useNuxtApp']>
     readonly useNuxtData: UnwrapRef<typeof import('../../node_modules/nuxt/dist/app/composables/asyncData')['useNuxtData']>
-    readonly useNuxtDevTools: UnwrapRef<typeof import('../../node_modules/@nuxt/devtools/dist/runtime/use-nuxt-devtools')['useNuxtDevTools']>
     readonly usePWA: UnwrapRef<typeof import('../../node_modules/@vite-pwa/nuxt/dist/runtime/composables/index')['usePWA']>
     readonly usePaystack: UnwrapRef<typeof import('../../composables/usePaystack')['usePaystack']>
     readonly usePersona: UnwrapRef<typeof import('../../composables/usePersona')['usePersona']>

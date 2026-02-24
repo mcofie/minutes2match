@@ -3,7 +3,7 @@ import { MatchService } from '~/services/MatchService'
 import type { M2MDatabase } from '~/types/database.types'
 
 export const useMatchStore = defineStore('matches', () => {
-    const supabase = useSupabaseClient<M2MDatabase>() as any
+    const supabase = useSupabaseClient<M2MDatabase>()
     const matches = ref<any[]>([])
     const loadingMatches = ref(false)
     const initialized = ref(false)
