@@ -93,11 +93,29 @@ declare module "nitropack/types" {
     '/api/send-sms': {
       'post': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/send-sms.post').default>>>>
     }
+    '/api/shots/:token': {
+      'get': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/shots/[token].get').default>>>>
+    }
+    '/api/shots': {
+      'post': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/shots/index.post').default>>>>
+    }
+    '/api/shots/unlock': {
+      'post': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/shots/unlock.post').default>>>>
+    }
     '/api/sitemap.xml': {
       'get': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/sitemap.xml.get').default>>>>
     }
     '/api/verify-admin-login': {
       'post': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/verify-admin-login.post').default>>>>
+    }
+    '/api/vouches/:token': {
+      'get': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/vouches/[token].get').default>>>>
+    }
+    '/api/vouches': {
+      'post': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/vouches/index.post').default>>>>
+    }
+    '/api/vouches/respond': {
+      'post': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/vouches/respond.post').default>>>>
     }
     '/__nuxt_error': {
       'default': Simplify<Serialize<Awaited<ReturnType<typeof import('../../node_modules/@nuxt/nitro-server/dist/runtime/handlers/renderer').default>>>>

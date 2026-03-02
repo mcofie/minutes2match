@@ -12,7 +12,7 @@ interface InitializePaymentBody {
     amount: number // Amount in GHS (cedis)
     callback_url?: string
     metadata?: {
-        purpose: 'event_ticket' | 'match_unlock' | 'subscription'
+        purpose: 'event_ticket' | 'match_unlock' | 'subscription' | 'shoot_your_shot'
         userId?: string
         eventId?: string
         matchId?: string

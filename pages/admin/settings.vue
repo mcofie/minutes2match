@@ -46,6 +46,18 @@
               />
             </div>
           </div>
+
+          <div class="form-group">
+            <label class="form-label">Shoot Your Shot Fee (GH₵)</label>
+            <input
+              type="number"
+              v-model.number="settings.shoot_your_shot_fee"
+              min="0"
+              step="1"
+              class="form-input"
+            />
+            <p class="text-xs text-muted mt-1">Fee charged when someone shoots their shot</p>
+          </div>
         </div>
       </section>
 
@@ -128,7 +140,8 @@ const settings = reactive({
    default_male_ticket_price: 100,
    default_female_ticket_price: 80,
    match_expiry_days: 7,
-   platform_name: 'Minutes to Match'
+   platform_name: 'Minutes to Match',
+   shoot_your_shot_fee: 15
 })
 
 // Fetch current settings
@@ -157,6 +170,9 @@ onMounted(() => {
             break
           case 'platform_name':
             settings.platform_name = value?.name || 'Minutes to Match'
+            break
+          case 'shoot_your_shot_fee':
+            settings.shoot_your_shot_fee = value?.amount || 15
             break
         }
       })
@@ -199,6 +215,11 @@ const saveSettings = async () => {
       {
         key: 'platform_name',
         value: { name: settings.platform_name },
+        updated_at: new Date().toISOString()
+      },
+      {
+        key: 'shoot_your_shot_fee',
+        value: { amount: settings.shoot_your_shot_fee, currency: 'GHS' },
         updated_at: new Date().toISOString()
       }
     ] as any

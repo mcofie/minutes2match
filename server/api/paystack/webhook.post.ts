@@ -174,6 +174,9 @@ export default defineEventHandler(async (event) => {
         } else if (metadata.purpose === 'subscription') {
             console.log('[Webhook] Processing subscription payment')
             await handleSubscriptionPayment(supabase, metadata)
+        } else if (metadata.purpose === 'shoot_your_shot') {
+            console.log('[Webhook] Processing shoot_your_shot payment')
+            await handleShootYourShotPayment(supabase, metadata, config)
         } else {
             console.log('[Webhook] Unknown or missing purpose:', metadata.purpose)
         }
@@ -354,5 +357,73 @@ async function sendPaymentReminderSMS(
     } catch (smsError) {
         // Log but don't fail the webhook
         console.error('[Webhook] Failed to send SMS reminder:', smsError)
+    }
+}
+
+/**
+ * Handle Shoot Your Shot payment
+ * Updates shot status and sends SMS to target
+ */
+async function handleShootYourShotPayment(supabase: any, metadata: any, config: any) {
+    const shotId = metadata.shotId
+    console.log('[Webhook] Processing Shoot Your Shot for shot:', shotId)
+
+    if (!shotId) {
+        console.error('[Webhook] No shotId in metadata')
+        return
+    }
+
+    try {
+        // Update shot payment status and status
+        const { data: shot, error } = await supabase
+            .from('shots')
+            .update({
+                payment_status: 'success',
+                status: 'sent'
+            })
+            .eq('id', shotId)
+            .select()
+            .single()
+
+        if (error) {
+            console.error('[Webhook] Failed to update shot:', error)
+            return
+        }
+
+        if (!shot) {
+            console.error('[Webhook] Shot not found:', shotId)
+            return
+        }
+
+        // Send SMS to target
+        const baseUrl = config.public?.baseUrl || 'https://minutes2match.com'
+        const targetLink = `${baseUrl}/shot/${shot.target_token}`
+        const targetMessage = `Hey ${shot.target_name}! Someone is interested in you 💫 They've shot their shot on Minutes2Match. Tap to find out who: ${targetLink}`
+
+        try {
+            await $fetch('/api/send-sms', {
+                method: 'POST',
+                body: { to: shot.target_phone, message: targetMessage }
+            })
+            console.log(`[Webhook] Shot SMS sent to target: ${shot.target_phone}`)
+        } catch (smsError) {
+            console.error('[Webhook] Failed to send shot SMS:', smsError)
+        }
+
+        // Discord notification
+        const { notifyDiscord, DiscordColors } = await import('~/server/utils/discord')
+        await notifyDiscord({
+            title: '🎯 Shot Fired!',
+            description: `${shot.shooter_name} shot their shot at ${shot.target_name}`,
+            color: DiscordColors.match,
+            fields: [
+                { name: 'Amount', value: `GHS ${shot.amount_paid}`, inline: true },
+                { name: 'Status', value: 'SMS sent to target', inline: true },
+            ]
+        })
+
+        console.log('[Webhook] Shoot Your Shot processed successfully')
+    } catch (error) {
+        console.error('[Webhook] Error handling shoot your shot:', error)
     }
 }

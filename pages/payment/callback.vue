@@ -120,6 +120,8 @@ onMounted(async () => {
           }
         } else if (result.metadata?.purpose === 'subscription') {
            message.value = 'Welcome to the club! Your Premium Membership is now active.'
+        } else if (result.metadata?.purpose === 'shoot_your_shot') {
+           message.value = 'Shot fired! 🎯 They\'ll receive a mystery SMS shortly.'
         } else {
           message.value = 'Your payment was processed successfully.'
         }

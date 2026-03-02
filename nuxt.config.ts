@@ -20,6 +20,10 @@ export default defineNuxtConfig({
         '/me/**': { ssr: false },
         '/matches': { ssr: false },
         '/events': { ssr: false },
+        '/vouch/**': { ssr: false },
+        '/shot/**': { ssr: false },
+        '/shoot-your-shot': { ssr: false },
+        '/payment/shot-callback': { ssr: false },
     },
     image: {
         provider: 'none',

@@ -17,7 +17,8 @@
         <div class="hidden md:flex items-center gap-8 text-sm font-bold">
           <button @click="scrollToSection('manifesto')" class="hover:text-rose-500 dark:text-stone-300 dark:hover:text-rose-400 transition-colors">Manifesto</button>
           <button @click="scrollToSection('process')" class="hover:text-rose-500 dark:text-stone-300 dark:hover:text-rose-400 transition-colors">Process</button>
-          <button @click="scrollToSection('stories')" class="hover:text-rose-500 dark:text-stone-300 dark:hover:text-rose-400 transition-colors">Stories</button>
+          <NuxtLink to="/vouch" class="hover:text-rose-500 dark:text-stone-300 dark:hover:text-rose-400 transition-colors">Vouch</NuxtLink>
+          <NuxtLink to="/shoot-your-shot" class="hover:text-rose-500 dark:text-stone-300 dark:hover:text-rose-400 transition-colors">Shoot Your Shot</NuxtLink>
           <NuxtLink to="/pricing" class="hover:text-rose-500 dark:text-stone-300 dark:hover:text-rose-400 transition-colors">Pricing</NuxtLink>
         </div>
 
@@ -64,9 +65,12 @@
             <button @click="scrollToSection('process'); mobileMenuOpen = false" class="block w-full text-left py-3 text-sm font-bold hover:text-rose-500 dark:hover:text-rose-400 dark:text-stone-200 transition-colors border-b border-stone-100 dark:border-stone-800">
               Process
             </button>
-            <button @click="scrollToSection('stories'); mobileMenuOpen = false" class="block w-full text-left py-3 text-sm font-bold hover:text-rose-500 dark:hover:text-rose-400 dark:text-stone-200 transition-colors border-b border-stone-100 dark:border-stone-800">
-              Stories
-            </button>
+            <NuxtLink to="/vouch" @click="mobileMenuOpen = false" class="block w-full text-left py-3 text-sm font-bold hover:text-rose-500 dark:hover:text-rose-400 dark:text-stone-200 transition-colors border-b border-stone-100 dark:border-stone-800">
+              🤝 Vouch for Friends
+            </NuxtLink>
+            <NuxtLink to="/shoot-your-shot" @click="mobileMenuOpen = false" class="block w-full text-left py-3 text-sm font-bold hover:text-rose-500 dark:hover:text-rose-400 dark:text-stone-200 transition-colors border-b border-stone-100 dark:border-stone-800">
+              🎯 Shoot Your Shot
+            </NuxtLink>
             <NuxtLink to="/pricing" @click="mobileMenuOpen = false" class="block w-full text-left py-3 text-sm font-bold hover:text-rose-500 dark:hover:text-rose-400 dark:text-stone-200 transition-colors border-b border-stone-100 dark:border-stone-800">
                Pricing
             </NuxtLink>
@@ -384,6 +388,44 @@
                   <div class="text-4xl md:text-6xl font-bold mb-3 text-rose-500 font-serif">0</div>
                   <div class="text-xs font-bold uppercase tracking-widest text-black dark:text-stone-300">Catfish Reports</div>
                </div>
+            </div>
+         </div>
+      </section>
+
+      <!-- VOUCH & SHOOT YOUR SHOT CTAs -->
+      <section class="border-b border-black dark:border-stone-800">
+         <div class="border-b border-black dark:border-stone-700 p-12 lg:p-20 text-center bg-white dark:bg-stone-900">
+            <h2 class="text-4xl md:text-5xl font-serif mb-4 dark:text-stone-50">Two More Ways to Connect</h2>
+            <p class="text-stone-500 dark:text-stone-400">No account needed. Just a bold move.</p>
+         </div>
+
+         <div class="grid md:grid-cols-2 border-b border-black dark:border-stone-700">
+            <!-- Vouch -->
+            <div class="p-12 lg:p-24 bg-[#FFF7ED] dark:bg-orange-950/20 md:border-r border-b md:border-b-0 border-black dark:border-stone-700 flex flex-col h-full">
+               <div class="w-16 h-16 bg-orange-100 dark:bg-orange-900/50 rounded-full border border-black dark:border-orange-700 flex items-center justify-center text-3xl mb-8">
+                  🤝
+               </div>
+               <h3 class="text-3xl font-serif font-bold mb-4 dark:text-orange-100">Vouch for Two Friends</h3>
+               <p class="text-stone-600 dark:text-stone-400 leading-relaxed text-sm mb-8 flex-1">
+                  Know two people who'd be amazing together? Play matchmaker — enter their details and we'll connect them via SMS. Completely free.
+               </p>
+               <NuxtLink to="/vouch" class="w-full block bg-white dark:bg-stone-800 border border-black dark:border-stone-600 text-center py-4 font-bold uppercase hover:bg-black dark:hover:bg-orange-600 hover:text-white dark:text-stone-200 transition-all shadow-[4px_4px_0px_0px_rgba(0,0,0,0.1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,0.05)]">
+                  Vouch Now — It's Free
+               </NuxtLink>
+            </div>
+
+            <!-- Shoot Your Shot -->
+            <div class="p-12 lg:p-24 bg-[#FFF1F2] dark:bg-rose-950/20 flex flex-col h-full">
+               <div class="w-16 h-16 bg-rose-100 dark:bg-rose-900/50 rounded-full border border-black dark:border-rose-700 flex items-center justify-center text-3xl mb-8">
+                  🎯
+               </div>
+               <h3 class="text-3xl font-serif font-bold mb-4 dark:text-rose-100">Shoot Your Shot</h3>
+               <p class="text-stone-600 dark:text-stone-400 leading-relaxed text-sm mb-8 flex-1">
+                  Got someone on your mind? Let them know you're interested with a mystery SMS. They tap to reveal it's you. Bold moves only.
+               </p>
+               <NuxtLink to="/shoot-your-shot" class="w-full block bg-white dark:bg-stone-800 border border-black dark:border-stone-600 text-center py-4 font-bold uppercase hover:bg-black dark:hover:bg-rose-600 hover:text-white dark:text-stone-200 transition-all shadow-[4px_4px_0px_0px_rgba(0,0,0,0.1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,0.05)]">
+                  Shoot Your Shot — GH₵15
+               </NuxtLink>
             </div>
          </div>
       </section>

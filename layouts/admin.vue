@@ -90,6 +90,23 @@
           </svg>
           <span class="label">Reports</span>
         </NuxtLink>
+        <NuxtLink to="/admin/vouches" class="sidebar-link" @click="sidebarOpen = false">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+            <circle cx="9" cy="7" r="4"/>
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+            <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+          </svg>
+          <span class="label">Vouches</span>
+        </NuxtLink>
+        <NuxtLink to="/admin/shots" class="sidebar-link" @click="sidebarOpen = false">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/>
+            <circle cx="12" cy="12" r="6"/>
+            <circle cx="12" cy="12" r="2"/>
+          </svg>
+          <span class="label">Shots</span>
+        </NuxtLink>
         <NuxtLink to="/admin/settings" class="sidebar-link" @click="sidebarOpen = false">
           <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
              <circle cx="12" cy="12" r="3"/>
@@ -162,6 +179,8 @@ const pageTitle = computed(() => {
   if (path.startsWith('/admin/questions')) return 'Vibe Questions'
   if (path.startsWith('/admin/payments')) return 'Payments'
   if (path.startsWith('/admin/reports')) return 'User Reports'
+  if (path.startsWith('/admin/vouches')) return 'Vouch Management'
+  if (path.startsWith('/admin/shots')) return 'Shoot Your Shot'
   if (path.startsWith('/admin/settings')) return 'Platform Settings'
   return 'Admin Portal'
 })
