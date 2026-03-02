@@ -108,16 +108,16 @@
           <div class="grid md:grid-cols-2 gap-4">
             <div>
               <label class="block text-xs font-bold uppercase tracking-widest text-stone-500 dark:text-stone-400 mb-2">Your Name *</label>
-              <input v-model="form.shooterName" type="text" required placeholder="e.g. Kwame Asante" class="w-full bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-transparent transition-all placeholder:text-stone-300 dark:placeholder:text-stone-600" />
+              <input v-model="form.shooterName" type="text" required placeholder="e.g. Kwame Asante" class="w-full bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-lg px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-transparent transition-all placeholder:text-stone-300 dark:placeholder:text-stone-600" />
             </div>
             <div>
               <label class="block text-xs font-bold uppercase tracking-widest text-stone-500 dark:text-stone-400 mb-2">Your Phone *</label>
-              <input v-model="form.shooterPhone" type="tel" required placeholder="0244123456" class="w-full bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-transparent transition-all placeholder:text-stone-300 dark:placeholder:text-stone-600" />
+              <input v-model="form.shooterPhone" type="tel" required placeholder="0244123456" class="w-full bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-lg px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-transparent transition-all placeholder:text-stone-300 dark:placeholder:text-stone-600" />
             </div>
           </div>
           <div>
             <label class="block text-xs font-bold uppercase tracking-widest text-stone-500 dark:text-stone-400 mb-2">Your Email * <span class="text-stone-300 dark:text-stone-600 normal-case">(for payment receipt)</span></label>
-            <input v-model="form.shooterEmail" type="email" required placeholder="you@email.com" class="w-full bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-transparent transition-all placeholder:text-stone-300 dark:placeholder:text-stone-600" />
+            <input v-model="form.shooterEmail" type="email" required placeholder="you@email.com" class="w-full bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-lg px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-transparent transition-all placeholder:text-stone-300 dark:placeholder:text-stone-600" />
           </div>
         </div>
 
@@ -130,11 +130,11 @@
           <div class="grid md:grid-cols-2 gap-4">
             <div>
               <label class="block text-xs font-bold uppercase tracking-widest text-stone-500 dark:text-stone-400 mb-2">Their Name *</label>
-              <input v-model="form.targetName" type="text" required placeholder="Their name" class="w-full bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-transparent transition-all placeholder:text-stone-300 dark:placeholder:text-stone-600" />
+              <input v-model="form.targetName" type="text" required placeholder="Their name" class="w-full bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-lg px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-transparent transition-all placeholder:text-stone-300 dark:placeholder:text-stone-600" />
             </div>
             <div>
               <label class="block text-xs font-bold uppercase tracking-widest text-stone-500 dark:text-stone-400 mb-2">Their Phone *</label>
-              <input v-model="form.targetPhone" type="tel" required placeholder="0244123456" class="w-full bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-transparent transition-all placeholder:text-stone-300 dark:placeholder:text-stone-600" />
+              <input v-model="form.targetPhone" type="tel" required placeholder="0244123456" class="w-full bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-lg px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-transparent transition-all placeholder:text-stone-300 dark:placeholder:text-stone-600" />
             </div>
           </div>
         </div>
@@ -203,7 +203,7 @@
                     type="text"
                     :placeholder="question.placeholder"
                     maxlength="100"
-                    class="w-full bg-white dark:bg-stone-800 border border-rose-200 dark:border-rose-800 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-transparent transition-all placeholder:text-stone-300 dark:placeholder:text-stone-600"
+                    class="w-full bg-white dark:bg-stone-800 border border-rose-200 dark:border-rose-800 rounded-lg px-4 py-2.5 text-base focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-transparent transition-all placeholder:text-stone-300 dark:placeholder:text-stone-600"
                   />
                 </div>
               </Transition>
@@ -231,7 +231,7 @@
             <div class="w-10 h-10 bg-stone-300 dark:bg-stone-700 text-white rounded-full flex items-center justify-center text-sm font-bold">4</div>
             <h2 class="font-serif font-bold text-xl">Personal Message <span class="text-stone-400 font-normal text-base">(optional)</span></h2>
           </div>
-          <textarea v-model="form.message" rows="3" maxlength="280" placeholder="Say something genuine... they'll see this when they unlock your identity." class="w-full bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-transparent transition-all resize-none placeholder:text-stone-300 dark:placeholder:text-stone-600"></textarea>
+          <textarea v-model="form.message" rows="3" maxlength="280" placeholder="Say something genuine... they'll see this when they unlock your identity." class="w-full bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-lg px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-transparent transition-all resize-none placeholder:text-stone-300 dark:placeholder:text-stone-600"></textarea>
           <p class="text-xs text-stone-400 text-right">{{ form.message?.length || 0 }}/280</p>
         </div>
 
