@@ -61,10 +61,10 @@
               Home
             </NuxtLink>
             <NuxtLink to="/vouch" @click="mobileMenuOpen = false" class="block w-full text-left py-3 text-sm font-bold hover:text-rose-500 dark:hover:text-rose-400 dark:text-stone-200 transition-colors border-b border-stone-100 dark:border-stone-800">
-              🤝 Vouch for Friends
+              Vouch
             </NuxtLink>
             <NuxtLink to="/shoot-your-shot" @click="mobileMenuOpen = false" class="block w-full text-left py-3 text-sm font-bold hover:text-rose-500 dark:hover:text-rose-400 dark:text-stone-200 transition-colors border-b border-stone-100 dark:border-stone-800">
-              🎯 Shoot Your Shot
+              Shoot Your Shot
             </NuxtLink>
             <NuxtLink to="/pricing" @click="mobileMenuOpen = false" class="block w-full text-left py-3 text-sm font-bold hover:text-rose-500 dark:hover:text-rose-400 dark:text-stone-200 transition-colors border-b border-stone-100 dark:border-stone-800">
                Pricing
@@ -158,9 +158,6 @@
       <!-- ====== TEASER VIEW (Not Yet Unlocked) ====== -->
       <div v-else class="animate-in fade-in slide-in-from-bottom-4 duration-500">
         <div class="text-center mb-10">
-          <div class="inline-flex items-center gap-2 bg-orange-50 dark:bg-orange-900/20 border border-orange-100 dark:border-orange-800 text-orange-700 dark:text-orange-300 px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-widest mb-4">
-            🎯 Someone Shot Their Shot
-          </div>
           <h1 class="text-3xl md:text-4xl font-serif font-bold mb-3 tracking-tight leading-tight">
             Hey {{ shot.targetName }}, someone's <span class="italic text-rose-500">interested</span> in you
           </h1>

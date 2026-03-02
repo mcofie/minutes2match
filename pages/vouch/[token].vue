@@ -9,22 +9,76 @@
     </Head>
 
     <!-- Navigation -->
-    <nav class="sticky top-0 z-50 bg-[#FFFCF8] dark:bg-stone-950 border-b border-black dark:border-stone-800">
-      <div class="max-w-4xl mx-auto px-6 h-16 flex items-center justify-between">
-        <NuxtLink to="/" class="flex items-center">
-          <NuxtImg format="webp" src="/logo-full.png" alt="minutes2match" class="h-16 w-auto object-contain hover:opacity-80 transition-opacity dark:invert" />
+    <nav class="fixed top-0 inset-x-0 z-50 bg-[#FFFCF8] dark:bg-stone-950/90 dark:backdrop-blur-md border-b border-black dark:border-stone-800 transition-colors duration-300">
+      <div class="max-w-[1440px] mx-auto px-4 md:px-6 h-20 md:h-28 flex items-center justify-between">
+        <NuxtLink to="/" class="flex items-center z-50 -ml-2 md:ml-0">
+           <NuxtImg format="webp" src="/logo-full.png" alt="minutes2match" class="h-20 md:h-28 w-auto object-contain hover:opacity-80 transition-opacity dark:invert" />
         </NuxtLink>
-        <div class="flex items-center gap-6">
-          <NuxtLink to="/vouch" class="hidden sm:block text-xs font-bold uppercase tracking-widest hover:text-rose-500 dark:text-stone-400 dark:hover:text-rose-400 transition-colors">Vouch</NuxtLink>
-          <NuxtLink to="/shoot-your-shot" class="hidden sm:block text-xs font-bold uppercase tracking-widest hover:text-rose-500 dark:text-stone-400 dark:hover:text-rose-400 transition-colors">Shoot Your Shot</NuxtLink>
-          <NuxtLink to="/" class="text-sm font-bold uppercase tracking-widest hover:text-rose-500 dark:text-stone-400 dark:hover:text-rose-400 transition-colors">
-            ← Back to Home
+
+        <div class="hidden md:flex items-center gap-8 text-sm font-bold">
+          <NuxtLink to="/" class="hover:text-rose-500 dark:text-stone-300 dark:hover:text-rose-400 transition-colors">Home</NuxtLink>
+          <NuxtLink to="/vouch" class="hover:text-rose-500 dark:text-stone-300 dark:hover:text-rose-400 transition-colors">Vouch</NuxtLink>
+          <NuxtLink to="/shoot-your-shot" class="hover:text-rose-500 dark:text-stone-300 dark:hover:text-rose-400 transition-colors">Shoot Your Shot</NuxtLink>
+          <NuxtLink to="/pricing" class="hover:text-rose-500 dark:text-stone-300 dark:hover:text-rose-400 transition-colors">Pricing</NuxtLink>
+        </div>
+
+        <div class="flex items-center gap-3 md:gap-6">
+          <NuxtLink to="/login" class="hidden md:block text-sm font-bold hover:underline decoration-2 underline-offset-4 dark:text-stone-200">
+             MEMBER LOGIN
           </NuxtLink>
+          <NuxtLink to="/vibe-check" class="hidden md:inline-flex group relative items-center overflow-hidden rounded-md border border-black dark:border-stone-600 bg-black dark:bg-stone-100 text-white dark:text-black px-6 py-3 focus:outline-none hover:bg-rose-500 dark:hover:bg-rose-500 hover:border-rose-500 dark:hover:border-rose-500 dark:hover:text-white transition-all shadow-[4px_4px_0px_0px_rgba(0,0,0,0.2)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,0.2)] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-none">
+            <span class="text-xs font-bold uppercase tracking-widest">VIBE CHECK</span>
+          </NuxtLink>
+
+          <NuxtLink to="/vibe-check" class="md:hidden bg-black dark:bg-stone-100 text-white dark:text-black px-4 py-2.5 rounded-lg text-[10px] font-bold border border-black dark:border-stone-600 shadow-[2px_2px_0px_0px_rgba(244,63,94,1)] hover:translate-y-[1px] hover:shadow-none transition-all uppercase tracking-widest">
+            JOIN
+          </NuxtLink>
+          
+          <button 
+            @click="mobileMenuOpen = !mobileMenuOpen"
+            class="md:hidden w-10 h-10 flex flex-col items-center justify-center gap-1.5 border-2 border-black dark:border-stone-600 rounded-lg bg-white dark:bg-stone-900 hover:bg-stone-50 dark:hover:bg-stone-800 transition-colors"
+          >
+            <span class="w-5 h-0.5 bg-black dark:bg-white transition-all" :class="mobileMenuOpen ? 'rotate-45 translate-y-2' : ''"></span>
+            <span class="w-5 h-0.5 bg-black dark:bg-white transition-all" :class="mobileMenuOpen ? 'opacity-0' : ''"></span>
+            <span class="w-5 h-0.5 bg-black dark:bg-white transition-all" :class="mobileMenuOpen ? '-rotate-45 -translate-y-2' : ''"></span>
+          </button>
         </div>
       </div>
+      
+      <Transition
+        enter-active-class="transition-all duration-300 ease-out"
+        enter-from-class="opacity-0 -translate-y-4"
+        enter-to-class="opacity-100 translate-y-0"
+        leave-active-class="transition-all duration-200 ease-in"
+        leave-from-class="opacity-100 translate-y-0"
+        leave-to-class="opacity-0 -translate-y-4"
+      >
+        <div v-show="mobileMenuOpen" class="md:hidden absolute top-full left-0 right-0 bg-[#FFFCF8] dark:bg-stone-900 border-b border-black dark:border-stone-800 shadow-lg">
+          <div class="px-6 py-6 space-y-4">
+            <NuxtLink to="/" @click="mobileMenuOpen = false" class="block w-full text-left py-3 text-sm font-bold hover:text-rose-500 dark:hover:text-rose-400 dark:text-stone-200 transition-colors border-b border-stone-100 dark:border-stone-800">
+              Home
+            </NuxtLink>
+            <NuxtLink to="/vouch" @click="mobileMenuOpen = false" class="block w-full text-left py-3 text-sm font-bold hover:text-rose-500 dark:hover:text-rose-400 dark:text-stone-200 transition-colors border-b border-stone-100 dark:border-stone-800">
+              Vouch
+            </NuxtLink>
+            <NuxtLink to="/shoot-your-shot" @click="mobileMenuOpen = false" class="block w-full text-left py-3 text-sm font-bold hover:text-rose-500 dark:hover:text-rose-400 dark:text-stone-200 transition-colors border-b border-stone-100 dark:border-stone-800">
+              Shoot Your Shot
+            </NuxtLink>
+            <NuxtLink to="/pricing" @click="mobileMenuOpen = false" class="block w-full text-left py-3 text-sm font-bold hover:text-rose-500 dark:hover:text-rose-400 dark:text-stone-200 transition-colors border-b border-stone-100 dark:border-stone-800">
+               Pricing
+            </NuxtLink>
+            <NuxtLink to="/login" @click="mobileMenuOpen = false" class="block w-full py-3 text-sm font-bold hover:text-rose-500 dark:hover:text-rose-400 dark:text-stone-200 transition-colors border-b border-stone-100 dark:border-stone-800">
+              MEMBER LOGIN
+            </NuxtLink>
+            <NuxtLink to="/vibe-check" @click="mobileMenuOpen = false" class="block w-full text-center bg-black dark:bg-stone-100 text-white dark:text-black py-4 rounded-lg font-bold uppercase tracking-widest text-sm hover:bg-rose-500 dark:hover:bg-rose-500 dark:hover:text-white transition-colors mt-4">
+              START VIBE CHECK
+            </NuxtLink>
+          </div>
+        </div>
+      </Transition>
     </nav>
 
-    <main class="max-w-lg mx-auto px-6 py-12 md:py-20">
+    <main class="max-w-lg mx-auto px-6 py-12 md:py-20 pt-28 md:pt-36">
       <!-- Loading -->
       <div v-if="loading" class="text-center py-20">
         <div class="w-12 h-12 rounded-full border-4 border-stone-100 dark:border-stone-800 border-t-rose-500 animate-spin mx-auto mb-6"></div>
@@ -88,9 +142,6 @@
       <!-- Vouch Card (Pending Response) -->
       <div v-else class="animate-in fade-in slide-in-from-bottom-4 duration-500">
         <div class="text-center mb-10">
-          <div class="inline-flex items-center gap-2 bg-rose-50 dark:bg-rose-900/20 border border-rose-100 dark:border-rose-800 text-rose-700 dark:text-rose-300 px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-widest mb-4">
-            💌 You've Been Vouched
-          </div>
           <h1 class="text-3xl md:text-4xl font-serif font-bold mb-3 tracking-tight leading-tight">
             Someone thinks you'd be <span class="italic text-rose-500">perfect</span> for someone
           </h1>
@@ -171,6 +222,7 @@
 <script setup lang="ts">
 const route = useRoute()
 const token = route.params.token as string
+const mobileMenuOpen = ref(false)
 
 const loading = ref(true)
 const fetchError = ref('')
