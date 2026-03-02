@@ -53,9 +53,9 @@ export default defineEventHandler(async (event) => {
         db: { schema: 'm2m' }
     })
 
-    // Generate unique tokens for friend links
-    const friendAToken = crypto.randomUUID()
-    const friendBToken = crypto.randomUUID()
+    // Generate short URL-safe tokens for friend links (8 chars instead of UUID)
+    const friendAToken = crypto.randomBytes(6).toString('base64url')
+    const friendBToken = crypto.randomBytes(6).toString('base64url')
     const baseUrl = config.public.baseUrl || 'https://minutes2match.com'
 
     try {

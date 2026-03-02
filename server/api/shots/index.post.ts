@@ -84,8 +84,8 @@ export default defineEventHandler(async (event) => {
         console.warn('[Shot] Failed to fetch fee setting, using default:', shotFee)
     }
 
-    // Generate unique token for target link
-    const targetToken = crypto.randomUUID()
+    // Generate short URL-safe token for target link (8 chars instead of UUID)
+    const targetToken = crypto.randomBytes(6).toString('base64url')
 
     try {
         // Create the shot record
