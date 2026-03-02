@@ -96,11 +96,17 @@
             <div class="text-center lg:text-left">
 
                
-               <h1 
-                 v-scroll-animate="{ animation: 'fade-up', delay: 0 }"
-                 class="text-6xl md:text-8xl lg:text-[6.5rem] leading-[0.95] font-serif mb-8 text-black dark:text-stone-50 tracking-tight"
-               >
-                  We engineer <br/><span class="italic text-rose-500">the click.</span>
+               <h1 class="text-6xl md:text-8xl lg:text-[6.5rem] leading-[0.95] font-serif mb-8 text-black dark:text-stone-50 tracking-tight">
+                  <span class="inline-block overflow-hidden pb-1 align-bottom">
+                     <span class="inline-block" v-scroll-animate="{ animation: 'fade-up', delay: 0 }">We</span>
+                  </span>
+                  <span class="inline-block overflow-hidden pb-1 align-bottom ml-3 md:ml-4 lg:ml-5">
+                     <span class="inline-block" v-scroll-animate="{ animation: 'fade-up', delay: 100 }">engineer</span>
+                  </span>
+                  <br/>
+                  <span class="inline-block overflow-hidden pb-2 align-bottom mt-2">
+                     <span class="inline-block italic text-rose-500" v-scroll-animate="{ animation: 'fade-up', delay: 200 }">the click.</span>
+                  </span>
                </h1>
 
                <p 
@@ -132,9 +138,9 @@
             </div>
 
             <!-- Right: Visual (Match Simulation) -->
-            <div class="relative hidden lg:flex items-center justify-center h-full min-h-[500px]">
+            <div class="relative hidden lg:flex items-center justify-center h-full min-h-[500px] w-full" @mousemove="handleMouseMove" @mouseleave="handleMouseLeave" style="perspective: 2000px;">
                <!-- Floating Elements -->
-               <div class="relative w-[450px] h-[550px]">
+               <div ref="heroCard" class="relative w-[450px] h-[550px]" :style="{ transform: cardTransform, transition: 'transform 0.1s ease-out' }">
                   <!-- Back Card (Decorative) -->
                   <div class="absolute inset-0 bg-black translate-x-4 translate-y-4 rounded-3xl"></div>
                    
@@ -254,115 +260,113 @@
       </section>
 
       <!-- THE PROCESS SPLIT -->
-      <section id="process" class="bg-white dark:bg-stone-900">
-         <div class="border-b border-black dark:border-stone-700 p-12 lg:p-20 text-center bg-white dark:bg-stone-900">
-            <h2 class="text-4xl md:text-5xl font-serif mb-4 dark:text-stone-50">Two Ways to Connect</h2>
-            <p class="text-stone-500">Choose your path to finding love.</p>
-         </div>
-
-         <div class="grid md:grid-cols-2 border-b border-black dark:border-stone-700">
-            <!-- Path 1: Matching System -->
-            <div class="p-12 lg:p-24 bg-[#F0FDF4] dark:bg-emerald-950/20 md:border-r border-black dark:border-stone-700 flex flex-col h-full">
-               <div class="w-16 h-16 bg-green-100 dark:bg-emerald-900/50 rounded-full border border-black dark:border-emerald-700 flex items-center justify-center text-3xl mb-8">
-                  🧠
-               </div>
-               <h3 class="text-3xl font-serif font-bold mb-8 dark:text-emerald-100">The Matching System</h3>
-               
-               <div class="space-y-8 flex-1">
-                  <!-- Step 1 -->
-                  <div class="flex gap-6 items-start">
-                     <span class="font-bold text-lg font-serif italic bg-white dark:bg-stone-900 border border-black dark:border-stone-600 w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 dark:text-stone-200">1</span>
-                     <div>
-                        <h4 class="font-bold text-lg mb-2 dark:text-stone-100">Take the Vibe Check</h4>
-                        <p class="text-stone-600 dark:text-stone-400 leading-relaxed text-sm">
-                           Answer our psychometric test to map your personality values. No bios, just science.
-                        </p>
-                     </div>
-                  </div>
-                  
-                  <!-- Step 2 -->
-                  <div class="flex gap-6 items-start">
-                     <span class="font-bold text-lg font-serif italic bg-white dark:bg-stone-900 border border-black dark:border-stone-600 w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 dark:text-stone-200">2</span>
-                     <div>
-                        <h4 class="font-bold text-lg mb-2 dark:text-stone-100">Get Notified</h4>
-                        <p class="text-stone-600 dark:text-stone-400 leading-relaxed text-sm">
-                           You'll get a notification when we find a 90%+ compatible match.
-                        </p>
-                     </div>
-                  </div>
-                  
-                  <!-- Step 3 -->
-                  <div class="flex gap-6 items-start">
-                     <span class="font-bold text-lg font-serif italic bg-white dark:bg-stone-900 border border-black dark:border-stone-600 w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 dark:text-stone-200">3</span>
-                     <div>
-                        <h4 class="font-bold text-lg mb-2 dark:text-stone-100">Unlock & Connect</h4>
-                        <p class="text-stone-600 dark:text-stone-400 leading-relaxed text-sm">
-                           Make a small payment to unlock their profile and start chatting directly.
-                        </p>
-                     </div>
-                  </div>
-               </div>
-               
-               <div class="mt-12">
-                  <NuxtLink to="/vibe-check" class="w-full block bg-white dark:bg-stone-800 border border-black dark:border-stone-600 text-center py-4 font-bold uppercase hover:bg-black dark:hover:bg-emerald-600 hover:text-white dark:text-stone-200 transition-all shadow-[4px_4px_0px_0px_rgba(0,0,0,0.1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,0.05)]">
-                     Start Matching
-                  </NuxtLink>
-               </div>
+      <section id="process" class="py-24 md:py-32 px-6 bg-[#FFFCF8] dark:bg-stone-950 border-b border-black dark:border-stone-800 overflow-hidden">
+         <div class="max-w-6xl mx-auto relative">
+            <div class="text-center mb-16 md:mb-24 relative z-10">
+               <h2 class="text-4xl md:text-6xl font-serif mb-6 dark:text-stone-50 text-black tracking-tight">Two Ways to Connect</h2>
+               <p class="text-stone-500 font-medium text-xl max-w-2xl mx-auto">Choose your path to finding love.</p>
             </div>
 
-            <!-- Path 2: Speed Dating -->
-            <div class="p-12 lg:p-24 bg-[#EFF6FF] dark:bg-blue-950/20 flex flex-col h-full">
-               <div class="w-16 h-16 bg-blue-100 dark:bg-blue-900/50 rounded-full border border-black dark:border-blue-700 flex items-center justify-center text-3xl mb-8">
-                  🥂
+            <div class="grid md:grid-cols-2 gap-8 md:gap-16 relative z-10">
+               <!-- Path 1: Matching System -->
+               <div class="group relative">
+                  <!-- Hard shadow layer -->
+                  <div class="absolute inset-0 bg-black dark:bg-stone-700 rounded-3xl translate-x-3 translate-y-3 md:translate-x-4 md:translate-y-4 transition-transform group-hover:translate-x-5 group-hover:translate-y-5"></div>
+                  <!-- Card content -->
+                  <div class="relative h-full bg-[#F0FDF4] dark:bg-emerald-950/20 p-10 md:p-14 border-2 border-black dark:border-stone-700 rounded-3xl flex flex-col transition-transform group-hover:-translate-y-1 group-hover:-translate-x-1">
+                     <div class="w-20 h-20 bg-white dark:bg-stone-900 border-2 border-black dark:border-stone-600 rounded-full flex items-center justify-center text-4xl mb-8 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,0.1)] -ml-2">
+                        🧠
+                     </div>
+                     <span class="inline-block px-3 py-1 bg-black text-white dark:bg-white dark:text-black text-[10px] font-bold uppercase tracking-widest rounded-full self-start mb-6">Algorithm Matches</span>
+                     <h3 class="text-4xl md:text-5xl font-serif font-bold mb-8 text-black dark:text-white leading-none">The Matching System</h3>
+                     
+                     <div class="space-y-8 flex-1 mb-12">
+                        <div class="flex gap-6 items-start">
+                           <span class="font-bold text-lg font-serif italic bg-white dark:bg-stone-900 border-2 border-black dark:border-stone-600 w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 dark:text-stone-200">1</span>
+                           <div>
+                              <h4 class="font-bold text-xl mb-2 dark:text-stone-100">Take the Vibe Check</h4>
+                              <p class="text-stone-700 dark:text-stone-400 leading-relaxed text-sm">
+                                 Answer our psychometric test to map your personality values. No bios, just science.
+                              </p>
+                           </div>
+                        </div>
+                        <div class="flex gap-6 items-start">
+                           <span class="font-bold text-lg font-serif italic bg-white dark:bg-stone-900 border-2 border-black dark:border-stone-600 w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 dark:text-stone-200">2</span>
+                           <div>
+                              <h4 class="font-bold text-xl mb-2 dark:text-stone-100">Get Notified</h4>
+                              <p class="text-stone-700 dark:text-stone-400 leading-relaxed text-sm">
+                                 You'll get a notification when we find a 90%+ compatible match.
+                              </p>
+                           </div>
+                        </div>
+                        <div class="flex gap-6 items-start">
+                           <span class="font-bold text-lg font-serif italic bg-white dark:bg-stone-900 border-2 border-black dark:border-stone-600 w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 dark:text-stone-200">3</span>
+                           <div>
+                              <h4 class="font-bold text-xl mb-2 dark:text-stone-100">Unlock & Connect</h4>
+                              <p class="text-stone-700 dark:text-stone-400 leading-relaxed text-sm">
+                                 Make a small payment to unlock their profile and start chatting directly.
+                              </p>
+                           </div>
+                        </div>
+                     </div>
+                     <NuxtLink to="/vibe-check" class="inline-flex justify-center items-center w-full py-5 bg-white dark:bg-black border-2 border-black dark:border-stone-600 font-bold uppercase tracking-widest text-sm hover:bg-emerald-500 hover:text-white hover:border-emerald-500 transition-all rounded-xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,0.1)] hover:shadow-none hover:translate-x-[4px] hover:translate-y-[4px]">
+                        Start Matching
+                     </NuxtLink>
+                  </div>
                </div>
-               <h3 class="text-3xl font-serif font-bold mb-8 dark:text-blue-100">Speed Dating Events</h3>
-               
-               <div class="space-y-8 flex-1">
-                  <!-- Step 1 -->
-                  <div class="flex gap-6 items-start">
-                     <span class="font-bold text-lg font-serif italic bg-white dark:bg-stone-900 border border-black dark:border-stone-600 w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 dark:text-stone-200">1</span>
-                     <div>
-                        <h4 class="font-bold text-lg mb-2 dark:text-stone-100">Get Invited</h4>
-                        <p class="text-stone-600 dark:text-stone-400 leading-relaxed text-sm">
-                           Special invites are sent to groups with similar interests and demographics.
-                        </p>
+
+               <!-- Path 2: Speed Dating -->
+               <div class="group relative mt-8 md:mt-24">
+                  <!-- Hard shadow layer -->
+                  <div class="absolute inset-0 bg-black dark:bg-stone-700 rounded-3xl translate-x-3 translate-y-3 md:translate-x-4 md:translate-y-4 transition-transform group-hover:translate-x-5 group-hover:translate-y-5"></div>
+                  <!-- Card content -->
+                  <div class="relative h-full bg-[#EFF6FF] dark:bg-blue-950/20 p-10 md:p-14 border-2 border-black dark:border-stone-700 rounded-3xl flex flex-col transition-transform group-hover:-translate-y-1 group-hover:-translate-x-1">
+                     <div class="w-20 h-20 bg-white dark:bg-stone-900 border-2 border-black dark:border-stone-600 rounded-full flex items-center justify-center text-4xl mb-8 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,0.1)] -ml-2">
+                        🥂
                      </div>
-                  </div>
-                  
-                  <!-- Step 2 -->
-                  <div class="flex gap-6 items-start">
-                     <span class="font-bold text-lg font-serif italic bg-white dark:bg-stone-900 border border-black dark:border-stone-600 w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 dark:text-stone-200">2</span>
-                     <div>
-                        <h4 class="font-bold text-lg mb-2 dark:text-stone-100">Secure Your Spot</h4>
-                        <p class="text-stone-600 dark:text-stone-400 leading-relaxed text-sm">
-                           Purchase a ticket to confirm your attendance. Spaces are strictly limited.
-                        </p>
+                     <span class="inline-block px-3 py-1 bg-black text-white dark:bg-white dark:text-black text-[10px] font-bold uppercase tracking-widest rounded-full self-start mb-6">In Person</span>
+                     <h3 class="text-4xl md:text-5xl font-serif font-bold mb-8 text-black dark:text-white leading-none">Speed Dating Events</h3>
+                     
+                     <div class="space-y-8 flex-1 mb-12">
+                        <div class="flex gap-6 items-start">
+                           <span class="font-bold text-lg font-serif italic bg-white dark:bg-stone-900 border-2 border-black dark:border-stone-600 w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 dark:text-stone-200">1</span>
+                           <div>
+                              <h4 class="font-bold text-xl mb-2 dark:text-stone-100">Get Invited</h4>
+                              <p class="text-stone-700 dark:text-stone-400 leading-relaxed text-sm">
+                                 Special invites are sent to groups with similar interests and demographics.
+                              </p>
+                           </div>
+                        </div>
+                        <div class="flex gap-6 items-start">
+                           <span class="font-bold text-lg font-serif italic bg-white dark:bg-stone-900 border-2 border-black dark:border-stone-600 w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 dark:text-stone-200">2</span>
+                           <div>
+                              <h4 class="font-bold text-xl mb-2 dark:text-stone-100">Secure Your Spot</h4>
+                              <p class="text-stone-700 dark:text-stone-400 leading-relaxed text-sm">
+                                 Purchase a ticket to confirm your attendance. Spaces are strictly limited.
+                              </p>
+                           </div>
+                        </div>
+                        <div class="flex gap-6 items-start">
+                           <span class="font-bold text-lg font-serif italic bg-white dark:bg-stone-900 border-2 border-black dark:border-stone-600 w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 dark:text-stone-200">3</span>
+                           <div>
+                              <h4 class="font-bold text-xl mb-2 dark:text-stone-100">Show Up & Vibe</h4>
+                              <p class="text-stone-700 dark:text-stone-400 leading-relaxed text-sm">
+                                 Arrive at the curated venue. We facilitate the intros, you bring the charm.
+                              </p>
+                           </div>
+                        </div>
                      </div>
+                     <NuxtLink to="/vibe-check" class="inline-flex justify-center items-center w-full py-5 bg-white dark:bg-black border-2 border-black dark:border-stone-600 font-bold uppercase tracking-widest text-sm hover:bg-blue-500 hover:text-white hover:border-blue-500 transition-all rounded-xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,0.1)] hover:shadow-none hover:translate-x-[4px] hover:translate-y-[4px]">
+                        Join Event Waitlist
+                     </NuxtLink>
                   </div>
-                  
-                  <!-- Step 3 -->
-                  <div class="flex gap-6 items-start">
-                     <span class="font-bold text-lg font-serif italic bg-white dark:bg-stone-900 border border-black dark:border-stone-600 w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 dark:text-stone-200">3</span>
-                     <div>
-                        <h4 class="font-bold text-lg mb-2 dark:text-stone-100">Show Up & Vibe</h4>
-                        <p class="text-stone-600 dark:text-stone-400 leading-relaxed text-sm">
-                           Arrive at the curated venue. We facilitate the intros, you bring the charm.
-                        </p>
-                     </div>
-                  </div>
-               </div>
-               
-               <div class="mt-12">
-                  <NuxtLink to="/vibe-check" class="w-full block bg-white dark:bg-stone-800 border border-black dark:border-stone-600 text-center py-4 font-bold uppercase hover:bg-black dark:hover:bg-blue-600 hover:text-white dark:text-stone-200 transition-all shadow-[4px_4px_0px_0px_rgba(0,0,0,0.1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,0.05)]">
-                     Join Event Waitlist
-                  </NuxtLink>
                </div>
             </div>
          </div>
       </section>
 
       <!-- SOCIAL PROOF / STATS -->
-      <section class="bg-stone-50 dark:bg-stone-900 border-b border-black dark:border-stone-800 py-24 px-6 text-center">
+      <section ref="statsSection" class="bg-stone-50 dark:bg-stone-900 border-b border-black dark:border-stone-800 py-24 px-6 text-center">
          <div class="max-w-6xl mx-auto">
             <h2 
               v-scroll-animate="{ animation: 'fade-up', delay: 0 }"
@@ -373,15 +377,15 @@
             
             <div class="grid grid-cols-2 md:grid-cols-4 gap-y-12 md:gap-y-0 md:divide-x divide-black/20 dark:divide-stone-700 md:divide-black dark:md:divide-stone-700 border-t border-b border-black dark:border-stone-700 py-12">
                <div v-scroll-animate="{ animation: 'fade-up', delay: 0 }" class="px-4">
-                  <div class="text-4xl md:text-6xl font-bold mb-3 text-rose-500 font-serif">94%</div>
+                  <div class="text-4xl md:text-6xl font-bold mb-3 text-rose-500 font-serif">{{ currentAccuracy }}%</div>
                   <div class="text-xs font-bold uppercase tracking-widest text-black dark:text-stone-300">Match Accuracy</div>
                </div>
                <div v-scroll-animate="{ animation: 'fade-up', delay: 100 }" class="px-4">
-                  <div class="text-4xl md:text-6xl font-bold mb-3 text-rose-500 font-serif">12+</div>
+                  <div class="text-4xl md:text-6xl font-bold mb-3 text-rose-500 font-serif">{{ currentEvents }}+</div>
                   <div class="text-xs font-bold uppercase tracking-widest text-black dark:text-stone-300">Events Hosted</div>
                </div>
                <div v-scroll-animate="{ animation: 'fade-up', delay: 200 }" class="px-4">
-                  <div class="text-4xl md:text-6xl font-bold mb-3 text-rose-500 font-serif">350+</div>
+                  <div class="text-4xl md:text-6xl font-bold mb-3 text-rose-500 font-serif">{{ currentConnections }}+</div>
                   <div class="text-xs font-bold uppercase tracking-widest text-black dark:text-stone-300">Connections Made</div>
                </div>
                <div v-scroll-animate="{ animation: 'fade-up', delay: 300 }" class="px-4">
@@ -393,39 +397,54 @@
       </section>
 
       <!-- VOUCH & SHOOT YOUR SHOT CTAs -->
-      <section class="border-b border-black dark:border-stone-800">
-         <div class="border-b border-black dark:border-stone-700 p-12 lg:p-20 text-center bg-white dark:bg-stone-900">
-            <h2 class="text-4xl md:text-5xl font-serif mb-4 dark:text-stone-50">Two More Ways to Connect</h2>
-            <p class="text-stone-500 dark:text-stone-400">No account needed. Just a bold move.</p>
-         </div>
-
-         <div class="grid md:grid-cols-2 border-b border-black dark:border-stone-700">
-            <!-- Vouch -->
-            <div class="p-12 lg:p-24 bg-[#FFF7ED] dark:bg-orange-950/20 md:border-r border-b md:border-b-0 border-black dark:border-stone-700 flex flex-col h-full">
-               <div class="w-16 h-16 bg-orange-100 dark:bg-orange-900/50 rounded-full border border-black dark:border-orange-700 flex items-center justify-center text-3xl mb-8">
-                  🤝
-               </div>
-               <h3 class="text-3xl font-serif font-bold mb-4 dark:text-orange-100">Vouch for Two Friends</h3>
-               <p class="text-stone-600 dark:text-stone-400 leading-relaxed text-sm mb-8 flex-1">
-                  Know two people who'd be amazing together? Play matchmaker — enter their details and we'll connect them via SMS. Completely free.
-               </p>
-               <NuxtLink to="/vouch" class="w-full block bg-white dark:bg-stone-800 border border-black dark:border-stone-600 text-center py-4 font-bold uppercase hover:bg-black dark:hover:bg-orange-600 hover:text-white dark:text-stone-200 transition-all shadow-[4px_4px_0px_0px_rgba(0,0,0,0.1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,0.05)]">
-                  Vouch Now — It's Free
-               </NuxtLink>
+      <!-- VOUCH & SHOOT YOUR SHOT CTAs -->
+      <section class="py-24 md:py-32 px-6 bg-[#FFFCF8] dark:bg-stone-950 border-b border-black dark:border-stone-800 overflow-hidden">
+         <div class="max-w-6xl mx-auto relative">
+            <div class="text-center mb-16 md:mb-24 relative z-10">
+               <h2 class="text-4xl md:text-6xl font-serif mb-6 dark:text-stone-50 text-black tracking-tight">Connections Without Profiles</h2>
+               <p class="text-stone-500 font-medium text-xl max-w-2xl mx-auto">Skip the account setup. Make your move directly or set up your friends in seconds.</p>
             </div>
 
-            <!-- Shoot Your Shot -->
-            <div class="p-12 lg:p-24 bg-[#FFF1F2] dark:bg-rose-950/20 flex flex-col h-full">
-               <div class="w-16 h-16 bg-rose-100 dark:bg-rose-900/50 rounded-full border border-black dark:border-rose-700 flex items-center justify-center text-3xl mb-8">
-                  🎯
+            <div class="grid md:grid-cols-2 gap-8 md:gap-16 relative z-10">
+               <!-- Vouch Card -->
+               <div class="group relative">
+                  <!-- Hard shadow layer -->
+                  <div class="absolute inset-0 bg-black dark:bg-stone-700 rounded-3xl translate-x-3 translate-y-3 md:translate-x-4 md:translate-y-4 transition-transform group-hover:translate-x-5 group-hover:translate-y-5"></div>
+                  <!-- Card content -->
+                  <div class="relative h-full bg-[#FFF9F2] dark:bg-orange-950/20 p-10 md:p-14 border-2 border-black dark:border-stone-700 rounded-3xl flex flex-col transition-transform group-hover:-translate-y-1 group-hover:-translate-x-1">
+                     <div class="w-20 h-20 bg-white dark:bg-stone-900 border-2 border-black dark:border-stone-600 rounded-full flex items-center justify-center text-4xl mb-8 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,0.1)] -ml-2">
+                        🤝
+                     </div>
+                     <span class="inline-block px-3 py-1 bg-black text-white dark:bg-white dark:text-black text-[10px] font-bold uppercase tracking-widest rounded-full self-start mb-6">Always Free</span>
+                     <h3 class="text-4xl md:text-5xl font-serif font-bold mb-6 text-black dark:text-white leading-none">Vouch for Friends</h3>
+                     <p class="text-stone-700 dark:text-stone-300 mb-12 flex-1 text-lg leading-relaxed">
+                        Play matchmaker for two people who belong together. Enter their details, we'll send a mystery SMS. You get all the credit.
+                     </p>
+                     <NuxtLink to="/vouch" class="inline-flex justify-center items-center w-full py-5 bg-white dark:bg-black border-2 border-black dark:border-stone-600 font-bold uppercase tracking-widest text-sm hover:bg-rose-500 hover:text-white hover:border-rose-500 transition-all rounded-xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,0.1)] hover:shadow-none hover:translate-x-[4px] hover:translate-y-[4px]">
+                        Start a Vouch
+                     </NuxtLink>
+                  </div>
                </div>
-               <h3 class="text-3xl font-serif font-bold mb-4 dark:text-rose-100">Shoot Your Shot</h3>
-               <p class="text-stone-600 dark:text-stone-400 leading-relaxed text-sm mb-8 flex-1">
-                  Got someone on your mind? Let them know you're interested with a mystery SMS. They tap to reveal it's you. Bold moves only.
-               </p>
-               <NuxtLink to="/shoot-your-shot" class="w-full block bg-white dark:bg-stone-800 border border-black dark:border-stone-600 text-center py-4 font-bold uppercase hover:bg-black dark:hover:bg-rose-600 hover:text-white dark:text-stone-200 transition-all shadow-[4px_4px_0px_0px_rgba(0,0,0,0.1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,0.05)]">
-                  Shoot Your Shot — GH₵15
-               </NuxtLink>
+
+               <!-- Shot Card -->
+               <div class="group relative mt-8 md:mt-24">
+                  <!-- Hard shadow layer -->
+                  <div class="absolute inset-0 bg-black dark:bg-stone-700 rounded-3xl translate-x-3 translate-y-3 md:translate-x-4 md:translate-y-4 transition-transform group-hover:translate-x-5 group-hover:translate-y-5"></div>
+                  <!-- Card content -->
+                  <div class="relative h-full bg-[#FFF1F4] dark:bg-rose-950/20 p-10 md:p-14 border-2 border-black dark:border-stone-700 rounded-3xl flex flex-col transition-transform group-hover:-translate-y-1 group-hover:-translate-x-1">
+                     <div class="w-20 h-20 bg-white dark:bg-stone-900 border-2 border-black dark:border-stone-600 rounded-full flex items-center justify-center text-4xl mb-8 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,0.1)] -ml-2">
+                        🎯
+                     </div>
+                     <span class="inline-block px-3 py-1 bg-black text-white dark:bg-white dark:text-black text-[10px] font-bold uppercase tracking-widest rounded-full self-start mb-6">Bold Moves Only</span>
+                     <h3 class="text-4xl md:text-5xl font-serif font-bold mb-6 text-black dark:text-white leading-none">Shoot Your Shot</h3>
+                     <p class="text-stone-700 dark:text-stone-300 mb-12 flex-1 text-lg leading-relaxed">
+                        Got a crush? Send a mystery SMS with 3 clues. They tap to reveal your identity. High reward, low pressure.
+                     </p>
+                     <NuxtLink to="/shoot-your-shot" class="inline-flex justify-center items-center w-full py-5 bg-white dark:bg-black border-2 border-black dark:border-stone-600 font-bold uppercase tracking-widest text-sm hover:bg-rose-500 hover:text-white hover:border-rose-500 transition-all rounded-xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,0.1)] hover:shadow-none hover:translate-x-[4px] hover:translate-y-[4px]">
+                        Send a Message
+                     </NuxtLink>
+                  </div>
+               </div>
             </div>
          </div>
       </section>
@@ -552,7 +571,7 @@
 <script setup lang="ts">
 import LivePulse from '~/components/LivePulse.vue'
 // ... existing script content ...
-import { ref } from 'vue'
+import { ref, onMounted, type Ref } from 'vue'
 
 useHead({
   title: 'Minutes 2 Match - Real Connections',
@@ -567,6 +586,75 @@ const mobileMenuOpen = ref(false)
 const scrollToSection = (id: string) => {
   document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' })
 }
+
+// ----------------------------------------------------
+// 1. Stats Animation Logic
+// ----------------------------------------------------
+const statsSection = ref<HTMLElement | null>(null)
+const statsAnimated = ref(false)
+
+const targetAccuracy = 94
+const targetEvents = 12
+const targetConnections = 350
+
+const currentAccuracy = ref(0)
+const currentEvents = ref(0)
+const currentConnections = ref(0)
+
+const animateValue = (target: number, current: Ref<number>, duration: number) => {
+  let startTimestamp: number | null = null;
+  const step = (timestamp: number) => {
+    if (!startTimestamp) startTimestamp = timestamp;
+    const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+    const easing = progress === 1 ? 1 : 1 - Math.pow(2, -10 * progress);
+    current.value = Math.floor(easing * target);
+    if (progress < 1) {
+      window.requestAnimationFrame(step);
+    }
+  };
+  window.requestAnimationFrame(step);
+}
+
+// ----------------------------------------------------
+// 2. 3D Tilt Logic for Hero Card
+// ----------------------------------------------------
+const heroCard = ref<HTMLElement | null>(null)
+const cardTransform = ref('perspective(1000px) rotateX(0deg) rotateY(0deg)')
+
+const handleMouseMove = (e: MouseEvent) => {
+  if (!heroCard.value) return
+  
+  const rect = heroCard.value.getBoundingClientRect()
+  const x = e.clientX - rect.left
+  const y = e.clientY - rect.top
+  
+  const centerX = rect.width / 2
+  const centerY = rect.height / 2
+  
+  // Max rotation of 10 degrees
+  const rotateX = ((y - centerY) / centerY) * -10
+  const rotateY = ((x - centerX) / centerX) * 10
+  
+  cardTransform.value = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`
+}
+
+const handleMouseLeave = () => {
+  cardTransform.value = 'perspective(1000px) rotateX(0deg) rotateY(0deg)'
+}
+
+onMounted(() => {
+  if (statsSection.value) {
+    const observer = new IntersectionObserver((entries) => {
+      if (entries[0].isIntersecting && !statsAnimated.value) {
+        statsAnimated.value = true;
+        animateValue(targetAccuracy, currentAccuracy, 2000)
+        animateValue(targetEvents, currentEvents, 2000)
+        animateValue(targetConnections, currentConnections, 2000)
+      }
+    }, { threshold: 0.5 });
+    observer.observe(statsSection.value);
+  }
+})
 </script>
 
 <style>

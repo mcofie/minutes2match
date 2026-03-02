@@ -228,44 +228,49 @@
             </div>
          </div>
       </div>
-
-      <!-- Shoot Your Shot & Vouch Section -->
-      <div class="max-w-4xl mx-auto mt-24 pt-16 border-t border-stone-200 dark:border-stone-800">
-         <div class="text-center mb-12">
-            <h2 class="text-3xl md:text-4xl font-serif mb-4 dark:text-stone-50">Features</h2>
-            <p class="text-stone-500">More ways to connect, with or without an account.</p>
-         </div>
-
-         <div class="grid md:grid-cols-2 gap-8">
-            <div class="bg-[#FFF7ED] dark:bg-orange-950/20 p-8 rounded-xl border-2 border-black dark:border-orange-700 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] dark:shadow-[6px_6px_0px_0px_rgba(255,255,255,0.1)]">
-               <div class="flex justify-between items-start mb-4">
-                  <div>
-                     <h3 class="text-xl font-bold font-serif mb-1 dark:text-orange-100">🎯 Shoot Your Shot</h3>
-                     <p class="text-xs uppercase tracking-widest text-orange-700 dark:text-orange-400 font-bold">No account needed</p>
-                  </div>
-                  <div class="text-2xl font-serif font-bold dark:text-orange-100">GH₵ {{ prices.shot_fee }}</div>
-               </div>
-               <p class="text-sm text-stone-600 dark:text-stone-400 mb-6">Interested in someone? Send them a mystery SMS with 3 clues. They'll tap to reveal your identity.</p>
-               <NuxtLink to="/shoot-your-shot" class="block w-full py-3 rounded-lg border-2 border-black dark:border-orange-700 font-bold uppercase tracking-widest text-xs text-center hover:bg-black hover:text-white dark:hover:bg-orange-200 dark:hover:text-black transition-all">
-                 Shoot Your Shot
-               </NuxtLink>
-            </div>
-            <div class="bg-[#FFF1F2] dark:bg-rose-950/20 p-8 rounded-xl border-2 border-black dark:border-rose-700 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] dark:shadow-[6px_6px_0px_0px_rgba(255,255,255,0.1)]">
-               <div class="flex justify-between items-start mb-4">
-                  <div>
-                     <h3 class="text-xl font-bold font-serif mb-1 dark:text-rose-100">🤝 Vouch for Friends</h3>
-                     <p class="text-xs uppercase tracking-widest text-rose-700 dark:text-rose-400 font-bold">No account needed</p>
-                  </div>
-                  <span class="bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 text-xs font-bold uppercase px-3 py-1 rounded-full border border-emerald-200 dark:border-emerald-800">Free</span>
-               </div>
-               <p class="text-sm text-stone-600 dark:text-stone-400 mb-6">Know two people who'd be perfect together? Set them up with a vouch — both will receive an SMS to accept or decline.</p>
-               <NuxtLink to="/vouch" class="block w-full py-3 rounded-lg border-2 border-black dark:border-rose-700 font-bold uppercase tracking-widest text-xs text-center hover:bg-black hover:text-white dark:hover:bg-rose-200 dark:hover:text-black transition-all">
-                 Vouch for Friends
-               </NuxtLink>
-            </div>
-         </div>
-      </div>
     </main>
+
+    <!-- Two More Ways to Connect (Full Width) -->
+    <section class="mt-8 mb-0 w-full bg-white dark:bg-stone-950">
+      <div class="text-center mb-16 px-6">
+        <h2 class="text-3xl md:text-5xl font-serif mb-4 dark:text-stone-50 text-stone-900 tracking-tight">Two More Ways to Connect</h2>
+        <p class="text-stone-500 font-medium">No account needed. Just a bold move.</p>
+      </div>
+
+      <div class="border-t border-black/20 dark:border-stone-800 w-full grid md:grid-cols-2">
+        <!-- Vouch Panel -->
+        <div class="bg-[#FFF9F2] dark:bg-orange-950/20 px-8 py-16 md:px-20 md:py-24 border-b md:border-b-0 md:border-r border-black/20 dark:border-stone-800 flex flex-col justify-between items-start">
+          <div class="w-12 h-12 rounded-full border border-black/10 dark:border-white/10 bg-white dark:bg-stone-800 shadow-sm flex items-center justify-center mb-16 text-xl">
+            🤝
+          </div>
+          <div class="w-full">
+            <h3 class="text-3xl font-serif font-bold mb-4 text-stone-900 dark:text-stone-50">Vouch for Two Friends</h3>
+            <p class="text-stone-600 dark:text-stone-400 text-sm leading-relaxed mb-10 max-w-sm">
+              Know two people who'd be amazing together? Play matchmaker — enter their details and we'll connect them via SMS. Completely free.
+            </p>
+            <NuxtLink to="/vouch" class="block w-full py-4 text-center bg-white dark:bg-stone-900 border border-black/30 dark:border-stone-700 font-bold text-xs uppercase tracking-widest hover:bg-stone-50 dark:hover:bg-stone-800 transition-colors shadow-sm">
+              VOUCH NOW — IT'S FREE
+            </NuxtLink>
+          </div>
+        </div>
+
+        <!-- Shot Panel -->
+        <div class="bg-[#FFF1F4] dark:bg-rose-950/20 px-8 py-16 md:px-20 md:py-24 border-b md:border-b-0 border-black/20 dark:border-stone-800 flex flex-col justify-between items-start">
+          <div class="w-12 h-12 rounded-full border border-black/10 dark:border-white/10 bg-white dark:bg-stone-800 shadow-sm flex items-center justify-center mb-16 text-xl">
+            🎯
+          </div>
+          <div class="w-full">
+            <h3 class="text-3xl font-serif font-bold mb-4 text-stone-900 dark:text-stone-50">Shoot Your Shot</h3>
+            <p class="text-stone-600 dark:text-stone-400 text-sm leading-relaxed mb-10 max-w-sm">
+              Got someone on your mind? Let them know you're interested with a mystery SMS. They tap to reveal it's you. Bold moves only.
+            </p>
+            <NuxtLink to="/shoot-your-shot" class="block w-full py-4 text-center bg-white dark:bg-stone-900 border border-black/30 dark:border-stone-700 font-bold text-xs uppercase tracking-widest hover:bg-stone-50 dark:hover:bg-stone-800 transition-colors shadow-sm">
+              SHOOT YOUR SHOT — GH₵{{ prices.shot_fee }}
+            </NuxtLink>
+          </div>
+        </div>
+      </div>
+    </section>
     
     <!-- FOOTER -->
     <footer class="bg-black dark:bg-stone-950 text-white pt-24 pb-12 px-6 overflow-hidden">
