@@ -82,10 +82,12 @@ declare global {
   const isEventHandler: typeof import('../../node_modules/h3').isEventHandler
   const isMethod: typeof import('../../node_modules/h3').isMethod
   const isPreflightRequest: typeof import('../../node_modules/h3').isPreflightRequest
+  const isSamePhone: typeof import('../../server/utils/phone').isSamePhone
   const isStream: typeof import('../../node_modules/h3').isStream
   const isWebResponse: typeof import('../../node_modules/h3').isWebResponse
   const lazyEventHandler: typeof import('../../node_modules/h3').lazyEventHandler
   const nitroPlugin: typeof import('../../node_modules/nitropack/dist/runtime/internal/plugin').nitroPlugin
+  const normalizeGhanaPhone: typeof import('../../server/utils/phone').normalizeGhanaPhone
   const notifyDiscord: typeof import('../../server/utils/discord').notifyDiscord
   const notifyError: typeof import('../../server/utils/discord').notifyError
   const notifyEventBooking: typeof import('../../server/utils/discord').notifyEventBooking
@@ -173,4 +175,5 @@ export { stringifyMarkdown } from '/Users/maxwellcofie/WebstormProjects/minutes2
 export { getGeminiModel, auditProfileWithAI } from '/Users/maxwellcofie/WebstormProjects/minutes2match/server/utils/ai';
 export { DiscordColors, notifyDiscord, notifyNewSignup, notifyPaymentSuccess, notifyMatchUnlocked, notifyEventBooking, notifyError, notifyUserLogin } from '/Users/maxwellcofie/WebstormProjects/minutes2match/server/utils/discord';
 export { unlockMatch } from '/Users/maxwellcofie/WebstormProjects/minutes2match/server/utils/match';
+export { normalizeGhanaPhone, isSamePhone } from '/Users/maxwellcofie/WebstormProjects/minutes2match/server/utils/phone';
 export { checkRateLimit, getClientIP, enforceRateLimit } from '/Users/maxwellcofie/WebstormProjects/minutes2match/server/utils/rateLimiter';

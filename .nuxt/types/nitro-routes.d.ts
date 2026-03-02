@@ -27,8 +27,14 @@ declare module "nitropack/types" {
     '/api/admin/seed-users': {
       'post': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/admin/seed-users.post').default>>>>
     }
+    '/api/admin/shots/resend-sms': {
+      'post': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/admin/shots/resend-sms.post').default>>>>
+    }
     '/api/admin/users/:id': {
       'delete': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/admin/users/[id].delete').default>>>>
+    }
+    '/api/admin/vouches/resend-sms': {
+      'post': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/admin/vouches/resend-sms.post').default>>>>
     }
     '/api/auth/check-existing-user': {
       'post': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/auth/check-existing-user.post').default>>>>
@@ -104,6 +110,9 @@ declare module "nitropack/types" {
     }
     '/api/sitemap.xml': {
       'get': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/sitemap.xml.get').default>>>>
+    }
+    '/api/stats/social-proof': {
+      'get': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/stats/social-proof.get').default>>>>
     }
     '/api/verify-admin-login': {
       'post': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/verify-admin-login.post').default>>>>

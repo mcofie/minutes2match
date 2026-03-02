@@ -10,6 +10,7 @@
 import { createClient } from '@supabase/supabase-js'
 import crypto from 'crypto'
 import { enforceRateLimit } from '~/server/utils/rateLimiter'
+import { normalizeGhanaPhone, isSamePhone } from '~/server/utils/phone'
 
 export default defineEventHandler(async (event) => {
     // Rate limit: 5 shots per hour per IP
@@ -58,8 +59,12 @@ export default defineEventHandler(async (event) => {
         throw createError({ statusCode: 400, message: 'Invalid target phone number' })
     }
 
+    // Normalize phone numbers for consistent storage
+    const normalizedShooterPhone = normalizeGhanaPhone(shooterPhone)
+    const normalizedTargetPhone = normalizeGhanaPhone(targetPhone)
+
     // Can't shoot your own shot at yourself
-    if (shooterPhone === targetPhone) {
+    if (isSamePhone(shooterPhone, targetPhone)) {
         throw createError({ statusCode: 400, message: 'You cannot shoot your shot at yourself' })
     }
 
@@ -88,15 +93,31 @@ export default defineEventHandler(async (event) => {
     const targetToken = crypto.randomBytes(6).toString('base64url')
 
     try {
+        // Check for duplicate active shot (same shooter → same target)
+        const { data: existingShot } = await supabase
+            .from('shots')
+            .select('id, status')
+            .eq('shooter_phone', normalizedShooterPhone)
+            .eq('target_phone', normalizedTargetPhone)
+            .in('status', ['awaiting_payment', 'sent', 'viewed'])
+            .maybeSingle()
+
+        if (existingShot) {
+            throw createError({
+                statusCode: 409,
+                message: 'You already have an active shot to this person. Wait for them to respond first!'
+            })
+        }
+
         // Create the shot record
         const { data: shot, error } = await supabase
             .from('shots')
             .insert({
                 shooter_name: shooterName,
-                shooter_phone: shooterPhone,
+                shooter_phone: normalizedShooterPhone,
                 shooter_email: shooterEmail,
                 target_name: targetName,
-                target_phone: targetPhone,
+                target_phone: normalizedTargetPhone,
                 target_token: targetToken,
                 message: message || null,
                 hints: hints.map((h: any) => ({ question: h.question, answer: h.answer.trim(), emoji: h.emoji || '🔮', id: h.id })),

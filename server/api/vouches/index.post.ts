@@ -10,6 +10,7 @@ import { createClient } from '@supabase/supabase-js'
 import crypto from 'crypto'
 import { notifyDiscord, DiscordColors } from '~/server/utils/discord'
 import { enforceRateLimit } from '~/server/utils/rateLimiter'
+import { normalizeGhanaPhone, isSamePhone } from '~/server/utils/phone'
 
 export default defineEventHandler(async (event) => {
     // Rate limit: 3 vouches per hour per IP
@@ -41,12 +42,17 @@ export default defineEventHandler(async (event) => {
     }
 
     // Prevent vouching yourself or same person
-    if (friendAPhone === friendBPhone) {
+    if (isSamePhone(friendAPhone, friendBPhone)) {
         throw createError({
             statusCode: 400,
             message: 'Friend A and Friend B must be different people'
         })
     }
+
+    // Normalize phone numbers for consistent storage
+    const normalizedMatcherPhone = normalizeGhanaPhone(matcherPhone)
+    const normalizedFriendAPhone = normalizeGhanaPhone(friendAPhone)
+    const normalizedFriendBPhone = normalizeGhanaPhone(friendBPhone)
 
     const config = useRuntimeConfig()
     const supabase = createClient(config.supabaseUrl, config.supabaseServiceKey, {
@@ -64,13 +70,13 @@ export default defineEventHandler(async (event) => {
             .from('vouches')
             .insert({
                 matcher_name: matcherName,
-                matcher_phone: matcherPhone,
+                matcher_phone: normalizedMatcherPhone,
                 matcher_email: matcherEmail || null,
                 friend_a_name: friendAName,
-                friend_a_phone: friendAPhone,
+                friend_a_phone: normalizedFriendAPhone,
                 friend_a_token: friendAToken,
                 friend_b_name: friendBName,
-                friend_b_phone: friendBPhone,
+                friend_b_phone: normalizedFriendBPhone,
                 friend_b_token: friendBToken,
                 matcher_note: matcherNote || null
             })

@@ -15,10 +15,10 @@
 
         <!-- Center Links (Desktop) -->
         <div class="hidden md:flex items-center gap-8 text-sm font-bold">
-          <NuxtLink to="/#manifesto" class="hover:text-rose-500 dark:text-stone-300 dark:hover:text-rose-400 transition-colors">Manifesto</NuxtLink>
-          <NuxtLink to="/#process" class="hover:text-rose-500 dark:text-stone-300 dark:hover:text-rose-400 transition-colors">Process</NuxtLink>
-          <NuxtLink to="/#stories" class="hover:text-rose-500 dark:text-stone-300 dark:hover:text-rose-400 transition-colors">Stories</NuxtLink>
-          <NuxtLink to="/pricing" class="hover:text-rose-500 dark:text-stone-300 dark:hover:text-rose-400 transition-colors">Pricing</NuxtLink>
+          <NuxtLink to="/" class="hover:text-rose-500 dark:text-stone-300 dark:hover:text-rose-400 transition-colors">Home</NuxtLink>
+          <NuxtLink to="/vouch" class="hover:text-rose-500 dark:text-stone-300 dark:hover:text-rose-400 transition-colors">Vouch</NuxtLink>
+          <NuxtLink to="/shoot-your-shot" class="hover:text-rose-500 dark:text-stone-300 dark:hover:text-rose-400 transition-colors">Shoot Your Shot</NuxtLink>
+          <NuxtLink to="/pricing" class="text-rose-500">Pricing</NuxtLink>
         </div>
 
         <!-- CTA & Login (Desktop) + Hamburger (Mobile) -->
@@ -58,16 +58,16 @@
       >
         <div v-show="mobileMenuOpen" class="md:hidden absolute top-full left-0 right-0 bg-[#FFFCF8] dark:bg-stone-900 border-b border-black dark:border-stone-800 shadow-lg">
           <div class="px-6 py-6 space-y-4">
-            <NuxtLink to="/#manifesto" @click="mobileMenuOpen = false" class="block w-full text-left py-3 text-sm font-bold hover:text-rose-500 dark:hover:text-rose-400 dark:text-stone-200 transition-colors border-b border-stone-100 dark:border-stone-800">
-              Manifesto
+            <NuxtLink to="/" @click="mobileMenuOpen = false" class="block w-full text-left py-3 text-sm font-bold hover:text-rose-500 dark:hover:text-rose-400 dark:text-stone-200 transition-colors border-b border-stone-100 dark:border-stone-800">
+              Home
             </NuxtLink>
-            <NuxtLink to="/#process" @click="mobileMenuOpen = false" class="block w-full text-left py-3 text-sm font-bold hover:text-rose-500 dark:hover:text-rose-400 dark:text-stone-200 transition-colors border-b border-stone-100 dark:border-stone-800">
-              Process
+            <NuxtLink to="/vouch" @click="mobileMenuOpen = false" class="block w-full text-left py-3 text-sm font-bold hover:text-rose-500 dark:hover:text-rose-400 dark:text-stone-200 transition-colors border-b border-stone-100 dark:border-stone-800">
+              🤝 Vouch for Friends
             </NuxtLink>
-            <NuxtLink to="/#stories" @click="mobileMenuOpen = false" class="block w-full text-left py-3 text-sm font-bold hover:text-rose-500 dark:hover:text-rose-400 dark:text-stone-200 transition-colors border-b border-stone-100 dark:border-stone-800">
-              Stories
+            <NuxtLink to="/shoot-your-shot" @click="mobileMenuOpen = false" class="block w-full text-left py-3 text-sm font-bold hover:text-rose-500 dark:hover:text-rose-400 dark:text-stone-200 transition-colors border-b border-stone-100 dark:border-stone-800">
+              🎯 Shoot Your Shot
             </NuxtLink>
-            <NuxtLink to="/pricing" @click="mobileMenuOpen = false" class="block w-full text-left py-3 text-sm font-bold hover:text-rose-500 dark:hover:text-rose-400 dark:text-stone-200 transition-colors border-b border-stone-100 dark:border-stone-800">
+            <NuxtLink to="/pricing" @click="mobileMenuOpen = false" class="block w-full text-left py-3 text-sm font-bold text-rose-500 transition-colors border-b border-stone-100 dark:border-stone-800">
                Pricing
             </NuxtLink>
             <NuxtLink to="/login" @click="mobileMenuOpen = false" class="block w-full py-3 text-sm font-bold hover:text-rose-500 dark:hover:text-rose-400 dark:text-stone-200 transition-colors border-b border-stone-100 dark:border-stone-800">
@@ -228,6 +228,43 @@
             </div>
          </div>
       </div>
+
+      <!-- Shoot Your Shot & Vouch Section -->
+      <div class="max-w-4xl mx-auto mt-24 pt-16 border-t border-stone-200 dark:border-stone-800">
+         <div class="text-center mb-12">
+            <h2 class="text-3xl md:text-4xl font-serif mb-4 dark:text-stone-50">Features</h2>
+            <p class="text-stone-500">More ways to connect, with or without an account.</p>
+         </div>
+
+         <div class="grid md:grid-cols-2 gap-8">
+            <div class="bg-[#FFF7ED] dark:bg-orange-950/20 p-8 rounded-xl border-2 border-black dark:border-orange-700 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] dark:shadow-[6px_6px_0px_0px_rgba(255,255,255,0.1)]">
+               <div class="flex justify-between items-start mb-4">
+                  <div>
+                     <h3 class="text-xl font-bold font-serif mb-1 dark:text-orange-100">🎯 Shoot Your Shot</h3>
+                     <p class="text-xs uppercase tracking-widest text-orange-700 dark:text-orange-400 font-bold">No account needed</p>
+                  </div>
+                  <div class="text-2xl font-serif font-bold dark:text-orange-100">GH₵ {{ prices.shot_fee }}</div>
+               </div>
+               <p class="text-sm text-stone-600 dark:text-stone-400 mb-6">Interested in someone? Send them a mystery SMS with 3 clues. They'll tap to reveal your identity.</p>
+               <NuxtLink to="/shoot-your-shot" class="block w-full py-3 rounded-lg border-2 border-black dark:border-orange-700 font-bold uppercase tracking-widest text-xs text-center hover:bg-black hover:text-white dark:hover:bg-orange-200 dark:hover:text-black transition-all">
+                 Shoot Your Shot
+               </NuxtLink>
+            </div>
+            <div class="bg-[#FFF1F2] dark:bg-rose-950/20 p-8 rounded-xl border-2 border-black dark:border-rose-700 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] dark:shadow-[6px_6px_0px_0px_rgba(255,255,255,0.1)]">
+               <div class="flex justify-between items-start mb-4">
+                  <div>
+                     <h3 class="text-xl font-bold font-serif mb-1 dark:text-rose-100">🤝 Vouch for Friends</h3>
+                     <p class="text-xs uppercase tracking-widest text-rose-700 dark:text-rose-400 font-bold">No account needed</p>
+                  </div>
+                  <span class="bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 text-xs font-bold uppercase px-3 py-1 rounded-full border border-emerald-200 dark:border-emerald-800">Free</span>
+               </div>
+               <p class="text-sm text-stone-600 dark:text-stone-400 mb-6">Know two people who'd be perfect together? Set them up with a vouch — both will receive an SMS to accept or decline.</p>
+               <NuxtLink to="/vouch" class="block w-full py-3 rounded-lg border-2 border-black dark:border-rose-700 font-bold uppercase tracking-widest text-xs text-center hover:bg-black hover:text-white dark:hover:bg-rose-200 dark:hover:text-black transition-all">
+                 Vouch for Friends
+               </NuxtLink>
+            </div>
+         </div>
+      </div>
     </main>
     
     <!-- FOOTER -->
@@ -300,10 +337,11 @@ const config = useRuntimeConfig()
 const mobileMenuOpen = ref(false)
 
 const prices = reactive({
-   match: 15, // Updated default
-   subscription: 75, // Default updated to 75
+   match: 15,
+   subscription: 75,
    event_male: 100,
-   event_female: 100
+   event_female: 100,
+   shot_fee: 15
 })
 
 // Fetch current pricing from database
@@ -324,9 +362,12 @@ onMounted(async () => {
                   prices.subscription = value?.amount || 50
                   break
                case 'event_ticket_prices':
-                  prices.event_male = value?.male || 100
-                  prices.event_female = value?.female || 100
-                  break
+                   prices.event_male = value?.male || 100
+                   prices.event_female = value?.female || 100
+                   break
+               case 'shoot_your_shot_fee':
+                   prices.shot_fee = value?.amount || 15
+                   break
             }
          })
       }

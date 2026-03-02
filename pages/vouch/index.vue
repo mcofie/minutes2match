@@ -3,25 +3,84 @@
     <Head>
       <Title>Vouch for Two Friends | Minutes 2 Match</Title>
       <Meta name="description" content="Know two people who'd be perfect together? Vouch for them on Minutes 2 Match." />
+      <Meta property="og:title" content="Vouch for Two Friends 🤝" />
+      <Meta property="og:description" content="Know two people who'd be perfect? Set them up on Minutes 2 Match — it's free!" />
+      <Meta property="og:image" content="https://minutes2match.com/og-vouch.png" />
+      <Meta property="og:type" content="website" />
+      <Meta name="twitter:card" content="summary_large_image" />
     </Head>
 
     <!-- Navigation -->
-    <nav class="sticky top-0 z-50 bg-[#FFFCF8] dark:bg-stone-950 border-b border-black dark:border-stone-800">
-      <div class="max-w-4xl mx-auto px-6 h-16 flex items-center justify-between">
-        <NuxtLink to="/" class="flex items-center">
-          <img src="/logo-full.png" alt="minutes2match" class="h-16 w-auto object-contain hover:opacity-80 transition-opacity dark:invert" />
+    <nav class="fixed top-0 inset-x-0 z-50 bg-[#FFFCF8] dark:bg-stone-950/90 dark:backdrop-blur-md border-b border-black dark:border-stone-800 transition-colors duration-300">
+      <div class="max-w-[1440px] mx-auto px-4 md:px-6 h-20 md:h-28 flex items-center justify-between">
+        <NuxtLink to="/" class="flex items-center z-50 -ml-2 md:ml-0">
+           <NuxtImg format="webp" src="/logo-full.png" alt="minutes2match" class="h-20 md:h-28 w-auto object-contain hover:opacity-80 transition-opacity dark:invert" />
         </NuxtLink>
-        <div class="flex items-center gap-6">
-          <NuxtLink to="/vouch" class="hidden sm:block text-xs font-bold uppercase tracking-widest text-rose-500">Vouch</NuxtLink>
-          <NuxtLink to="/shoot-your-shot" class="hidden sm:block text-xs font-bold uppercase tracking-widest hover:text-rose-500 dark:text-stone-400 dark:hover:text-rose-400 transition-colors">Shoot Your Shot</NuxtLink>
-          <NuxtLink to="/" class="text-sm font-bold uppercase tracking-widest hover:text-rose-500 dark:text-stone-400 dark:hover:text-rose-400 transition-colors">
-            ← Back to Home
+
+        <div class="hidden md:flex items-center gap-8 text-sm font-bold">
+          <NuxtLink to="/" class="hover:text-rose-500 dark:text-stone-300 dark:hover:text-rose-400 transition-colors">Home</NuxtLink>
+          <NuxtLink to="/vouch" class="text-rose-500">Vouch</NuxtLink>
+          <NuxtLink to="/shoot-your-shot" class="hover:text-rose-500 dark:text-stone-300 dark:hover:text-rose-400 transition-colors">Shoot Your Shot</NuxtLink>
+          <NuxtLink to="/pricing" class="hover:text-rose-500 dark:text-stone-300 dark:hover:text-rose-400 transition-colors">Pricing</NuxtLink>
+        </div>
+
+        <div class="flex items-center gap-3 md:gap-6">
+          <NuxtLink to="/login" class="hidden md:block text-sm font-bold hover:underline decoration-2 underline-offset-4 dark:text-stone-200">
+             MEMBER LOGIN
           </NuxtLink>
+          <NuxtLink to="/vibe-check" class="hidden md:inline-flex group relative items-center overflow-hidden rounded-md border border-black dark:border-stone-600 bg-black dark:bg-stone-100 text-white dark:text-black px-6 py-3 focus:outline-none hover:bg-rose-500 dark:hover:bg-rose-500 hover:border-rose-500 dark:hover:border-rose-500 dark:hover:text-white transition-all shadow-[4px_4px_0px_0px_rgba(0,0,0,0.2)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,0.2)] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-none">
+            <span class="text-xs font-bold uppercase tracking-widest">VIBE CHECK</span>
+          </NuxtLink>
+
+          <NuxtLink to="/vibe-check" class="md:hidden bg-black dark:bg-stone-100 text-white dark:text-black px-4 py-2.5 rounded-lg text-[10px] font-bold border border-black dark:border-stone-600 shadow-[2px_2px_0px_0px_rgba(244,63,94,1)] hover:translate-y-[1px] hover:shadow-none transition-all uppercase tracking-widest">
+            JOIN
+          </NuxtLink>
+          
+          <button 
+            @click="mobileMenuOpen = !mobileMenuOpen"
+            class="md:hidden w-10 h-10 flex flex-col items-center justify-center gap-1.5 border-2 border-black dark:border-stone-600 rounded-lg bg-white dark:bg-stone-900 hover:bg-stone-50 dark:hover:bg-stone-800 transition-colors"
+          >
+            <span class="w-5 h-0.5 bg-black dark:bg-white transition-all" :class="mobileMenuOpen ? 'rotate-45 translate-y-2' : ''"></span>
+            <span class="w-5 h-0.5 bg-black dark:bg-white transition-all" :class="mobileMenuOpen ? 'opacity-0' : ''"></span>
+            <span class="w-5 h-0.5 bg-black dark:bg-white transition-all" :class="mobileMenuOpen ? '-rotate-45 -translate-y-2' : ''"></span>
+          </button>
         </div>
       </div>
+      
+      <Transition
+        enter-active-class="transition-all duration-300 ease-out"
+        enter-from-class="opacity-0 -translate-y-4"
+        enter-to-class="opacity-100 translate-y-0"
+        leave-active-class="transition-all duration-200 ease-in"
+        leave-from-class="opacity-100 translate-y-0"
+        leave-to-class="opacity-0 -translate-y-4"
+      >
+        <div v-show="mobileMenuOpen" class="md:hidden absolute top-full left-0 right-0 bg-[#FFFCF8] dark:bg-stone-900 border-b border-black dark:border-stone-800 shadow-lg">
+          <div class="px-6 py-6 space-y-4">
+            <NuxtLink to="/" @click="mobileMenuOpen = false" class="block w-full text-left py-3 text-sm font-bold hover:text-rose-500 dark:hover:text-rose-400 dark:text-stone-200 transition-colors border-b border-stone-100 dark:border-stone-800">
+              Home
+            </NuxtLink>
+            <NuxtLink to="/vouch" @click="mobileMenuOpen = false" class="block w-full text-left py-3 text-sm font-bold text-rose-500 transition-colors border-b border-stone-100 dark:border-stone-800">
+              Vouch
+            </NuxtLink>
+            <NuxtLink to="/shoot-your-shot" @click="mobileMenuOpen = false" class="block w-full text-left py-3 text-sm font-bold hover:text-rose-500 dark:hover:text-rose-400 dark:text-stone-200 transition-colors border-b border-stone-100 dark:border-stone-800">
+              Shoot Your Shot
+            </NuxtLink>
+            <NuxtLink to="/pricing" @click="mobileMenuOpen = false" class="block w-full text-left py-3 text-sm font-bold hover:text-rose-500 dark:hover:text-rose-400 dark:text-stone-200 transition-colors border-b border-stone-100 dark:border-stone-800">
+               Pricing
+            </NuxtLink>
+            <NuxtLink to="/login" @click="mobileMenuOpen = false" class="block w-full py-3 text-sm font-bold hover:text-rose-500 dark:hover:text-rose-400 dark:text-stone-200 transition-colors border-b border-stone-100 dark:border-stone-800">
+              MEMBER LOGIN
+            </NuxtLink>
+            <NuxtLink to="/vibe-check" @click="mobileMenuOpen = false" class="block w-full text-center bg-black dark:bg-stone-100 text-white dark:text-black py-4 rounded-lg font-bold uppercase tracking-widest text-sm hover:bg-rose-500 dark:hover:bg-rose-500 dark:hover:text-white transition-colors mt-4">
+              START VIBE CHECK
+            </NuxtLink>
+          </div>
+        </div>
+      </Transition>
     </nav>
 
-    <main class="max-w-2xl mx-auto px-6 py-12 md:py-20">
+    <main class="max-w-2xl mx-auto px-6 py-12 md:py-20 pt-28 md:pt-36">
       <!-- Success State -->
       <div v-if="submitted" class="text-center py-20 animate-in fade-in zoom-in duration-500">
         <div class="w-24 h-24 bg-emerald-50 dark:bg-emerald-900/30 rounded-full flex items-center justify-center mx-auto mb-8 ring-8 ring-emerald-50/50 dark:ring-emerald-900/20">
@@ -43,20 +102,44 @@
         <NuxtLink to="/" class="inline-block bg-black dark:bg-stone-100 text-white dark:text-black px-8 py-3 rounded-lg font-bold text-sm uppercase tracking-widest hover:bg-rose-500 dark:hover:bg-rose-500 dark:hover:text-white transition-all">
           Back to Home
         </NuxtLink>
+
+        <!-- WhatsApp Share + Vouch Another -->
+        <div class="flex flex-col sm:flex-row gap-3 mt-6 max-w-sm mx-auto">
+          <a 
+            :href="whatsappShareUrl" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            class="flex-1 flex items-center justify-center gap-2 bg-[#25D366] text-white px-6 py-3 rounded-lg font-bold text-sm uppercase tracking-widest hover:bg-[#1da851] transition-all"
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+            Share
+          </a>
+          <button 
+            @click="submitted = false; resetForm()" 
+            class="flex-1 border-2 border-black dark:border-stone-600 text-black dark:text-stone-200 px-6 py-3 rounded-lg font-bold text-sm uppercase tracking-widest hover:bg-black hover:text-white dark:hover:bg-stone-100 dark:hover:text-black transition-all"
+          >
+            Vouch Another Pair
+          </button>
+        </div>
       </div>
 
       <!-- Form -->
       <div v-else>
         <div class="text-center mb-12">
-          <div class="inline-flex items-center gap-2 bg-rose-50 dark:bg-rose-900/20 border border-rose-100 dark:border-rose-800 text-rose-700 dark:text-rose-300 px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-widest mb-6">
-            🤝 Vouch for Friends
-          </div>
           <h1 class="text-4xl md:text-5xl font-serif font-bold mb-4 tracking-tight leading-tight">
             Know two people who'd be <span class="italic text-rose-500">perfect</span> together?
           </h1>
           <p class="text-lg text-stone-500 dark:text-stone-400 max-w-lg mx-auto leading-relaxed">
             Vouch for two friends and we'll connect them. It's free — no account needed.
           </p>
+        </div>
+
+        <!-- Social Proof -->
+        <div v-if="socialProof.vouchesCount > 0" class="text-center mb-8">
+          <span class="inline-flex items-center gap-2 bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-400 px-4 py-2 rounded-full text-xs font-bold">
+            <span class="w-2 h-2 bg-rose-500 rounded-full animate-pulse"></span>
+            {{ socialProof.vouchesCount }} vouches matched so far
+          </span>
         </div>
 
         <form @submit.prevent="submitVouch" class="space-y-8">
@@ -136,7 +219,7 @@
             :disabled="submitting" 
             class="w-full bg-black dark:bg-stone-100 text-white dark:text-black py-4 rounded-xl font-bold text-lg hover:bg-rose-500 dark:hover:bg-rose-500 dark:hover:text-white transition-all shadow-[6px_6px_0px_0px_rgba(244,63,94,1)] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] border border-black dark:border-stone-100 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {{ submitting ? 'Sending...' : '🤝 Vouch for Them' }}
+            {{ submitting ? 'Sending...' : 'Vouch for Them' }}
           </button>
 
           <p class="text-center text-xs text-stone-400 dark:text-stone-500">
@@ -166,9 +249,22 @@
 </template>
 
 <script setup lang="ts">
+const mobileMenuOpen = ref(false)
 const submitted = ref(false)
 const submitting = ref(false)
 const error = ref('')
+
+const socialProof = ref({ shotsCount: 0, vouchesCount: 0 })
+
+// Fetch social proof stats
+onMounted(async () => {
+  try {
+    const data = await $fetch('/api/stats/social-proof') as any
+    socialProof.value = data
+  } catch (e) {
+    // Silently fail — social proof is optional
+  }
+})
 
 const form = reactive({
   matcherName: '',
@@ -199,6 +295,25 @@ const submitVouch = async () => {
   } finally {
     submitting.value = false
   }
+}
+
+const whatsappShareUrl = computed(() => {
+  const text = encodeURIComponent(
+    `I just vouched for two friends on Minutes 2 Match! 💕 Know someone who'd be great for your friend? Set them up (it's free): https://minutes2match.com/vouch`
+  )
+  return `https://wa.me/?text=${text}`
+})
+
+const resetForm = () => {
+  form.matcherName = ''
+  form.matcherPhone = ''
+  form.matcherEmail = ''
+  form.friendAName = ''
+  form.friendAPhone = ''
+  form.friendBName = ''
+  form.friendBPhone = ''
+  form.matcherNote = ''
+  error.value = ''
 }
 </script>
 
