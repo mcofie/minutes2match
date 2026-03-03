@@ -26,18 +26,28 @@
       <div class="bg-white rounded-[24px] shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] border-2 border-black p-8 md:p-10 relative">
         
         <!-- Phone Input Step -->
-        <div v-if="!otpSent" class="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
-          <div class="space-y-2">
-            <label class="block text-[11px] font-black uppercase tracking-widest text-stone-900">Phone Number</label>
-            <div class="flex items-center w-full px-4 py-3 border-2 border-stone-200 rounded-xl bg-white focus-within:ring-0 focus-within:border-black transition-all group hover:border-stone-400 relative">
-              <span class="font-bold text-stone-900 select-none mr-3 border-r-2 border-stone-100 pr-3 font-mono text-lg">+233</span>
+        <div v-if="!otpSent" class="space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-300">
+          
+          <!-- TOP: PHONE INPUT -->
+          <div class="space-y-4">
+            <div class="space-y-2">
+              <label class="block text-xs font-bold uppercase tracking-widest text-stone-900">Phone Number</label>
+              <div class="flex items-center w-full px-4 py-4 border-2 border-stone-200 rounded-[16px] bg-white focus-within:ring-0 focus-within:border-black transition-all group hover:border-stone-400 relative">
+                <span class="font-bold text-stone-900 select-none mr-3 border-r-2 border-stone-100 pr-3 font-mono text-lg">+233</span>
                 <input
                   type="tel"
-                  v-model="phone"
+                  inputmode="numeric"
+                  pattern="[0-9 ]*"
+                  v-model="formattedPhone"
                   placeholder="20 123 4567"
                   autocomplete="username webauthn"
                   class="flex-1 text-[17px] font-bold outline-none bg-transparent placeholder-stone-300 text-stone-900 font-mono tracking-widest pr-8"
-                  maxlength="10"
+                  maxlength="12"
+                  @keydown="(e) => { 
+                    const allowed = ['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab', 'Enter', 'Home', 'End'];
+                    if (allowed.includes(e.key) || e.ctrlKey || e.metaKey || e.altKey) return;
+                    if (!/^[0-9]$/.test(e.key)) e.preventDefault();
+                  }"
                   @keyup.enter="isValidPhone && sendOtp()"
                 />
                 <button v-if="contactPickerSupported" @click.prevent="pickLoginContact" type="button" class="absolute right-3 top-1/2 -translate-y-1/2 text-stone-400 hover:text-rose-500 transition-colors p-1" title="Select from Contacts">
@@ -46,48 +56,46 @@
               </div>
             </div>
 
-            <div v-if="isPasskeySupported && !otpSent" class="space-y-5 pt-3">
-              <button 
-                @click="handlePasskeyLogin"
-                :disabled="sending || isLoggingIn"
-                type="button"
-                class="w-full relative overflow-hidden group bg-white dark:bg-stone-900 border-[3px] border-black rounded-[24px] py-3.5 px-4 transition-all hover:-translate-y-0.5 active:translate-y-0 active:shadow-none shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
-              >
-                <!-- Animated background gradient on hover -->
-                <div class="absolute inset-0 bg-gradient-to-r from-rose-500/10 via-purple-500/10 to-rose-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                
-                <div class="relative flex items-center justify-center gap-4">
-                  <div class="w-10 h-10 rounded-full bg-stone-100 flex flex-shrink-0 items-center justify-center text-xl group-hover:bg-rose-500 group-hover:text-white transition-colors duration-300">
-                    <span v-if="authMethod === 'passkey'" class="animate-pulse">🧬</span>
-                    <span v-else>👋</span>
-                  </div>
-                  <div class="text-left flex flex-col justify-center mt-[1px]">
-                    <p class="text-[9px] font-black uppercase tracking-[0.2em] text-stone-400 leading-none mb-1.5">One-Tap Login</p>
-                    <p class="text-[13px] sm:text-[14px] font-black uppercase tracking-[0.1em] text-black dark:text-white leading-none">{{ authMethod === 'passkey' ? 'VERIFYING...' : 'FACEID / TOUCHID' }}</p>
-                  </div>
-                </div>
-              </button>
-              
-              <div class="flex items-center gap-4 py-2">
-                <div class="h-[1px] flex-1 bg-stone-100"></div>
-                <span class="text-[9px] font-black uppercase tracking-[0.3em] text-stone-300 whitespace-nowrap">OR USE PHONE</span>
-                <div class="h-[1px] flex-1 bg-stone-100"></div>
-              </div>
+            <!-- BUTTON CLOSE TO INPUT -->
+            <button 
+              :disabled="!isValidPhone || sending || isLoggingIn"
+              @click="() => sendOtp()"
+              class="w-full py-4 rounded-[16px] font-bold uppercase tracking-widest text-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed bg-stone-500 text-white hover:bg-stone-600 disabled:bg-stone-400 disabled:hover:bg-stone-400 border-2 border-transparent"
+            >
+              {{ sending ? 'Sending...' : 'Continue with Phone' }}
+            </button>
+          </div>
+
+          <!-- BOTTOM: PASSKEY AS SECONDARY OPTION -->
+          <div v-if="isPasskeySupported" class="space-y-8">
+            <div class="flex items-center gap-4 p-2">
+              <div class="h-[1px] flex-1 bg-stone-200"></div>
+              <span class="text-[10px] font-bold uppercase tracking-widest text-stone-300 whitespace-nowrap">OR ONE-TAP LOGIN</span>
+              <div class="h-[1px] flex-1 bg-stone-200"></div>
             </div>
 
-          <button 
-            :disabled="!isValidPhone || sending || isLoggingIn"
-            @click="sendOtp"
-            class="w-full py-[18px] rounded-[14px] font-bold uppercase tracking-widest text-sm transition-all disabled:opacity-100 disabled:cursor-not-allowed disabled:bg-[#858585] disabled:text-white disabled:border-transparent disabled:shadow-none bg-black text-white hover:bg-rose-500 hover:shadow-[4px_4px_0px_0px_rgba(244,63,94,0.3)] hover:-translate-y-[1px] border-2 border-black"
-          >
-            {{ sending ? 'Sending...' : 'Continue with Phone' }}
-          </button>
+            <button 
+              @click="handlePasskeyLogin"
+              :disabled="sending || isLoggingIn"
+              type="button"
+              class="w-full relative overflow-hidden group bg-white border-[3px] border-black rounded-[24px] py-4 px-4 transition-all hover:-translate-y-[2px] active:translate-y-0 active:shadow-none shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] flex items-center justify-center gap-4"
+            >
+              <div class="w-12 h-12 rounded-full bg-stone-100 flex flex-shrink-0 items-center justify-center text-xl transition-colors duration-300">
+                <span v-if="authMethod === 'passkey'" class="animate-pulse">🧬</span>
+                <span v-else>👋</span>
+              </div>
+              <div class="text-left flex flex-col justify-center">
+                <p class="text-[10px] font-bold uppercase tracking-widest text-stone-400 mb-1">Passkey</p>
+                <p class="text-sm font-black uppercase tracking-widest text-black">{{ authMethod === 'passkey' ? 'VERIFYING...' : 'FACEID / TOUCHID' }}</p>
+              </div>
+            </button>
+          </div>
 
           <p v-if="error" class="text-rose-500 text-sm text-center font-bold bg-rose-50 py-2 rounded border border-rose-200">{{ error }}</p>
 
-          <div class="pt-2 text-center">
-            <p class="text-[14px] text-stone-600 mb-3 font-normal tracking-wide">New to minutes2match?</p>
-            <NuxtLink to="/vibe-check" class="text-black font-black uppercase tracking-[0.05em] text-[12px] border-b-[2px] border-rose-500 hover:text-rose-500 hover:border-black transition-colors pb-[2px]">
+          <div class="pt-6 text-center">
+            <p class="text-sm text-stone-600 mb-3 font-light">New to minutes2match?</p>
+            <NuxtLink to="/vibe-check" class="text-black font-bold uppercase tracking-widest text-xs border-b-2 border-rose-500 hover:text-rose-500 hover:border-black transition-colors pb-1">
               Take the Vibe Check
             </NuxtLink>
           </div>
@@ -124,9 +132,29 @@
 
           <p v-if="error" class="text-rose-500 text-sm text-center font-bold bg-rose-50 py-2 rounded border border-rose-200">{{ error }}</p>
 
-          <button class="w-full text-stone-400 text-xs uppercase tracking-widest hover:text-black transition-colors py-2 font-bold" @click="resetForm">
-            ← Use different number
-          </button>
+          <!-- Auto-Failover UI Hint -->
+          <div v-if="otpSent" class="pt-2 text-center h-4 flex items-center justify-center">
+            <p v-if="fallbackTimer > 0" class="text-stone-400 text-[10px] font-mono font-bold uppercase tracking-widest">
+              Auto-requesting backup in {{ fallbackTimer }}s...
+            </p>
+            <p v-else-if="fallbackTriggered" class="text-rose-500 text-[10px] font-mono font-bold uppercase tracking-widest">
+              Backup code sent! 📨
+            </p>
+          </div>
+
+          <div class="flex flex-col gap-2 pt-4">
+            <button 
+              class="w-full text-stone-400 text-xs font-bold uppercase tracking-widest transition-colors py-2" 
+              :class="sending ? 'opacity-50 cursor-not-allowed' : 'hover:text-black cursor-pointer'"
+              :disabled="sending"
+              @click="sendOtp('zend')"
+            >
+              {{ sending ? 'Sending...' : 'Resend Code' }}
+            </button>
+            <button class="w-full text-stone-400 text-xs uppercase tracking-widest hover:text-black transition-colors py-2 font-bold" @click="resetForm">
+              ← Use different number
+            </button>
+          </div>
         </div>
       </div>
       
@@ -163,12 +191,40 @@ const isLoggingIn = ref(false)
 
 
 const phone = ref('')
+
+const formattedPhone = computed({
+  get: () => {
+    const p = phone.value.replace(/\D/g, '')
+    if (p.length === 0) return ''
+    if (p.startsWith('0')) { // e.g. 020 123 4567
+      if (p.length <= 3) return p
+      if (p.length <= 6) return `${p.slice(0,3)} ${p.slice(3)}`
+      return `${p.slice(0,3)} ${p.slice(3,6)} ${p.slice(6,10)}`
+    } else { // e.g. 20 123 4567
+      if (p.length <= 2) return p
+      if (p.length <= 5) return `${p.slice(0,2)} ${p.slice(2)}`
+      return `${p.slice(0,2)} ${p.slice(2,5)} ${p.slice(5,9)}`
+    }
+  },
+  set: (val: string) => {
+    phone.value = val.replace(/\D/g, '')
+  }
+})
+
 const otpCode = ref('')
 const otpSent = ref(false)
 const sending = ref(false)
 const verifying = ref(false)
 const error = ref('')
 const otpId = ref('')
+
+const fallbackTimer = ref(0)
+let fallbackInterval: ReturnType<typeof setInterval> | null = null
+const fallbackTriggered = ref(false)
+
+onUnmounted(() => {
+  if (fallbackInterval) clearInterval(fallbackInterval)
+})
 
 const { isSupported: contactPickerSupported, pickContact } = useContactPicker()
 const { isSupported: isPasskeySupported, isConditionalSupported, login: passkeyLogin } = usePasskeys()
@@ -276,21 +332,49 @@ const fullPhone = computed(() => {
   return '+233' + phone.value.replace(/\D/g, '').replace(/^0+/, '')
 })
 
-const sendOtp = async () => {
+const sendOtp = async (provider?: 'hubtel' | 'zend') => {
   if (!isValidPhone.value) return
   
   sending.value = true
   error.value = ''
   
   try {
-    const { sendOTP } = useZend()
-    const result = await sendOTP(fullPhone.value)
+    const { sendOTP } = useZend() // NOTE: It's useZend but now acts as useSMS orchestrator
+    const result = await sendOTP(fullPhone.value, provider)
     otpId.value = result.otpId
     otpSent.value = true
+    
     // Focus OTP input on next tick
     setTimeout(() => {
         document.getElementById('otp-input')?.focus()
     }, 100)
+
+    // Autonomous UI Failover Strategy (45s visual countdown)
+    if (!provider) { // Only start countdown on primary attempt
+      fallbackTriggered.value = false
+      fallbackTimer.value = 45
+      if (fallbackInterval) clearInterval(fallbackInterval)
+      
+      fallbackInterval = setInterval(() => {
+        if (fallbackTimer.value > 0) {
+          fallbackTimer.value--
+        } else {
+          clearInterval(fallbackInterval!)
+          if (otpSent.value && !verifying.value && !isLoggingIn.value) {
+            fallbackTriggered.value = true
+            toast.info('Network Warning', 'Network seems slow. Sending a backup verification code now...')
+            console.log('[Login Auto-Failover] Firing Zend backup after 45s delay')
+            // Silently trigger the backup SMS
+            sendOtp('zend')
+          }
+        }
+      }, 1000)
+    } else if (provider === 'zend') {
+      // If manually sending zend or auto-failover triggered, stop clock
+      if (fallbackInterval) clearInterval(fallbackInterval)
+      fallbackTimer.value = 0
+    }
+
   } catch (err: any) {
     error.value = err.message || 'Failed to send code'
   } finally {
@@ -306,6 +390,8 @@ const verifyOtp = async () => {
   error.value = ''
   
   try {
+    if (fallbackInterval) clearInterval(fallbackInterval)
+
     // Call server-side login API - verifies OTP and returns credentials
     const result = await $fetch('/api/auth/login', {
       method: 'POST',
@@ -369,5 +455,8 @@ const resetForm = () => {
   otpCode.value = ''
   otpId.value = ''
   error.value = ''
+  fallbackTriggered.value = false
+  if (fallbackInterval) clearInterval(fallbackInterval)
+  fallbackTimer.value = 0
 }
 </script>

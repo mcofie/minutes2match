@@ -18,11 +18,13 @@
     </div>
 
     <!-- Quality Assurance Banner -->
-    <div class="p-4 bg-emerald-50/40 dark:bg-emerald-900/10 border-2 border-emerald-100 dark:border-emerald-900/30 rounded-2xl flex items-center gap-4 animate-in fade-in slide-in-from-top-2 duration-700">
-       <div class="w-10 h-10 bg-white dark:bg-stone-900 rounded-xl flex items-center justify-center text-xl shadow-sm border border-emerald-100 dark:border-emerald-900/50">🛡️</div>
-       <div class="flex-1">
-          <h4 class="text-[10px] font-black uppercase tracking-[0.2em] text-emerald-800 dark:text-emerald-400 mb-0.5">Community Purity Protocol</h4>
-          <p class="text-[10px] text-emerald-600 dark:text-emerald-500 font-bold uppercase tracking-wider leading-relaxed opacity-80">We actively purge inactive accounts every 48 hours. Your matches are guaranteed to be high-quality and verified responsive.</p>
+    <div class="px-3 py-2.5 sm:p-4 bg-emerald-50 dark:bg-emerald-900/10 border-2 border-emerald-100 dark:border-emerald-900/30 rounded-xl flex items-start sm:items-center gap-3 animate-in fade-in slide-in-from-top-2 duration-700 shadow-sm">
+       <div class="w-6 h-6 sm:w-10 sm:h-10 bg-white dark:bg-stone-900 rounded-md sm:rounded-xl flex items-center justify-center text-sm sm:text-lg shadow-sm border border-emerald-100 dark:border-emerald-900/50 flex-shrink-0 mt-0.5 sm:mt-0">🛡️</div>
+       <div class="flex-1 min-w-0">
+          <p class="text-[8px] sm:text-[9px] text-emerald-700 dark:text-emerald-400 font-black uppercase tracking-widest leading-relaxed">
+             <span class="text-emerald-900 dark:text-emerald-300">Community Purity Protocol:</span> 
+             <span class="opacity-80 ml-1">We actively purge inactive accounts every 48 hours. Your matches are guaranteed high-quality.</span>
+          </p>
        </div>
     </div>
 

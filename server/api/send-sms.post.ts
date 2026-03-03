@@ -11,6 +11,7 @@
  */
 
 // Rate limited for OTP/user-facing use. Admins should use /api/admin/bulk-sms
+import { sendSMS } from '~/server/utils/sms'
 
 export default defineEventHandler(async (event) => {
     // Rate limit: 3 SMS per minute per IP to prevent OTP abuse
@@ -42,26 +43,15 @@ export default defineEventHandler(async (event) => {
     // Normalize the phone number
     const normalizedPhone = normalizeGhanaPhone(to)
 
-    // Try sending, retry once after 3s on failure
+    // Send the SMS
     try {
-        const response = await sendZendSMS(config.zendApiKey, normalizedPhone, message, { priority: 'high' })
+        const response = await sendSMS(normalizedPhone, message, { priority: 'high' })
         return { success: true, messageId: response.id }
-    } catch (firstError: any) {
-        console.warn(`[SMS] First attempt failed for ${normalizedPhone}, retrying in 3s...`, firstError?.message)
-
-        // Wait 3 seconds then retry
-        await new Promise(resolve => setTimeout(resolve, 3000))
-
-        try {
-            const response = await sendZendSMS(config.zendApiKey, normalizedPhone, message, { priority: 'high' })
-            console.log(`[SMS] Retry succeeded for ${normalizedPhone}`)
-            return { success: true, messageId: response.id, retried: true }
-        } catch (retryError: any) {
-            console.error(`[SMS] Retry also failed for ${normalizedPhone}:`, retryError?.message)
-            throw createError({
-                statusCode: 500,
-                message: 'Failed to send SMS after retry'
-            })
-        }
+    } catch (error: any) {
+        console.error(`[SMS] Send failed for ${normalizedPhone}:`, error?.message)
+        throw createError({
+            statusCode: 500,
+            message: 'Failed to send SMS'
+        })
     }
 })

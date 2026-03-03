@@ -6,6 +6,7 @@
  */
 
 import { createClient } from '@supabase/supabase-js'
+import { sendSMS } from '~/server/utils/sms'
 
 export default defineEventHandler(async (event) => {
     // Rate limit: 3 OTP requests per minute per IP
@@ -15,7 +16,7 @@ export default defineEventHandler(async (event) => {
         prefix: 'otp-send'
     })
 
-    const { phone } = await readBody(event)
+    const { phone, provider } = await readBody(event)
 
     if (!phone) {
         throw createError({
@@ -25,13 +26,6 @@ export default defineEventHandler(async (event) => {
     }
 
     const config = useRuntimeConfig()
-
-    if (!config.zendApiKey) {
-        throw createError({
-            statusCode: 500,
-            message: 'Zend API key not configured'
-        })
-    }
 
     const normalizedPhone = normalizeGhanaPhone(phone)
 
@@ -57,9 +51,12 @@ export default defineEventHandler(async (event) => {
         { auth: { persistSession: false } }
     )
 
+    let otpRecord: { id: string } | null = null
+    const message = `Your Minutes 2 Match verification code is: ${code}. Expires in 5 minutes.`
+
     try {
         // Upsert the OTP (replaces existing one for this phone since phone is UNIQUE)
-        const { data: otpRecord, error: upsertError } = await supabaseAdmin
+        const { data: record, error: upsertError } = await supabaseAdmin
             .schema('m2m')
             .from('otp_codes')
             .upsert({
@@ -81,11 +78,12 @@ export default defineEventHandler(async (event) => {
             throw new Error(`Failed to store verification code: ${upsertError.message}`)
         }
 
-        // Send via Zend SMS (includes sender_id: "Mins2Match")
-        const message = `Your Minutes 2 Match verification code is: ${code}. Expires in 5 minutes.`
-        await sendZendSMS(config.zendApiKey, normalizedPhone, message, {
-            priority: 'urgent',
-            deliveryPriority: 'speed'
+        otpRecord = record
+
+        // Send via unified SMS orchestrator
+        await sendSMS(normalizedPhone, message, {
+            provider: provider, // Allows explicit fallback to 'zend'
+            priority: 'urgent'
         })
 
         console.log(`[OTP] Sent to ${normalizedPhone}, DB ID: ${otpRecord.id}`)
@@ -95,8 +93,7 @@ export default defineEventHandler(async (event) => {
             expiresAt: expiresAt.toISOString()
         }
     } catch (error: any) {
-        console.error(`[OTP] Failed to send to ${normalizedPhone}:`, error?.message)
-        console.error(`[OTP] Full error:`, JSON.stringify(error?.data || error?.response || error, null, 2))
+        console.error(`[OTP] Send failed for ${normalizedPhone} via ${provider || 'primary provider'}:`, error?.message)
         throw createError({
             statusCode: 500,
             message: `Failed to send verification code: ${error?.data?.message || error?.message || 'Unknown error'}`

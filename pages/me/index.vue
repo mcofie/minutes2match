@@ -4,22 +4,24 @@
       <Title>Profile | Minutes 2 Match</Title>
     </Head>
     <!-- Header -->
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
-       <h2 class="text-2xl md:text-3xl font-bold tracking-tight dark:text-white">Profile Settings</h2>
-        <div class="flex flex-wrap items-center gap-2">
-           <span class="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-stone-500 dark:text-stone-400 bg-stone-100 dark:bg-stone-900 border border-stone-200 dark:border-stone-800 px-3 py-1.5 rounded-full shadow-sm">
-             <span class="text-xs">{{ personaData?.emoji }}</span>
-             <span>{{ personaData?.name || 'New Member' }}</span>
+    <div class="flex items-center justify-between gap-2 md:gap-4 mb-5 md:mb-8 pt-2">
+       <h2 class="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight dark:text-white whitespace-nowrap overflow-hidden text-ellipsis leading-none">Profile Settings</h2>
+       <div class="flex items-center gap-1.5 md:gap-2 shrink-0">
+           <span class="inline-flex shrink-0 items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-stone-500 dark:text-stone-400 bg-stone-100 dark:bg-stone-900 border border-stone-200 dark:border-stone-800 px-2 sm:px-3 py-1.5 rounded-full shadow-sm" :title="personaData?.name || 'New Member'">
+             <span class="text-xs">{{ personaData?.emoji || '✨' }}</span>
+             <span class="hidden sm:inline">{{ personaData?.name || 'New Member' }}</span>
            </span>
-           <span class="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-100 dark:border-emerald-900/30 px-3 py-1.5 rounded-full shadow-sm" title="Your Trust Score">
-             <span>🛡️ {{ trustScore || 60 }}%</span>
+           <span class="inline-flex shrink-0 items-center gap-1 text-[10px] font-bold uppercase tracking-widest text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-100 dark:border-emerald-900/30 px-2 sm:px-3 py-1.5 rounded-full shadow-sm" title="Your Trust Score">
+             <span>🛡️</span> 
+             <span>{{ trustScore || 60 }}%</span>
            </span>
-           <span v-if="passkeys.length > 0" class="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-100 dark:border-indigo-900/30 px-3 py-1.5 rounded-full shadow-sm cursor-pointer" @click="activeProfileSection = 'security'" title="Biometric Login Enabled">
+           <span v-if="passkeys.length > 0" class="hidden md:inline-flex shrink-0 items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-100 dark:border-indigo-900/30 px-3 py-1.5 rounded-full shadow-sm cursor-pointer" @click="activeProfileSection = 'security'" title="Biometric Login Enabled">
              <span class="text-xs">🔑</span>
              <span>Protected</span>
            </span>
-           <button @click="showPreview = true" class="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-white bg-black hover:bg-rose-500 px-4 py-1.5 rounded-full shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transition-all active:translate-x-0.5 active:translate-y-0.5">
-             <span>👁️ Preview</span>
+           <button @click="showPreview = true" class="inline-flex shrink-0 items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-white bg-black hover:bg-rose-500 px-2.5 sm:px-4 py-1.5 rounded-full shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transition-all active:translate-x-0.5 active:translate-y-0.5" title="Preview Profile">
+             <span class="text-xs">👁️</span>
+             <span class="hidden sm:inline">Preview</span>
            </button>
         </div>
     </div>
@@ -61,6 +63,23 @@
                </span>
                <span v-else class="text-emerald-500 font-bold">✨ You're unstoppable!</span>
             </p>
+         </div>
+
+         <!-- Section Navigation (Sidebar) -->
+         <div class="bg-white dark:bg-stone-900 rounded-xl border-2 border-black dark:border-stone-700 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] dark:shadow-[8px_8px_0px_0px_rgba(255,255,255,0.05)] overflow-hidden">
+            <button 
+              v-for="section in profileSections" 
+              :key="section.id"
+              @click="activeProfileSection = section.id as any"
+              class="w-full text-left p-4 flex items-center gap-4 transition-all border-b border-stone-100 dark:border-stone-800 last:border-0"
+              :class="activeProfileSection === section.id ? 'bg-black dark:bg-stone-800 text-white' : 'hover:bg-stone-50 dark:hover:bg-stone-800/50'"
+            >
+              <span class="text-xl">{{ section.icon }}</span>
+              <div class="flex-1">
+                <p class="text-[10px] font-bold uppercase tracking-widest" :class="activeProfileSection === section.id ? 'text-rose-400' : 'text-stone-400'">{{ section.label }}</p>
+                <p class="text-xs font-semibold" :class="activeProfileSection === section.id ? 'text-white' : 'text-stone-600 dark:text-stone-300'">{{ section.desc }}</p>
+              </div>
+            </button>
          </div>
 
          <!-- Match Compatibility Radar -->
@@ -132,23 +151,6 @@
                </div>
             </div>
          </div>
-
-         <!-- Section Navigation (Sidebar) -->
-         <div class="bg-white dark:bg-stone-900 rounded-xl border-2 border-black dark:border-stone-700 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] dark:shadow-[8px_8px_0px_0px_rgba(255,255,255,0.05)] overflow-hidden">
-            <button 
-              v-for="section in profileSections" 
-              :key="section.id"
-              @click="activeProfileSection = section.id as any"
-              class="w-full text-left p-4 flex items-center gap-4 transition-all border-b border-stone-100 dark:border-stone-800 last:border-0"
-              :class="activeProfileSection === section.id ? 'bg-black dark:bg-stone-800 text-white' : 'hover:bg-stone-50 dark:hover:bg-stone-800/50'"
-            >
-              <span class="text-xl">{{ section.icon }}</span>
-              <div class="flex-1">
-                <p class="text-[10px] font-bold uppercase tracking-widest" :class="activeProfileSection === section.id ? 'text-rose-400' : 'text-stone-400'">{{ section.label }}</p>
-                <p class="text-xs font-semibold" :class="activeProfileSection === section.id ? 'text-white' : 'text-stone-600 dark:text-stone-300'">{{ section.desc }}</p>
-              </div>
-            </button>
-         </div>
       </div>
 
       <!-- Main Content Area -->
@@ -166,8 +168,8 @@
             </button>
          </div>
 
-         <!-- Mobile Photo/Badges Header -->
-         <div class="md:hidden flex flex-col gap-4 mb-4">
+         <!-- Mobile Photo/Badges Header (Only show in Identity section) -->
+         <div v-if="activeProfileSection === 'identity'" class="md:hidden flex flex-col gap-4 mb-4">
             <div @click="triggerPhotoUpload" class="bg-white dark:bg-stone-900 p-4 rounded-xl border-2 border-black dark:border-stone-700 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] flex items-center gap-4 active:scale-[0.98] transition-all overflow-hidden">
                <div class="w-14 h-14 rounded-full overflow-hidden border-2 border-black flex-shrink-0">
                   <NuxtImg v-if="photoPreview || profile?.photo_url" :src="photoPreview || profile?.photo_url" class="w-full h-full object-cover" width="56" height="56" />
@@ -229,7 +231,12 @@
                   </div>
                   <div class="space-y-2">
                     <label class="text-[10px] font-bold uppercase text-stone-500 dark:text-stone-400 tracking-widest">Birth Date</label>
-                    <input type="date" v-model="editForm.birth_date" class="w-full px-4 py-3 rounded-lg border-2 border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-950 dark:text-white focus:border-black dark:focus:border-stone-500 outline-none transition-all font-bold" />
+                    <UiDatePicker 
+                      v-model="editForm.birth_date" 
+                      placeholder="Select your birthday"
+                      class="font-mono text-sm w-full"
+                      forBirthday
+                    />
                   </div>
                 </div>
             </div>

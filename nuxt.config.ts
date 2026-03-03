@@ -129,6 +129,8 @@ export default defineNuxtConfig({
         // Private keys (only available server-side)
         supabaseUrl: process.env.SUPABASE_URL,
         zendApiKey: process.env.ZEND_API_KEY,
+        hubtelClientId: process.env.HUBTEL_CLIENT_ID,
+        hubtelClientSecret: process.env.HUBTEL_CLIENT_SECRET,
         paystackSecretKey: process.env.PAYSTACK_SECRET_KEY,
         supabaseServiceKey: process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_KEY,
         cronSecret: process.env.CRON_SECRET,

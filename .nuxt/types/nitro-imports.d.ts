@@ -117,10 +117,12 @@ declare global {
   const sealSession: typeof import('../../node_modules/h3').sealSession
   const send: typeof import('../../node_modules/h3').send
   const sendError: typeof import('../../node_modules/h3').sendError
+  const sendHubtelSMS: typeof import('../../server/utils/hubtel').sendHubtelSMS
   const sendIterable: typeof import('../../node_modules/h3').sendIterable
   const sendNoContent: typeof import('../../node_modules/h3').sendNoContent
   const sendProxy: typeof import('../../node_modules/h3').sendProxy
   const sendRedirect: typeof import('../../node_modules/h3').sendRedirect
+  const sendSMS: typeof import('../../server/utils/sms').sendSMS
   const sendStream: typeof import('../../node_modules/h3').sendStream
   const sendWebResponse: typeof import('../../node_modules/h3').sendWebResponse
   const sendZendBulkSMS: typeof import('../../server/utils/zend').sendZendBulkSMS
@@ -158,6 +160,9 @@ declare global {
 // for type re-export
 declare global {
   // @ts-ignore
+  export type { HubtelSMSResponse } from '../../server/utils/hubtel'
+  import('../../server/utils/hubtel')
+  // @ts-ignore
   export type { RateLimitConfig, RateLimitResult } from '../../server/utils/rateLimiter'
   import('../../server/utils/rateLimiter')
   // @ts-ignore
@@ -184,8 +189,10 @@ export { parseMarkdown } from '/Users/maxwellcofie/WebstormProjects/minutes2matc
 export { stringifyMarkdown } from '/Users/maxwellcofie/WebstormProjects/minutes2match/node_modules/@nuxtjs/mdc/dist/runtime/stringify';
 export { getGeminiModel, auditProfileWithAI } from '/Users/maxwellcofie/WebstormProjects/minutes2match/server/utils/ai';
 export { DiscordColors, notifyDiscord, notifyNewSignup, notifyPaymentSuccess, notifyMatchUnlocked, notifyEventBooking, notifyError, notifyUserLogin } from '/Users/maxwellcofie/WebstormProjects/minutes2match/server/utils/discord';
+export { sendHubtelSMS } from '/Users/maxwellcofie/WebstormProjects/minutes2match/server/utils/hubtel';
 export { unlockMatch } from '/Users/maxwellcofie/WebstormProjects/minutes2match/server/utils/match';
 export { usePasskeyUtils } from '/Users/maxwellcofie/WebstormProjects/minutes2match/server/utils/passkeys';
 export { normalizeGhanaPhone, isSamePhone } from '/Users/maxwellcofie/WebstormProjects/minutes2match/server/utils/phone';
 export { checkRateLimit, getClientIP, enforceRateLimit } from '/Users/maxwellcofie/WebstormProjects/minutes2match/server/utils/rateLimiter';
+export { sendSMS } from '/Users/maxwellcofie/WebstormProjects/minutes2match/server/utils/sms';
 export { sendZendSMS, sendZendBulkSMS, sendZendOTP, verifyZendOTP, ZEND_BASE_URL, SENDER_ID } from '/Users/maxwellcofie/WebstormProjects/minutes2match/server/utils/zend';

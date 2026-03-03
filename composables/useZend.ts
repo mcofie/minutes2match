@@ -22,16 +22,16 @@ export const useZend = () => {
     }
 
     /**
-     * Send OTP via ZendOTP (server-side)
+     * Send OTP via server-side
      * Returns the OTP ID needed for verification
      */
-    const sendOTP = async (phone: string) => {
-        console.log('📱 Sending OTP to:', phone)
+    const sendOTP = async (phone: string, provider?: 'hubtel' | 'zend') => {
+        console.log(`📱 Sending OTP to: ${phone} (provider: ${provider || 'default'})`)
 
         try {
             const response = await $fetch<{ success: boolean; otpId: string; expiresAt: string }>('/api/otp/send', {
                 method: 'POST',
-                body: { phone }
+                body: { phone, provider }
             })
 
             if (!response.success) {

@@ -14,20 +14,21 @@
         </NuxtLink>
 
         <!-- Center Links (Desktop) -->
-        <div class="hidden md:flex items-center gap-8 text-sm font-bold">
-          <NuxtLink to="/" class="hover:text-rose-500 dark:text-stone-300 dark:hover:text-rose-400 transition-colors">Home</NuxtLink>
-          <NuxtLink to="/vouch" class="hover:text-rose-500 dark:text-stone-300 dark:hover:text-rose-400 transition-colors">Vouch</NuxtLink>
-          <NuxtLink to="/shoot-your-shot" class="hover:text-rose-500 dark:text-stone-300 dark:hover:text-rose-400 transition-colors">Shoot Your Shot</NuxtLink>
-          <NuxtLink to="/pricing" class="text-rose-500">Pricing</NuxtLink>
+        <div class="hidden md:flex items-center gap-10 text-sm font-bold text-stone-900 dark:text-stone-200">
+          <NuxtLink to="/#manifesto" class="hover:text-rose-500 dark:hover:text-rose-400 transition-colors">Manifesto</NuxtLink>
+          <NuxtLink to="/#process" class="hover:text-rose-500 dark:hover:text-rose-400 transition-colors">Process</NuxtLink>
+          <NuxtLink to="/vouch" class="hover:text-rose-500 dark:hover:text-rose-400 transition-colors">Vouch</NuxtLink>
+          <NuxtLink to="/shoot-your-shot" class="hover:text-rose-500 dark:hover:text-rose-400 transition-colors">Shoot Your Shot</NuxtLink>
+          <NuxtLink to="/pricing" class="text-rose-500 dark:text-rose-400">Pricing</NuxtLink>
         </div>
 
         <!-- CTA & Login (Desktop) + Hamburger (Mobile) -->
-        <div class="flex items-center gap-3 md:gap-6">
-          <NuxtLink to="/login" class="hidden md:block text-sm font-bold hover:underline decoration-2 underline-offset-4 dark:text-stone-200">
+        <div class="flex items-center gap-4 md:gap-8">
+          <NuxtLink to="/login" class="hidden md:block text-xs font-bold uppercase tracking-widest text-stone-900 dark:text-stone-200 hover:text-rose-500 dark:hover:text-rose-400 transition-colors">
              MEMBER LOGIN
           </NuxtLink>
-          <NuxtLink to="/vibe-check" class="hidden md:inline-flex group relative items-center overflow-hidden rounded-md border border-black dark:border-stone-600 bg-black dark:bg-stone-100 text-white dark:text-black px-6 py-3 focus:outline-none hover:bg-rose-500 dark:hover:bg-rose-500 hover:border-rose-500 dark:hover:border-rose-500 dark:hover:text-white transition-all shadow-[4px_4px_0px_0px_rgba(0,0,0,0.2)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,0.2)] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-none">
-            <span class="text-xs font-bold uppercase tracking-widest">VIBE CHECK</span>
+          <NuxtLink to="/vibe-check" class="hidden md:inline-flex bg-black dark:bg-stone-100 text-white dark:text-black px-6 py-2.5 rounded-md border border-black dark:border-stone-600 text-xs font-bold uppercase tracking-widest hover:bg-stone-800 dark:hover:bg-white transition-all shadow-[4px_4px_0px_0px_#E7E5E4] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,0.1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none">
+            VIBE CHECK
           </NuxtLink>
 
           <!-- Mobile CTA -->

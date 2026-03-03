@@ -296,6 +296,16 @@
 
           <p v-if="otpError" class="text-rose-500 text-sm text-center font-bold bg-rose-50 py-2 rounded border border-rose-200">{{ otpError }}</p>
 
+          <!-- Auto-Failover UI Hint -->
+          <div class="pt-2 text-center h-4 flex items-center justify-center">
+            <p v-if="fallbackTimer > 0" class="text-stone-400 text-[10px] font-mono font-bold uppercase tracking-widest">
+              Auto-requesting backup in {{ fallbackTimer }}s...
+            </p>
+            <p v-else-if="fallbackTriggered" class="text-rose-500 text-[10px] font-mono font-bold uppercase tracking-widest">
+              Backup code sent! 📨
+            </p>
+          </div>
+
           <button
             :disabled="otpCode.length !== 6 || verifyingOtp"
             @click="handleVerifyOtp"
@@ -304,7 +314,7 @@
             {{ verifyingOtp ? 'Verifying...' : 'Verify & Continue ✨' }}
           </button>
 
-          <button @click="otpSent = false" class="w-full text-stone-400 text-xs font-bold uppercase tracking-widest hover:text-black transition-colors py-2">
+          <button @click="resetPhone" class="w-full text-stone-400 text-xs font-bold uppercase tracking-widest hover:text-black transition-colors py-2">
             ← Change number
           </button>
         </div>
@@ -543,6 +553,13 @@ const otpError = ref('')
 const otpId = ref('')
 const sendingOtp = ref(false)
 const verifyingOtp = ref(false)
+const fallbackTimer = ref(0)
+let fallbackInterval: ReturnType<typeof setInterval> | null = null
+const fallbackTriggered = ref(false)
+
+onUnmounted(() => {
+  if (fallbackInterval) clearInterval(fallbackInterval)
+})
 
 // Persona state
 const assignedPersona = ref<Persona | null>(null)
@@ -673,9 +690,31 @@ const handleSendOtp = async () => {
     
     // Normal flow: send OTP
     const { sendOTP } = useZend()
-    const otpResult = await sendOTP(fullPhone)
+    const otpResult = await sendOTP(fullPhone, undefined) // default provider
     otpId.value = otpResult.otpId
     otpSent.value = true
+
+    // Autonomous UI Failover Strategy
+    fallbackTriggered.value = false
+    fallbackTimer.value = 45
+    if (fallbackInterval) clearInterval(fallbackInterval)
+    
+    fallbackInterval = setInterval(() => {
+      if (fallbackTimer.value > 0) {
+        fallbackTimer.value--
+      } else {
+        clearInterval(fallbackInterval!)
+        // If 45 seconds passed and they are still on this screen without verifying
+        if (currentStep.value === 10 && otpSent.value && !verifyingOtp.value && !isCreatingProfile.value) {
+          fallbackTriggered.value = true
+          toast.info('Network Warning', 'Network seems slow. Sending a backup verification code now...')
+          console.log('[Vibe Check Auto-Failover] Firing Zend backup after 45s delay')
+          // Silently trigger the backup SMS
+          sendOTP(fullPhone, 'zend')
+        }
+      }
+    }, 1000) // 1 second intervals
+
   } catch (error) {
     otpError.value = 'Failed to send code. Please try again.'
   } finally {
@@ -689,6 +728,8 @@ const handleVerifyOtp = async () => {
   verifyingOtp.value = true
   otpError.value = ''
   
+  if (fallbackInterval) clearInterval(fallbackInterval)
+
   try {
     const { verifyOTP } = useZend()
     const fullPhone = '+233' + form.phone.replace(/\D/g, '').replace(/^0+/, '')
@@ -710,6 +751,15 @@ const handleVerifyOtp = async () => {
   } finally {
     verifyingOtp.value = false
   }
+}
+
+const resetPhone = () => {
+  otpSent.value = false
+  otpCode.value = ''
+  otpError.value = ''
+  fallbackTriggered.value = false
+  fallbackTimer.value = 0
+  if (fallbackInterval) clearInterval(fallbackInterval)
 }
 
 const isCreatingProfile = ref(false)

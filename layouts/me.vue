@@ -119,9 +119,13 @@
       </div>
 
       <!-- Footer -->
-      <footer class="border-t border-stone-200 dark:border-stone-800 bg-white/80 dark:bg-stone-900/80 backdrop-blur-sm mt-auto pb-24 md:pb-0 transition-colors">
+      <footer 
+         class="border-t border-stone-200 dark:border-stone-800 bg-white/80 dark:bg-stone-900/80 backdrop-blur-sm mt-auto transition-colors"
+         :class="route.path === '/me' ? 'pb-28 pt-2 block' : 'hidden md:block pb-0'"
+      >
         <div class="max-w-6xl mx-auto px-4 py-5">
-          <div class="flex flex-col md:flex-row items-center justify-between gap-3">
+          <!-- Desktop Version -->
+          <div class="hidden md:flex items-center justify-between gap-3">
             <p class="text-xs text-stone-400 font-medium">© {{ new Date().getFullYear() }} Minutes 2 Match. All rights reserved. <span class="ml-2 text-[10px] opacity-40">v{{ config.public.appVersion }}</span></p>
             <div class="flex items-center gap-6">
               <NuxtLink to="/release-notes" class="relative group text-xs text-stone-400 hover:text-black dark:hover:text-white transition-colors font-medium">
@@ -133,6 +137,24 @@
               <NuxtLink to="/privacy" class="text-xs text-stone-400 hover:text-black dark:hover:text-white transition-colors font-medium">Privacy</NuxtLink>
               <span class="text-xs text-stone-300 dark:text-stone-700">Made with ❤️ in Accra</span>
             </div>
+          </div>
+
+          <!-- Mobile App-Like Version -->
+          <div class="md:hidden flex flex-col items-center gap-5">
+             <div class="flex flex-wrap justify-center items-center gap-x-6 gap-y-3">
+               <NuxtLink to="/release-notes" class="relative text-[10px] font-bold uppercase tracking-widest text-stone-500 hover:text-black dark:hover:text-stone-300 transition-colors">
+                 Updates
+                 <span class="absolute -top-[2px] -right-[6px] w-[6px] h-[6px] bg-rose-500 rounded-full animate-pulse"></span>
+               </NuxtLink>
+               <a href="https://www.instagram.com/minutes2match" target="_blank" class="text-[10px] font-bold uppercase tracking-widest text-stone-500 hover:text-black dark:hover:text-stone-300 transition-colors">Instagram</a>
+               <NuxtLink to="/terms" class="text-[10px] font-bold uppercase tracking-widest text-stone-500 hover:text-black dark:hover:text-stone-300 transition-colors">Terms</NuxtLink>
+               <NuxtLink to="/privacy" class="text-[10px] font-bold uppercase tracking-widest text-stone-500 hover:text-black dark:hover:text-stone-300 transition-colors">Privacy</NuxtLink>
+             </div>
+             
+             <div class="flex flex-col items-center gap-1.5">
+               <span class="text-[9px] font-bold text-stone-300 dark:text-stone-700 uppercase tracking-[0.2em]">Made with ❤️ in Accra</span>
+               <p class="text-[9px] text-stone-400 font-bold uppercase tracking-[0.2em]">v{{ config.public.appVersion }}</p>
+             </div>
           </div>
         </div>
       </footer>
