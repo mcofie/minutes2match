@@ -118,9 +118,9 @@ export const usePasskeyUtils = () => {
     }
 
     /**
-     * Insert a passkey via RPC function with TEXT-typed user param.
-     * PostgREST strips UUID params that FK to auth.users, but leaves TEXT params alone.
-     * The SQL function casts TEXT -> UUID internally.
+     * Insert a passkey by bypassing PostgREST entirely for user_id.
+     * Step 1: Insert row without user_id (column is now nullable)
+     * Step 2: Immediately set user_id via .update() (proven to work)
      */
     const adminInsertPasskey = async (data: {
         user_id: string
@@ -130,19 +130,43 @@ export const usePasskeyUtils = () => {
         transports: string[]
         name: string
     }) => {
-        const { data: inserted, error } = await supabaseAdmin
+        // Step 1: Insert without user_id (PostgREST always strips it)
+        const { data: inserted, error: insertError } = await supabaseAdmin
             .schema('m2m')
-            .rpc('insert_passkey', {
-                p_uid: data.user_id,
-                p_credential_id: data.credential_id,
-                p_public_key: data.public_key,
-                p_counter: data.counter,
-                p_transports: data.transports,
-                p_name: data.name
+            .from('user_passkeys')
+            .insert({
+                credential_id: data.credential_id,
+                public_key: data.public_key,
+                counter: data.counter,
+                transports: data.transports,
+                name: data.name
             })
+            .select()
             .single()
 
-        return { data: inserted, error }
+        if (insertError || !inserted) {
+            console.error('[Passkey] Insert failed:', insertError?.message)
+            return { data: null, error: insertError }
+        }
+
+        console.log('[Passkey] Row inserted, id:', inserted.id, '— now setting user_id...')
+
+        // Step 2: Set user_id via direct update (this is proven to work)
+        const { error: updateError } = await supabaseAdmin
+            .schema('m2m')
+            .from('user_passkeys')
+            .update({ user_id: data.user_id })
+            .eq('id', inserted.id)
+
+        if (updateError) {
+            console.error('[Passkey] Failed to set user_id:', updateError.message)
+            // Clean up orphan
+            await supabaseAdmin.schema('m2m').from('user_passkeys').delete().eq('id', inserted.id)
+            return { data: null, error: updateError }
+        }
+
+        console.log('[Passkey] user_id set successfully!')
+        return { data: { ...inserted, user_id: data.user_id }, error: null }
     }
 
     /**
