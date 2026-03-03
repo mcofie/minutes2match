@@ -118,9 +118,10 @@ export const usePasskeyUtils = () => {
     }
 
     /**
-     * Insert a passkey by bypassing PostgREST entirely for user_id.
-     * Step 1: Insert row without user_id (column is now nullable)
-     * Step 2: Immediately set user_id via .update() (proven to work)
+     * Insert a passkey by completely bypassing PostgREST for user_id.
+     * PostgREST strips user_id from ALL ops (insert, update, rpc) when FK to auth.users.
+     * Solution: Insert without user_id, then use a SECURITY DEFINER function
+     * that runs raw SQL inside Postgres to set it.
      */
     const adminInsertPasskey = async (data: {
         user_id: string
@@ -130,7 +131,7 @@ export const usePasskeyUtils = () => {
         transports: string[]
         name: string
     }) => {
-        // Step 1: Insert without user_id (PostgREST always strips it)
+        // Step 1: Insert without user_id
         const { data: inserted, error: insertError } = await supabaseAdmin
             .schema('m2m')
             .from('user_passkeys')
@@ -149,23 +150,26 @@ export const usePasskeyUtils = () => {
             return { data: null, error: insertError }
         }
 
-        console.log('[Passkey] Row inserted, id:', inserted.id, '— now setting user_id...')
+        console.log('[Passkey] Row inserted, id:', inserted.id, '— setting owner via RPC...')
 
-        // Step 2: Set user_id via direct update (this is proven to work)
-        const { error: updateError } = await supabaseAdmin
+        // Step 2: Use RPC to set user_id via raw SQL (bypasses PostgREST filtering)
+        // p_passkey_id is FK to user_passkeys (not auth.users) so PostgREST won't strip it
+        // p_owner is TEXT so PostgREST won't detect it as a UUID FK
+        const { error: rpcError } = await supabaseAdmin
             .schema('m2m')
-            .from('user_passkeys')
-            .update({ user_id: data.user_id })
-            .eq('id', inserted.id)
+            .rpc('set_passkey_owner', {
+                p_passkey_id: inserted.id,
+                p_owner: data.user_id
+            })
 
-        if (updateError) {
-            console.error('[Passkey] Failed to set user_id:', updateError.message)
+        if (rpcError) {
+            console.error('[Passkey] set_passkey_owner RPC failed:', rpcError.message)
             // Clean up orphan
             await supabaseAdmin.schema('m2m').from('user_passkeys').delete().eq('id', inserted.id)
-            return { data: null, error: updateError }
+            return { data: null, error: rpcError }
         }
 
-        console.log('[Passkey] user_id set successfully!')
+        console.log('[Passkey] Owner set successfully!')
         return { data: { ...inserted, user_id: data.user_id }, error: null }
     }
 
