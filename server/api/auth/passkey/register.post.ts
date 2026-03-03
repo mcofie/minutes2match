@@ -9,8 +9,9 @@ import { serverSupabaseUser } from '#supabase/server'
 export default defineEventHandler(async (event) => {
     // 1. Verify user is authenticated
     const user = await serverSupabaseUser(event)
-    if (!user) {
-        throw createError({ statusCode: 401, message: 'Unauthorized' })
+    if (!user || !user.id) {
+        console.error('[Passkey] Auth failed. user:', JSON.stringify(user))
+        throw createError({ statusCode: 401, message: 'Unauthorized — no valid session' })
     }
 
     console.log('[Passkey] Registration request from user:', user.id)

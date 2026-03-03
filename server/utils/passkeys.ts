@@ -154,12 +154,12 @@ export const usePasskeyUtils = () => {
 
         // Step 2: Use RPC to set user_id via raw SQL (bypasses PostgREST filtering)
         // p_passkey_id is FK to user_passkeys (not auth.users) so PostgREST won't strip it
-        // p_owner is TEXT so PostgREST won't detect it as a UUID FK
+        // p_owner is prefixed with 'own:' so PostgREST can't detect it as a UUID value
         const { error: rpcError } = await supabaseAdmin
             .schema('m2m')
             .rpc('set_passkey_owner', {
                 p_passkey_id: inserted.id,
-                p_owner: data.user_id
+                p_owner: 'own:' + data.user_id
             })
 
         if (rpcError) {
