@@ -94,10 +94,9 @@ export default defineNuxtConfig({
                 { name: 'twitter:image', content: '/og-image.png' },
             ],
             link: [
-                { rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' },
+                { rel: 'icon', type: 'image/png', href: '/logo-icon.png' },
                 { rel: 'icon', type: 'image/png', sizes: '32x32', href: '/logo-icon.png' },
                 { rel: 'apple-touch-icon', sizes: '180x180', href: '/logo-icon.png' },
-                { rel: 'mask-icon', href: '/safari-pinned-tab.svg', color: '#000000' },
             ],
         }
     },

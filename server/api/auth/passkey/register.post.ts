@@ -9,12 +9,20 @@ import { serverSupabaseUser } from '#supabase/server'
 export default defineEventHandler(async (event) => {
     // 1. Verify user is authenticated
     const user = await serverSupabaseUser(event)
-    if (!user || !user.id) {
-        console.error('[Passkey] Auth failed. user:', JSON.stringify(user))
-        throw createError({ statusCode: 401, message: 'Unauthorized — no valid session' })
+
+    console.log('[Passkey] serverSupabaseUser returned:', user ? `id=${user.id}, email=${user.email}` : 'null')
+
+    if (!user) {
+        throw createError({ statusCode: 401, message: 'Unauthorized — no session found' })
     }
 
-    console.log('[Passkey] Registration request from user:', user.id)
+    const userId = user.id
+    if (!userId) {
+        console.error('[Passkey] User object exists but no id. Keys:', Object.keys(user))
+        throw createError({ statusCode: 401, message: 'Session exists but user ID is missing' })
+    }
+
+    console.log('[Passkey] Registration request from user:', userId)
 
     // 2. Parse request body
     const body = await readBody(event)
