@@ -89,12 +89,24 @@ export const usePasskeyUtils = () => {
 
         if (error || !data) return []
 
-        return data.map(dbKey => ({
-            credentialID: Buffer.from(dbKey.credential_id, 'base64url'),
-            credentialPublicKey: dbKey.public_key, // ByteA comes back as Buffer in Node
-            counter: Number(dbKey.counter),
-            transports: dbKey.transports as any
-        }))
+        // Return in v13 WebAuthnCredential shape: { id, publicKey, counter, transports }
+        return data.map(dbKey => {
+            let publicKeyBytes: Uint8Array
+            const pkData = dbKey.public_key
+            if (typeof pkData === 'string') {
+                const hexStr = pkData.replace(/^\\\\x|^\\x/, '')
+                publicKeyBytes = new Uint8Array(Buffer.from(hexStr, 'hex'))
+            } else {
+                publicKeyBytes = new Uint8Array(pkData)
+            }
+
+            return {
+                id: dbKey.credential_id,       // Base64URL string
+                publicKey: publicKeyBytes,      // Uint8Array
+                counter: Number(dbKey.counter),
+                transports: dbKey.transports as any
+            }
+        })
     }
 
     return {

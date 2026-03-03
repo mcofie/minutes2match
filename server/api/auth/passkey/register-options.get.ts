@@ -32,7 +32,7 @@ export default defineEventHandler(async (event) => {
         userID: user.id,
         // Exclude credentials they already have to prevent duplicate registration on same device
         excludeCredentials: existingPasskeys.map(pk => ({
-            id: pk.credentialID,
+            id: pk.id,       // Base64URL string from v13 WebAuthnCredential
             type: 'public-key'
         }))
     })

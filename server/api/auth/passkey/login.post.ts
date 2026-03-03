@@ -4,14 +4,12 @@
  * 
  * Verifies the authentication signature from the browser and logs the user in.
  */
-import { serverSupabaseServiceRole } from '#supabase/server'
 import { createClient } from '@supabase/supabase-js'
-import type { M2MDatabase } from '~/types/database.types'
 
 export default defineEventHandler(async (event) => {
     // Parse request body
     const body = await readBody(event)
-    const { authentication, challenge: clientChallenge } = body // authentication is AuthenticationResponseJSON
+    const { authentication, challenge: clientChallenge } = body
 
     if (!authentication) {
         throw createError({ statusCode: 400, message: 'Authentication response is required' })
@@ -38,7 +36,8 @@ export default defineEventHandler(async (event) => {
         throw createError({ statusCode: 400, message: 'Invalid or expired login challenge. Please try again.' })
     }
 
-    // 2. Find the user's public key in DB by the credential ID
+    // 2. Find the user's passkey in DB by the credential ID
+    //    authentication.id is a Base64URL string — must match what we stored during registration
     const { data: dbPasskey, error: dbError } = await supabaseAdmin
         .schema('m2m')
         .from('user_passkeys')
@@ -48,32 +47,48 @@ export default defineEventHandler(async (event) => {
 
     if (dbError || !dbPasskey) {
         console.error('[Passkey] Credential lookup failed:', {
-            id: authentication.id,
-            error: dbError
+            searchId: authentication.id,
+            error: dbError?.message
         })
         throw createError({ statusCode: 401, message: 'This passkey is not recognized. Please sign in with OTP first.' })
     }
 
-    // 3. Verify the authentication response
+    // 3. Reconstruct the public key from BYTEA hex string
+    //    PostgREST returns BYTEA as a hex string like "\\x0405abc..."
+    let publicKeyBytes: Uint8Array
+    const pkData = dbPasskey.public_key
+    if (typeof pkData === 'string') {
+        // Remove the \\x prefix and decode hex
+        const hexStr = pkData.replace(/^\\\\x|^\\x/, '')
+        publicKeyBytes = new Uint8Array(Buffer.from(hexStr, 'hex'))
+    } else if (pkData instanceof Buffer || pkData instanceof Uint8Array) {
+        publicKeyBytes = new Uint8Array(pkData)
+    } else {
+        console.error('[Passkey] Unknown public_key format:', typeof pkData)
+        throw createError({ statusCode: 500, message: 'Stored credential is corrupted' })
+    }
+
+    // 4. Verify the authentication response using v13 API shape
+    //    v13 uses `credential` (WebAuthnCredential) instead of `authenticator`
     const verification = await verifyAuthenticationResponse({
         response: authentication,
         expectedChallenge: challenge.challenge,
         expectedOrigin: origin,
         expectedRPID: rpID,
-        authenticator: {
-            credentialID: Buffer.from(dbPasskey.credential_id, 'base64url'),
-            credentialPublicKey: dbPasskey.public_key, // ByteA comes back as Buffer in Node
+        credential: {
+            id: dbPasskey.credential_id,    // Base64URL string
+            publicKey: publicKeyBytes,       // Uint8Array
             counter: Number(dbPasskey.counter),
             transports: dbPasskey.transports
         },
-        requireUserVerification: true // Require biometrics
+        requireUserVerification: true
     })
 
     if (!verification.verified) {
         throw createError({ statusCode: 401, message: 'Passkey verification failed' })
     }
 
-    // 4. Update safety counter in DB to prevent replay
+    // 5. Update safety counter in DB to prevent replay attacks
     const { newCounter } = verification.authenticationInfo
     await supabaseAdmin
         .schema('m2m')
@@ -84,12 +99,11 @@ export default defineEventHandler(async (event) => {
         })
         .eq('id', dbPasskey.id)
 
-    // 5. SUCCESS! 
-    // Now perform the identical "Session Bridge" logic from the OTP login
+    // 6. SUCCESS — Build session via "Session Bridge" pattern
     const userId = dbPasskey.user_id
 
     try {
-        // Fetch user metadata for response
+        // Fetch user profile
         const { data: profile } = await supabaseAdmin
             .schema('m2m')
             .from('profiles')
@@ -103,7 +117,7 @@ export default defineEventHandler(async (event) => {
             throw createError({ statusCode: 404, message: 'Linked account not found' })
         }
 
-        // Check vibe check status (same logic as login.post.ts)
+        // Check vibe check status
         const { count: vibeAnswerCount } = await supabaseAdmin
             .schema('m2m')
             .from('vibe_answers')
@@ -117,14 +131,14 @@ export default defineEventHandler(async (event) => {
             vibeAnswerCount && vibeAnswerCount > 0
         )
 
-        // Create a new session for this user
+        // Create a temporary password for Supabase sign-in
         const tempPassword = `passkey_${Date.now()}_${Math.random().toString(36).slice(2)}`
         await supabaseAdmin.auth.admin.updateUserById(userId, {
             password: tempPassword,
             email_confirm: true
         })
 
-        // Send Discord notification for passkey login
+        // Send Discord notification
         try {
             const { notifyUserLogin } = await import('~/server/utils/discord')
             await notifyUserLogin({
@@ -146,7 +160,7 @@ export default defineEventHandler(async (event) => {
             hasCompletedVibeCheck
         }
     } catch (err: any) {
-        console.error('Passkey session error:', err)
+        console.error('[Passkey] Session bridge error:', err)
         throw createError({ statusCode: 500, message: 'Failed to build secure session after passkey check' })
     }
 })
