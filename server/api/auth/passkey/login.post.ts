@@ -38,6 +38,21 @@ export default defineEventHandler(async (event) => {
 
     // 2. Find the user's passkey in DB by the credential ID
     //    authentication.id is a Base64URL string — must match what we stored during registration
+    console.log('[Passkey] Looking up credential_id:', authentication.id)
+
+    // First, let's see ALL stored passkeys for debugging
+    const { data: allPasskeys } = await supabaseAdmin
+        .schema('m2m')
+        .from('user_passkeys')
+        .select('id, credential_id, user_id, name')
+    console.log('[Passkey] All stored passkeys:', JSON.stringify(allPasskeys?.map(p => ({
+        id: p.id,
+        credential_id: p.credential_id,
+        credential_id_length: p.credential_id?.length,
+        user_id: p.user_id,
+        name: p.name
+    }))))
+
     const { data: dbPasskey, error: dbError } = await supabaseAdmin
         .schema('m2m')
         .from('user_passkeys')
@@ -48,7 +63,9 @@ export default defineEventHandler(async (event) => {
     if (dbError || !dbPasskey) {
         console.error('[Passkey] Credential lookup failed:', {
             searchId: authentication.id,
-            error: dbError?.message
+            searchIdLength: authentication.id?.length,
+            error: dbError?.message,
+            storedIds: allPasskeys?.map(p => p.credential_id)
         })
         throw createError({ statusCode: 401, message: 'This passkey is not recognized. Please sign in with OTP first.' })
     }
