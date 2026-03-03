@@ -129,11 +129,17 @@ export const usePasskeyUtils = () => {
         transports: string[]
         name: string
     }) => {
+        // Use RPC to bypass PostgREST stripping user_id (FK to auth.users in unexposed schema)
         const { data: inserted, error } = await supabaseAdmin
             .schema('m2m')
-            .from('user_passkeys')
-            .insert(data)
-            .select('id, user_id, credential_id, name')
+            .rpc('insert_passkey', {
+                p_user_id: data.user_id,
+                p_credential_id: data.credential_id,
+                p_public_key: data.public_key,
+                p_counter: data.counter,
+                p_transports: data.transports,
+                p_name: data.name
+            })
             .single()
 
         return { data: inserted, error }
