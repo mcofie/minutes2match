@@ -117,8 +117,15 @@ export default defineEventHandler(async (event) => {
         .eq('id', dbPasskey.id)
 
     // 6. SUCCESS — Build session via "Session Bridge" pattern (mirrors login.post.ts)
-    const userId = dbPasskey.user_id
-    console.log('[Passkey] Verified! Building session for user:', userId)
+    const userId = String(dbPasskey.user_id).trim()
+    console.log('[Passkey] Verified! Building session for user:', userId, 'type:', typeof dbPasskey.user_id, 'raw:', JSON.stringify(dbPasskey.user_id))
+
+    // Validate UUID format
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+    if (!uuidRegex.test(userId)) {
+        console.error('[Passkey] Invalid user_id format:', userId)
+        throw createError({ statusCode: 500, message: `Invalid user_id stored in passkey record: "${userId}"` })
+    }
 
     try {
         // Step A: Fetch user profile
