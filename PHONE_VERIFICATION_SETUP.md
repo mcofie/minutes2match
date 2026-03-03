@@ -21,17 +21,16 @@ This will bypass the actual SMS sending and allow you to complete the flow.
 3. Copy the contents of `supabase/migrations/001_initial_schema.sql`
 4. Paste and run in the SQL Editor
 
-This will create the `m2m` schema and all required tables, including `m2m.otp_codes`.
+This will create the `m2m` schema and all required tables.
 
-### Step 2: Verify Hubtel Credentials
+### Step 2: Configure Zend API Key
 
-Your `.env` file already has Hubtel credentials:
+Your `.env` file needs a Zend API key:
 ```
-HUBTEL_CLIENT_ID=tshvvuam
-HUBTEL_CLIENT_SECRET=ssakouxw
+ZEND_API_KEY=your_zend_api_key_here
 ```
 
-Make sure these are valid by testing at: https://developers.hubtel.com
+Get your API key from: https://www.tryzend.com
 
 ### Step 3: Test the Flow
 
@@ -40,9 +39,8 @@ Make sure these are valid by testing at: https://developers.hubtel.com
 3. Fill in the form
 4. Enter a real Ghanaian phone number (format: +233XXXXXXXXX)
 5. Click "Send Verification Code"
-6. Check the browser console for the generated OTP (it will be logged during development)
-7. Enter the OTP code from the console
-8. Click "Verify Code"
+6. Enter the OTP code sent to your phone
+7. Click "Verify Code"
 
 ---
 
@@ -50,13 +48,12 @@ Make sure these are valid by testing at: https://developers.hubtel.com
 
 ### Issue: "Failed to send code"
 - **Check browser console** for detailed error messages
-- Verify Hubtel credentials are correct
-- Ensure you have SMS credits in your Hubtel account
+- Verify your Zend API key is correct in `.env`
+- Ensure you have SMS credits in your Zend account
 
 ### Issue: "Invalid or expired code"
-- Check the browser console for the generated OTP
-- Ensure you're using the code within 5 minutes
-- Try the bypass code `111111` for testing
+- OTP codes expire after 5 minutes
+- Try the bypass code `111111` for development testing
 
 ### Issue: Database errors
 - Run the migration script in Supabase SQL Editor
@@ -68,14 +65,14 @@ Make sure these are valid by testing at: https://developers.hubtel.com
 ## How It Works
 
 1. **Send OTP**:
-   - Generates a random 6-digit code
-   - Stores in `m2m.otp_codes` table with 5-minute expiry
-   - Sends SMS via Hubtel API
-   - **DEV**: Logs the code to console
+   - Client calls `/api/otp/send` server route
+   - Server calls ZendOTP API to send a 6-digit code
+   - Returns an `otpId` to the client for tracking
+   - **DEV**: Use `111111` as bypass code
 
 2. **Verify OTP**:
-   - Checks if code exists and hasn't expired
-   - Marks code as "used" after successful verification
+   - Client sends `otpId` + `code` to `/api/otp/verify` (or `/api/auth/login`)
+   - Server calls ZendOTP verify API to validate
    - **DEV**: Accepts `111111` as bypass code
 
 3. **Create User**:

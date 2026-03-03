@@ -2,7 +2,7 @@
  * Admin Bulk SMS API
  * POST /api/admin/bulk-sms
  * 
- * Sends SMS messages to multiple recipients with proper throttling and retry logic.
+ * Sends SMS messages to multiple recipients via Zend bulk API.
  * Requires admin authentication.
  */
 
@@ -21,58 +21,11 @@ interface SMSResult {
     error?: string
 }
 
-// Delay between SMS sends to avoid rate limiting from Hubtel
-const DELAY_BETWEEN_SMS_MS = 500 // 500ms = max 120 SMS/minute
-
-// Max retries per message
-const MAX_RETRIES = 2
+// Max recipients per bulk API call (Zend may have its own limits)
+const BULK_BATCH_SIZE = 100
 
 async function delay(ms: number): Promise<void> {
     return new Promise(resolve => setTimeout(resolve, ms))
-}
-
-async function sendSingleSMS(
-    to: string,
-    message: string,
-    authToken: string,
-    retryCount = 0
-): Promise<{ success: boolean; messageId?: string; error?: string }> {
-    try {
-        const response = await $fetch<{ MessageId: string; Status: number }>(
-            'https://smsc.hubtel.com/v1/messages/send',
-            {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Basic ${authToken}`,
-                    'Content-Type': 'application/json'
-                },
-                body: {
-                    From: 'M2Match',
-                    To: to,
-                    Content: message
-                }
-            }
-        )
-
-        return {
-            success: true,
-            messageId: response.MessageId
-        }
-    } catch (error: any) {
-        console.error(`[Bulk SMS] Failed to send to ${to}:`, error.message)
-
-        // Retry logic for transient errors
-        if (retryCount < MAX_RETRIES) {
-            console.log(`[Bulk SMS] Retrying ${to} (attempt ${retryCount + 2}/${MAX_RETRIES + 1})`)
-            await delay(1000 * (retryCount + 1)) // Exponential backoff
-            return sendSingleSMS(to, message, authToken, retryCount + 1)
-        }
-
-        return {
-            success: false,
-            error: error.data?.message || error.message || 'Failed to send'
-        }
-    }
 }
 
 export default defineEventHandler(async (event) => {
@@ -113,62 +66,79 @@ export default defineEventHandler(async (event) => {
         throw createError({ statusCode: 400, message: 'Maximum 500 recipients per batch' })
     }
 
-    // Validate Hubtel credentials
-    if (!config.hubtelClientId || !config.hubtelClientSecret) {
-        throw createError({ statusCode: 500, message: 'Hubtel credentials not configured' })
+    // Validate Zend credentials
+    if (!config.zendApiKey) {
+        throw createError({ statusCode: 500, message: 'Zend API key not configured' })
     }
 
-    const authToken = Buffer.from(
-        `${config.hubtelClientId}:${config.hubtelClientSecret}`
-    ).toString('base64')
+    console.log(`[Bulk SMS] Starting batch of ${recipients.length} messages via Zend`)
 
-    console.log(`[Bulk SMS] Starting batch of ${recipients.length} messages`)
-
-    // Process messages with throttling
+    // Process messages - use Zend bulk API in batches
     const results: SMSResult[] = []
     let successCount = 0
     let failCount = 0
 
-    for (let i = 0; i < recipients.length; i++) {
-        const recipient = recipients[i]
-
-        // Clean phone number
+    // Prepare all messages with cleaned phone numbers and personalized content
+    const preparedMessages = recipients.map(recipient => {
         let phone = recipient.phone.replace(/\s+/g, '').replace(/^0+/, '')
         if (!phone.startsWith('+')) {
             phone = '+233' + phone.replace(/^233/, '')
         }
 
-        // Personalize message if name is provided
         let personalizedMessage = message
         if (recipient.name) {
             personalizedMessage = message.replace(/\{name\}/g, recipient.name)
         }
 
-        // Send SMS
-        const result = await sendSingleSMS(phone, personalizedMessage, authToken)
+        return { phone, body: personalizedMessage, originalPhone: recipient.phone }
+    })
 
-        results.push({
-            phone: recipient.phone,
-            ...result
-        })
+    // Send in batches using Zend bulk API
+    for (let batchStart = 0; batchStart < preparedMessages.length; batchStart += BULK_BATCH_SIZE) {
+        const batch = preparedMessages.slice(batchStart, batchStart + BULK_BATCH_SIZE)
 
-        if (result.success) {
-            successCount++
-        } else {
-            failCount++
+        try {
+            const bulkMessages = batch.map(m => ({ to: m.phone, body: m.body }))
+            await sendZendBulkSMS(config.zendApiKey, bulkMessages, { priority: 'normal' })
+
+            // Mark all in batch as successful
+            for (const msg of batch) {
+                results.push({ phone: msg.originalPhone, success: true })
+                successCount++
+            }
+
+            console.log(`[Bulk SMS] Batch ${batchStart + 1}-${batchStart + batch.length} sent successfully`)
+        } catch (bulkError: any) {
+            console.warn(`[Bulk SMS] Bulk send failed for batch, falling back to individual sends...`, bulkError?.message)
+
+            // Fallback: send individually
+            for (const msg of batch) {
+                try {
+                    const response = await sendZendSMS(config.zendApiKey, msg.phone, msg.body, { priority: 'normal' })
+                    results.push({ phone: msg.originalPhone, success: true, messageId: response.id })
+                    successCount++
+                } catch (error: any) {
+                    console.error(`[Bulk SMS] Failed to send to ${msg.phone}:`, error.message)
+                    results.push({
+                        phone: msg.originalPhone,
+                        success: false,
+                        error: error.data?.message || error.message || 'Failed to send'
+                    })
+                    failCount++
+                }
+
+                // Small delay between individual sends
+                await delay(200)
+            }
         }
 
-        // Log progress
-        if ((i + 1) % 10 === 0) {
-            console.log(`[Bulk SMS] Progress: ${i + 1}/${recipients.length} (${successCount} success, ${failCount} failed)`)
-        }
-
-        // Delay before next SMS
-        if (i < recipients.length - 1) {
-            await delay(DELAY_BETWEEN_SMS_MS)
+        // Delay between batches
+        if (batchStart + BULK_BATCH_SIZE < preparedMessages.length) {
+            await delay(500)
         }
     }
 
+    // Log progress
     console.log(`[Bulk SMS] Completed: ${successCount} success, ${failCount} failed out of ${recipients.length}`)
 
     return {

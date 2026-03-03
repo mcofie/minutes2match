@@ -128,7 +128,6 @@ declare global {
   const useHaptic: typeof import('../../composables/useHaptic').useHaptic
   const useHead: typeof import('../../node_modules/nuxt/dist/app/composables/head').useHead
   const useHeadSafe: typeof import('../../node_modules/nuxt/dist/app/composables/head').useHeadSafe
-  const useHubtel: typeof import('../../composables/useHubtel').useHubtel
   const useHydration: typeof import('../../node_modules/nuxt/dist/app/composables/hydrate').useHydration
   const useId: typeof import('vue').useId
   const useImage: typeof import('../../node_modules/@nuxt/image/dist/runtime/composables').useImage
@@ -207,6 +206,7 @@ declare global {
   const useToast: typeof import('../../composables/useToast').useToast
   const useTransitionState: typeof import('vue').useTransitionState
   const useTransparentPwaIcon: typeof import('../../node_modules/@vite-pwa/nuxt/dist/runtime/composables/index').useTransparentPwaIcon
+  const useZend: typeof import('../../composables/useZend').useZend
   const vScrollAnimate: typeof import('../../composables/useScrollAnimation').vScrollAnimate
   const watch: typeof import('vue').watch
   const watchEffect: typeof import('vue').watchEffect
@@ -380,7 +380,6 @@ declare module 'vue' {
     readonly useHaptic: UnwrapRef<typeof import('../../composables/useHaptic')['useHaptic']>
     readonly useHead: UnwrapRef<typeof import('../../node_modules/nuxt/dist/app/composables/head')['useHead']>
     readonly useHeadSafe: UnwrapRef<typeof import('../../node_modules/nuxt/dist/app/composables/head')['useHeadSafe']>
-    readonly useHubtel: UnwrapRef<typeof import('../../composables/useHubtel')['useHubtel']>
     readonly useHydration: UnwrapRef<typeof import('../../node_modules/nuxt/dist/app/composables/hydrate')['useHydration']>
     readonly useId: UnwrapRef<typeof import('vue')['useId']>
     readonly useImage: UnwrapRef<typeof import('../../node_modules/@nuxt/image/dist/runtime/composables')['useImage']>
@@ -459,6 +458,7 @@ declare module 'vue' {
     readonly useToast: UnwrapRef<typeof import('../../composables/useToast')['useToast']>
     readonly useTransitionState: UnwrapRef<typeof import('vue')['useTransitionState']>
     readonly useTransparentPwaIcon: UnwrapRef<typeof import('../../node_modules/@vite-pwa/nuxt/dist/runtime/composables/index')['useTransparentPwaIcon']>
+    readonly useZend: UnwrapRef<typeof import('../../composables/useZend')['useZend']>
     readonly vScrollAnimate: UnwrapRef<typeof import('../../composables/useScrollAnimation')['vScrollAnimate']>
     readonly watch: UnwrapRef<typeof import('vue')['watch']>
     readonly watchEffect: UnwrapRef<typeof import('vue')['watchEffect']>

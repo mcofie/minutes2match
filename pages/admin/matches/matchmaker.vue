@@ -871,7 +871,7 @@ const createBulkMatches = async () => {
     if (error) throw error
     
     // Send SMS notifications to all matched users
-    const { sendSMS } = useHubtel()
+    const { sendSMS } = useZend()
     const smsPromises: Promise<any>[] = []
     
     for (const match of selectedAutoMatches.value) {
@@ -1012,9 +1012,9 @@ const createMatch = async () => {
     
     if (error) throw error
     
-    // Send SMS Notification via Hubtel
+    // Send SMS Notification via Zend
     // We can do this in a Supabase Edge Function ideally, but client-side for now
-    const { sendSMS } = useHubtel()
+    const { sendSMS } = useZend()
     const msg = `Great news! You've been matched on Minutes 2 Match! Log in to see who it is and unlock their profile. - M2Match`
     
     // Fire and forget SMS

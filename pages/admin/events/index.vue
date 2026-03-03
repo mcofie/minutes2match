@@ -727,7 +727,7 @@ const notifyQualifiedUsers = async () => {
   
   notifying.value = true
   
-  const { sendSMS } = useHubtel()
+  const { sendSMS } = useZend()
   const event = qualifyingEvent.value
   const message = `You're invited to "${event.title}" on ${formatDate(event.event_date)} at ${event.venue}. Log in to minutes2match.com to book your spot!`
   

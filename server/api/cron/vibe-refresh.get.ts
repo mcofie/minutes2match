@@ -7,6 +7,7 @@
 
 import { createClient } from '@supabase/supabase-js'
 import { notifyDiscord, DiscordColors } from '~/server/utils/discord'
+import { sendZendSMS } from '~/server/utils/zend'
 
 export default defineEventHandler(async (event) => {
     const config = useRuntimeConfig()
@@ -41,18 +42,13 @@ export default defineEventHandler(async (event) => {
 
         if (staleUsers.length === 0) return { success: true, sent: 0 }
 
-        const authToken = Buffer.from(`${config.hubtelClientId}:${config.hubtelClientSecret}`).toString('base64')
         let sentCount = 0
 
         for (const user of staleUsers) {
             const message = `Hey ${user.display_name || 'there'}! No matches recently? Try refreshing your "Hobbies" or "Interests" on Minutes2Match to increase your reach! minutes2match.com/me`
 
             try {
-                await $fetch('https://smsc.hubtel.com/v1/messages/send', {
-                    method: 'POST',
-                    headers: { 'Authorization': `Basic ${authToken}`, 'Content-Type': 'application/json' },
-                    body: { From: 'M2Match', To: user.phone, Content: message }
-                })
+                await sendZendSMS(config.zendApiKey, user.phone, message)
                 sentCount++
             } catch (e) { }
         }

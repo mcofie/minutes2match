@@ -130,6 +130,7 @@ const otpSent = ref(false)
 const sending = ref(false)
 const verifying = ref(false)
 const error = ref('')
+const otpId = ref('')
 
 const isValidPhone = computed(() => {
   const cleaned = phone.value.replace(/\D/g, '')
@@ -147,8 +148,9 @@ const sendOtp = async () => {
   error.value = ''
   
   try {
-    const { sendOTP } = useHubtel()
-    await sendOTP(fullPhone.value)
+    const { sendOTP } = useZend()
+    const result = await sendOTP(fullPhone.value)
+    otpId.value = result.otpId
     otpSent.value = true
     // Focus OTP input on next tick
     setTimeout(() => {
@@ -174,7 +176,8 @@ const verifyOtp = async () => {
       method: 'POST',
       body: {
         phone: fullPhone.value,
-        code: otpCode.value
+        code: otpCode.value,
+        otpId: otpId.value
       }
     })
 
@@ -224,6 +227,7 @@ const verifyOtp = async () => {
 const resetForm = () => {
   otpSent.value = false
   otpCode.value = ''
+  otpId.value = ''
   error.value = ''
 }
 </script>

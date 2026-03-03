@@ -726,7 +726,7 @@ const sendSubReminder = async (sub: any, silent = false) => {
 
   sendingReminderId.value = sub.id
   try {
-    const { sendSMS } = useHubtel()
+    const { sendSMS } = useZend()
     const endDate = formatDate(sub.end_date)
     const message = `Friendly reminder: Your Minutes 2 Match subscription is active until ${endDate}. Log in to find your perfect match! 💕 - M2Match`
     

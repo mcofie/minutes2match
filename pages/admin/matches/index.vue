@@ -1089,7 +1089,7 @@ const sendPaymentReminder = async (match: any) => {
   paymentReminderSuccess.value = false
   
   try {
-    const { sendSMS } = useHubtel()
+    const { sendSMS } = useZend()
     const promises: Promise<any>[] = []
     
     // Helper to generate personalized message based on user status

@@ -111,21 +111,10 @@ export default defineEventHandler(async (event) => {
     let smsSent = false
     let smsError = null
 
-    if (config.hubtelClientId && config.hubtelClientSecret) {
+    if (config.zendApiKey) {
         try {
-            const authToken = Buffer.from(`${config.hubtelClientId}:${config.hubtelClientSecret}`).toString('base64')
-            await $fetch('https://smsc.hubtel.com/v1/messages/send', {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Basic ${authToken}`,
-                    'Content-Type': 'application/json'
-                },
-                body: {
-                    From: 'M2Match',
-                    To: profile.phone,
-                    Content: smsMessage
-                }
-            })
+            const { sendZendSMS } = await import('~/server/utils/zend')
+            await sendZendSMS(config.zendApiKey, profile.phone, smsMessage)
             smsSent = true
 
             // Log to sms_history
@@ -158,7 +147,7 @@ export default defineEventHandler(async (event) => {
                 })
         }
     } else {
-        smsError = 'SMS provider not configured'
+        smsError = 'Zend API key not configured'
     }
 
     // 2. Create Internal Notification

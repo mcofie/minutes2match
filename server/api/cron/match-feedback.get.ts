@@ -7,6 +7,7 @@
 
 import { createClient } from '@supabase/supabase-js'
 import { notifyDiscord, DiscordColors } from '~/server/utils/discord'
+import { sendZendSMS } from '~/server/utils/zend'
 
 export default defineEventHandler(async (event) => {
     const config = useRuntimeConfig()
@@ -41,7 +42,6 @@ export default defineEventHandler(async (event) => {
         if (error) throw error
         if (!matches || matches.length === 0) return { success: true, sent: 0 }
 
-        const authToken = Buffer.from(`${config.hubtelClientId}:${config.hubtelClientSecret}`).toString('base64')
         let sentCount = 0
 
         for (const match of matches) {
@@ -54,11 +54,7 @@ export default defineEventHandler(async (event) => {
                 const message = `Hi ${user.display_name}! How did it go with ${partnerName || 'your match'}? Tell us if it was a success here: minutes2match.com/matches`
 
                 try {
-                    await $fetch('https://smsc.hubtel.com/v1/messages/send', {
-                        method: 'POST',
-                        headers: { 'Authorization': `Basic ${authToken}`, 'Content-Type': 'application/json' },
-                        body: { From: 'M2Match', To: user.phone, Content: message }
-                    })
+                    await sendZendSMS(config.zendApiKey, user.phone, message)
                     sentCount++
                 } catch (e) { }
             }

@@ -141,13 +141,9 @@ export default defineEventHandler(async (event) => {
     // Send SMS notifications
     const config = useRuntimeConfig()
 
-    if (!config.hubtelClientId || !config.hubtelClientSecret) {
-        throw createError({ statusCode: 500, message: 'Hubtel credentials not configured' })
+    if (!config.zendApiKey) {
+        throw createError({ statusCode: 500, message: 'Zend API key not configured' })
     }
-
-    const authToken = Buffer.from(
-        `${config.hubtelClientId}:${config.hubtelClientSecret}`
-    ).toString('base64')
 
     const broadcastId = randomUUID()
     const results: Array<{ phone: string; status: 'sent' | 'failed'; error?: string }> = []
@@ -166,18 +162,8 @@ export default defineEventHandler(async (event) => {
         message = message.replace('{link}', connectionUrl)
 
         try {
-            await $fetch('https://smsc.hubtel.com/v1/messages/send', {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Basic ${authToken}`,
-                    'Content-Type': 'application/json'
-                },
-                body: {
-                    From: 'M2Match',
-                    To: userToNotify.phone,
-                    Content: message
-                }
-            })
+            const { sendZendSMS } = await import('~/server/utils/zend')
+            await sendZendSMS(config.zendApiKey, userToNotify.phone, message)
 
             // Log to sms_history
             await client

@@ -72,6 +72,12 @@ declare module "nitropack/types" {
     '/api/me/notifications': {
       'get': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/me/notifications.get').default>>>>
     }
+    '/api/otp/send': {
+      'post': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/otp/send.post').default>>>>
+    }
+    '/api/otp/verify': {
+      'post': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/otp/verify.post').default>>>>
+    }
     '/api/paystack/initialize': {
       'post': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/paystack/initialize.post').default>>>>
     }
@@ -125,6 +131,9 @@ declare module "nitropack/types" {
     }
     '/api/vouches/respond': {
       'post': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/vouches/respond.post').default>>>>
+    }
+    '/api/webhooks/zend-status': {
+      'post': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/webhooks/zend-status.post').default>>>>
     }
     '/__nuxt_error': {
       'default': Simplify<Serialize<Awaited<ReturnType<typeof import('../../node_modules/@nuxt/nitro-server/dist/runtime/handlers/renderer').default>>>>

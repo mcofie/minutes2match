@@ -1,5 +1,7 @@
 declare global {
   const DiscordColors: typeof import('../../server/utils/discord').DiscordColors
+  const SENDER_ID: typeof import('../../server/utils/zend').SENDER_ID
+  const ZEND_BASE_URL: typeof import('../../server/utils/zend').ZEND_BASE_URL
   const __buildAssetsURL: typeof import('../../node_modules/@nuxt/nitro-server/dist/runtime/utils/paths').buildAssetsURL
   const __publicAssetsURL: typeof import('../../node_modules/@nuxt/nitro-server/dist/runtime/utils/paths').publicAssetsURL
   const appendCorsHeaders: typeof import('../../node_modules/h3').appendCorsHeaders
@@ -121,6 +123,9 @@ declare global {
   const sendRedirect: typeof import('../../node_modules/h3').sendRedirect
   const sendStream: typeof import('../../node_modules/h3').sendStream
   const sendWebResponse: typeof import('../../node_modules/h3').sendWebResponse
+  const sendZendBulkSMS: typeof import('../../server/utils/zend').sendZendBulkSMS
+  const sendZendOTP: typeof import('../../server/utils/zend').sendZendOTP
+  const sendZendSMS: typeof import('../../server/utils/zend').sendZendSMS
   const serveStatic: typeof import('../../node_modules/h3').serveStatic
   const setCookie: typeof import('../../node_modules/h3').setCookie
   const setHeader: typeof import('../../node_modules/h3').setHeader
@@ -146,6 +151,7 @@ declare global {
   const useRuntimeConfig: typeof import('../../node_modules/nitropack/dist/runtime/internal/config').useRuntimeConfig
   const useSession: typeof import('../../node_modules/h3').useSession
   const useStorage: typeof import('../../node_modules/nitropack/dist/runtime/internal/storage').useStorage
+  const verifyZendOTP: typeof import('../../server/utils/zend').verifyZendOTP
   const writeEarlyHints: typeof import('../../node_modules/h3').writeEarlyHints
 }
 // for type re-export
@@ -153,6 +159,9 @@ declare global {
   // @ts-ignore
   export type { RateLimitConfig, RateLimitResult } from '../../server/utils/rateLimiter'
   import('../../server/utils/rateLimiter')
+  // @ts-ignore
+  export type { ZendSMSResponse, ZendBulkResponse, ZendOTPSendResponse, ZendOTPVerifyResponse } from '../../server/utils/zend'
+  import('../../server/utils/zend')
 }
 export { useNitroApp } from 'nitropack/runtime/internal/app';
 export { useRuntimeConfig, useAppConfig } from 'nitropack/runtime/internal/config';
@@ -177,3 +186,4 @@ export { DiscordColors, notifyDiscord, notifyNewSignup, notifyPaymentSuccess, no
 export { unlockMatch } from '/Users/maxwellcofie/WebstormProjects/minutes2match/server/utils/match';
 export { normalizeGhanaPhone, isSamePhone } from '/Users/maxwellcofie/WebstormProjects/minutes2match/server/utils/phone';
 export { checkRateLimit, getClientIP, enforceRateLimit } from '/Users/maxwellcofie/WebstormProjects/minutes2match/server/utils/rateLimiter';
+export { sendZendSMS, sendZendBulkSMS, sendZendOTP, verifyZendOTP, ZEND_BASE_URL, SENDER_ID } from '/Users/maxwellcofie/WebstormProjects/minutes2match/server/utils/zend';

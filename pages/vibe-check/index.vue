@@ -526,6 +526,7 @@ const fetchVibeQuestions = async () => {
 const otpSent = ref(false)
 const otpCode = ref('')
 const otpError = ref('')
+const otpId = ref('')
 const sendingOtp = ref(false)
 const verifyingOtp = ref(false)
 
@@ -657,8 +658,9 @@ const handleSendOtp = async () => {
     }
     
     // Normal flow: send OTP
-    const { sendOTP } = useHubtel()
-    await sendOTP(fullPhone)
+    const { sendOTP } = useZend()
+    const otpResult = await sendOTP(fullPhone)
+    otpId.value = otpResult.otpId
     otpSent.value = true
   } catch (error) {
     otpError.value = 'Failed to send code. Please try again.'
@@ -674,9 +676,9 @@ const handleVerifyOtp = async () => {
   otpError.value = ''
   
   try {
-    const { verifyOTP } = useHubtel()
+    const { verifyOTP } = useZend()
     const fullPhone = '+233' + form.phone.replace(/\D/g, '').replace(/^0+/, '')
-    const result = await verifyOTP(fullPhone, otpCode.value)
+    const result = await verifyOTP(fullPhone, otpCode.value, otpId.value)
     
     if (!result.valid) {
       otpError.value = result.error || 'Invalid code'

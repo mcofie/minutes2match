@@ -209,9 +209,7 @@ declare module 'nuxt/schema' {
 
    supabaseUrl: string,
 
-   hubtelClientId: string,
-
-   hubtelClientSecret: string,
+   zendApiKey: string,
 
    paystackSecretKey: string,
 

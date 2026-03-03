@@ -36,7 +36,6 @@ export { useConfetti } from '../composables/useConfetti';
 export { useDashboard } from '../composables/useDashboard';
 export { useFormValidation, ValidationRule, FieldConfig, FieldState } from '../composables/useFormValidation';
 export { useHaptic } from '../composables/useHaptic';
-export { useHubtel } from '../composables/useHubtel';
 export { useNotifications } from '../composables/useNotifications';
 export { usePaystack, PaymentMetadata } from '../composables/usePaystack';
 export { personas, usePersona, Persona } from '../composables/usePersona';
@@ -44,6 +43,7 @@ export { useScrollAnimation, vScrollAnimate, ScrollAnimationOptions } from '../c
 export { useSeo, useEventSeo } from '../composables/useSeo';
 export { getRandomQuestions, useShotHints, ShotQuestion } from '../composables/useShotHints';
 export { useToast, Toast } from '../composables/useToast';
+export { useZend } from '../composables/useZend';
 export { downloadCSV } from '../utils/downloadCsv';
 export { useSupabaseClient } from '../node_modules/@nuxtjs/supabase/dist/runtime/composables/useSupabaseClient';
 export { useSupabaseCookieRedirect } from '../node_modules/@nuxtjs/supabase/dist/runtime/composables/useSupabaseCookieRedirect';

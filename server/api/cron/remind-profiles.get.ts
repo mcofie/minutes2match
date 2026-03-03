@@ -7,6 +7,7 @@
 
 import { createClient } from '@supabase/supabase-js'
 import { notifyDiscord, DiscordColors } from '~/server/utils/discord'
+import { sendZendSMS } from '~/server/utils/zend'
 
 export default defineEventHandler(async (event) => {
     const config = useRuntimeConfig()
@@ -42,19 +43,13 @@ export default defineEventHandler(async (event) => {
 
         if (incomplete.length === 0) return { success: true, sent: 0 }
 
-        // Setup Hubtel
-        const authToken = Buffer.from(`${config.hubtelClientId}:${config.hubtelClientSecret}`).toString('base64')
         let sentCount = 0
 
         for (const profile of incomplete) {
             const message = `Hi ${profile.display_name || 'there'}! Your Minutes2Match profile is incomplete. Complete it now to find your best matches: minutes2match.com/me`
 
             try {
-                await $fetch('https://smsc.hubtel.com/v1/messages/send', {
-                    method: 'POST',
-                    headers: { 'Authorization': `Basic ${authToken}`, 'Content-Type': 'application/json' },
-                    body: { From: 'M2Match', To: profile.phone, Content: message }
-                })
+                await sendZendSMS(config.zendApiKey, profile.phone, message)
 
                 // Log history
                 await supabase.from('sms_history').insert({

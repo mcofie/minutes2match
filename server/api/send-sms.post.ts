@@ -1,8 +1,8 @@
 /**
- * Hubtel SMS API Server Route
+ * Zend SMS API Server Route
  * POST /api/send-sms
  * 
- * SECURITY: This route keeps Hubtel API keys server-side only
+ * SECURITY: This route keeps Zend API keys server-side only
  * Rate limited for OTP/user-facing use. Admins should use /api/admin/bulk-sms
  * 
  * Features:
@@ -10,8 +10,7 @@
  * - Auto-retry once after 3s on failure
  */
 
-import { enforceRateLimit } from '~/server/utils/rateLimiter'
-import { normalizeGhanaPhone } from '~/server/utils/phone'
+// Rate limited for OTP/user-facing use. Admins should use /api/admin/bulk-sms
 
 export default defineEventHandler(async (event) => {
     // Rate limit: 3 SMS per minute per IP to prevent OTP abuse
@@ -33,39 +32,20 @@ export default defineEventHandler(async (event) => {
 
     const config = useRuntimeConfig()
 
-    if (!config.hubtelClientId || !config.hubtelClientSecret) {
+    if (!config.zendApiKey) {
         throw createError({
             statusCode: 500,
-            message: 'Hubtel credentials not configured'
+            message: 'Zend API key not configured'
         })
     }
 
     // Normalize the phone number
     const normalizedPhone = normalizeGhanaPhone(to)
 
-    const sendSMS = async (): Promise<{ MessageId: string; Status: number }> => {
-        const authToken = Buffer.from(
-            `${config.hubtelClientId}:${config.hubtelClientSecret}`
-        ).toString('base64')
-
-        return await $fetch<{ MessageId: string; Status: number }>('https://smsc.hubtel.com/v1/messages/send', {
-            method: 'POST',
-            headers: {
-                'Authorization': `Basic ${authToken}`,
-                'Content-Type': 'application/json'
-            },
-            body: {
-                From: 'M2Match',
-                To: normalizedPhone,
-                Content: message
-            }
-        })
-    }
-
     // Try sending, retry once after 3s on failure
     try {
-        const response = await sendSMS()
-        return { success: true, messageId: response.MessageId }
+        const response = await sendZendSMS(config.zendApiKey, normalizedPhone, message, { priority: 'high' })
+        return { success: true, messageId: response.id }
     } catch (firstError: any) {
         console.warn(`[SMS] First attempt failed for ${normalizedPhone}, retrying in 3s...`, firstError?.message)
 
@@ -73,9 +53,9 @@ export default defineEventHandler(async (event) => {
         await new Promise(resolve => setTimeout(resolve, 3000))
 
         try {
-            const response = await sendSMS()
+            const response = await sendZendSMS(config.zendApiKey, normalizedPhone, message, { priority: 'high' })
             console.log(`[SMS] Retry succeeded for ${normalizedPhone}`)
-            return { success: true, messageId: response.MessageId, retried: true }
+            return { success: true, messageId: response.id, retried: true }
         } catch (retryError: any) {
             console.error(`[SMS] Retry also failed for ${normalizedPhone}:`, retryError?.message)
             throw createError({
