@@ -23,20 +23,20 @@
       </div>
 
       <!-- Card -->
-      <div class="bg-white rounded-xl shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] border-2 border-black p-8 md:p-10 relative">
+      <div class="bg-white rounded-[24px] shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] border-2 border-black p-8 md:p-10 relative">
         
         <!-- Phone Input Step -->
         <div v-if="!otpSent" class="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
           <div class="space-y-2">
-            <label class="block text-xs font-bold uppercase tracking-widest text-stone-900">Phone Number</label>
-            <div class="flex items-center w-full px-4 py-3 rounded-lg border-2 border-stone-200 bg-white focus-within:ring-0 focus-within:border-black transition-all group hover:border-stone-400 relative">
-              <span class="font-bold text-stone-900 select-none mr-3 border-r-2 border-stone-200 pr-3 font-mono">+233</span>
+            <label class="block text-[11px] font-black uppercase tracking-widest text-stone-900">Phone Number</label>
+            <div class="flex items-center w-full px-4 py-3 border-2 border-stone-200 rounded-xl bg-white focus-within:ring-0 focus-within:border-black transition-all group hover:border-stone-400 relative">
+              <span class="font-bold text-stone-900 select-none mr-3 border-r-2 border-stone-100 pr-3 font-mono text-lg">+233</span>
                 <input
                   type="tel"
                   v-model="phone"
                   placeholder="20 123 4567"
                   autocomplete="username webauthn"
-                  class="flex-1 text-lg font-bold outline-none bg-transparent placeholder-stone-300 text-stone-900 font-mono tracking-wide pr-8"
+                  class="flex-1 text-[17px] font-bold outline-none bg-transparent placeholder-stone-300 text-stone-900 font-mono tracking-widest pr-8"
                   maxlength="10"
                   @keyup.enter="isValidPhone && sendOtp()"
                 />
@@ -46,48 +46,48 @@
               </div>
             </div>
 
-            <div v-if="isPasskeySupported && !otpSent" class="space-y-4 pt-2">
+            <div v-if="isPasskeySupported && !otpSent" class="space-y-5 pt-3">
               <button 
                 @click="handlePasskeyLogin"
                 :disabled="sending || isLoggingIn"
                 type="button"
-                class="w-full relative overflow-hidden group bg-white dark:bg-stone-900 border-2 border-black rounded-xl p-4 transition-all hover:-translate-y-0.5 active:translate-y-0 active:shadow-none shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
+                class="w-full relative overflow-hidden group bg-white dark:bg-stone-900 border-[3px] border-black rounded-[24px] py-3.5 px-4 transition-all hover:-translate-y-0.5 active:translate-y-0 active:shadow-none shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
               >
                 <!-- Animated background gradient on hover -->
                 <div class="absolute inset-0 bg-gradient-to-r from-rose-500/10 via-purple-500/10 to-rose-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                 
-                <div class="relative flex items-center justify-center gap-3">
-                  <div class="w-10 h-10 rounded-full bg-stone-100 flex items-center justify-center text-xl group-hover:bg-rose-500 group-hover:text-white transition-colors duration-300">
+                <div class="relative flex items-center justify-center gap-4">
+                  <div class="w-10 h-10 rounded-full bg-stone-100 flex flex-shrink-0 items-center justify-center text-xl group-hover:bg-rose-500 group-hover:text-white transition-colors duration-300">
                     <span v-if="authMethod === 'passkey'" class="animate-pulse">🧬</span>
                     <span v-else>👋</span>
                   </div>
-                  <div class="text-left">
-                    <p class="text-[10px] font-black uppercase tracking-[0.2em] text-stone-400 leading-none mb-1">One-Tap Login</p>
-                    <p class="text-sm font-bold uppercase tracking-widest">{{ authMethod === 'passkey' ? 'Verifying...' : 'FaceID / TouchID' }}</p>
+                  <div class="text-left flex flex-col justify-center mt-[1px]">
+                    <p class="text-[9px] font-black uppercase tracking-[0.2em] text-stone-400 leading-none mb-1.5">One-Tap Login</p>
+                    <p class="text-[13px] sm:text-[14px] font-black uppercase tracking-[0.1em] text-black dark:text-white leading-none">{{ authMethod === 'passkey' ? 'VERIFYING...' : 'FACEID / TOUCHID' }}</p>
                   </div>
                 </div>
               </button>
               
               <div class="flex items-center gap-4 py-2">
-                <div class="h-px flex-1 bg-stone-100"></div>
-                <span class="text-[9px] font-black uppercase tracking-[0.3em] text-stone-300">or use phone</span>
-                <div class="h-px flex-1 bg-stone-100"></div>
+                <div class="h-[1px] flex-1 bg-stone-100"></div>
+                <span class="text-[9px] font-black uppercase tracking-[0.3em] text-stone-300 whitespace-nowrap">OR USE PHONE</span>
+                <div class="h-[1px] flex-1 bg-stone-100"></div>
               </div>
             </div>
 
           <button 
             :disabled="!isValidPhone || sending || isLoggingIn"
             @click="sendOtp"
-            class="w-full bg-black text-white py-4 rounded-lg font-bold uppercase tracking-widest text-sm hover:bg-rose-500 hover:shadow-[4px_4px_0px_0px_rgba(244,63,94,0.3)] hover:-translate-y-[1px] transition-all disabled:opacity-50 disabled:cursor-not-allowed border-2 border-black"
+            class="w-full py-[18px] rounded-[14px] font-bold uppercase tracking-widest text-sm transition-all disabled:opacity-100 disabled:cursor-not-allowed disabled:bg-[#858585] disabled:text-white disabled:border-transparent disabled:shadow-none bg-black text-white hover:bg-rose-500 hover:shadow-[4px_4px_0px_0px_rgba(244,63,94,0.3)] hover:-translate-y-[1px] border-2 border-black"
           >
-            {{ sending ? 'Sending Code...' : 'Continue with Phone' }}
+            {{ sending ? 'Sending...' : 'Continue with Phone' }}
           </button>
 
           <p v-if="error" class="text-rose-500 text-sm text-center font-bold bg-rose-50 py-2 rounded border border-rose-200">{{ error }}</p>
 
-          <div class="border-t-2 border-stone-100 pt-6 mt-6 text-center">
-            <p class="text-sm text-stone-500 mb-3">New to minutes2match?</p>
-            <NuxtLink to="/vibe-check" class="text-black font-bold uppercase tracking-wider text-xs border-b-2 border-rose-500 hover:text-rose-500 transition-colors pb-0.5">
+          <div class="pt-2 text-center">
+            <p class="text-[14px] text-stone-600 mb-3 font-normal tracking-wide">New to minutes2match?</p>
+            <NuxtLink to="/vibe-check" class="text-black font-black uppercase tracking-[0.05em] text-[12px] border-b-[2px] border-rose-500 hover:text-rose-500 hover:border-black transition-colors pb-[2px]">
               Take the Vibe Check
             </NuxtLink>
           </div>
