@@ -6,12 +6,20 @@ export const useContactPicker = () => {
     const isSupported = ref(false)
 
     onMounted(() => {
-        isSupported.value = !!(
-            typeof window !== 'undefined' &&
-            navigator &&
-            'contacts' in navigator &&
-            (navigator as any).contacts.select
-        )
+        const hasAPI = typeof window !== 'undefined' && navigator && 'contacts' in navigator
+        const isSecure = typeof window !== 'undefined' && window.isSecureContext
+
+        console.log('[ContactPicker] Debug:', {
+            hasAPI,
+            isSecure,
+            userAgent: navigator.userAgent
+        })
+
+        isSupported.value = !!(hasAPI && isSecure && (navigator as any).contacts.select)
+
+        if (!isSecure && hasAPI) {
+            console.warn('[ContactPicker] API is available but requires a Secure Context (HTTPS) to work.')
+        }
     })
 
     const pickContact = async () => {
