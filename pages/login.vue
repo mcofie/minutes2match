@@ -156,6 +156,7 @@ definePageMeta({
 
 const supabase = useSupabaseClient()
 const user = useSupabaseUser()
+const toast = useToast()
 
 // Track if we're in the middle of a login attempt
 const isLoggingIn = ref(false)
@@ -223,7 +224,9 @@ const handlePasskeyLogin = async () => {
             await signUserIn(result)
         }
     } catch (err: any) {
-        error.value = err.message || 'Passkey login failed'
+        const msg = err?.data?.message || err.message || 'Passkey login failed'
+        error.value = msg
+        toast.error('Passkey Login Failed', msg)
         authMethod.value = null
         isLoggingIn.value = false
     }
