@@ -78,16 +78,10 @@
               @click="handlePasskeyLogin"
               :disabled="sending || isLoggingIn"
               type="button"
-              class="w-full relative overflow-hidden group bg-white border-[3px] border-black rounded-[24px] py-4 px-4 transition-all hover:-translate-y-[2px] active:translate-y-0 active:shadow-none shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] flex items-center justify-center gap-4"
+              class="w-full py-4 rounded-[16px] font-bold uppercase tracking-widest text-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed bg-black text-white hover:bg-rose-500 hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,0.2)] hover:-translate-y-[1px] border-2 border-black flex items-center justify-center gap-3"
             >
-              <div class="w-12 h-12 rounded-full bg-stone-100 flex flex-shrink-0 items-center justify-center text-xl transition-colors duration-300">
-                <span v-if="authMethod === 'passkey'" class="animate-pulse">🧬</span>
-                <span v-else>👋</span>
-              </div>
-              <div class="text-left flex flex-col justify-center">
-                <p class="text-[10px] font-bold uppercase tracking-widest text-stone-400 mb-1">Passkey</p>
-                <p class="text-sm font-black uppercase tracking-widest text-black">{{ authMethod === 'passkey' ? 'VERIFYING...' : 'FACEID / TOUCHID' }}</p>
-              </div>
+              <span class="text-lg">{{ authMethod === 'passkey' ? '🧬' : '👋' }}</span>
+              <span>{{ authMethod === 'passkey' ? 'Verifying Passkey...' : 'Continue with Passkey' }}</span>
             </button>
           </div>
 

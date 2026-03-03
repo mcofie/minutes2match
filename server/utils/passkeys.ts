@@ -133,7 +133,7 @@ export const usePasskeyUtils = () => {
         const { data: inserted, error } = await supabaseAdmin
             .schema('m2m')
             .rpc('insert_passkey', {
-                p_user_id: data.user_id,
+                p_uid: data.user_id,
                 p_credential_id: data.credential_id,
                 p_public_key: data.public_key,
                 p_counter: data.counter,
