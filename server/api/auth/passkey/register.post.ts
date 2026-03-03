@@ -4,8 +4,8 @@
  * 
  * Verifies the registration response from the browser and stores the public key.
  */
-import { serverSupabaseServiceRole, serverSupabaseUser } from '#supabase/server'
-import type { M2MDatabase } from '~/types/database.types'
+import { serverSupabaseUser } from '#supabase/server'
+import { createClient } from '@supabase/supabase-js'
 
 export default defineEventHandler(async (event) => {
     // 1. Verify user is authenticated
@@ -48,29 +48,40 @@ export default defineEventHandler(async (event) => {
         throw createError({ statusCode: 400, message: 'Passkey verification failed' })
     }
 
-    // 5. Extract credential from the v13 response shape:
-    //    registrationInfo.credential = { id, publicKey, counter, transports }
+    // 5. Extract credential from the v13 response shape
     const { credential } = verification.registrationInfo
 
-    console.log('[Passkey] Registration verified. Credential ID:', credential.id)
+    console.log('[Passkey] Registration verified. Credential ID:', credential.id, 'User ID:', user.id)
 
-    const supabase = serverSupabaseServiceRole<M2MDatabase>(event)
+    // 6. Use an untyped admin client to ensure all columns are written
+    //    (The M2MDatabase type doesn't include user_passkeys, causing typed clients to strip fields)
+    const config = useRuntimeConfig()
+    const supabaseAdmin = createClient(
+        config.supabaseUrl || process.env.SUPABASE_URL || '',
+        config.supabaseServiceKey || process.env.SUPABASE_SECRET_KEY || '',
+        { auth: { persistSession: false } }
+    )
 
-    // 6. Convert publicKey (Uint8Array) to a hex string for BYTEA storage
+    // 7. Convert publicKey (Uint8Array) to a hex string for BYTEA storage
     const publicKeyHex = '\\x' + Buffer.from(credential.publicKey).toString('hex')
 
-    // 7. Store the new passkey
-    const { error } = await supabase
+    // 8. Store the new passkey
+    const insertData = {
+        user_id: user.id,
+        credential_id: credential.id,
+        public_key: publicKeyHex,
+        counter: credential.counter ?? 0,
+        transports: credential.transports || [],
+        name: name || 'Passkey'
+    }
+    console.log('[Passkey] Inserting passkey with user_id:', insertData.user_id)
+
+    const { data: inserted, error } = await supabaseAdmin
         .schema('m2m')
         .from('user_passkeys')
-        .insert({
-            user_id: user.id,
-            credential_id: credential.id,  // Base64URL string — same as what browser sends during login
-            public_key: publicKeyHex,       // Hex-encoded for BYTEA column
-            counter: credential.counter ?? 0,
-            transports: credential.transports || [],
-            name: name || 'Passkey'
-        })
+        .insert(insertData)
+        .select('id, user_id, credential_id')
+        .single()
 
     if (error) {
         console.error('[Passkey] Error storing passkey:', error)
@@ -79,6 +90,8 @@ export default defineEventHandler(async (event) => {
             message: error.message || 'Failed to save passkey to database'
         })
     }
+
+    console.log('[Passkey] Passkey saved successfully:', inserted)
 
     return { success: true }
 })
