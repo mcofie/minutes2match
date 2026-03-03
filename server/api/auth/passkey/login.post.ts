@@ -99,25 +99,31 @@ export default defineEventHandler(async (event) => {
         })
         .eq('id', dbPasskey.id)
 
-    // 6. SUCCESS — Build session via "Session Bridge" pattern
+    // 6. SUCCESS — Build session via "Session Bridge" pattern (mirrors login.post.ts)
     const userId = dbPasskey.user_id
+    console.log('[Passkey] Verified! Building session for user:', userId)
 
     try {
-        // Fetch user profile
-        const { data: profile } = await supabaseAdmin
+        // Step A: Fetch user profile
+        const { data: profile, error: profileError } = await supabaseAdmin
             .schema('m2m')
             .from('profiles')
             .select('id, phone, display_name, gender, intent, interested_in')
             .eq('id', userId)
             .single()
 
-        // Get the auth user email
+        if (profileError) {
+            console.error('[Passkey] Profile fetch error:', profileError.message)
+        }
+
+        // Step B: Get the auth user email
         const { data: authData, error: authError } = await supabaseAdmin.auth.admin.getUserById(userId)
         if (authError || !authData.user) {
+            console.error('[Passkey] Auth user lookup failed:', authError?.message)
             throw createError({ statusCode: 404, message: 'Linked account not found' })
         }
 
-        // Check vibe check status
+        // Step C: Check vibe check status
         const { count: vibeAnswerCount } = await supabaseAdmin
             .schema('m2m')
             .from('vibe_answers')
@@ -131,14 +137,19 @@ export default defineEventHandler(async (event) => {
             vibeAnswerCount && vibeAnswerCount > 0
         )
 
-        // Create a temporary password for Supabase sign-in
+        // Step D: Create a temporary password for Supabase sign-in
         const tempPassword = `passkey_${Date.now()}_${Math.random().toString(36).slice(2)}`
-        await supabaseAdmin.auth.admin.updateUserById(userId, {
+        const { error: updateError } = await supabaseAdmin.auth.admin.updateUserById(userId, {
             password: tempPassword,
             email_confirm: true
         })
 
-        // Send Discord notification
+        if (updateError) {
+            console.error('[Passkey] Password update error:', updateError.message)
+            throw createError({ statusCode: 500, message: 'Failed to create login session' })
+        }
+
+        // Step E: Send Discord notification (non-blocking)
         try {
             const { notifyUserLogin } = await import('~/server/utils/discord')
             await notifyUserLogin({
@@ -151,6 +162,8 @@ export default defineEventHandler(async (event) => {
             console.error('[Passkey] Discord notification error:', discordError)
         }
 
+        console.log('[Passkey] Session bridge complete for:', authData.user.email)
+
         // Return credentials for client-side sign in
         return {
             success: true,
@@ -160,7 +173,9 @@ export default defineEventHandler(async (event) => {
             hasCompletedVibeCheck
         }
     } catch (err: any) {
-        console.error('[Passkey] Session bridge error:', err)
+        // Re-throw createError exceptions (they have statusCode)
+        if (err.statusCode) throw err
+        console.error('[Passkey] Session bridge error:', err.message || err)
         throw createError({ statusCode: 500, message: 'Failed to build secure session after passkey check' })
     }
 })
