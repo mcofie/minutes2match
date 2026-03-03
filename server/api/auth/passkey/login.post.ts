@@ -192,7 +192,8 @@ export default defineEventHandler(async (event) => {
     } catch (err: any) {
         // Re-throw createError exceptions (they have statusCode)
         if (err.statusCode) throw err
-        console.error('[Passkey] Session bridge error:', err.message || err)
-        throw createError({ statusCode: 500, message: 'Failed to build secure session after passkey check' })
+        const realMessage = err.message || String(err)
+        console.error('[Passkey] Session bridge error:', realMessage, err.stack || '')
+        throw createError({ statusCode: 500, message: `Passkey session error: ${realMessage}` })
     }
 })
