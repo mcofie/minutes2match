@@ -25,16 +25,19 @@
         <div v-if="!otpSent" class="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
           <div class="space-y-2">
             <label class="block text-xs font-bold uppercase tracking-widest text-stone-900">Phone Number</label>
-            <div class="flex items-center w-full px-4 py-3 rounded-lg border-2 border-stone-200 bg-white focus-within:ring-0 focus-within:border-black transition-all group hover:border-stone-400">
+            <div class="flex items-center w-full px-4 py-3 rounded-lg border-2 border-stone-200 bg-white focus-within:ring-0 focus-within:border-black transition-all group hover:border-stone-400 relative">
               <span class="font-bold text-stone-900 select-none mr-3 border-r-2 border-stone-200 pr-3 font-mono">+233</span>
               <input
                 type="tel"
                 v-model="phone"
                 placeholder="20 123 4567"
-                class="flex-1 text-lg font-bold outline-none bg-transparent placeholder-stone-300 text-stone-900 font-mono tracking-wide"
+                class="flex-1 text-lg font-bold outline-none bg-transparent placeholder-stone-300 text-stone-900 font-mono tracking-wide pr-8"
                 maxlength="10"
                 @keyup.enter="isValidPhone && sendOtp()"
               />
+              <button v-if="contactPickerSupported" @click.prevent="pickLoginContact" type="button" class="absolute right-3 top-1/2 -translate-y-1/2 text-stone-400 hover:text-rose-500 transition-colors p-1" title="Select from Contacts">
+                <span class="text-xl">📱</span>
+              </button>
             </div>
           </div>
 
@@ -131,6 +134,17 @@ const sending = ref(false)
 const verifying = ref(false)
 const error = ref('')
 const otpId = ref('')
+
+const { isSupported: contactPickerSupported, pickContact } = useContactPicker()
+
+const pickLoginContact = async () => {
+  const result = await pickContact()
+  if (result) {
+    // Strip +233 if it was picked up from the contact book as our input adds it
+    let cleanPhone = result.phone.replace(/^\+233/, '').replace(/^233/, '').replace(/^0+/, '')
+    phone.value = cleanPhone
+  }
+}
 
 const isValidPhone = computed(() => {
   const cleaned = phone.value.replace(/\D/g, '')

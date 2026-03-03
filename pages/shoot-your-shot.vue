@@ -106,13 +106,23 @@
             <h2 class="font-serif font-bold text-xl">About You</h2>
           </div>
           <div class="grid md:grid-cols-2 gap-4">
-            <div>
+            <div class="relative group">
               <label class="block text-xs font-bold uppercase tracking-widest text-stone-500 dark:text-stone-400 mb-2">Your Name *</label>
-              <input v-model="form.shooterName" type="text" required placeholder="e.g. Kwame Asante" class="w-full bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-lg px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-transparent transition-all placeholder:text-stone-300 dark:placeholder:text-stone-600" />
+              <div class="relative">
+                <input v-model="form.shooterName" type="text" required placeholder="e.g. Kwame Asante" class="w-full bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-lg px-4 py-3 pr-12 text-base focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-transparent transition-all placeholder:text-stone-300 dark:placeholder:text-stone-600" />
+                <button v-if="contactPickerSupported" @click.prevent="pickContact('shooter')" type="button" class="absolute right-3 top-1/2 -translate-y-1/2 text-stone-400 hover:text-rose-500 transition-colors p-1" title="Select from Contacts">
+                  <span class="text-xl">📇</span>
+                </button>
+              </div>
             </div>
-            <div>
+            <div class="relative group">
               <label class="block text-xs font-bold uppercase tracking-widest text-stone-500 dark:text-stone-400 mb-2">Your Phone *</label>
-              <input v-model="form.shooterPhone" type="tel" required placeholder="0244123456" class="w-full bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-lg px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-transparent transition-all placeholder:text-stone-300 dark:placeholder:text-stone-600" />
+              <div class="relative">
+                <input v-model="form.shooterPhone" type="tel" required placeholder="0244123456" class="w-full bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-lg px-4 py-3 pr-12 text-base focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-transparent transition-all placeholder:text-stone-300 dark:placeholder:text-stone-600" />
+                <button v-if="contactPickerSupported" @click.prevent="pickContact('shooter')" type="button" class="absolute right-3 top-1/2 -translate-y-1/2 text-stone-400 hover:text-rose-500 transition-colors p-1" title="Select from Contacts">
+                  <span class="text-xl">📱</span>
+                </button>
+              </div>
             </div>
           </div>
           <div>
@@ -128,13 +138,23 @@
             <h2 class="font-serif font-bold text-xl">Who Are You Shooting At? 🎯</h2>
           </div>
           <div class="grid md:grid-cols-2 gap-4">
-            <div>
+            <div class="relative group">
               <label class="block text-xs font-bold uppercase tracking-widest text-stone-500 dark:text-stone-400 mb-2">Their Name *</label>
-              <input v-model="form.targetName" type="text" required placeholder="Their name" class="w-full bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-lg px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-transparent transition-all placeholder:text-stone-300 dark:placeholder:text-stone-600" />
+              <div class="relative">
+                <input v-model="form.targetName" type="text" required placeholder="Their name" class="w-full bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-lg px-4 py-3 pr-12 text-base focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-transparent transition-all placeholder:text-stone-300 dark:placeholder:text-stone-600" />
+                <button v-if="contactPickerSupported" @click.prevent="pickContact('target')" type="button" class="absolute right-3 top-1/2 -translate-y-1/2 text-stone-400 hover:text-rose-500 transition-colors p-1" title="Select from Contacts">
+                  <span class="text-xl">📇</span>
+                </button>
+              </div>
             </div>
-            <div>
+            <div class="relative group">
               <label class="block text-xs font-bold uppercase tracking-widest text-stone-500 dark:text-stone-400 mb-2">Their Phone *</label>
-              <input v-model="form.targetPhone" type="tel" required placeholder="0244123456" class="w-full bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-lg px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-transparent transition-all placeholder:text-stone-300 dark:placeholder:text-stone-600" />
+              <div class="relative">
+                <input v-model="form.targetPhone" type="tel" required placeholder="0244123456" class="w-full bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-lg px-4 py-3 pr-12 text-base focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-transparent transition-all placeholder:text-stone-300 dark:placeholder:text-stone-600" />
+                <button v-if="contactPickerSupported" @click.prevent="pickContact('target')" type="button" class="absolute right-3 top-1/2 -translate-y-1/2 text-stone-400 hover:text-rose-500 transition-colors p-1" title="Select from Contacts">
+                  <span class="text-xl">📱</span>
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -293,6 +313,8 @@
 const mobileMenuOpen = ref(false)
 const { availableQuestions, selectedHints, isSelected, toggleQuestion, updateAnswer, reshuffleQuestions, isComplete, formattedHints } = useShotHints()
 
+const { isSupported: contactPickerSupported, pickContact: selectContact } = useContactPicker()
+
 const socialProof = ref({ shotsCount: 0, vouchesCount: 0 })
 
 // Fetch social proof stats
@@ -304,6 +326,19 @@ onMounted(async () => {
     // Silently fail — social proof is optional
   }
 })
+
+const pickContact = async (field: 'shooter' | 'target') => {
+  const result = await selectContact()
+  if (result) {
+    if (field === 'shooter') {
+      if (result.name && !form.shooterName) form.shooterName = result.name
+      form.shooterPhone = result.phone
+    } else if (field === 'target') {
+      if (result.name) form.targetName = result.name
+      form.targetPhone = result.phone
+    }
+  }
+}
 
 const submitting = ref(false)
 const error = ref('')

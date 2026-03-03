@@ -257,15 +257,18 @@
         <div class="space-y-6" v-if="!otpSent">
           <div class="space-y-2">
             <label class="block text-xs font-bold uppercase tracking-widest text-stone-900 border-b border-black pb-1 mb-2 inline-block">Phone Number</label>
-            <div class="flex items-center w-full px-4 py-3 rounded-lg border-2 border-stone-200 bg-white focus-within:ring-0 focus-within:border-black transition-all group hover:border-stone-400">
+            <div class="flex items-center w-full px-4 py-3 rounded-lg border-2 border-stone-200 bg-white focus-within:ring-0 focus-within:border-black transition-all group hover:border-stone-400 relative">
               <span class="font-bold text-stone-900 select-none mr-3 border-r-2 border-stone-200 pr-3 font-mono">+233</span>
               <input
                 type="tel"
                 v-model="form.phone"
                 placeholder="20 123 4567"
-                class="flex-1 text-lg font-bold outline-none bg-transparent placeholder-stone-300 text-stone-900 font-mono tracking-wide"
+                class="flex-1 text-lg font-bold outline-none bg-transparent placeholder-stone-300 text-stone-900 font-mono tracking-wide pr-8"
                 maxlength="10"
               />
+              <button v-if="contactPickerSupported" @click.prevent="pickVibeContact" type="button" class="absolute right-3 top-1/2 -translate-y-1/2 text-stone-400 hover:text-rose-500 transition-colors p-1" title="Select from Contacts">
+                <span class="text-xl">📱</span>
+              </button>
             </div>
           </div>
           
@@ -435,6 +438,17 @@ const form = reactive({
   occupation: '',
   phone: ''
 })
+
+const { isSupported: contactPickerSupported, pickContact } = useContactPicker()
+
+const pickVibeContact = async () => {
+  const result = await pickContact()
+  if (result) {
+    if (result.name && !form.displayName) form.displayName = result.name
+    let cleanPhone = result.phone.replace(/^\+233/, '').replace(/^233/, '').replace(/^0+/, '')
+    form.phone = cleanPhone
+  }
+}
 
 const vibeAnswers = reactive<Record<string, string>>({})
 const currentStep = ref(1)

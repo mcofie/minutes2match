@@ -33,6 +33,7 @@ export { defineLazyHydrationComponent } from '#app/composables/lazy-hydration';
 export { badges, useBadges, Badge } from '../composables/useBadges';
 export { useCompatibility, VibeAnswer, UserProfile, CompatibilityResult } from '../composables/useCompatibility';
 export { useConfetti } from '../composables/useConfetti';
+export { useContactPicker } from '../composables/useContactPicker';
 export { useDashboard } from '../composables/useDashboard';
 export { useFormValidation, ValidationRule, FieldConfig, FieldState } from '../composables/useFormValidation';
 export { useHaptic } from '../composables/useHaptic';

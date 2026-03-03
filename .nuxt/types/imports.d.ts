@@ -116,6 +116,7 @@ declare global {
   const useBadges: typeof import('../../composables/useBadges').useBadges
   const useCompatibility: typeof import('../../composables/useCompatibility').useCompatibility
   const useConfetti: typeof import('../../composables/useConfetti').useConfetti
+  const useContactPicker: typeof import('../../composables/useContactPicker').useContactPicker
   const useCookie: typeof import('../../node_modules/nuxt/dist/app/composables/cookie').useCookie
   const useCssModule: typeof import('vue').useCssModule
   const useCssVars: typeof import('vue').useCssVars
@@ -368,6 +369,7 @@ declare module 'vue' {
     readonly useBadges: UnwrapRef<typeof import('../../composables/useBadges')['useBadges']>
     readonly useCompatibility: UnwrapRef<typeof import('../../composables/useCompatibility')['useCompatibility']>
     readonly useConfetti: UnwrapRef<typeof import('../../composables/useConfetti')['useConfetti']>
+    readonly useContactPicker: UnwrapRef<typeof import('../../composables/useContactPicker')['useContactPicker']>
     readonly useCookie: UnwrapRef<typeof import('../../node_modules/nuxt/dist/app/composables/cookie')['useCookie']>
     readonly useCssModule: UnwrapRef<typeof import('vue')['useCssModule']>
     readonly useCssVars: UnwrapRef<typeof import('vue')['useCssVars']>

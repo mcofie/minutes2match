@@ -150,13 +150,23 @@
               <h2 class="font-serif font-bold text-xl">About You (The Matcher)</h2>
             </div>
             <div class="grid md:grid-cols-2 gap-4">
-              <div>
+              <div class="relative group">
                 <label class="block text-xs font-bold uppercase tracking-widest text-stone-500 dark:text-stone-400 mb-2">Your Name *</label>
-                <input v-model="form.matcherName" type="text" required placeholder="e.g. Ama Serwah" class="w-full bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-lg px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-transparent transition-all placeholder:text-stone-300 dark:placeholder:text-stone-600" />
+                <div class="relative">
+                  <input v-model="form.matcherName" type="text" required placeholder="e.g. Ama Serwah" class="w-full bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-lg px-4 py-3 pr-12 text-base focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-transparent transition-all placeholder:text-stone-300 dark:placeholder:text-stone-600" />
+                  <button v-if="contactPickerSupported" @click.prevent="pickContact('matcher')" type="button" class="absolute right-3 top-1/2 -translate-y-1/2 text-stone-400 hover:text-rose-500 transition-colors p-1" title="Select from Contacts">
+                    <span class="text-xl">📇</span>
+                  </button>
+                </div>
               </div>
-              <div>
+              <div class="relative group">
                 <label class="block text-xs font-bold uppercase tracking-widest text-stone-500 dark:text-stone-400 mb-2">Your Phone *</label>
-                <input v-model="form.matcherPhone" type="tel" required placeholder="0244123456" class="w-full bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-lg px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-transparent transition-all placeholder:text-stone-300 dark:placeholder:text-stone-600" />
+                <div class="relative">
+                  <input v-model="form.matcherPhone" type="tel" required placeholder="0244123456" class="w-full bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-lg px-4 py-3 pr-12 text-base focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-transparent transition-all placeholder:text-stone-300 dark:placeholder:text-stone-600" />
+                  <button v-if="contactPickerSupported" @click.prevent="pickContact('matcher')" type="button" class="absolute right-3 top-1/2 -translate-y-1/2 text-stone-400 hover:text-rose-500 transition-colors p-1" title="Select from Contacts">
+                    <span class="text-xl">📱</span>
+                  </button>
+                </div>
               </div>
             </div>
             <div>
@@ -172,13 +182,23 @@
               <h2 class="font-serif font-bold text-xl">Friend A</h2>
             </div>
             <div class="grid md:grid-cols-2 gap-4">
-              <div>
+              <div class="relative group">
                 <label class="block text-xs font-bold uppercase tracking-widest text-stone-500 dark:text-stone-400 mb-2">Name *</label>
-                <input v-model="form.friendAName" type="text" required placeholder="Friend's name" class="w-full bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-lg px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-transparent transition-all placeholder:text-stone-300 dark:placeholder:text-stone-600" />
+                <div class="relative">
+                  <input v-model="form.friendAName" type="text" required placeholder="Friend's name" class="w-full bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-lg px-4 py-3 pr-12 text-base focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-transparent transition-all placeholder:text-stone-300 dark:placeholder:text-stone-600" />
+                  <button v-if="contactPickerSupported" @click.prevent="pickContact('friendA')" type="button" class="absolute right-3 top-1/2 -translate-y-1/2 text-stone-400 hover:text-rose-500 transition-colors p-1" title="Select from Contacts">
+                    <span class="text-xl">📇</span>
+                  </button>
+                </div>
               </div>
-              <div>
+              <div class="relative group">
                 <label class="block text-xs font-bold uppercase tracking-widest text-stone-500 dark:text-stone-400 mb-2">Phone *</label>
-                <input v-model="form.friendAPhone" type="tel" required placeholder="0244123456" class="w-full bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-lg px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-transparent transition-all placeholder:text-stone-300 dark:placeholder:text-stone-600" />
+                <div class="relative">
+                  <input v-model="form.friendAPhone" type="tel" required placeholder="0244123456" class="w-full bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-lg px-4 py-3 pr-12 text-base focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-transparent transition-all placeholder:text-stone-300 dark:placeholder:text-stone-600" />
+                  <button v-if="contactPickerSupported" @click.prevent="pickContact('friendA')" type="button" class="absolute right-3 top-1/2 -translate-y-1/2 text-stone-400 hover:text-rose-500 transition-colors p-1" title="Select from Contacts">
+                    <span class="text-xl">📱</span>
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -190,13 +210,23 @@
               <h2 class="font-serif font-bold text-xl">Friend B</h2>
             </div>
             <div class="grid md:grid-cols-2 gap-4">
-              <div>
+              <div class="relative group">
                 <label class="block text-xs font-bold uppercase tracking-widest text-stone-500 dark:text-stone-400 mb-2">Name *</label>
-                <input v-model="form.friendBName" type="text" required placeholder="Friend's name" class="w-full bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-lg px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-transparent transition-all placeholder:text-stone-300 dark:placeholder:text-stone-600" />
+                <div class="relative">
+                  <input v-model="form.friendBName" type="text" required placeholder="Friend's name" class="w-full bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-lg px-4 py-3 pr-12 text-base focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-transparent transition-all placeholder:text-stone-300 dark:placeholder:text-stone-600" />
+                  <button v-if="contactPickerSupported" @click.prevent="pickContact('friendB')" type="button" class="absolute right-3 top-1/2 -translate-y-1/2 text-stone-400 hover:text-rose-500 transition-colors p-1" title="Select from Contacts">
+                    <span class="text-xl">📇</span>
+                  </button>
+                </div>
               </div>
-              <div>
+              <div class="relative group">
                 <label class="block text-xs font-bold uppercase tracking-widest text-stone-500 dark:text-stone-400 mb-2">Phone *</label>
-                <input v-model="form.friendBPhone" type="tel" required placeholder="0244123456" class="w-full bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-lg px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-transparent transition-all placeholder:text-stone-300 dark:placeholder:text-stone-600" />
+                <div class="relative">
+                  <input v-model="form.friendBPhone" type="tel" required placeholder="0244123456" class="w-full bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-lg px-4 py-3 pr-12 text-base focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-transparent transition-all placeholder:text-stone-300 dark:placeholder:text-stone-600" />
+                  <button v-if="contactPickerSupported" @click.prevent="pickContact('friendB')" type="button" class="absolute right-3 top-1/2 -translate-y-1/2 text-stone-400 hover:text-rose-500 transition-colors p-1" title="Select from Contacts">
+                    <span class="text-xl">📱</span>
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -254,6 +284,8 @@ const submitted = ref(false)
 const submitting = ref(false)
 const error = ref('')
 
+const { isSupported: contactPickerSupported, pickContact: selectContact } = useContactPicker()
+
 const socialProof = ref({ shotsCount: 0, vouchesCount: 0 })
 
 // Fetch social proof stats
@@ -265,6 +297,22 @@ onMounted(async () => {
     // Silently fail — social proof is optional
   }
 })
+
+const pickContact = async (field: 'matcher' | 'friendA' | 'friendB') => {
+  const result = await selectContact()
+  if (result) {
+    if (field === 'matcher') {
+      if (result.name && !form.matcherName) form.matcherName = result.name
+      form.matcherPhone = result.phone
+    } else if (field === 'friendA') {
+      if (result.name) form.friendAName = result.name
+      form.friendAPhone = result.phone
+    } else if (field === 'friendB') {
+      if (result.name) form.friendBName = result.name
+      form.friendBPhone = result.phone
+    }
+  }
+}
 
 const form = reactive({
   matcherName: '',
