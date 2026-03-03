@@ -70,31 +70,18 @@ export default defineEventHandler(async (event) => {
         throw createError({ statusCode: 401, message: 'This passkey is not recognized. Please sign in with OTP first.' })
     }
 
-    // 3. Reconstruct the public key from BYTEA hex string
-    //    PostgREST returns BYTEA as a hex string like "\\x0405abc..."
-    let publicKeyBytes: Uint8Array
-    const pkData = dbPasskey.public_key
-    if (typeof pkData === 'string') {
-        // Remove the \\x prefix and decode hex
-        const hexStr = pkData.replace(/^\\\\x|^\\x/, '')
-        publicKeyBytes = new Uint8Array(Buffer.from(hexStr, 'hex'))
-    } else if (pkData instanceof Buffer || pkData instanceof Uint8Array) {
-        publicKeyBytes = new Uint8Array(pkData)
-    } else {
-        console.error('[Passkey] Unknown public_key format:', typeof pkData)
-        throw createError({ statusCode: 500, message: 'Stored credential is corrupted' })
-    }
+    // 3. Decode public key (handles both TEXT base64 and BYTEA hex formats)
+    const publicKeyBytes = usePasskeyUtils().decodePublicKey(dbPasskey.public_key)
 
     // 4. Verify the authentication response using v13 API shape
-    //    v13 uses `credential` (WebAuthnCredential) instead of `authenticator`
     const verification = await verifyAuthenticationResponse({
         response: authentication,
         expectedChallenge: challenge.challenge,
         expectedOrigin: origin,
         expectedRPID: rpID,
         credential: {
-            id: dbPasskey.credential_id,    // Base64URL string
-            publicKey: publicKeyBytes,       // Uint8Array
+            id: dbPasskey.credential_id,
+            publicKey: publicKeyBytes,
             counter: Number(dbPasskey.counter),
             transports: dbPasskey.transports
         },

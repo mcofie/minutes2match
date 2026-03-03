@@ -89,33 +89,84 @@ export const usePasskeyUtils = () => {
 
         if (error || !data) return []
 
-        // Return in v13 WebAuthnCredential shape: { id, publicKey, counter, transports }
-        return data.map(dbKey => {
-            let publicKeyBytes: Uint8Array
-            const pkData = dbKey.public_key
-            if (typeof pkData === 'string') {
-                const hexStr = pkData.replace(/^\\\\x|^\\x/, '')
-                publicKeyBytes = new Uint8Array(Buffer.from(hexStr, 'hex'))
-            } else {
-                publicKeyBytes = new Uint8Array(pkData)
-            }
+        return data.map(dbKey => ({
+            id: dbKey.credential_id,
+            publicKey: decodePublicKey(dbKey.public_key),
+            counter: Number(dbKey.counter),
+            transports: dbKey.transports as any
+        }))
+    }
 
-            return {
-                id: dbKey.credential_id,       // Base64URL string
-                publicKey: publicKeyBytes,      // Uint8Array
-                counter: Number(dbKey.counter),
-                transports: dbKey.transports as any
+    /**
+     * Decode public key from DB storage format (base64 TEXT or hex BYTEA)
+     */
+    const decodePublicKey = (pkData: any): Uint8Array => {
+        if (!pkData) return new Uint8Array()
+        if (pkData instanceof Uint8Array || pkData instanceof Buffer) {
+            return new Uint8Array(pkData)
+        }
+        if (typeof pkData === 'string') {
+            // Check if it's hex-encoded BYTEA (\\x prefix)
+            if (pkData.startsWith('\\x') || pkData.startsWith('\\\\x')) {
+                const hexStr = pkData.replace(/^\\\\x|^\\x/, '')
+                return new Uint8Array(Buffer.from(hexStr, 'hex'))
             }
-        })
+            // Otherwise treat as base64
+            return new Uint8Array(Buffer.from(pkData, 'base64'))
+        }
+        return new Uint8Array()
+    }
+
+    /**
+     * Insert a passkey using the shared admin client
+     * (proven to store user_id correctly for auth_challenges)
+     */
+    const adminInsertPasskey = async (data: {
+        user_id: string
+        credential_id: string
+        public_key: string
+        counter: number
+        transports: string[]
+        name: string
+    }) => {
+        const { data: inserted, error } = await supabaseAdmin
+            .schema('m2m')
+            .from('user_passkeys')
+            .insert(data)
+            .select('id, user_id, credential_id, name')
+            .single()
+
+        return { data: inserted, error }
+    }
+
+    /**
+     * Fallback: force-set user_id via direct update
+     */
+    const adminFixPasskeyUserId = async (passkeyId: string, userId: string) => {
+        const { error } = await supabaseAdmin
+            .schema('m2m')
+            .from('user_passkeys')
+            .update({ user_id: userId })
+            .eq('id', passkeyId)
+
+        if (error) {
+            console.error('[Passkey] Failed to fix user_id:', error.message)
+        } else {
+            console.log('[Passkey] user_id fixed successfully')
+        }
     }
 
     return {
         rpID,
         RP_NAME,
         origin,
+        supabaseAdmin,
         storeChallenge,
         popChallenge,
         getUserPasskeys,
+        adminInsertPasskey,
+        adminFixPasskeyUserId,
+        decodePublicKey,
 
         // Expose SimpleWebAuthn methods with pre-filled config
         generateRegistrationOptions: (options: any) => generateRegistrationOptions({

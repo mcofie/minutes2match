@@ -5,7 +5,6 @@
  * Verifies the registration response from the browser and stores the public key.
  */
 import { serverSupabaseUser } from '#supabase/server'
-import { createClient } from '@supabase/supabase-js'
 
 export default defineEventHandler(async (event) => {
     // 1. Verify user is authenticated
@@ -13,6 +12,8 @@ export default defineEventHandler(async (event) => {
     if (!user) {
         throw createError({ statusCode: 401, message: 'Unauthorized' })
     }
+
+    console.log('[Passkey] Registration request from user:', user.id)
 
     // 2. Parse request body
     const body = await readBody(event)
@@ -22,25 +23,20 @@ export default defineEventHandler(async (event) => {
         throw createError({ statusCode: 400, message: 'Registration response is required' })
     }
 
-    const {
-        verifyRegistrationResponse,
-        popChallenge,
-        origin,
-        rpID
-    } = usePasskeyUtils()
+    const utils = usePasskeyUtils()
 
     // 3. Fetch and delete the stored challenge for this user
-    const challenge = await popChallenge(clientChallenge, user.id)
+    const challenge = await utils.popChallenge(clientChallenge, user.id)
     if (!challenge) {
         throw createError({ statusCode: 400, message: 'Invalid or expired registration challenge. Please try again.' })
     }
 
     // 4. Verify the registration response
-    const verification = await verifyRegistrationResponse({
+    const verification = await utils.verifyRegistrationResponse({
         response: registration,
         expectedChallenge: challenge.challenge,
-        expectedOrigin: origin,
-        expectedRPID: rpID,
+        expectedOrigin: utils.origin,
+        expectedRPID: utils.rpID,
         requireUserVerification: true
     })
 
@@ -51,47 +47,34 @@ export default defineEventHandler(async (event) => {
     // 5. Extract credential from the v13 response shape
     const { credential } = verification.registrationInfo
 
-    console.log('[Passkey] Registration verified. Credential ID:', credential.id, 'User ID:', user.id)
+    console.log('[Passkey] Verification OK. credential.id:', credential.id, 'user.id:', user.id)
 
-    // 6. Use an untyped admin client to ensure all columns are written
-    //    (The M2MDatabase type doesn't include user_passkeys, causing typed clients to strip fields)
-    const config = useRuntimeConfig()
-    const supabaseAdmin = createClient(
-        config.supabaseUrl || process.env.SUPABASE_URL || '',
-        config.supabaseServiceKey || process.env.SUPABASE_SECRET_KEY || '',
-        { auth: { persistSession: false } }
-    )
+    // 6. Convert publicKey to base64 string (production schema has TEXT column, not BYTEA)
+    const publicKeyBase64 = Buffer.from(credential.publicKey).toString('base64')
 
-    // 7. Convert publicKey (Uint8Array) to a hex string for BYTEA storage
-    const publicKeyHex = '\\x' + Buffer.from(credential.publicKey).toString('hex')
-
-    // 8. Store the new passkey
-    const insertData = {
+    // 7. Store the passkey using the SAME admin client from passkeys utils
+    //    (This client is proven to work for auth_challenges inserts with user_id)
+    const { data: inserted, error } = await utils.adminInsertPasskey({
         user_id: user.id,
         credential_id: credential.id,
-        public_key: publicKeyHex,
+        public_key: publicKeyBase64,
         counter: credential.counter ?? 0,
         transports: credential.transports || [],
         name: name || 'Passkey'
-    }
-    console.log('[Passkey] Inserting passkey with user_id:', insertData.user_id)
-
-    const { data: inserted, error } = await supabaseAdmin
-        .schema('m2m')
-        .from('user_passkeys')
-        .insert(insertData)
-        .select('id, user_id, credential_id')
-        .single()
+    })
 
     if (error) {
-        console.error('[Passkey] Error storing passkey:', error)
-        throw createError({
-            statusCode: 500,
-            message: error.message || 'Failed to save passkey to database'
-        })
+        console.error('[Passkey] Insert error:', error)
+        throw createError({ statusCode: 500, message: error.message || 'Failed to save passkey' })
     }
 
-    console.log('[Passkey] Passkey saved successfully:', inserted)
+    console.log('[Passkey] Saved! Verifying user_id:', inserted?.user_id)
+
+    // Double-check user_id was stored
+    if (!inserted?.user_id) {
+        console.error('[Passkey] CRITICAL: user_id is null after insert! Fixing with update...')
+        await utils.adminFixPasskeyUserId(inserted?.id, user.id)
+    }
 
     return { success: true }
 })
