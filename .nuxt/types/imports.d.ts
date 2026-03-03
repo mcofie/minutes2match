@@ -144,6 +144,7 @@ declare global {
   const useNuxtData: typeof import('../../node_modules/nuxt/dist/app/composables/asyncData').useNuxtData
   const useNuxtDevTools: typeof import('../../node_modules/@nuxt/devtools/dist/runtime/use-nuxt-devtools').useNuxtDevTools
   const usePWA: typeof import('../../node_modules/@vite-pwa/nuxt/dist/runtime/composables/index').usePWA
+  const usePasskeys: typeof import('../../composables/usePasskeys').usePasskeys
   const usePaystack: typeof import('../../composables/usePaystack').usePaystack
   const usePersona: typeof import('../../composables/usePersona').usePersona
   const usePinia: typeof import('../../node_modules/@pinia/nuxt/dist/runtime/composables').usePinia
@@ -397,6 +398,7 @@ declare module 'vue' {
     readonly useNuxtData: UnwrapRef<typeof import('../../node_modules/nuxt/dist/app/composables/asyncData')['useNuxtData']>
     readonly useNuxtDevTools: UnwrapRef<typeof import('../../node_modules/@nuxt/devtools/dist/runtime/use-nuxt-devtools')['useNuxtDevTools']>
     readonly usePWA: UnwrapRef<typeof import('../../node_modules/@vite-pwa/nuxt/dist/runtime/composables/index')['usePWA']>
+    readonly usePasskeys: UnwrapRef<typeof import('../../composables/usePasskeys')['usePasskeys']>
     readonly usePaystack: UnwrapRef<typeof import('../../composables/usePaystack')['usePaystack']>
     readonly usePersona: UnwrapRef<typeof import('../../composables/usePersona')['usePersona']>
     readonly usePinia: UnwrapRef<typeof import('../../node_modules/@pinia/nuxt/dist/runtime/composables')['usePinia']>

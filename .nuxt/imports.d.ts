@@ -38,6 +38,7 @@ export { useDashboard } from '../composables/useDashboard';
 export { useFormValidation, ValidationRule, FieldConfig, FieldState } from '../composables/useFormValidation';
 export { useHaptic } from '../composables/useHaptic';
 export { useNotifications } from '../composables/useNotifications';
+export { usePasskeys } from '../composables/usePasskeys';
 export { usePaystack, PaymentMetadata } from '../composables/usePaystack';
 export { personas, usePersona, Persona } from '../composables/usePersona';
 export { useScrollAnimation, vScrollAnimate, ScrollAnimationOptions } from '../composables/useScrollAnimation';

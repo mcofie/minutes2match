@@ -46,8 +46,16 @@ export default defineEventHandler(async (event) => {
         .eq('id', user.id)
         .maybeSingle()
 
-    if (!adminRecord) {
+    // Fallback for primary developer if not in DB yet
+    const isDevAdmin = user.email === 'maxcofie@gmail.com'
+
+    if (!adminRecord && !isDevAdmin) {
+        console.warn(`[Admin] Denied access to ${user.email} (${user.id})`)
         throw createError({ statusCode: 403, message: 'Admin access required' })
+    }
+
+    if (isDevAdmin && !adminRecord) {
+        console.log(`[Admin] Developer bypass granted for ${user.email}`)
     }
 
     // 3. Parse request body

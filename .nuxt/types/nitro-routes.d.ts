@@ -42,6 +42,18 @@ declare module "nitropack/types" {
     '/api/auth/login': {
       'post': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/auth/login.post').default>>>>
     }
+    '/api/auth/passkey/login-options': {
+      'get': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/auth/passkey/login-options.get').default>>>>
+    }
+    '/api/auth/passkey/login': {
+      'post': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/auth/passkey/login.post').default>>>>
+    }
+    '/api/auth/passkey/register-options': {
+      'get': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/auth/passkey/register-options.get').default>>>>
+    }
+    '/api/auth/passkey/register': {
+      'post': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/auth/passkey/register.post').default>>>>
+    }
     '/api/auth/signup': {
       'post': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/auth/signup.post').default>>>>
     }

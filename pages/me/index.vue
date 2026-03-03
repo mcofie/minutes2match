@@ -14,6 +14,10 @@
            <span class="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-100 dark:border-emerald-900/30 px-3 py-1.5 rounded-full shadow-sm" title="Your Trust Score">
              <span>🛡️ {{ trustScore || 60 }}%</span>
            </span>
+           <span v-if="passkeys.length > 0" class="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-100 dark:border-indigo-900/30 px-3 py-1.5 rounded-full shadow-sm cursor-pointer" @click="activeProfileSection = 'security'" title="Biometric Login Enabled">
+             <span class="text-xs">🔑</span>
+             <span>Protected</span>
+           </span>
            <button @click="showPreview = true" class="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-white bg-black hover:bg-rose-500 px-4 py-1.5 rounded-full shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transition-all active:translate-x-0.5 active:translate-y-0.5">
              <span>👁️ Preview</span>
            </button>
@@ -465,6 +469,44 @@
             </div>
          </div>
 
+         <!-- SECURITY SECTION -->
+         <div v-if="activeProfileSection === 'security'" class="space-y-8 animate-in fade-in slide-in-from-right-4 duration-300">
+            <div class="bg-white dark:bg-stone-900 p-4 sm:p-6 md:p-8 rounded-xl border-2 border-black dark:border-stone-700 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] md:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,0.05)]">
+                <h3 class="text-lg md:text-2xl font-serif font-bold text-black dark:text-white mb-4">Passkeys</h3>
+                <p class="text-sm text-stone-500 mb-8 leading-relaxed">
+                   Use FaceID, TouchID, or your device passcode to sign in instantly without waiting for an SMS. This is much more secure than OTPs.
+                </p>
+
+                <div v-if="passkeys.length > 0" class="space-y-3 mb-8">
+                   <div v-for="pk in passkeys" :key="pk.id" class="flex items-center justify-between p-4 bg-stone-50 dark:bg-stone-800 rounded-lg border-2 border-stone-100 dark:border-stone-700">
+                      <div class="flex items-center gap-3">
+                         <span class="text-xl">🔑</span>
+                         <div>
+                            <p class="text-xs font-bold">{{ pk.name }}</p>
+                            <p class="text-[10px] text-stone-400 uppercase">Registered {{ new Date(pk.created_at).toLocaleDateString() }}</p>
+                         </div>
+                      </div>
+                      <button @click="handleDeletePasskey(pk.id)" class="text-stone-400 hover:text-rose-500 p-2 transition-colors">
+                         <span class="text-lg">🗑️</span>
+                      </button>
+                   </div>
+                </div>
+
+                <button 
+                  v-if="isPasskeySupported"
+                  @click="handleRegisterPasskey"
+                  :disabled="registeringPasskey"
+                  class="w-full py-4 bg-stone-50 dark:bg-stone-800 text-black dark:text-white border-2 border-black dark:border-stone-600 rounded-xl font-bold uppercase tracking-widest text-xs hover:bg-stone-100 dark:hover:bg-stone-700 transition-all flex items-center justify-center gap-3 group"
+                >
+                   <span class="text-xl group-hover:scale-110 transition-transform">➕</span>
+                   {{ registeringPasskey ? 'Registering...' : 'Add FaceID / TouchID' }}
+                </button>
+                <div v-else class="p-4 bg-amber-50 dark:bg-amber-900/10 border-2 border-amber-100 dark:border-amber-900/30 rounded-xl text-amber-700 dark:text-amber-400 text-xs text-center font-medium">
+                   ⚠️ Your browser or device doesn't support Passkeys, or you are not using a secure (HTTPS) connection.
+                </div>
+            </div>
+         </div>
+
          <!-- ACCOUNT SECTION -->
          <div v-if="activeProfileSection === 'account'" class="space-y-8 animate-in fade-in slide-in-from-right-4 duration-300">
             <!-- Subscription Card -->
@@ -623,12 +665,13 @@ const toast = useToast()
 const haptic = useHaptic()
 const { profile, subscription, fetchProfileById, trustScore } = useDashboard()
 
-const activeProfileSection = ref<'identity' | 'lifestyle' | 'hobbies' | 'matching' | 'account'>('identity')
+const activeProfileSection = ref<'identity' | 'lifestyle' | 'hobbies' | 'matching' | 'account' | 'security'>('identity')
 const profileSections = [
   { id: 'identity', label: 'Identity', icon: '👤', desc: 'Basic info & bio' },
   { id: 'lifestyle', label: 'Lifestyle', icon: '🌟', desc: 'Social & details' },
   { id: 'hobbies', label: 'Hobbies', icon: '🎨', desc: 'Your interests' },
   { id: 'matching', label: 'Matching', icon: '💍', desc: 'Who you seek' },
+  { id: 'security', label: 'Security', icon: '🔒', desc: 'Passkeys & Login' },
   { id: 'account', label: 'Account', icon: '⚙️', desc: 'Status & Subscription' }
 ]
 
@@ -670,6 +713,45 @@ const togglingActive = ref(false)
 const photoInput = ref<HTMLInputElement | null>(null)
 const photoPreview = ref<string | null>(null)
 const uploadingPhoto = ref(false)
+
+// Passkey Logic
+const { isSupported: isPasskeySupported, register: registerPasskey } = usePasskeys()
+const registeringPasskey = ref(false)
+const passkeys = ref<any[]>([])
+
+const fetchPasskeys = async () => {
+    if (!profile.value?.id) return
+    const { data } = await supabase.schema('m2m').from('user_passkeys').select('*').eq('user_id', profile.value.id)
+    passkeys.value = data || []
+}
+
+const handleRegisterPasskey = async () => {
+    registeringPasskey.value = true
+    try {
+        await registerPasskey()
+        await fetchPasskeys()
+        toast.success('Passkey Registered!', 'You can now sign in with One-Tap.')
+    } catch (err: any) {
+        toast.error('Passkey Failed', err.message)
+    } finally {
+        registeringPasskey.value = false
+    }
+}
+
+const handleDeletePasskey = async (id: string) => {
+    try {
+        const { error } = await supabase.schema('m2m').from('user_passkeys').delete().eq('id', id)
+        if (error) throw error
+        await fetchPasskeys()
+        toast.success('Passkey deleted')
+    } catch (err) {
+        toast.error('Failed to remove passkey')
+    }
+}
+
+watch(activeProfileSection, (val) => {
+    if (val === 'security') fetchPasskeys()
+})
 
 const personaData = computed(() => profile.value?.dating_persona ? personas[profile.value.dating_persona] : null)
 
@@ -824,6 +906,7 @@ watch(() => profile.value, (newProfile) => {
       dealbreakers: { genotype: newProfile.dealbreakers?.genotype || [], intent: newProfile.dealbreakers?.intent || [], religion: newProfile.dealbreakers?.religion || [] }
     })
     fetchUserPayments(newProfile.id)
+    fetchPasskeys() // Always fetch passkeys so global badges show correctly
   }
 }, { immediate: true })
 

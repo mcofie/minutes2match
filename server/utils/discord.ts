@@ -165,8 +165,9 @@ export async function notifyUserLogin(user: {
     phone: string
     displayName?: string | null
     isNewUser: boolean
+    method?: string
 }) {
-    const emoji = user.isNewUser ? '🆕' : '👋'
+    const emoji = user.isNewUser ? '🆕' : (user.method === 'passkey' ? '👤' : '👋')
     const title = user.isNewUser ? `${emoji} New User Login!` : `${emoji} User Logged In`
     const color = user.isNewUser ? DiscordColors.signup : DiscordColors.info
 
@@ -177,6 +178,7 @@ export async function notifyUserLogin(user: {
             { name: 'Phone', value: user.phone, inline: true },
             { name: 'Name', value: user.displayName || 'Not set', inline: true },
             { name: 'Type', value: user.isNewUser ? '🌟 First Login' : 'Returning User', inline: true },
+            { name: 'Method', value: user.method || 'SMS OTP', inline: true },
         ]
     })
 }

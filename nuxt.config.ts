@@ -136,7 +136,7 @@ export default defineNuxtConfig({
         geminiApiKey: process.env.GEMINI_API_KEY,
         // Public keys (available client-side)
         public: {
-            appVersion: '1.2.0',
+            appVersion: '1.4.0',
             paystackPublicKey: process.env.PAYSTACK_PUBLIC_KEY,
             baseUrl: process.env.BASE_URL || 'http://localhost:3000',
         }
