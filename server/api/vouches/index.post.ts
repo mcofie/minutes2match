@@ -90,7 +90,7 @@ export default defineEventHandler(async (event) => {
 
         // Send SMS to Friend A
         const friendALink = `${baseUrl}/vouch/${friendAToken}`
-        const friendAMessage = `Hey ${friendAName}! Your friend ${matcherName} thinks you'd be great with someone special 💫 Tap to see who: ${friendALink}`
+        const friendAMessage = `Hey ${friendAName}! Your friend ${matcherName} thinks you'd be great with someone special. Tap to see who: ${friendALink}`
 
         try {
             await $fetch('/api/send-sms', {
@@ -104,7 +104,7 @@ export default defineEventHandler(async (event) => {
 
         // Send SMS to Friend B
         const friendBLink = `${baseUrl}/vouch/${friendBToken}`
-        const friendBMessage = `Hey ${friendBName}! Your friend ${matcherName} thinks you'd be great with someone special 💫 Tap to see who: ${friendBLink}`
+        const friendBMessage = `Hey ${friendBName}! Your friend ${matcherName} thinks you'd be great with someone special. Tap to see who: ${friendBLink}`
 
         try {
             await $fetch('/api/send-sms', {

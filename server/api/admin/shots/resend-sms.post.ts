@@ -38,7 +38,7 @@ export default defineEventHandler(async (event) => {
 
     const baseUrl = config.public?.baseUrl || 'https://minutes2match.com'
     const targetLink = `${baseUrl}/shot/${shot.target_token}`
-    const targetMessage = `Hey ${shot.target_name}! Someone is interested in you 💫 They've shot their shot on Minutes2Match. Tap to find out who: ${targetLink}`
+    const targetMessage = `Hey ${shot.target_name}! Someone is interested in you. They've shot their shot on Minutes2Match. Tap to find out who: ${targetLink}`
 
     try {
         await $fetch('/api/send-sms', {

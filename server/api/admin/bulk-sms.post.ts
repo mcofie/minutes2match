@@ -98,6 +98,9 @@ export default defineEventHandler(async (event) => {
             personalizedMessage = message.replace(/\{name\}/g, recipient.name)
         }
 
+        // Strip emojis as requested
+        personalizedMessage = stripEmojis(personalizedMessage)
+
         return { phone, body: personalizedMessage, originalPhone: recipient.phone }
     })
 

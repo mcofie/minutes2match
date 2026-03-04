@@ -26,6 +26,7 @@ export async function sendHubtelSMS(
     const auth = Buffer.from(`${clientId}:${clientSecret}`).toString('base64')
 
     // Attempt sending message
+    const cleanBody = stripEmojis(body)
     const response = await $fetch<any>(HUBTEL_BASE_URL, {
         method: 'POST',
         headers: {
@@ -35,7 +36,7 @@ export async function sendHubtelSMS(
         body: {
             From: SENDER_ID,
             To: to,
-            Content: body
+            Content: cleanBody
         }
     })
 

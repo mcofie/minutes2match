@@ -5,6 +5,13 @@
 import { sendHubtelSMS } from './hubtel'
 import { sendZendSMS } from './zend'
 
+/**
+ * Strips all emojis and non-standard characters from a string to ensure SMS compatibility.
+ */
+export function stripEmojis(text: string): string {
+    return text.replace(/[^\p{L}\p{N}\p{P}\p{Z}\^$\n]/gu, '')
+}
+
 export async function sendSMS(
     to: string,
     message: string,
@@ -18,6 +25,8 @@ export async function sendSMS(
 
     // Ensure the number is nicely normalized
     const normalizedPhone = normalizeGhanaPhone(to)
+    // Strip emojis for better SMS delivery and character count
+    const cleanMessage = stripEmojis(message)
 
     // Errors tracker
     let hubtelError: string | null = null
@@ -26,7 +35,7 @@ export async function sendSMS(
         if (!config.hubtelClientId || !config.hubtelClientSecret) {
             throw new Error('Hubtel credentials are not configured.')
         }
-        const resp = await sendHubtelSMS(config.hubtelClientId, config.hubtelClientSecret, normalizedPhone, message)
+        const resp = await sendHubtelSMS(config.hubtelClientId, config.hubtelClientSecret, normalizedPhone, cleanMessage)
         return { success: true, provider: 'hubtel', id: resp.MessageId }
     }
 
@@ -34,7 +43,7 @@ export async function sendSMS(
         if (!config.zendApiKey) {
             throw new Error('Zend API key is not configured.')
         }
-        const resp = await sendZendSMS(config.zendApiKey, normalizedPhone, message, { priority: options.priority })
+        const resp = await sendZendSMS(config.zendApiKey, normalizedPhone, cleanMessage, { priority: options.priority })
         return { success: true, provider: 'zend', id: resp.id }
     }
 

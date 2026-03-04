@@ -35,7 +35,7 @@ export default defineEventHandler(async (event) => {
 
     const sendFriendSMS = async (name: string, phone: string, token: string) => {
         const link = `${baseUrl}/vouch/${token}`
-        const message = `Hey ${name}! Your friend ${vouch.matcher_name} thinks you'd be a great match with someone special 💕 Tap to see: ${link}`
+        const message = `Hey ${name}! Your friend ${vouch.matcher_name} thinks you'd be a great match with someone special. Tap to see: ${link}`
 
         await $fetch('/api/send-sms', {
             method: 'POST',

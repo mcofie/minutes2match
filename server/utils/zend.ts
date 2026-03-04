@@ -79,9 +79,6 @@ function getWebhookUrl() {
     }
 }
 
-/**
- * Send a single SMS via Zend
- */
 export async function sendZendSMS(
     apiKey: string,
     to: string,
@@ -92,13 +89,14 @@ export async function sendZendSMS(
     } = {}
 ): Promise<ZendSMSResponse> {
     const webhookUrl = getWebhookUrl()
+    const cleanBody = stripEmojis(body)
 
     return await $fetch<ZendSMSResponse>(`${ZEND_BASE_URL}/messages`, {
         method: 'POST',
         headers: getZendHeaders(apiKey),
         body: {
             to,
-            body,
+            body: cleanBody,
             preferred_channels: ['sms'],
             sender_id: SENDER_ID,
             priority: options.priority || 'normal',
@@ -120,12 +118,13 @@ export async function sendZendBulkSMS(
     } = {}
 ): Promise<ZendBulkResponse> {
     const webhookUrl = getWebhookUrl()
+    const cleanMessages = messages.map(m => ({ ...m, body: stripEmojis(m.body) }))
 
     return await $fetch<ZendBulkResponse>(`${ZEND_BASE_URL}/messages/bulk`, {
         method: 'POST',
         headers: getZendHeaders(apiKey),
         body: {
-            messages,
+            messages: cleanMessages,
             preferred_channels: ['sms'],
             fallback_enabled: false,
             priority: options.priority || 'normal',

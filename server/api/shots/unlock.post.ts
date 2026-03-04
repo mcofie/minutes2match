@@ -54,7 +54,7 @@ export default defineEventHandler(async (event) => {
         .eq('id', shot.id)
 
     // Notify the shooter via SMS
-    const shooterMessage = `${shot.target_name} just saw your shot on Minutes2Match! 🎯 They know you're interested. Good luck! 💫`
+    const shooterMessage = `${shot.target_name} just saw your shot on Minutes2Match! They know you're interested. Good luck!`
     try {
         await $fetch('/api/send-sms', {
             method: 'POST',

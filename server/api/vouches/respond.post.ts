@@ -108,7 +108,7 @@ export default defineEventHandler(async (event) => {
         const baseUrl = config.public.baseUrl || 'https://minutes2match.com'
 
         // Notify matcher
-        const matcherMessage = `Great news ${vouch.matcher_name}! 🎉 ${vouch.friend_a_name} and ${vouch.friend_b_name} both accepted your vouch! Your matchmaking worked 💫`
+        const matcherMessage = `Great news ${vouch.matcher_name}! ${vouch.friend_a_name} and ${vouch.friend_b_name} both accepted your vouch! Your matchmaking worked`
         try {
             await $fetch('/api/send-sms', {
                 method: 'POST',
@@ -118,8 +118,8 @@ export default defineEventHandler(async (event) => {
             console.error('[Vouch] Failed to notify matcher:', e)
         }
 
-        // Notify Friend A with Friend B's name
-        const friendAMessage = `${vouch.friend_a_name}, you've been matched with ${vouch.friend_b_name} on Minutes2Match! 💕 Your friend ${vouch.matcher_name} vouched for this connection. Visit ${baseUrl} to learn more!`
+        // Notify Friend A with Friend B's name and phone
+        const friendAMessage = `${vouch.friend_a_name}, you've been matched with ${vouch.friend_b_name} on Minutes2Match! Your friend ${vouch.matcher_name} vouched for this connection. Reach out to them at ${vouch.friend_b_phone}. Visit ${baseUrl} to learn more!`
         try {
             await $fetch('/api/send-sms', {
                 method: 'POST',
@@ -129,8 +129,8 @@ export default defineEventHandler(async (event) => {
             console.error('[Vouch] Failed to notify Friend A:', e)
         }
 
-        // Notify Friend B with Friend A's name
-        const friendBMessage = `${vouch.friend_b_name}, you've been matched with ${vouch.friend_a_name} on Minutes2Match! 💕 Your friend ${vouch.matcher_name} vouched for this connection. Visit ${baseUrl} to learn more!`
+        // Notify Friend B with Friend A's name and phone
+        const friendBMessage = `${vouch.friend_b_name}, you've been matched with ${vouch.friend_a_name} on Minutes2Match! Your friend ${vouch.matcher_name} vouched for this connection. Reach out to them at ${vouch.friend_a_phone}. Visit ${baseUrl} to learn more!`
         try {
             await $fetch('/api/send-sms', {
                 method: 'POST',
