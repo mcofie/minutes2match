@@ -63,6 +63,9 @@ declare module "nitropack/types" {
     '/api/cron/auto-verify': {
       'get': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/cron/auto-verify.get').default>>>>
     }
+    '/api/cron/engagement-nudge': {
+      'get': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/cron/engagement-nudge.get').default>>>>
+    }
     '/api/cron/match-expiration-reminder': {
       'get': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/cron/match-expiration-reminder.get').default>>>>
     }

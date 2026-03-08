@@ -79,73 +79,66 @@ export default defineEventHandler(async (event) => {
         throw createError({ statusCode: 500, message: 'Zend API key not configured' })
     }
 
-    console.log(`[Bulk SMS] Starting batch of ${recipients.length} messages via Zend`)
+    console.log(`[Bulk SMS] Starting batch of ${recipients.length} messages via orchestrated providers`)
 
-    // Process messages - use Zend bulk API in batches
+    // Process messages - use unified sendSMS for Hubtel primary + Zend fallback
     const results: SMSResult[] = []
     let successCount = 0
     let failCount = 0
 
-    // Prepare all messages with cleaned phone numbers and personalized content
-    const preparedMessages = recipients.map(recipient => {
-        let phone = recipient.phone.replace(/\s+/g, '').replace(/^0+/, '')
-        if (!phone.startsWith('+')) {
-            phone = '+233' + phone.replace(/^233/, '')
-        }
+    // Process in batches of 10 to avoid overwhelming providers or timing out
+    const EXECUTION_BATCH_SIZE = 10
 
-        let personalizedMessage = message
-        if (recipient.name) {
-            personalizedMessage = message.replace(/\{name\}/g, recipient.name)
-        }
+    for (let i = 0; i < recipients.length; i += EXECUTION_BATCH_SIZE) {
+        const batch = recipients.slice(i, i + EXECUTION_BATCH_SIZE)
 
-        // Strip emojis as requested
-        personalizedMessage = stripEmojis(personalizedMessage)
-
-        return { phone, body: personalizedMessage, originalPhone: recipient.phone }
-    })
-
-    // Send in batches using Zend bulk API
-    for (let batchStart = 0; batchStart < preparedMessages.length; batchStart += BULK_BATCH_SIZE) {
-        const batch = preparedMessages.slice(batchStart, batchStart + BULK_BATCH_SIZE)
-
-        try {
-            const bulkMessages = batch.map(m => ({ to: m.phone, body: m.body }))
-            await sendZendBulkSMS(config.zendApiKey, bulkMessages, { priority: 'normal' })
-
-            // Mark all in batch as successful
-            for (const msg of batch) {
-                results.push({ phone: msg.originalPhone, success: true })
-                successCount++
+        const batchPromises = batch.map(async (recipient) => {
+            if (!recipient.phone) {
+                return { phone: 'unknown', success: false, error: 'No phone number' }
             }
 
-            console.log(`[Bulk SMS] Batch ${batchStart + 1}-${batchStart + batch.length} sent successfully`)
-        } catch (bulkError: any) {
-            console.warn(`[Bulk SMS] Bulk send failed for batch, falling back to individual sends...`, bulkError?.message)
+            try {
+                // Use the unified sendSMS utility which handles:
+                // 1. Normalization
+                // 2. Hubtel Primary
+                // 3. Zend Fallback
+                // 4. Emoji stripping
+                const personalizedMessage = recipient.name
+                    ? message.replace(/\{name\}/g, recipient.name)
+                    : message
 
-            // Fallback: send individually
-            for (const msg of batch) {
-                try {
-                    const response = await sendZendSMS(config.zendApiKey, msg.phone, msg.body, { priority: 'normal' })
-                    results.push({ phone: msg.originalPhone, success: true, messageId: response.id })
-                    successCount++
-                } catch (error: any) {
-                    console.error(`[Bulk SMS] Failed to send to ${msg.phone}:`, error.message)
-                    results.push({
-                        phone: msg.originalPhone,
-                        success: false,
-                        error: error.data?.message || error.message || 'Failed to send'
-                    })
-                    failCount++
+                const result = await sendSMS(recipient.phone, personalizedMessage, { priority: 'normal' })
+
+                return {
+                    phone: recipient.phone,
+                    success: true,
+                    messageId: result.id,
+                    provider: result.provider
                 }
+            } catch (error: any) {
+                console.error(`[Bulk SMS] Failed to send to ${recipient.phone}:`, error.message)
+                return {
+                    phone: recipient.phone,
+                    success: false,
+                    error: error.message || 'Failed to send'
+                }
+            }
+        })
 
-                // Small delay between individual sends
-                await delay(200)
+        const batchResults = await Promise.all(batchPromises)
+
+        for (const res of batchResults) {
+            results.push(res)
+            if (res.success) {
+                successCount++
+            } else {
+                failCount++
             }
         }
 
-        // Delay between batches
-        if (batchStart + BULK_BATCH_SIZE < preparedMessages.length) {
-            await delay(500)
+        // Small delay between execution batches
+        if (i + EXECUTION_BATCH_SIZE < recipients.length) {
+            await delay(200)
         }
     }
 

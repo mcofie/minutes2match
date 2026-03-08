@@ -27,6 +27,8 @@ export async function sendHubtelSMS(
 
     // Attempt sending message
     const cleanBody = stripEmojis(body)
+    const cleanTo = to.startsWith('+') ? to.substring(1) : to
+
     const response = await $fetch<any>(HUBTEL_BASE_URL, {
         method: 'POST',
         headers: {
@@ -35,7 +37,7 @@ export async function sendHubtelSMS(
         },
         body: {
             From: SENDER_ID,
-            To: to,
+            To: cleanTo,
             Content: cleanBody
         }
     })
