@@ -572,18 +572,57 @@
                </div>
             </div>
 
-            <!-- Payment History -->
-             <div class="bg-white dark:bg-stone-900 p-4 rounded-xl border-2 border-black dark:border-stone-700 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
-                <button @click="showPaymentHistory = !showPaymentHistory" class="w-full flex items-center justify-between">
-                   <h3 class="font-bold font-serif text-lg text-black dark:text-white">Payment History</h3>
-                   <span class="text-stone-400" :class="showPaymentHistory ? 'rotate-180' : ''">▼</span>
+               <!-- Payment History -->
+             <div class="bg-white dark:bg-stone-900 rounded-xl border-2 border-black dark:border-stone-700 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] group overflow-hidden">
+                <button @click="showPaymentHistory = !showPaymentHistory" class="w-full flex items-center justify-between p-4 hover:bg-stone-50 dark:hover:bg-stone-800 transition-colors">
+                   <div class="flex items-center gap-3">
+                      <span class="text-xl">💳</span>
+                      <h3 class="font-black uppercase tracking-widest text-[10px] sm:text-xs text-black dark:text-white">Transaction Logs</h3>
+                   </div>
+                   <div class="flex items-center gap-2">
+                       <span v-if="userPayments.length > 0" class="px-2 py-0.5 bg-black text-white dark:bg-stone-800 dark:text-stone-400 text-[8px] font-black rounded-full">{{ userPayments.length }}</span>
+                       <span class="text-stone-400 transition-transform duration-300" :class="showPaymentHistory ? 'rotate-180' : ''">▼</span>
+                   </div>
                 </button>
-                <div v-show="showPaymentHistory" class="mt-4 pt-4 border-t border-stone-100 dark:border-stone-800 space-y-3">
-                   <div v-if="loadingPayments" class="text-center text-xs py-4">Loading...</div>
-                   <div v-else-if="userPayments.length === 0" class="text-center text-xs py-4 text-stone-400">No history</div>
-                   <div v-else v-for="payment in userPayments.slice(0, 5)" :key="'p-m-'+payment.id" class="flex justify-between items-center text-xs">
-                      <span class="font-bold">{{ payment.purpose }}</span>
-                      <span class="font-mono">{{ formatPaymentGHS(payment.amount) }}</span>
+                <div v-show="showPaymentHistory" class="border-t border-stone-100 dark:border-stone-800 animate-in slide-in-from-top-2 duration-300">
+                   <div v-if="loadingPayments" class="p-8 text-center flex flex-col items-center gap-3">
+                      <div class="w-6 h-6 border-2 border-stone-200 border-t-black rounded-full animate-spin"></div>
+                      <p class="text-[9px] font-bold uppercase tracking-widest text-stone-400">Syncing history...</p>
+                   </div>
+                   <div v-else-if="userPayments.length === 0" class="p-12 text-center flex flex-col items-center gap-4">
+                      <div class="w-12 h-12 bg-stone-50 dark:bg-stone-800 rounded-full flex items-center justify-center text-xl grayscale opacity-50">💸</div>
+                      <div>
+                         <p class="text-[10px] font-black uppercase tracking-widest text-stone-500">No transactions recorded</p>
+                         <p class="text-[9px] text-stone-400 mt-1 uppercase tracking-widest">Matches & tickets will appear here</p>
+                      </div>
+                   </div>
+                   <div v-else class="max-h-[300px] overflow-y-auto no-scrollbar">
+                      <div v-for="payment in userPayments" :key="'p-m-'+payment.id" class="p-4 border-b border-stone-50 dark:border-stone-800/50 last:border-0 hover:bg-stone-50/50 dark:hover:bg-stone-800/30 transition-colors flex items-center justify-between group/row">
+                         <div class="flex items-center gap-4 min-w-0">
+                            <div class="w-10 h-10 rounded-lg flex items-center justify-center text-lg border-2 border-stone-100 dark:border-stone-800 bg-white dark:bg-stone-900 shadow-sm group-hover/row:scale-110 transition-transform cursor-help" :title="payment.provider">
+                               <span v-if="payment.purpose === 'subscription'">👑</span>
+                               <span v-else-if="payment.purpose === 'match_unlock'">💕</span>
+                               <span v-else-if="payment.purpose === 'event_ticket'">🎟️</span>
+                               <span v-else>💰</span>
+                            </div>
+                            <div class="min-w-0">
+                               <p class="text-[10px] font-black uppercase tracking-widest text-stone-900 dark:text-white truncate">
+                                  {{ (payment.purpose || 'unknown transaction').replace('_', ' ') }}
+                               </p>
+                               <div class="flex flex-wrap items-center gap-1 sm:gap-2 mt-1">
+                                  <span class="text-[8px] sm:text-[9px] font-bold text-stone-400 uppercase tracking-widest">{{ new Date(payment.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) }}</span>
+                                  <div class="w-0.5 h-0.5 sm:w-1 sm:h-1 bg-stone-300 rounded-full"></div>
+                                  <span class="text-[8px] sm:text-[9px] font-bold uppercase tracking-widest" :class="payment.status === 'success' ? 'text-emerald-500' : (payment.status === 'failed' ? 'text-rose-500' : 'text-amber-500')">
+                                     {{ payment.status }}
+                                  </span>
+                               </div>
+                            </div>
+                         </div>
+                         <div class="text-right ml-4 shrink-0">
+                            <p class="text-xs font-black text-black dark:text-white font-mono leading-none">{{ formatPaymentGHS(payment.amount) }}</p>
+                            <p class="text-[8px] font-bold text-stone-400 uppercase mt-1 tracking-widest">{{ payment.provider }}</p>
+                         </div>
+                      </div>
                    </div>
                 </div>
              </div>
