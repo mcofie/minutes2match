@@ -529,6 +529,7 @@
                       <li><a href="#" class="hover:text-rose-500 transition-colors">How it Works</a></li>
                       <li><a href="#" class="hover:text-rose-500 transition-colors">Stories</a></li>
                       <li><NuxtLink to="/release-notes" class="hover:text-rose-500 transition-colors">Release Notes</NuxtLink></li>
+                      <li><NuxtLink to="/spark-deck" class="hover:text-rose-500 transition-colors underline decoration-rose-500/30">Spark Deck</NuxtLink></li>
                       <li><NuxtLink to="/pricing" class="hover:text-rose-500 transition-colors">Pricing</NuxtLink></li>
                    </ul>
                 </div>
