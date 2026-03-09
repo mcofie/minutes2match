@@ -21,6 +21,7 @@ export const EventsEmptyState: typeof import("../components/EventsEmptyState.vue
 export const LivePulse: typeof import("../components/LivePulse.vue").default
 export const PWAInstallPrompt: typeof import("../components/PWAInstallPrompt.vue").default
 export const Pagination: typeof import("../components/Pagination.vue").default
+export const PartnerVenueCard: typeof import("../components/PartnerVenueCard.vue").default
 export const ProfileBadges: typeof import("../components/ProfileBadges.vue").default
 export const ReferralCard: typeof import("../components/ReferralCard.vue").default
 export const SubscriptionCard: typeof import("../components/SubscriptionCard.vue").default
@@ -106,6 +107,7 @@ export const LazyEventsEmptyState: LazyComponent<typeof import("../components/Ev
 export const LazyLivePulse: LazyComponent<typeof import("../components/LivePulse.vue").default>
 export const LazyPWAInstallPrompt: LazyComponent<typeof import("../components/PWAInstallPrompt.vue").default>
 export const LazyPagination: LazyComponent<typeof import("../components/Pagination.vue").default>
+export const LazyPartnerVenueCard: LazyComponent<typeof import("../components/PartnerVenueCard.vue").default>
 export const LazyProfileBadges: LazyComponent<typeof import("../components/ProfileBadges.vue").default>
 export const LazyReferralCard: LazyComponent<typeof import("../components/ReferralCard.vue").default>
 export const LazySubscriptionCard: LazyComponent<typeof import("../components/SubscriptionCard.vue").default>

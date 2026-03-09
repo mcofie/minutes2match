@@ -79,37 +79,90 @@
           <!-- The Stack Foundation -->
           <div class="absolute inset-0 flex items-center justify-center transition-transform duration-200 ease-out" :style="stackStyles">
             
+            <!-- Floating Embers Particle System -->
+            <div class="absolute inset-x-[-100px] inset-y-[-100px] pointer-events-none z-0 overflow-hidden">
+               <div v-for="n in 12" :key="n" 
+                  class="absolute w-1 h-1 bg-rose-500/40 rounded-full blur-[1px] animate-ember"
+                  :style="{
+                     left: `${Math.random() * 100}%`,
+                     top: `${Math.random() * 100}%`,
+                     animationDelay: `${Math.random() * 5}s`,
+                     animationDuration: `${3 + Math.random() * 4}s`,
+                     transform: `translate(${parallaxX * (Math.random() * 2)}px, ${parallaxY * (Math.random() * 2)}px)`
+                  }"
+               ></div>
+            </div>
+
             <!-- Bottom Card (Inferno) -->
-            <div class="absolute w-48 sm:w-64 md:w-72 h-[300px] sm:h-[360px] md:h-[400px] bg-[#F43F5E] border-2 border-black rounded-[1.5rem] sm:rounded-[2.5rem] shadow-2xl transition-all duration-700 origin-center z-10 -translate-x-12 sm:-translate-x-24 -translate-y-8 sm:-translate-y-16 -rotate-[20deg] sm:-rotate-[28deg] group-hover:-translate-x-16 sm:group-hover:-translate-x-32 group-hover:-rotate-[25deg] sm:group-hover:-rotate-[32deg]">
+            <div class="absolute w-48 sm:w-64 md:w-72 h-[300px] sm:h-[360px] md:h-[400px] bg-[#F43F5E] border-2 border-black rounded-[1.5rem] sm:rounded-[2.5rem] shadow-2xl transition-all duration-1000 origin-center z-10 -translate-x-12 sm:-translate-x-24 -translate-y-8 sm:-translate-y-16 -rotate-[20deg] sm:-rotate-[28deg] group-hover:-translate-x-20 sm:group-hover:-translate-x-40 group-hover:-translate-y-12 sm:group-hover:-translate-y-24 group-hover:-rotate-[25deg] sm:group-hover:-rotate-[35deg] animate-levitate-slow overflow-hidden">
                <div class="absolute inset-0 opacity-10" style="background-image: url('https://www.transparenttextures.com/patterns/linen.png');"></div>
-               <div class="absolute top-4 sm:top-8 left-4 sm:left-8 text-white/40 text-lg sm:text-xl font-serif italic">3</div>
-               <div class="absolute bottom-6 sm:bottom-10 right-6 sm:right-10 text-white/10 text-[10px] sm:text-sm font-bold uppercase tracking-widest hidden sm:block">Inferno</div>
+               <div class="absolute inset-0 bg-gradient-to-tr from-white/0 via-white/5 to-white/0 -translate-x-full group-hover:animate-shimmer"></div>
+               
+               <!-- Card Content -->
+               <div class="absolute top-4 sm:top-8 left-4 sm:left-8 text-white/50 text-xl sm:text-3xl font-serif italic">3</div>
+               <div class="absolute top-4 sm:top-8 right-4 sm:right-8 text-white/20 text-[8px] sm:text-[10px] font-bold uppercase tracking-widest">M2M SPARK</div>
+               
+               <div class="absolute inset-0 flex items-center justify-center opacity-20">
+                  <span class="text-7xl sm:text-9xl grayscale brightness-200">💥</span>
+               </div>
+               
+               <div class="absolute bottom-6 sm:bottom-10 inset-x-0 flex flex-col items-center">
+                  <div class="px-3 py-1 bg-white/10 rounded-full backdrop-blur-sm border border-white/10 mb-2">
+                     <div class="text-[7px] sm:text-[9px] font-bold text-white uppercase tracking-[0.3em]">The Inferno</div>
+                  </div>
+                  <div class="text-[6px] sm:text-[8px] font-mono text-white/30 uppercase tracking-[0.4em]">High Stakes</div>
+               </div>
             </div>
 
             <!-- Middle Card (Fire) -->
-            <div class="absolute w-48 sm:w-64 md:w-72 h-[300px] sm:h-[360px] md:h-[400px] bg-[#44403C] border-2 border-black rounded-[1.5rem] sm:rounded-[2.5rem] shadow-2xl transition-all duration-700 origin-center z-20 -translate-y-10 sm:-translate-y-20 rotate-[1deg] sm:rotate-[2deg] group-hover:-translate-y-14 sm:group-hover:-translate-y-28 group-hover:rotate-[3deg] sm:group-hover:rotate-[4deg]">
+            <div class="absolute w-48 sm:w-64 md:w-72 h-[300px] sm:h-[360px] md:h-[400px] bg-[#44403C] border-2 border-black rounded-[1.5rem] sm:rounded-[2.5rem] shadow-2xl transition-all duration-1000 origin-center z-20 -translate-y-10 sm:-translate-y-20 rotate-[1deg] sm:rotate-[2deg] group-hover:-translate-y-20 sm:group-hover:-translate-y-40 group-hover:rotate-[3deg] sm:group-hover:rotate-[5deg] animate-levitate overflow-hidden">
                <div class="absolute inset-0 opacity-10" style="background-image: url('https://www.transparenttextures.com/patterns/linen.png');"></div>
-               <div class="absolute top-4 sm:top-8 left-4 sm:left-8 text-white/40 text-lg sm:text-xl font-serif italic">2</div>
-               <div class="absolute bottom-6 sm:bottom-10 right-6 sm:right-10 text-white/10 text-[10px] sm:text-sm font-bold uppercase tracking-widest hidden sm:block">Fire</div>
+               <div class="absolute inset-0 bg-gradient-to-tr from-white/0 via-white/5 to-white/0 -translate-x-full group-hover:animate-shimmer" style="animation-delay: 0.2s;"></div>
+               
+               <!-- Card Content -->
+               <div class="absolute top-4 sm:top-8 left-4 sm:left-8 text-white/40 text-xl sm:text-3xl font-serif italic">2</div>
+               <div class="absolute top-4 sm:top-8 right-4 sm:right-8 text-white/10 text-[8px] sm:text-[10px] font-bold uppercase tracking-widest">M2M SPARK</div>
+               
+               <div class="absolute inset-0 flex items-center justify-center opacity-10">
+                  <span class="text-7xl sm:text-9xl grayscale brightness-200">🔥</span>
+               </div>
+
+               <div class="absolute bottom-6 sm:bottom-10 inset-x-0 flex flex-col items-center">
+                  <div class="text-white/20 text-lg sm:text-2xl font-serif mb-1">The Fire</div>
+                  <div class="w-8 h-px bg-white/10"></div>
+               </div>
             </div>
 
             <!-- Top Card (Spark) -->
-            <div class="absolute w-48 sm:w-64 md:w-72 h-[300px] sm:h-[360px] md:h-[400px] bg-[#F5F5F4] border-2 border-black rounded-[1.5rem] sm:rounded-[2.5rem] shadow-2xl transition-all duration-700 origin-center z-30 translate-x-14 sm:translate-x-28 -translate-y-4 sm:-translate-y-10 rotate-[15deg] sm:rotate-[24deg] group-hover:translate-x-18 sm:group-hover:translate-x-36 group-hover:rotate-[18deg] sm:group-hover:rotate-[28deg]">
+            <div class="absolute w-48 sm:w-64 md:w-72 h-[300px] sm:h-[360px] md:h-[400px] bg-[#F5F5F4] border-2 border-black rounded-[1.5rem] sm:rounded-[2.5rem] shadow-2xl transition-all duration-1000 origin-center z-30 translate-x-14 sm:translate-x-28 -translate-y-4 sm:-translate-y-10 rotate-[15deg] sm:rotate-[24deg] group-hover:translate-x-24 sm:group-hover:translate-x-48 group-hover:-translate-y-8 sm:group-hover:-translate-y-16 group-hover:rotate-[18deg] sm:group-hover:rotate-[32deg] animate-levitate-fast overflow-hidden">
                <div class="absolute inset-0 opacity-10" style="background-image: url('https://www.transparenttextures.com/patterns/linen.png');"></div>
-               <div class="absolute top-4 sm:top-8 left-4 sm:left-8 text-black/20 text-lg sm:text-xl font-serif italic">1</div>
-               <div class="absolute bottom-6 sm:bottom-10 right-6 sm:right-10 text-black/5 text-[10px] sm:text-sm font-bold uppercase tracking-widest hidden sm:block">Spark</div>
+               <div class="absolute inset-0 bg-gradient-to-tr from-black/0 via-black/5 to-black/0 -translate-x-full group-hover:animate-shimmer" style="animation-delay: 0.4s;"></div>
+               
+               <!-- Card Content -->
+               <div class="absolute top-4 sm:top-8 left-4 sm:left-8 text-black/30 text-xl sm:text-3xl font-serif italic">1</div>
+               <div class="absolute top-4 sm:top-8 right-4 sm:right-8 text-black/10 text-[8px] sm:text-[10px] font-bold uppercase tracking-widest">M2M SPARK</div>
+               
+               <div class="absolute inset-0 flex items-center justify-center opacity-[0.05]">
+                  <span class="text-7xl sm:text-9xl">✨</span>
+               </div>
+
+               <div class="absolute bottom-4 sm:bottom-8 left-4 sm:left-8 flex flex-col items-start">
+                  <div class="text-[8px] sm:text-[10px] font-bold text-black/40 uppercase tracking-[0.2em]">Level 01</div>
+                  <div class="text-[7px] sm:text-[9px] font-medium text-black/20 uppercase tracking-[0.1em]">The Spark</div>
+               </div>
             </div>
 
             <!-- The Tuck Box -->
-            <div class="absolute w-44 sm:w-56 md:w-64 h-[310px] sm:h-[370px] md:h-[410px] bg-black border-2 border-stone-800 rounded-xl sm:rounded-2xl shadow-[20px_20px_60px_rgba(0,0,0,0.5)] md:shadow-[30px_30px_80px_rgba(0,0,0,0.6)] z-40 transition-all duration-500 hover:scale-[1.02] flex flex-col items-center justify-center p-6 sm:p-10 text-center">
+            <div class="absolute w-44 sm:w-56 md:w-64 h-[310px] sm:h-[370px] md:h-[410px] bg-black border-2 border-stone-800 rounded-xl sm:rounded-2xl shadow-[20px_20px_60px_rgba(0,0,0,0.5)] md:shadow-[30px_30px_80px_rgba(0,0,0,0.6)] z-40 transition-all duration-500 hover:scale-[1.05] flex flex-col items-center justify-center p-6 sm:p-10 text-center group/box">
                <div class="absolute inset-x-0 top-0 h-1 sm:h-1.5 bg-gradient-to-r from-transparent via-rose-500/50 to-transparent"></div>
-               <div class="text-[7px] sm:text-[9px] font-bold tracking-[0.4em] sm:tracking-[0.5em] uppercase text-rose-500 mb-4 sm:mb-8">Explore • Reflect • Spark</div>
-               <div class="text-xl sm:text-3xl font-serif text-white leading-tight mb-1 sm:mb-2 tracking-tighter">THE<br/>M2M<br/>SPARK<br/>DECK</div>
+               <div class="absolute inset-0 bg-gradient-to-tr from-white/0 via-white/10 to-white/0 -translate-x-full group-hover:animate-shimmer-fast pointer-events-none"></div>
+               <div class="text-[7px] sm:text-[9px] font-bold tracking-[0.4em] sm:tracking-[0.5em] uppercase text-rose-500 mb-4 sm:mb-8 group-hover/box:tracking-[0.6em] transition-all duration-700">Explore • Reflect • Spark</div>
+               <div class="text-xl sm:text-3xl font-serif text-white leading-tight mb-1 sm:mb-2 tracking-tighter group-hover/box:scale-110 transition-transform duration-700">THE<br/>M2M<br/>SPARK<br/>DECK</div>
                <div class="mt-6 sm:mt-10 border-t border-white/10 pt-4 sm:pt-6 w-full">
                   <div class="text-[7px] sm:text-[8px] font-bold text-stone-500 uppercase tracking-widest leading-relaxed">54 Cards to Ignite Connection</div>
                </div>
                <div class="absolute bottom-6 sm:bottom-8 flex justify-center gap-1 sm:gap-1.5">
-                  <div v-for="i in 3" :key="i" class="w-1 sm:w-1.5 h-1 sm:h-1.5 rounded-full" :class="i === 3 ? 'bg-rose-500' : 'bg-stone-800'"></div>
+                  <div v-for="i in 3" :key="i" class="w-1 sm:w-1.5 h-1 sm:h-1.5 rounded-full transition-all duration-500" :class="i === 3 ? 'bg-rose-500 scale-125' : 'bg-stone-800'"></div>
                </div>
             </div>
 
@@ -169,7 +222,11 @@
             <!-- Desktop Path Line (SVG) -->
             <div class="absolute inset-0 hidden md:block pointer-events-none opacity-20 dark:opacity-40">
                <svg class="w-full h-full" viewBox="0 0 1000 900" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M250 150 C 600 200, 700 400, 500 500 S 200 700, 450 850" stroke="currentColor" stroke-width="2" stroke-dasharray="8 8" class="text-stone-400"/>
+                  <path d="M250 150 C 600 200, 700 400, 500 500 S 200 700, 450 850" 
+                     stroke="currentColor" stroke-width="2" stroke-dasharray="8 8" 
+                     class="text-stone-400 animate-path-draw"
+                     style="stroke-dasharray: 1000; stroke-dashoffset: 1000;"
+                  />
                </svg>
             </div>
 
@@ -266,10 +323,15 @@
           <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-8 md:gap-12 lg:gap-8 max-w-6xl mx-auto">
              <div v-for="(card, i) in previewCards" :key="i" 
                 v-scroll-animate="{ animation: 'fade-up', delay: i * 150 }"
-                class="relative group aspect-[2.5/3.5] perspective-1000 max-w-[280px] mx-auto w-full"
-                :style="{ transform: `rotate(${i % 2 === 0 ? '-1' : '1'}deg)` }">
-               
-               <div class="relative w-full h-full transition-all duration-700 preserve-3d group-hover:rotate-y-180 cursor-help">
+                class="relative group aspect-[2.5/3.5] perspective-1000 max-w-[280px] mx-auto w-full transition-all duration-500 hover:scale-105"
+                :style="{ transform: `rotate(${i % 2 === 0 ? '-1' : '1'}deg)` }"
+                @mousemove="handleCardTilt($event, i)"
+                @mouseleave="resetCardTilt(i)"
+             >
+               <!-- Tilt Wrapper: Handles the magnetic lean -->
+               <div class="w-full h-full transition-all duration-300 preserve-3d" :style="cardTilts[i]">
+                 <!-- Flip Container: Handles the 180-degree flip -->
+                 <div class="relative w-full h-full transition-all duration-700 preserve-3d group-hover:rotate-y-180 cursor-help">
                  
                  <!-- BACK FACE -->
                  <div class="absolute inset-0 w-full h-full border-2 border-black dark:border-stone-700 rounded-[2rem] p-8 flex flex-col items-center justify-center backface-hidden shadow-[8px_8px_0px_0px]"
@@ -306,6 +368,7 @@
                       <div class="text-lg font-serif italic" :class="card.text">{{ card.level }}</div>
                    </div>
                    <div class="absolute bottom-6 left-1/2 -translate-x-1/2 text-[10px] font-mono text-stone-300 dark:text-stone-600 tracking-[0.3em] uppercase">{{ card.name }}</div>
+                 </div>
                  </div>
                </div>
              </div>
@@ -452,6 +515,21 @@ const showStickyCTA = ref(false)
 const copied = ref(false)
 const activeFaq = ref<number | null>(null)
 
+// Dynamic Card Tilts for Preview Section
+const cardTilts = reactive<Record<number, any>>({})
+const handleCardTilt = (e: MouseEvent, index: number) => {
+  const container = e.currentTarget as HTMLElement
+  const rect = container.getBoundingClientRect()
+  const x = (e.clientX - rect.left) / rect.width - 0.5
+  const y = (e.clientY - rect.top) / rect.height - 0.5
+  cardTilts[index] = {
+    transform: `rotateY(${x * 20}deg) rotateX(${y * -20}deg)`
+  }
+}
+const resetCardTilt = (index: number) => {
+  cardTilts[index] = { transform: 'rotateY(0deg) rotateX(0deg)' }
+}
+
 const scrollToSection = (id: string) => {
   document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' })
 }
@@ -525,28 +603,55 @@ const copyAnnouncement = () => {
 .backface-hidden { backface-visibility: hidden; -webkit-backface-visibility: hidden; }
 .rotate-y-180 { transform: rotateY(180deg); }
 
-@keyframes float {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-20px); }
+@keyframes levitate {
+  0%, 100% { transform: translateY(0) rotate(var(--rot, 0deg)); }
+  50% { transform: translateY(-15px) rotate(calc(var(--rot, 0deg) + 2deg)); }
 }
 
-@keyframes float-delayed {
-  0%, 100% { transform: translateY(0) rotate(2deg); }
-  50% { transform: translateY(-15px) rotate(-1deg); }
+@keyframes ember {
+  0% { transform: translateY(0) scale(1); opacity: 0; }
+  20% { opacity: 0.8; }
+  80% { opacity: 0.4; }
+  100% { transform: translateY(-100px) scale(0.5); opacity: 0; }
 }
 
-@keyframes spin-slow {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+@keyframes path-draw {
+  to { stroke-dashoffset: 0; }
 }
 
-@keyframes reverse-spin {
-  from { transform: rotate(360deg); }
-  to { transform: rotate(0deg); }
+.animate-path-draw {
+  animation: path-draw 3s ease-out forwards;
+  animation-play-state: paused;
 }
 
-.animate-float-slow {
-  animation: float 8s ease-in-out infinite;
+[data-animate-state="visible"] .animate-path-draw {
+  animation-play-state: running;
+}
+
+.animate-levitate {
+  animation: levitate 5s ease-in-out infinite;
+}
+
+.animate-levitate-slow {
+  animation: levitate 7s ease-in-out infinite;
+  --rot: -28deg;
+}
+
+.animate-levitate-fast {
+  animation: levitate 4s ease-in-out infinite;
+  --rot: 24deg;
+}
+
+.animate-ember {
+  animation: ember linear infinite;
+}
+
+.animate-shimmer {
+  animation: shimmer 2.5s infinite;
+}
+
+.animate-shimmer-fast {
+  animation: shimmer 1.5s infinite;
 }
 
 .animate-spin-slow {

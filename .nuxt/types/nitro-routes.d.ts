@@ -108,6 +108,10 @@ declare module "nitropack/types" {
     '/api/profiles/create': {
       'post': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/profiles/create.post').default>>>>
     }
+    '/api/redemptions': {
+      'get': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/redemptions.get').default>>>>
+      'post': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/redemptions.post').default>>>>
+    }
     '/api/referrals': {
       'get': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/referrals/index.get').default>>>>
     }
@@ -134,6 +138,9 @@ declare module "nitropack/types" {
     }
     '/api/stats/social-proof': {
       'get': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/stats/social-proof.get').default>>>>
+    }
+    '/api/venues': {
+      'get': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/venues.get').default>>>>
     }
     '/api/verify-admin-login': {
       'post': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/verify-admin-login.post').default>>>>

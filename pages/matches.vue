@@ -84,6 +84,51 @@
           @update-status="navigateToFeedback(match)"
         />
       </div>
+
+      <!-- Date Suggestions: Partner Venues -->
+      <div v-show="matches.some(m => m.status === 'unlocked' && m.currentUserPaid)" class="animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-500 pt-16">
+         <div class="flex flex-col md:flex-row items-baseline justify-between mb-8 gap-4 px-2">
+            <div>
+               <h3 class="text-3xl md:text-5xl font-serif font-bold tracking-tight dark:text-white mb-2 leading-none">The M2M <span class="italic text-rose-500">Curated Date.</span></h3>
+               <p class="text-stone-500 dark:text-stone-400 text-sm md:text-base font-medium max-w-lg">We've partnered with Accra's finest spots to give you a discounted rate on your first date.</p>
+            </div>
+            <div class="flex items-center gap-2 text-[10px] font-bold text-rose-500 uppercase tracking-widest bg-rose-50 dark:bg-rose-900/10 px-4 py-2 rounded-full border border-rose-100 dark:border-rose-900/30">
+               <span>Partner Deals Active</span>
+               <span class="w-2 h-2 rounded-full bg-rose-500 animate-pulse"></span>
+            </div>
+         </div>
+
+         <div class="flex flex-nowrap overflow-x-auto gap-6 pb-8 snap-x no-scrollbar md:px-2">
+            <PartnerVenueCard 
+               v-for="venue in partnerVenues" 
+               :key="venue.id" 
+               :venue="venue"
+
+               :redemptionData="redemptions[venue.id] || null"
+               :loading="claimingVenueIds.has(venue.id)"
+               class="flex-shrink-0 snap-start"
+               @claim="handleClaimDiscount(venue)"
+               @reset="handleResetRedemption(venue.id)"
+            />
+
+         </div>
+
+         <!-- Redemption Instructions Banner -->
+         <div class="mt-4 p-6 bg-stone-900 dark:bg-stone-900 rounded-2xl border-2 border-black dark:border-stone-800 text-center relative overflow-hidden group">
+            <div class="absolute inset-0 opacity-10" style="background-image: radial-gradient(#fff 1px, transparent 1px); background-size: 20px 20px;"></div>
+            <div class="relative z-10 flex flex-col md:flex-row items-center justify-center gap-6">
+               <div class="text-left max-w-sm">
+                  <h4 class="text-white font-bold uppercase tracking-widest text-xs mb-2 italic">How it works:</h4>
+                  <p class="text-stone-400 text-[10px] leading-relaxed">Simply show your **unlocked match profile** to the staff when you arrive at any partner venue to redeem your M2M rate.</p>
+               </div>
+               <div class="hidden md:block w-px h-12 bg-white/10"></div>
+               <div class="flex items-center gap-4">
+                  <span class="text-3xl opacity-40 grayscale group-hover:grayscale-0 transition-all duration-700">🥂</span>
+                  <p class="text-[10px] md:text-[11px] font-bold text-white uppercase tracking-widest text-left">Defy the small talk.<br/>Ignite the connection.</p>
+               </div>
+            </div>
+         </div>
+      </div>
     </div>
   </div>
 </template>
@@ -92,6 +137,7 @@
 import BlindProfileCard from '~/components/BlindProfileCard.vue'
 import SkeletonMatchCard from '~/components/skeleton/MatchCard.vue'
 import SubscriptionCard from '~/components/SubscriptionCard.vue'
+import PartnerVenueCard from '~/components/PartnerVenueCard.vue'
 import { personas, type Persona } from '~/composables/usePersona'
 import { useToast } from '~/composables/useToast'
 import { useHaptic } from '~/composables/useHaptic'
@@ -112,6 +158,94 @@ const { profile, subscription, fetchPendingMatchCount } = useDashboard()
 const matchStore = useMatchStore()
 const { matches, loadingMatches } = storeToRefs(matchStore)
 const { fetchMatches } = matchStore
+
+// Partner Venues & Redemptions
+const partnerVenues = ref<any[]>([])
+const redemptions = ref<Record<string, any>>({})
+
+const claimingVenueIds = ref<Set<string>>(new Set())
+
+const fetchVenues = async () => {
+   try {
+      const data = await $fetch('/api/venues')
+      partnerVenues.value = data as any[]
+   } catch (err) {
+      console.error('Failed to fetch venues:', err)
+   }
+}
+
+const fetchUserRedemptions = async () => {
+   try {
+      const data = await $fetch('/api/redemptions')
+      if (Array.isArray(data)) {
+         const newRedemptions: Record<string, any> = {}
+         data.forEach((r: any) => {
+            newRedemptions[r.venue_id] = {
+               redemptionId: r.id,
+               redeemedAt: r.redeemed_at
+            }
+         })
+         redemptions.value = newRedemptions
+      }
+   } catch (err) {
+      console.error('Failed to fetch user redemptions:', err)
+   }
+}
+
+
+const handleClaimDiscount = async (venue: any) => {
+   // Local check to prevent unnecessary network calls
+   if (redemptions.value[venue.id]) {
+      console.log(`[Frontend] Venue ${venue.id} already claimed. Aborting.`)
+      return
+   }
+
+   // Find an unlocked match where the current user has paid
+   const activeMatch = matches.value.find(m => m.status === 'unlocked' && m.currentUserPaid)
+
+   
+   console.log(`[Frontend] Claiming discount for ${venue.name}. Associated Match ID: ${activeMatch?.id || 'none'}`)
+   
+   claimingVenueIds.value.add(venue.id)
+   try {
+      haptic.hapticSuccess()
+      const response = await $fetch('/api/redemptions', {
+         method: 'POST',
+         body: {
+            venueId: venue.id,
+            matchId: activeMatch?.id 
+         }
+      })
+      
+      if ((response as any).success) {
+         redemptions.value = {
+            ...redemptions.value,
+            [venue.id]: {
+               redemptionId: (response as any).redemptionId,
+               redeemedAt: (response as any).redeemedAt
+            }
+         }
+         
+         const isReclaim = (response as any).message?.toLowerCase().includes('already')
+
+         toast.success(
+            isReclaim ? 'Ticket Restored!' : 'M2M Rate Claimed!', 
+            isReclaim ? `Viewing your existing ticket for ${venue.name}.` : `Your ticket for ${venue.name} is ready.`
+         )
+      }
+
+   } catch (err: any) {
+      console.error('[Frontend] Redemption Error:', err)
+      toast.error('Redemption Failed', err.data?.message || 'Could not record your claim. Please try again.')
+   } finally {
+      claimingVenueIds.value.delete(venue.id)
+   }
+}
+
+
+const handleResetRedemption = (venueId: string) => {
+   delete redemptions[venueId]
+}
 const getAge = (birthDate: string | null): number => {
   if (!birthDate) return 25
   const birth = new Date(birthDate)
@@ -197,7 +331,9 @@ onMounted(async () => {
     let success = await initDashboard()
     
     if (success && currentUserId.value) {
-        fetchMatches(currentUserId.value)
+        await fetchMatches(currentUserId.value)
+        fetchVenues()
+        fetchUserRedemptions()
     } else {
         // Fallback: try to get userId directly if initDashboard couldn't resolve
         try {
@@ -207,7 +343,9 @@ onMounted(async () => {
             if (fallbackId) {
                 console.log('[Matches] Using fallback userId:', fallbackId)
                 await initDashboard(true) // Force re-init
-                fetchMatches(fallbackId)
+                await fetchMatches(fallbackId)
+                fetchVenues()
+                fetchUserRedemptions()
             } else {
                 loadingMatches.value = false
             }
