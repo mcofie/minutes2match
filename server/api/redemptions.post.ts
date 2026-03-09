@@ -1,5 +1,6 @@
 import { serverSupabaseServiceRole, serverSupabaseUser } from '#supabase/server'
 import { sendSMS } from '~/server/utils/sms'
+import { notifyRedemption } from '~/server/utils/discord'
 
 export default defineEventHandler(async (event) => {
     const user = await serverSupabaseUser(event)
@@ -174,12 +175,22 @@ export default defineEventHandler(async (event) => {
             console.log(`[Redemption SMS] Sending to ${targetPhone}...`)
             const smsResult = await sendSMS(targetPhone, smsMessage, { priority: 'high' })
             console.log(`[Redemption SMS] SMS Response:`, JSON.stringify(smsResult))
+
+            // --- SEND DISCORD NOTIFICATION ---
+            await notifyRedemption({
+                userName: targetName,
+                venueName: venueName,
+                discount: discount,
+                location: location,
+                redemptionId: redemptionId
+            })
         } else {
-            console.warn(`[Redemption SMS] Missing requirement: venue=${!!venue}, phone=${!!targetPhone} (Value: ${targetPhone})`)
+            console.warn(`[Redemption Notification] Missing requirement: venue=${!!venue}, phone=${!!targetPhone}`)
         }
-    } catch (smsErr: any) {
-        console.error('[Redemption SMS] Error in SMS flow:', smsErr.message || smsErr)
+    } catch (notifErr: any) {
+        console.error('[Redemption Notification] Error in notification flow:', notifErr.message || notifErr)
     }
+
 
     return {
         success: true,

@@ -29,11 +29,31 @@ export const DiscordColors = {
     info: 0x3b82f6,      // Blue
     match: 0xec4899,     // Pink
     signup: 0x8b5cf6,    // Purple
+    redemption: 0xe11d48, // Rose-600
 } as const
 
 /**
  * Send a notification to Discord via webhook
  */
+export async function notifyRedemption(redemption: {
+    userName: string
+    venueName: string
+    discount: string
+    location: string
+    redemptionId: string
+}) {
+    await notifyDiscord({
+        title: '🥂 New Venue Redemption!',
+        color: DiscordColors.redemption,
+        fields: [
+            { name: 'User', value: redemption.userName, inline: true },
+            { name: 'Venue', value: redemption.venueName, inline: true },
+            { name: 'Offer', value: redemption.discount, inline: false },
+            { name: 'Location', value: redemption.location, inline: true },
+            { name: 'Ticket ID', value: redemption.redemptionId, inline: true },
+        ]
+    })
+}
 export async function notifyDiscord(notification: DiscordNotification): Promise<void> {
     const config = useRuntimeConfig()
     const webhookUrl = config.discordWebhookUrl

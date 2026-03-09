@@ -98,20 +98,24 @@
             </div>
          </div>
 
-         <div class="flex flex-nowrap overflow-x-auto gap-6 pb-8 snap-x no-scrollbar md:px-2">
+         <div v-if="partnerVenues.length > 0" class="flex flex-nowrap overflow-x-auto gap-6 pb-8 snap-x no-scrollbar md:px-2">
             <PartnerVenueCard 
                v-for="venue in partnerVenues" 
                :key="venue.id" 
                :venue="venue"
-
                :redemptionData="redemptions[venue.id] || null"
                :loading="claimingVenueIds.has(venue.id)"
                class="flex-shrink-0 snap-start"
                @claim="handleClaimDiscount(venue)"
                @reset="handleResetRedemption(venue.id)"
             />
-
          </div>
+         <div v-else class="py-12 text-center rounded-2xl border-2 border-dashed border-stone-200 dark:border-stone-800 bg-stone-50/50 dark:bg-stone-900/30">
+            <div class="text-3xl mb-3 grayscale opacity-40">🥂</div>
+            <p class="text-sm font-bold text-stone-900 dark:text-stone-100">More curated spots coming soon</p>
+            <p class="text-[10px] text-stone-500 dark:text-stone-400 uppercase tracking-widest font-bold mt-1">We're handpicking the best date spots for you.</p>
+         </div>
+
 
          <!-- Redemption Instructions Banner -->
          <div class="mt-4 p-6 bg-stone-900 dark:bg-stone-900 rounded-2xl border-2 border-black dark:border-stone-800 text-center relative overflow-hidden group">
