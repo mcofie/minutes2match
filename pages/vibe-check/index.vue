@@ -383,6 +383,7 @@ const route = useRoute()
 const user = useSupabaseUser()
 const toast = useToast()
 const { isTMA: isTMARaw, tgUser, hapticFeedback } = useTelegram()
+const { personas } = usePersona()
 const isMounted = ref(false)
 const isTMA = computed(() => isMounted.value && isTMARaw.value)
 
@@ -427,7 +428,6 @@ onMounted(async () => {
 
   // Handle Bot Pre-fills
   if (route.query.persona) {
-    const { personas } = usePersona()
     assignedPersona.value = personas[route.query.persona as string] || null
     console.log('[VibeCheck] Pre-filled persona from bot:', assignedPersona.value?.name)
   }

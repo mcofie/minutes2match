@@ -6,9 +6,15 @@ export const useTelegram = () => {
   let webApp: any = null;
 
   if (process.client) {
-    const nuxtApp = useNuxtApp();
-    isTMA.value = !!nuxtApp.$isTMA;
-    webApp = nuxtApp.$telegram;
+    try {
+      const nuxtApp = useNuxtApp();
+      if (nuxtApp) {
+        isTMA.value = !!nuxtApp.$isTMA;
+        webApp = nuxtApp.$telegram || null;
+      }
+    } catch(e) {
+      console.error('[useTelegram] Error accessing Nuxt app', e);
+    }
   }
 
   const user = computed(() => {

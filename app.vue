@@ -12,35 +12,45 @@ const route = useRoute()
 const { isTMA, webApp, hapticFeedback } = useTelegram()
 const isMounted = ref(false)
 
-// Handle Telegram Back Button
+// Handle Telegram Back Button and Initialization
 onMounted(() => {
   isMounted.value = true
-  if (isTMA.value && webApp?.BackButton) {
-    console.log('[App] Telegram BackButton initialization');
-    // Show back button if not on primary landing/dashboard pages
-    const updateBackButton = () => {
-      const primaryRoutes = ['/', '/me', '/matches', '/events']
-      if (!primaryRoutes.includes(route.path)) {
-        webApp.BackButton.show()
-      } else {
-        webApp.BackButton.hide()
+
+  // Ensure Telegram WebApp is ready even if plugin missed it due to script timing
+  let tgCheckAttempts = 0;
+  const initTelegram = () => {
+    if (typeof window !== 'undefined' && window.Telegram?.WebApp) {
+      const wa = window.Telegram.WebApp;
+      console.log('[App] Telegram WebApp Ready called from App');
+      wa.ready();
+      wa.expand();
+      
+      if (isTMA.value && webApp?.BackButton) {
+        // Show back button if not on primary landing/dashboard pages
+        const updateBackButton = () => {
+          const primaryRoutes = ['/', '/me', '/matches', '/events']
+          if (!primaryRoutes.includes(route.path)) {
+            webApp.BackButton.show()
+          } else {
+            webApp.BackButton.hide()
+          }
+        }
+    
+        updateBackButton()
+        watch(() => route.path, () => updateBackButton())
+    
+        webApp.BackButton.onClick(() => {
+          hapticFeedback('light')
+          router.back()
+        })
       }
+    } else if (tgCheckAttempts < 10) {
+      tgCheckAttempts++;
+      setTimeout(initTelegram, 100);
     }
-
-    // Initial check
-    updateBackButton()
-
-    // Watch for route changes
-    watch(() => route.path, () => {
-      updateBackButton()
-    })
-
-    // Handle back button click
-    webApp.BackButton.onClick(() => {
-      hapticFeedback('light')
-      router.back()
-    })
   }
+
+  initTelegram();
 })
 </script>
 

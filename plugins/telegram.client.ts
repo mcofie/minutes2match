@@ -1,4 +1,4 @@
-export default defineNuxtPlugin(async () => {
+export default defineNuxtPlugin(() => {
   console.log('[Telegram Plugin] Initializing...');
   
   const getWebApp = () => {
@@ -7,11 +7,6 @@ export default defineNuxtPlugin(async () => {
     }
     return null;
   };
-
-  // Wait a tiny bit for the script if it's not ready
-  if (typeof window !== 'undefined' && !window.Telegram) {
-    await new Promise(resolve => setTimeout(resolve, 100));
-  }
 
   try {
     let webApp = getWebApp();

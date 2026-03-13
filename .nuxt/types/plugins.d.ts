@@ -27,6 +27,7 @@ type NuxtAppInjections =
   InjectionType<typeof import("../pwa-icons-plugin")> &
   InjectionType<typeof import("../../node_modules/nuxt/dist/app/plugins/warn.dev.server.js")> &
   InjectionType<typeof import("../../node_modules/nuxt/dist/app/plugins/check-if-layout-used.js")> &
+  InjectionType<typeof import("../../plugins/error-handler.client")> &
   InjectionType<typeof import("../../plugins/scroll-animation")> &
   InjectionType<typeof import("../../plugins/telegram.client")> &
   InjectionType<typeof import("../../node_modules/nuxt/dist/pages/runtime/plugins/prerender.server.js")> &
