@@ -159,6 +159,10 @@ export const useDashboard = () => {
                     fetchSubscription(userId),
                     fetchPendingMatchCount(userId)
                 ])
+                
+                // Auto-sync Telegram if applicable
+                syncTelegramAccount()
+
                 authReady.value = true
                 return true
             } else {
@@ -182,21 +186,33 @@ export const useDashboard = () => {
         }
     }
 
-    const toggleGhostMode = async () => {
-        const userId = currentUserId.value
-        if (!userId || !profile.value) return
+    const syncTelegramAccount = async () => {
+        const { isTMA, tgUser } = useTelegram()
+        if (!isTMA.value || !tgUser.value || !currentUserId.value || !profile.value) return
 
-        try {
-            const newStatus = !profile.value.is_active
-            const { error } = await supabase.from('profiles').update({ is_active: newStatus } as any).eq('id', userId)
-            if (error) throw error
+        // Check if already linked or if we need updating
+        const needsTelegramId = !profile.value.telegram_id
+        const needsPhoto = !profile.value.photo_url || profile.value.photo_url.includes('placeholder')
+        
+        if (needsTelegramId || (needsPhoto && tgUser.value.photo_url)) {
+            console.log('[Dashboard] Auto-syncing Telegram data...')
+            const updateData: any = {}
+            if (needsTelegramId) updateData.telegram_id = tgUser.value.id.toString()
+            if (needsPhoto && tgUser.value.photo_url) updateData.photo_url = tgUser.value.photo_url
 
-            profile.value.is_active = newStatus
-            toast.success(newStatus ? 'Profile Active!' : 'Ghost Mode Active')
-            return true
-        } catch (err) {
-            toast.error('Failed to update status')
-            return false
+            try {
+                await supabase
+                    .schema('m2m')
+                    .from('profiles')
+                    .update(updateData)
+                    .eq('id', currentUserId.value)
+                
+                // Update local state
+                profile.value = { ...profile.value, ...updateData }
+                console.log('[Dashboard] Telegram sync successful')
+            } catch (err) {
+                console.error('[Dashboard] Telegram sync failed:', err)
+            }
         }
     }
 
@@ -214,6 +230,7 @@ export const useDashboard = () => {
         fetchSubscription,
         fetchPendingMatchCount,
         toggleGhostMode,
+        syncTelegramAccount,
         logout
     }
 }
