@@ -130,6 +130,7 @@ declare global {
   const sendSMS: typeof import('../../server/utils/sms').sendSMS
   const sendStream: typeof import('../../node_modules/h3').sendStream
   const sendTelegramMessage: typeof import('../../server/utils/telegram-bot').sendTelegramMessage
+  const sendTelegramPhoto: typeof import('../../server/utils/telegram-bot').sendTelegramPhoto
   const sendWebResponse: typeof import('../../node_modules/h3').sendWebResponse
   const sendZendBulkSMS: typeof import('../../server/utils/zend').sendZendBulkSMS
   const sendZendOTP: typeof import('../../server/utils/zend').sendZendOTP
@@ -209,6 +210,6 @@ export { personas, calculatePersona } from '/Users/maxwellcofie/WebstormProjects
 export { normalizeGhanaPhone, isSamePhone } from '/Users/maxwellcofie/WebstormProjects/minutes2match/server/utils/phone';
 export { checkRateLimit, getClientIP, enforceRateLimit } from '/Users/maxwellcofie/WebstormProjects/minutes2match/server/utils/rateLimiter';
 export { stripEmojis, sendSMS } from '/Users/maxwellcofie/WebstormProjects/minutes2match/server/utils/sms';
-export { sendTelegramMessage, setTelegramWebhook } from '/Users/maxwellcofie/WebstormProjects/minutes2match/server/utils/telegram-bot';
+export { sendTelegramMessage, sendTelegramPhoto, setTelegramWebhook } from '/Users/maxwellcofie/WebstormProjects/minutes2match/server/utils/telegram-bot';
 export { verifyTelegramData, parseTelegramInitData } from '/Users/maxwellcofie/WebstormProjects/minutes2match/server/utils/telegram';
 export { sendZendSMS, sendZendBulkSMS, sendZendOTP, verifyZendOTP, ZEND_BASE_URL, SENDER_ID } from '/Users/maxwellcofie/WebstormProjects/minutes2match/server/utils/zend';

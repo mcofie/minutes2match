@@ -86,6 +86,14 @@ export default defineEventHandler(async (event) => {
     return handleProfile(chatId, tgUserId, supabase, config);
   }
 
+  if (text?.startsWith('/events')) {
+    return handleEvents(chatId, supabase, config);
+  }
+
+  if (text?.startsWith('/help')) {
+    return handleHelp(chatId);
+  }
+
   // 3. Handle Conversational State
   if (session && session.state === 'VIBE_CHECK') {
     return handleVibeCheckStep(chatId, tgUserId, text, session, supabase, config);
@@ -426,20 +434,38 @@ async function handleProfile(chatId: number, tgUserId: number, supabase: any, co
 👤 *Your M2M Profile*
 
 *Name:* ${profile.display_name}
-*Persona:* ${persona ? `${persona.name} ${persona.emoji}` : 'Not set'}
-*Status:* ${profile.is_verified ? '✅ Verified' : '⏳ Pending Verification'}
+*Vibe:* ${persona ? `${persona.name} ${persona.emoji}` : 'Not set'}
+*Status:* ${profile.is_verified ? '✅ Verified' : '⏳ Pending'}
+*Location:* ${profile.location ? profile.location.charAt(0).toUpperCase() + profile.location.slice(1) : 'Unknown'}
 
 Keep your profile fresh to get better matches!
     `.trim();
   
-    await sendTelegramMessage(chatId, msg, {
-      parse_mode: 'Markdown',
-      reply_markup: {
+    const keyboard = {
         inline_keyboard: [
           [{ text: '⚙️ Edit Profile', web_app: { url: `${config.public.baseUrl}/me` } }]
         ]
-      }
-    });
+    };
+
+    if (profile.photo_url && profile.photo_url.startsWith('https://')) {
+        try {
+            await sendTelegramPhoto(chatId, profile.photo_url, {
+                caption: msg,
+                parse_mode: 'Markdown',
+                reply_markup: keyboard
+            });
+        } catch (err) {
+            await sendTelegramMessage(chatId, msg, {
+              parse_mode: 'Markdown',
+              reply_markup: keyboard
+            });
+        }
+    } else {
+        await sendTelegramMessage(chatId, msg, {
+          parse_mode: 'Markdown',
+          reply_markup: keyboard
+        });
+    }
   
     return { status: 'success' };
 }
