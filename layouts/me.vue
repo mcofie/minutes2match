@@ -67,7 +67,7 @@
                   <p class="text-[9px] md:text-[10px] text-stone-400 font-bold uppercase tracking-[0.15em] leading-relaxed">Your profile is currently hidden from the match pool. <span class="text-white">12 potential matches</span> missed your vibe today.</p>
                </div>
             </div>
-            <button @click="toggleGhostMode" class="w-full sm:w-auto px-6 py-2.5 bg-rose-500 text-white text-[10px] font-black uppercase tracking-widest rounded-lg hover:bg-rose-600 transition-all shadow-[4px_4px_0px_0px_rgba(0,0,0,0.3)] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] active:translate-x-0.5 active:translate-y-0.5 flex-shrink-0">
+            <button class="w-full sm:w-auto px-6 py-2.5 bg-rose-500 text-white text-[10px] font-black uppercase tracking-widest rounded-lg hover:bg-rose-600 transition-all shadow-[4px_4px_0px_0px_rgba(0,0,0,0.3)] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] active:translate-x-0.5 active:translate-y-0.5 flex-shrink-0">
                Go Live ✨
             </button>
         </div>
@@ -187,7 +187,7 @@
 <script setup lang="ts">
 const route = useRoute()
 const config = useRuntimeConfig()
-const { authReady, profile, subscription, pendingMatchCount, isProfileIncomplete, initDashboard, toggleGhostMode } = useDashboard()
+const { authReady, profile, subscription, pendingMatchCount, isProfileIncomplete, initDashboard } = useDashboard()
 const { unreadCount, fetchNotifications } = useNotifications()
 
 onMounted(async () => {

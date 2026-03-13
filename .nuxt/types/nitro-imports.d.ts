@@ -14,6 +14,7 @@ declare global {
   const auditProfileWithAI: typeof import('../../server/utils/ai').auditProfileWithAI
   const cachedEventHandler: typeof import('../../node_modules/nitropack/dist/runtime/internal/cache').cachedEventHandler
   const cachedFunction: typeof import('../../node_modules/nitropack/dist/runtime/internal/cache').cachedFunction
+  const calculatePersona: typeof import('../../server/utils/personas').calculatePersona
   const callNodeListener: typeof import('../../node_modules/h3').callNodeListener
   const checkRateLimit: typeof import('../../server/utils/rateLimiter').checkRateLimit
   const clearResponseHeaders: typeof import('../../node_modules/h3').clearResponseHeaders
@@ -102,6 +103,7 @@ declare global {
   const parseCookies: typeof import('../../node_modules/h3').parseCookies
   const parseMarkdown: typeof import('../../node_modules/@nuxtjs/mdc/dist/runtime/parser').parseMarkdown
   const parseTelegramInitData: typeof import('../../server/utils/telegram').parseTelegramInitData
+  const personas: typeof import('../../server/utils/personas').personas
   const promisifyNodeListener: typeof import('../../node_modules/h3').promisifyNodeListener
   const proxyRequest: typeof import('../../node_modules/h3').proxyRequest
   const queryCollection: typeof import('../../node_modules/@nuxt/content/dist/runtime/nitro').queryCollection
@@ -170,6 +172,9 @@ declare global {
   export type { HubtelSMSResponse } from '../../server/utils/hubtel'
   import('../../server/utils/hubtel')
   // @ts-ignore
+  export type { Persona } from '../../server/utils/personas'
+  import('../../server/utils/personas')
+  // @ts-ignore
   export type { RateLimitConfig, RateLimitResult } from '../../server/utils/rateLimiter'
   import('../../server/utils/rateLimiter')
   // @ts-ignore
@@ -200,6 +205,7 @@ export { sendHubtelSMS } from '/Users/maxwellcofie/WebstormProjects/minutes2matc
 export { unlockMatch } from '/Users/maxwellcofie/WebstormProjects/minutes2match/server/utils/match';
 export { notifyUser } from '/Users/maxwellcofie/WebstormProjects/minutes2match/server/utils/notify';
 export { usePasskeyUtils } from '/Users/maxwellcofie/WebstormProjects/minutes2match/server/utils/passkeys';
+export { personas, calculatePersona } from '/Users/maxwellcofie/WebstormProjects/minutes2match/server/utils/personas';
 export { normalizeGhanaPhone, isSamePhone } from '/Users/maxwellcofie/WebstormProjects/minutes2match/server/utils/phone';
 export { checkRateLimit, getClientIP, enforceRateLimit } from '/Users/maxwellcofie/WebstormProjects/minutes2match/server/utils/rateLimiter';
 export { stripEmojis, sendSMS } from '/Users/maxwellcofie/WebstormProjects/minutes2match/server/utils/sms';

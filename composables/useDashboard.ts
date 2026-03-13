@@ -229,7 +229,6 @@ export const useDashboard = () => {
         fetchProfileById,
         fetchSubscription,
         fetchPendingMatchCount,
-        toggleGhostMode,
         syncTelegramAccount,
         logout
     }
