@@ -100,6 +100,7 @@ definePageMeta({
 const supabase = useSupabaseClient<M2MDatabase>() as any
 const toast = useToast()
 const { profile } = useDashboard()
+const { isTMA, setMainButton, hideMainButton, hapticFeedback } = useTelegram()
 
 const events = useState<any[]>('events_data', () => [])
 const loadingEvents = useState<boolean>('events_loading', () => true)
@@ -169,11 +170,23 @@ const hasBookedEvent = (eventId: string) => userBookings.value.has(eventId)
 const handleBookEvent = (event: any) => {
   if (hasBookedEvent(event.id)) {
     toast.info('Already booked', 'You have already booked this event!')
+    hapticFeedback('light')
     return
   }
   selectedEvent.value = event
   showBookingModal.value = true
+  hapticFeedback('medium')
+
+  if (isTMA.value) {
+    setMainButton('🚀 PAY & CONFIRM SPOT', processEventPayment)
+  }
 }
+
+watch(showBookingModal, (val) => {
+  if (!val && isTMA.value) {
+    hideMainButton()
+  }
+})
 
 const getTicketPrice = (event: any): string => {
   if (!event || !profile.value) return 'GH₵ 0'
@@ -213,6 +226,7 @@ const processEventPayment = async () => {
     } catch (error) {
         console.error('Payment error:', error)
         toast.error('Payment failed', 'Please try again.')
+        hapticFeedback('heavy')
     } finally {
         processing.value = false
     }

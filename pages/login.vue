@@ -250,8 +250,16 @@ onMounted(async () => {
     isMounted.value = true
     storedName.value = localStorage.getItem('m2m_display_name') || ''
     
-    // Auto-trigger Conditional UI (Quietly wait for browser autofill)
-    if (isConditionalSupported.value) {
+    // 1. Telegram Zero-Friction Auto-Login
+    if (isTMARaw.value && initData.value && !user.value) {
+        console.log('[Login] Telegram Mini App detected. Attempting Auto-Login...');
+        await handleTelegramLogin();
+        // If login succeeds, it redirects. Thus, we return early to avoid firing conditional UI.
+        if (user.value) return; 
+    }
+
+    // 2. Auto-trigger Conditional UI (Quietly wait for browser autofill for Web Users)
+    if (isConditionalSupported.value && !isTMARaw.value) {
         try {
             const result = await passkeyLogin(true) // true = use mediation: 'conditional'
             if (result && result.success) {

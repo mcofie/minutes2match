@@ -8,6 +8,8 @@ import { sendSMS } from './sms';
  * Prioritizes Telegram if the user has a linked account, falls back to SMS.
  */
 export async function notifyUser(userId: string, message: string, options: { 
+    type?: 'match' | 'event' | 'generic',
+    matchId?: string,
     smsPriority?: 'low' | 'normal' | 'high' | 'urgent',
     telegramOptions?: any 
 } = {}) {
@@ -37,18 +39,55 @@ export async function notifyUser(userId: string, message: string, options: {
         try {
             console.log(`[Notify] Sending Telegram notification to User ${userId}...`);
             
-            // Add a native app button for Telegram users
+            // Default interactive button
+            const defaultKeyboard = [
+                [
+                    {
+                        text: '🚀 Open M2M App',
+                        web_app: { url: config.public.baseUrl || 'https://minutes2match.com' }
+                    }
+                ]
+            ];
+
+            // If it's a match, try to send a rich photo card
+            if (options.type === 'match' && options.matchId) {
+                const { data: match } = await supabaseAdmin
+                    .schema('m2m')
+                    .from('matches')
+                    .select('user_1_id, user_2_id')
+                    .eq('id', options.matchId)
+                    .single();
+
+                if (match) {
+                    const otherUserId = match.user_1_id === userId ? match.user_2_id : match.user_1_id;
+                    const { data: otherProfile } = await supabaseAdmin
+                        .schema('m2m')
+                        .from('profiles')
+                        .select('photo_url, display_name')
+                        .eq('id', otherUserId)
+                        .single();
+
+                    if (otherProfile?.photo_url) {
+                        const { sendTelegramPhoto } = await import('./telegram-bot');
+                        await sendTelegramPhoto(profile.telegram_id, otherProfile.photo_url, {
+                            caption: `🔥 *New Match Alert!*\n\n${message}`,
+                            parse_mode: 'Markdown',
+                            reply_markup: {
+                                inline_keyboard: [
+                                    [{ text: `👀 View ${otherProfile.display_name}`, web_app: { url: `${config.public.baseUrl}/matches` } }]
+                                ]
+                            }
+                        });
+                        return { provider: 'telegram', success: true, rich: true };
+                    }
+                }
+            }
+            
+            // Standard Text Notification
             const telegramOptions = {
                 parse_mode: 'Markdown',
                 reply_markup: {
-                    inline_keyboard: [
-                        [
-                            {
-                                text: '🚀 Open M2M App',
-                                web_app: { url: config.public.baseUrl || 'https://minutes2match.com' }
-                            }
-                        ]
-                    ]
+                    inline_keyboard: options.telegramOptions?.reply_markup?.inline_keyboard || defaultKeyboard
                 },
                 ...options.telegramOptions
             };
@@ -61,7 +100,7 @@ export async function notifyUser(userId: string, message: string, options: {
         }
     }
 
-    // 2. Fallback to SMS
+    // 2. Fallback to SMS (Standard)
     console.log(`[Notify] Sending SMS notification to User ${userId} (${profile.phone})...`);
     const smsResult = await sendSMS(profile.phone, message, { priority: options.smsPriority });
     return smsResult;

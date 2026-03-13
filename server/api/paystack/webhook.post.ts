@@ -15,6 +15,7 @@
 import { createClient } from '@supabase/supabase-js'
 import crypto from 'crypto'
 import { notifyPaymentSuccess, notifyMatchUnlocked, notifyEventBooking } from '~/server/utils/discord'
+import { notifyUser } from '~/server/utils/notify'
 
 export default defineEventHandler(async (event) => {
     const config = useRuntimeConfig()
@@ -283,13 +284,22 @@ async function handleMatchUnlockPayment(supabase: any, metadata: any, config: an
                 matchId: matchId,
                 fullyUnlocked: true
             })
+
+            // Notify both users with rich cards
+            const msg1 = `🔥 Great news ${match.user_1?.display_name}! Your match with ${match.user_2?.display_name} is now fully unlocked. Tap to see their details!`
+            const msg2 = `🔥 Great news ${match.user_2?.display_name}! Your match with ${match.user_1?.display_name} is now fully unlocked. Tap to see their details!`
+            
+            await Promise.all([
+                notifyUser(match.user_1_id, msg1, { type: 'match', matchId }).catch(() => {}),
+                notifyUser(match.user_2_id, msg2, { type: 'match', matchId }).catch(() => {})
+            ])
         } else {
             // Send SMS reminder to the unpaid user
             // Note: unlockMatch utility handles the status update to 'partial_payment'
             const unpaidUser = isUser1 ? match.user_2 : match.user_1
             const paidUser = isUser1 ? match.user_1 : match.user_2
 
-            await sendPaymentReminderSMS(unpaidUser, paidUser, config)
+            await sendPaymentReminderSMS(unpaidUser as any, paidUser as any, config, metadata)
         }
 
     } catch (error) {
@@ -331,9 +341,10 @@ async function handleSubscriptionPayment(supabase: any, metadata: any) {
  * Send SMS reminder to unpaid user when their match partner has paid
  */
 async function sendPaymentReminderSMS(
-    unpaidUser: { phone: string; display_name: string | null },
+    unpaidUser: { id: string, phone: string; display_name: string | null },
     paidUser: { display_name: string | null },
-    config: any
+    config: any,
+    metadata: any
 ) {
     if (!unpaidUser?.phone) {
         console.warn('[Webhook] Unpaid user has no phone number, skipping SMS')
@@ -341,22 +352,13 @@ async function sendPaymentReminderSMS(
     }
 
     const paidUserName = paidUser?.display_name || 'Someone'
-    const message = `${paidUserName} has unlocked your match on Minutes2Match! Pay now to see their full profile: ${config.public?.baseUrl || 'https://minutes2match.com'}/me`
+    const message = `${paidUserName} has unlocked your match on Minutes2Match! Pay now to see their full profile.`
 
     try {
-        // Call the SMS API endpoint
-        await $fetch('/api/send-sms', {
-            method: 'POST',
-            body: {
-                to: unpaidUser.phone,
-                message
-            }
-        })
-
-        console.log(`[Webhook] 📱 SMS reminder sent to ${unpaidUser.phone}`)
-    } catch (smsError) {
-        // Log but don't fail the webhook
-        console.error('[Webhook] Failed to send SMS reminder:', smsError)
+        await notifyUser(unpaidUser.id, message, { type: 'match', matchId: metadata.matchId })
+        console.log(`[Webhook] 📱 Reminder sent to User ${unpaidUser.id}`)
+    } catch (err) {
+        console.error('[Webhook] Failed to send reminder:', err)
     }
 }
 

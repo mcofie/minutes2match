@@ -131,6 +131,7 @@ declare global {
   const sendStream: typeof import('../../node_modules/h3').sendStream
   const sendTelegramMessage: typeof import('../../server/utils/telegram-bot').sendTelegramMessage
   const sendTelegramPhoto: typeof import('../../server/utils/telegram-bot').sendTelegramPhoto
+  const sendTelegramVideo: typeof import('../../server/utils/telegram-bot').sendTelegramVideo
   const sendWebResponse: typeof import('../../node_modules/h3').sendWebResponse
   const sendZendBulkSMS: typeof import('../../server/utils/zend').sendZendBulkSMS
   const sendZendOTP: typeof import('../../server/utils/zend').sendZendOTP
@@ -142,6 +143,7 @@ declare global {
   const setResponseHeader: typeof import('../../node_modules/h3').setResponseHeader
   const setResponseHeaders: typeof import('../../node_modules/h3').setResponseHeaders
   const setResponseStatus: typeof import('../../node_modules/h3').setResponseStatus
+  const setTelegramBotCommands: typeof import('../../server/utils/telegram-bot').setTelegramBotCommands
   const setTelegramWebhook: typeof import('../../server/utils/telegram-bot').setTelegramWebhook
   const splitCookiesString: typeof import('../../node_modules/h3').splitCookiesString
   const stringifyMarkdown: typeof import('../../node_modules/@nuxtjs/mdc/dist/runtime/stringify').stringifyMarkdown
@@ -210,6 +212,6 @@ export { personas, calculatePersona } from '/Users/maxwellcofie/WebstormProjects
 export { normalizeGhanaPhone, isSamePhone } from '/Users/maxwellcofie/WebstormProjects/minutes2match/server/utils/phone';
 export { checkRateLimit, getClientIP, enforceRateLimit } from '/Users/maxwellcofie/WebstormProjects/minutes2match/server/utils/rateLimiter';
 export { stripEmojis, sendSMS } from '/Users/maxwellcofie/WebstormProjects/minutes2match/server/utils/sms';
-export { sendTelegramMessage, sendTelegramPhoto, setTelegramWebhook } from '/Users/maxwellcofie/WebstormProjects/minutes2match/server/utils/telegram-bot';
+export { sendTelegramMessage, sendTelegramPhoto, sendTelegramVideo, setTelegramWebhook, setTelegramBotCommands } from '/Users/maxwellcofie/WebstormProjects/minutes2match/server/utils/telegram-bot';
 export { verifyTelegramData, parseTelegramInitData } from '/Users/maxwellcofie/WebstormProjects/minutes2match/server/utils/telegram';
 export { sendZendSMS, sendZendBulkSMS, sendZendOTP, verifyZendOTP, ZEND_BASE_URL, SENDER_ID } from '/Users/maxwellcofie/WebstormProjects/minutes2match/server/utils/zend';

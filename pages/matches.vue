@@ -158,6 +158,7 @@ const supabase = useSupabaseClient<M2MDatabase>() as any
 const toast = useToast()
 const haptic = useHaptic()
 const { profile, subscription, fetchPendingMatchCount } = useDashboard()
+const { isTMA, hapticFeedback } = useTelegram()
 
 const matchStore = useMatchStore()
 const { matches, loadingMatches } = storeToRefs(matchStore)
@@ -292,7 +293,7 @@ const handleUnlockMatch = async (match: any) => {
       { userId: profile.value.id, matchId: match.id }
     )
     if (response.type === 'free_unlock' || response.type === 'subscription_unlock') {
-        haptic.hapticSuccess()
+        hapticFeedback('medium')
         toast.success(response.type === 'free_unlock' ? 'First Match Free!' : 'Unlocked with Subscription', 'Your match has been unlocked successfully.')
         await fetchMatches(profile.value.id)
         await fetchPendingMatchCount(profile.value.id)
@@ -302,7 +303,7 @@ const handleUnlockMatch = async (match: any) => {
     if (authUrl) window.location.href = authUrl
   } catch (error) {
     console.error('Unlock error:', error)
-    haptic.hapticError()
+    hapticFeedback('heavy')
     toast.error('Payment failed', 'Failed to process payment. Please try again.')
   }
 }

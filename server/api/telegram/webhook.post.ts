@@ -1,6 +1,6 @@
 
 import { createClient } from '@supabase/supabase-js';
-import { sendTelegramMessage, sendTelegramPhoto } from '~/server/utils/telegram-bot';
+import { sendTelegramMessage, sendTelegramPhoto, sendTelegramVideo, setTelegramBotCommands } from '~/server/utils/telegram-bot';
 import { calculatePersona, personas } from '~/server/utils/personas';
 import { notifyDiscord, DiscordColors } from '~/server/utils/discord';
 
@@ -37,8 +37,20 @@ export default defineEventHandler(async (event) => {
   const body = await readBody(event);
   const config = useRuntimeConfig(event);
 
-  if (!body || (!body.message && !body.callback_query)) {
+  if (!body || (!body.message && !body.callback_query && !body.inline_query)) {
     return { status: 'ignored' };
+  }
+
+  // Initialize Supabase Admin
+  const supabase = createClient(
+    config.supabaseUrl || '',
+    config.supabaseServiceKey || '',
+    { auth: { persistSession: false } }
+  );
+
+  // 0. Handle Inline Queries (Viral Sharing)
+  if (body.inline_query) {
+    return handleInlineQuery(body.inline_query, supabase, config);
   }
 
   // Handle both text messages, button clicks (callback_queries), and shared contacts
@@ -48,13 +60,6 @@ export default defineEventHandler(async (event) => {
   const tgUserId = isCallback ? body.callback_query.from.id : body.message.from.id;
   const text = isCallback ? body.callback_query.data : body.message?.text;
   const contact = isContact ? body.message.contact : null;
-
-  // Initialize Supabase Admin
-  const supabase = createClient(
-    config.supabaseUrl || '',
-    config.supabaseServiceKey || '',
-    { auth: { persistSession: false } }
-  );
 
   // 1. Get current conversation state
   const { data: session } = await supabase
@@ -313,15 +318,40 @@ Ready to find your vibe? Minutes 2 Match is a science-backed speed dating platfo
 /events - Browse upcoming events
   `.trim();
 
-  await sendTelegramMessage(chatId, welcomeMessage, {
-    parse_mode: 'Markdown',
-    reply_markup: {
-      inline_keyboard: [
-        [{ text: '🚀 Launch M2M App', web_app: { url: config.public.baseUrl } }],
-        [{ text: '✨ Find My Vibe', callback_data: '/vibe' }]
-      ]
-    }
-  });
+  const keyboard = {
+    inline_keyboard: [
+      [{ text: '🚀 Launch M2M App', web_app: { url: config.public.baseUrl } }],
+      [{ text: '✨ Find My Vibe', callback_data: '/vibe' }]
+    ]
+  };
+
+  // The URL to the welcome video (.mp4 format).
+  // Replace this with your actual video URL once hosted!
+  const videoUrl = 'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4'; // Placeholder for testing
+
+  try {
+    // Set Bot Commands Menu (Persistent)
+    await setTelegramBotCommands([
+      { command: 'matches', description: 'View your latest matches' },
+      { command: 'events', description: 'Browse upcoming events' },
+      { command: 'profile', description: 'See your profile status' },
+      { command: 'vibe', description: 'Start Vibe Check' },
+      { command: 'help', description: 'Show all commands' }
+    ]);
+
+    await sendTelegramVideo(chatId, videoUrl, {
+      caption: welcomeMessage,
+      parse_mode: 'Markdown',
+      reply_markup: keyboard
+    });
+  } catch (err) {
+    // If the video link is invalid or fails, gracefully fallback to text-only mode
+    console.warn('[Telegram] Failed to send welcome video, falling back to text:', err);
+    await sendTelegramMessage(chatId, welcomeMessage, {
+      parse_mode: 'Markdown',
+      reply_markup: keyboard
+    });
+  }
 
   return { status: 'success' };
 }
@@ -535,5 +565,46 @@ async function handleHelp(chatId: number) {
   `.trim();
 
   await sendTelegramMessage(chatId, msg, { parse_mode: 'Markdown' });
+  return { status: 'success' };
+}
+async function handleInlineQuery(inlineQuery: any, supabase: any, config: any) {
+  const query = inlineQuery.query || '';
+  
+  // Fetch upcoming events to suggest
+  const { data: events } = await supabase
+    .schema('m2m')
+    .from('events')
+    .select('*')
+    .eq('status', 'open')
+    .gte('event_date', new Date().toISOString())
+    .limit(5);
+
+  const results = (events || []).map((event: any) => ({
+    type: 'article',
+    id: event.id,
+    title: `🎟️ ${event.title}`,
+    description: `Join me at ${event.venue} on ${new Date(event.event_date).toLocaleDateString()}`,
+    thumb_url: event.cover_image_url,
+    input_message_content: {
+      message_text: `👋 Hey! You should join me at *${event.title}* on Minutes 2 Match!\n\n📍 Venue: ${event.venue}\n🗓 Date: ${new Date(event.event_date).toLocaleDateString()}\n\n[Check out the event here](${config.public.baseUrl}/events)`,
+      parse_mode: 'Markdown'
+    },
+    reply_markup: {
+      inline_keyboard: [
+        [{ text: '🎟️ View Event Information', url: `${config.public.baseUrl}/events` }]
+      ]
+    }
+  }));
+
+  const token = config.telegramBotToken;
+  await $fetch(`https://api.telegram.org/bot${token}/answerInlineQuery`, {
+    method: 'POST',
+    body: {
+      inline_query_id: inlineQuery.id,
+      results,
+      cache_time: 300 // 5 minutes
+    }
+  });
+
   return { status: 'success' };
 }
