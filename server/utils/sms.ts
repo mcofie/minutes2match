@@ -4,6 +4,8 @@
  */
 import { sendHubtelSMS } from './hubtel'
 import { sendZendSMS } from './zend'
+import { createClient } from '@supabase/supabase-js'
+import { sendTelegramMessage } from './telegram-bot'
 
 /**
  * Strips all emojis and non-standard characters from a string to ensure SMS compatibility.
@@ -30,6 +32,38 @@ export async function sendSMS(
 
     // Errors tracker
     let hubtelError: string | null = null
+
+const tryTelegram = async () => {
+    try {
+        const supabase = createClient(
+            config.supabaseUrl || '',
+            config.supabaseServiceKey || '',
+            { auth: { persistSession: false } }
+        );
+
+        const { data: profile } = await supabase
+            .schema('m2m')
+            .from('profiles')
+            .select('telegram_id')
+            .eq('phone', normalizedPhone)
+            .single();
+
+        if (profile?.telegram_id) {
+            console.log(`[SMS] User has Telegram linked. Routing message via Telegram Bot for ${normalizedPhone}...`);
+            await sendTelegramMessage(profile.telegram_id, cleanMessage);
+            return { success: true, provider: 'telegram', id: 'tg_' + Date.now() };
+        }
+    } catch (err: any) {
+        console.warn(`[SMS] Telegram routing failed or unsupported for ${normalizedPhone}: ${err.message}. Falling back to standard SMS...`);
+    }
+    return null;
+}
+
+// 1. Try Telegram First (Fastest, Free, Rich Text)
+if (provider !== 'hubtel' && provider !== 'zend') {
+    const tgResult = await tryTelegram();
+    if (tgResult) return tgResult;
+}
 
     const tryHubtel = async () => {
         if (!config.hubtelClientId || !config.hubtelClientSecret) {

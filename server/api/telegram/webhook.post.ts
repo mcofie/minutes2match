@@ -2,6 +2,7 @@
 import { createClient } from '@supabase/supabase-js';
 import { sendTelegramMessage, sendTelegramPhoto } from '~/server/utils/telegram-bot';
 import { calculatePersona, personas } from '~/server/utils/personas';
+import { notifyDiscord, DiscordColors } from '~/server/utils/discord';
 
 // Constants for Conversational Vibe Check
 const CORE_QUESTIONS = [
@@ -189,6 +190,17 @@ async function handleContactShared(chatId: number, tgUserId: number, contact: an
     answers: { phone } // Initialize answers with phone
   }).eq('chat_id', chatId);
 
+  // Notify Discord
+  await notifyDiscord({
+    title: '💬 Telegram Lead Started Vibe Check',
+    description: `A user shared their contact via the Telegram bot.`,
+    color: DiscordColors.info,
+    fields: [
+        { name: 'Phone', value: phone, inline: true },
+        { name: 'Telegram ID', value: tgUserId.toString(), inline: true }
+    ]
+  });
+
   return askQuestion(chatId, CORE_QUESTIONS[0]);
 }
 
@@ -271,6 +283,17 @@ async function handleVibeCheckStep(chatId: number, tgUserId: number, data: strin
         }
       });
     }
+
+    // Notify Discord
+    await notifyDiscord({
+      title: '🤖 Telegram Vibe Check Completed',
+      description: `User completed their vibe check directly in Telegram!`,
+      color: DiscordColors.success,
+      fields: [
+          { name: 'Persona', value: `${persona.name} ${persona.emoji}`, inline: true },
+          { name: 'Status', value: profile ? 'Updated existing profile' : 'Created draft profile', inline: true }
+      ]
+    });
 
     // Clear state
     await clearState(chatId, supabase);
