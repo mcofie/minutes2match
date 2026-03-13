@@ -16,6 +16,8 @@ export default defineNuxtConfig({
         ],
     },
     routeRules: {
+        '/login': { ssr: false },
+        '/vibe-check': { ssr: false },
         '/me': { ssr: false },
         '/me/**': { ssr: false },
         '/matches': { ssr: false },
@@ -104,7 +106,7 @@ export default defineNuxtConfig({
                 { rel: 'apple-touch-icon', sizes: '180x180', href: '/logo-icon.png' },
             ],
             script: [
-                { src: 'https://telegram.org/js/telegram-web-app.js', defer: true }
+                { src: 'https://telegram.org/js/telegram-web-app.js' }
             ]
         }
     },

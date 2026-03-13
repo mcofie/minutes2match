@@ -1,20 +1,22 @@
 import { ref, computed } from 'vue';
 
 export const useTelegram = () => {
-  const nuxtApp = useNuxtApp();
-  
   // Use a fallback for SSR to prevent errors
-  const isTMA = ref(process.client ? !!nuxtApp.$isTMA : false);
-  const webApp = process.client ? nuxtApp.$telegram : null;
+  const isTMA = ref(false);
+  let webApp: any = null;
+
+  if (process.client) {
+    const nuxtApp = useNuxtApp();
+    isTMA.value = !!nuxtApp.$isTMA;
+    webApp = nuxtApp.$telegram;
+  }
 
   const user = computed(() => {
-    if (!process.client || !webApp) return null;
-    return webApp.initDataUnsafe?.user || null;
+    return webApp?.initDataUnsafe?.user || null;
   });
 
   const initData = computed(() => {
-    if (!process.client || !webApp) return '';
-    return webApp.initData || '';
+    return webApp?.initData || '';
   });
 
   const showAlert = (message: string) => {
@@ -29,7 +31,9 @@ export const useTelegram = () => {
 
   const hapticFeedback = (type: 'light' | 'medium' | 'heavy' | 'rigid' | 'soft' = 'medium') => {
     if (process.client && webApp?.HapticFeedback) {
-      webApp.HapticFeedback.impactOccurred(type);
+      try {
+        webApp.HapticFeedback.impactOccurred(type);
+      } catch (e) {}
     }
   };
 

@@ -3,7 +3,6 @@
     <NuxtLayout>
       <NuxtPage />
     </NuxtLayout>
-    <UNavbar />
   </div>
 </template>
 
@@ -11,10 +10,13 @@
 const router = useRouter()
 const route = useRoute()
 const { isTMA, webApp, hapticFeedback } = useTelegram()
+const isMounted = ref(false)
 
 // Handle Telegram Back Button
 onMounted(() => {
+  isMounted.value = true
   if (isTMA.value && webApp?.BackButton) {
+    console.log('[App] Telegram BackButton initialization');
     // Show back button if not on primary landing/dashboard pages
     const updateBackButton = () => {
       const primaryRoutes = ['/', '/me', '/matches', '/events']
