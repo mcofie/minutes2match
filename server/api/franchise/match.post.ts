@@ -1,5 +1,5 @@
 import { serverSupabaseServiceRole } from '#supabase/server'
-import { sendSMS } from '~/server/utils/sms'
+import { notifyUser } from '~/server/utils/notify'
 
 export default defineEventHandler(async (event) => {
     const body = await readBody(event)
@@ -107,7 +107,7 @@ export default defineEventHandler(async (event) => {
                 ? `Congrats ${user.display_name}! You matched with ${matchCount} people at ${franchiseEvent.title}! Reveal them now: https://m2match.com/matches`
                 : `Thanks for joining ${franchiseEvent.title}! No matches this time, but 2,000+ others are waiting in the main pool: https://m2match.com/matches`
 
-            await sendSMS(user.phone, message)
+            await notifyUser(p.user_id, message)
         }
     }
 

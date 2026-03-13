@@ -870,21 +870,22 @@ const createBulkMatches = async () => {
     
     if (error) throw error
     
-    // Send SMS notifications to all matched users
-    const { sendSMS } = useZend()
-    const smsPromises: Promise<any>[] = []
+    // Send Smart Notifications
+    const notifyPromises = selectedAutoMatches.value.map(match => 
+      $fetch('/api/admin/notify-match', {
+        method: 'POST',
+        body: { 
+          user1Id: match.user1.id, 
+          user2Id: match.user2.id 
+        }
+      }).catch(err => console.error('Failed to send notification:', err))
+    )
     
-    for (const match of selectedAutoMatches.value) {
-      const msg = `Great news! You've been matched on Minutes 2 Match! Log in to see who it is and unlock their profile. - M2Match`
-      if (match.user1.phone) smsPromises.push(sendSMS(match.user1.phone, msg).catch(() => {}))
-      if (match.user2.phone) smsPromises.push(sendSMS(match.user2.phone, msg).catch(() => {}))
-    }
-    
-    // Send SMS in background (don't block)
-    Promise.all(smsPromises).then(() => console.log('Match SMS notifications sent'))
+    // Send in background
+    Promise.all(notifyPromises).then(() => console.log('Match notifications sent'))
     
     const count = selectedAutoMatches.value.length
-    bulkSuccess.value = `Successfully created ${count} matches! SMS notifications sent.`
+    bulkSuccess.value = `Successfully created ${count} matches! Smart notifications sent.`
     
     // Remove created matches from list
     const createdIds = new Set(selectedAutoMatches.value.map(m => `${m.user1.id}-${m.user2.id}`))
@@ -1012,16 +1013,16 @@ const createMatch = async () => {
     
     if (error) throw error
     
-    // Send SMS Notification via Zend
-    // We can do this in a Supabase Edge Function ideally, but client-side for now
-    const { sendSMS } = useZend()
-    const msg = `Great news! You've been matched on Minutes 2 Match! Log in to see who it is and unlock their profile. - M2Match`
+    // Send Smart Notification
+    $fetch('/api/admin/notify-match', {
+      method: 'POST',
+      body: { 
+        user1Id: user1.value.id, 
+        user2Id: user2.value.id 
+      }
+    }).catch(err => console.error('Failed to send notification:', err))
     
-    // Fire and forget SMS
-    if (user1.value.phone) sendSMS(user1.value.phone, msg)
-    if (user2.value.phone) sendSMS(user2.value.phone, msg)
-    
-    matchSuccess.value = `Match created successfully! SMS notifications sent.`
+    matchSuccess.value = `Match created successfully! Notification sent.`
     
     // Update local existing matches
     existingMatches.value.add(`${user1.value.id}-${user2.value.id}`)

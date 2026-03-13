@@ -8,7 +8,7 @@
 
 import { createClient } from '@supabase/supabase-js'
 import { notifyDiscord, DiscordColors } from '~/server/utils/discord'
-import { sendSMS } from '~/server/utils/sms'
+import { notifyUser } from '~/server/utils/notify'
 
 export default defineEventHandler(async (event) => {
     const config = useRuntimeConfig()
@@ -95,7 +95,7 @@ export default defineEventHandler(async (event) => {
             const message = `Hi ${firstName}! Still looking for that perfect connection? We have new souls waiting. Complete your Vibe Check today to get matched: minutes2match.com/vibe-check`
 
             try {
-                const result = await sendSMS(profile.phone, message, { priority: 'normal' })
+                const result = await notifyUser(profile.id, message, { smsPriority: 'normal' })
 
                 // Log to history
                 // @ts-ignore

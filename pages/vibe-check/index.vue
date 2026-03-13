@@ -382,7 +382,7 @@ import type { M2MDatabase } from '~/types/database.types'
 const route = useRoute()
 const user = useSupabaseUser()
 const toast = useToast()
-const { isTMA, tgUser } = useTelegram()
+const { isTMA, tgUser, hapticFeedback } = useTelegram()
 
 useHead({
   title: 'Vibe Check',
@@ -618,6 +618,7 @@ const selectInterest = (interest: 'male' | 'female' | 'everyone') => {
 
 const nextStep = async () => {
   if (currentStep.value < totalSteps) {
+    hapticFeedback('light')
     // If going to step 10 (Phone) and is returning user, skip to processing
     if (currentStep.value === 9 && isReturningUser.value) {
         await handleReturningUserCompletion()
@@ -631,6 +632,7 @@ const nextStep = async () => {
 
 const handleVibeSelect = (key: string, value: string) => {
   vibeAnswers[key] = value
+  hapticFeedback('medium')
   setTimeout(() => {
     if (currentStep.value < 9) {
       showEncouragementToast()
@@ -819,7 +821,8 @@ const updateUserProfile = async (explicitUserId?: string) => {
       height_cm: form.height,
       occupation: form.occupation || null,
       is_verified: true,
-      telegram_id: (isTMA.value && tgUser.value) ? tgUser.value.id.toString() : undefined
+      telegram_id: (isTMA.value && tgUser.value) ? tgUser.value.id.toString() : undefined,
+      photo_url: (isTMA.value && tgUser.value?.photo_url) ? tgUser.value.photo_url : undefined
     })
     .eq('id', userId)
 

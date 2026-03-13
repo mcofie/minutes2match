@@ -343,14 +343,27 @@ const signUserIn = async (result: any) => {
     // 1.5. Link Telegram ID if in TMA
     if (isTMA.value && tgUser.value && signInData.user) {
         try {
+            // First check if they already have a photo
+            const { data: profile } = await supabase
+                .schema('m2m')
+                .from('profiles')
+                .select('photo_url')
+                .eq('id', signInData.user.id)
+                .single()
+
+            const updateData: any = { telegram_id: tgUser.value.id.toString() }
+            if (profile && !profile.photo_url && tgUser.value.photo_url) {
+                updateData.photo_url = tgUser.value.photo_url
+            }
+
             await supabase
                 .schema('m2m')
                 .from('profiles')
-                .update({ telegram_id: tgUser.value.id.toString() })
+                .update(updateData)
                 .eq('id', signInData.user.id)
-            console.log('[Login] Linked Telegram ID:', tgUser.value.id)
+            console.log('[Login] Linked Telegram Profile:', updateData)
         } catch (linkError) {
-            console.error('[Login] Failed to link Telegram ID:', linkError)
+            console.error('[Login] Failed to link Telegram Info:', linkError)
         }
     }
 

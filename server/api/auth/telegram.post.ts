@@ -47,7 +47,7 @@ export default defineEventHandler(async (event) => {
   let { data: profile, error: profileError } = await supabaseAdmin
     .schema('m2m')
     .from('profiles')
-    .select('id, phone, display_name, gender, intent, interested_in')
+    .select('id, phone, display_name, gender, intent, interested_in, photo_url')
     .eq('telegram_id', telegramId)
     .single();
 
@@ -89,7 +89,7 @@ export default defineEventHandler(async (event) => {
         email_confirm: true
     });
 
-    return {
+    const response = {
       success: true,
       user: tgUser,
       isRegistered: true,
@@ -98,6 +98,17 @@ export default defineEventHandler(async (event) => {
       displayName: profile.display_name,
       hasCompletedVibeCheck
     };
+
+    // 4.5. Optional: Link Profile Photo if missing
+    if (profile && !profile.photo_url && tgUser.photo_url) {
+        await supabaseAdmin
+            .schema('m2m')
+            .from('profiles')
+            .update({ photo_url: tgUser.photo_url })
+            .eq('id', profile.id);
+    }
+
+    return response;
   }
 
   // 5. User not found - Return info so frontend can handle it

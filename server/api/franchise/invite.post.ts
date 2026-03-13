@@ -1,5 +1,5 @@
 import { serverSupabaseServiceRole } from '#supabase/server'
-import { sendSMS } from '~/server/utils/sms'
+import { notifyUser } from '~/server/utils/notify'
 
 export default defineEventHandler(async (event) => {
     const body = await readBody(event)
@@ -62,7 +62,7 @@ export default defineEventHandler(async (event) => {
         const message = `Hi ${name.split(' ')[0]}, welcome to ${franchiseEvent.title}! Open your Digital Match Card here: ${link}. Tap YES/NO for each person you meet.`
 
         try {
-            await sendSMS(phone, message)
+            await notifyUser(p.user_id, message)
             results.sent++
         } catch (err) {
             console.error(`[Franchise Invite] Failed to send to ${phone}:`, err)

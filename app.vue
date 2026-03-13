@@ -8,7 +8,38 @@
 </template>
 
 <script setup lang="ts">
-// Global app logic
+const router = useRouter()
+const route = useRoute()
+const { isTMA, webApp, hapticFeedback } = useTelegram()
+
+// Handle Telegram Back Button
+onMounted(() => {
+  if (isTMA.value && webApp?.BackButton) {
+    // Show back button if not on primary landing/dashboard pages
+    const updateBackButton = () => {
+      const primaryRoutes = ['/', '/me', '/matches', '/events']
+      if (!primaryRoutes.includes(route.path)) {
+        webApp.BackButton.show()
+      } else {
+        webApp.BackButton.hide()
+      }
+    }
+
+    // Initial check
+    updateBackButton()
+
+    // Watch for route changes
+    watch(() => route.path, () => {
+      updateBackButton()
+    })
+
+    // Handle back button click
+    webApp.BackButton.onClick(() => {
+      hapticFeedback('light')
+      router.back()
+    })
+  }
+})
 </script>
 
 <style>

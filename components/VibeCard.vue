@@ -6,7 +6,7 @@
         ? 'bg-stone-50 dark:bg-stone-800 border-black dark:border-stone-100 ring-1 ring-black dark:ring-stone-100 shadow-sm' 
         : 'bg-white dark:bg-stone-900 border-stone-200 dark:border-stone-700 hover:border-stone-300 dark:hover:border-stone-600 hover:bg-stone-50 dark:hover:bg-stone-800 shadow-sm'
     ]"
-    @click="$emit('select')"
+    @click="handleClick"
   >
     <span v-if="icon" class="text-2xl flex-shrink-0 group-hover:scale-110 transition-transform duration-200">{{ icon }}</span>
     <span :class="['flex-1 font-semibold text-base', selected ? 'text-black dark:text-white' : 'text-stone-600 dark:text-stone-400 group-hover:text-stone-900 dark:group-hover:text-stone-200']">{{ text }}</span>
@@ -20,14 +20,21 @@
 </template>
 
 <script setup lang="ts">
-defineProps<{
+const { hapticFeedback } = useTelegram()
+
+const props = defineProps<{
   text: string
   icon?: string
   selected?: boolean
-  size?: 'sm' | 'md' // Added size prop support conceptually if needed later
+  size?: 'sm' | 'md'
 }>()
 
-defineEmits<{
+const emit = defineEmits<{
   select: []
 }>()
+
+const handleClick = () => {
+  hapticFeedback('light')
+  emit('select')
+}
 </script>

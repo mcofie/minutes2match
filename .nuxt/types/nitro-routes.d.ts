@@ -12,6 +12,9 @@ declare module "nitropack/types" {
     '/api/admin/notify-incomplete-profiles': {
       'post': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/admin/notify-incomplete-profiles.post').default>>>>
     }
+    '/api/admin/notify-match': {
+      'post': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/admin/notify-match.post').default>>>>
+    }
     '/api/admin/notify-missing-details': {
       'post': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/admin/notify-missing-details.post').default>>>>
     }
@@ -180,6 +183,12 @@ declare module "nitropack/types" {
     }
     '/api/stats/social-proof': {
       'get': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/stats/social-proof.get').default>>>>
+    }
+    '/api/telegram/setup-webhook': {
+      'get': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/telegram/setup-webhook.get').default>>>>
+    }
+    '/api/telegram/webhook': {
+      'post': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/telegram/webhook.post').default>>>>
     }
     '/api/venues': {
       'get': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/venues.get').default>>>>
