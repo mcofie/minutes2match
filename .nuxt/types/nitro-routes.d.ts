@@ -57,6 +57,9 @@ declare module "nitropack/types" {
     '/api/auth/signup': {
       'post': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/auth/signup.post').default>>>>
     }
+    '/api/auth/telegram': {
+      'post': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/auth/telegram.post').default>>>>
+    }
     '/api/cron/auto-match': {
       'get': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/cron/auto-match.get').default>>>>
     }
@@ -78,8 +81,47 @@ declare module "nitropack/types" {
     '/api/cron/vibe-refresh': {
       'get': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/cron/vibe-refresh.get').default>>>>
     }
+    '/api/debug-column': {
+      'get': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/debug-column.get').default>>>>
+    }
+    '/api/debug-event-column': {
+      'get': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/debug-event-column.get').default>>>>
+    }
+    '/api/debug-join': {
+      'get': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/debug-join.get').default>>>>
+    }
+    '/api/debug-schema': {
+      'get': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/debug-schema.get').default>>>>
+    }
     '/api/enrich_matches': {
       'post': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/enrich_matches.post').default>>>>
+    }
+    '/api/franchise/auth': {
+      'get': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/franchise/auth.get').default>>>>
+    }
+    '/api/franchise/import': {
+      'post': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/franchise/import.post').default>>>>
+    }
+    '/api/franchise/invite': {
+      'post': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/franchise/invite.post').default>>>>
+    }
+    '/api/franchise/match': {
+      'post': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/franchise/match.post').default>>>>
+    }
+    '/api/franchise/participant-data': {
+      'get': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/franchise/participant-data.get').default>>>>
+    }
+    '/api/franchise/participant-delete': {
+      'post': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/franchise/participant-delete.post').default>>>>
+    }
+    '/api/franchise/short-lookup': {
+      'get': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/franchise/short-lookup.get').default>>>>
+    }
+    '/api/franchise/update': {
+      'post': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/franchise/update.post').default>>>>
+    }
+    '/api/franchise/vote': {
+      'post': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/franchise/vote.post').default>>>>
     }
     '/api/matches': {
       'get': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/matches.get').default>>>>

@@ -44,6 +44,7 @@ export { personas, usePersona, Persona } from '../composables/usePersona';
 export { useScrollAnimation, vScrollAnimate, ScrollAnimationOptions } from '../composables/useScrollAnimation';
 export { useSeo, useEventSeo } from '../composables/useSeo';
 export { getRandomQuestions, useShotHints, ShotQuestion } from '../composables/useShotHints';
+export { useTelegram } from '../composables/useTelegram';
 export { useToast, Toast } from '../composables/useToast';
 export { useZend } from '../composables/useZend';
 export { downloadCSV } from '../utils/downloadCsv';

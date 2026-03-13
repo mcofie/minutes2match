@@ -225,6 +225,8 @@ declare module 'nuxt/schema' {
 
    geminiApiKey: string,
 
+   telegramBotToken: string,
+
    nitro: {
       envPrefix: string,
    },

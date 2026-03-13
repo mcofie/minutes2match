@@ -96,9 +96,11 @@ declare global {
   const notifyMatchUnlocked: typeof import('../../server/utils/discord').notifyMatchUnlocked
   const notifyNewSignup: typeof import('../../server/utils/discord').notifyNewSignup
   const notifyPaymentSuccess: typeof import('../../server/utils/discord').notifyPaymentSuccess
+  const notifyRedemption: typeof import('../../server/utils/discord').notifyRedemption
   const notifyUserLogin: typeof import('../../server/utils/discord').notifyUserLogin
   const parseCookies: typeof import('../../node_modules/h3').parseCookies
   const parseMarkdown: typeof import('../../node_modules/@nuxtjs/mdc/dist/runtime/parser').parseMarkdown
+  const parseTelegramInitData: typeof import('../../server/utils/telegram').parseTelegramInitData
   const promisifyNodeListener: typeof import('../../node_modules/h3').promisifyNodeListener
   const proxyRequest: typeof import('../../node_modules/h3').proxyRequest
   const queryCollection: typeof import('../../node_modules/@nuxt/content/dist/runtime/nitro').queryCollection
@@ -155,6 +157,7 @@ declare global {
   const useRuntimeConfig: typeof import('../../node_modules/nitropack/dist/runtime/internal/config').useRuntimeConfig
   const useSession: typeof import('../../node_modules/h3').useSession
   const useStorage: typeof import('../../node_modules/nitropack/dist/runtime/internal/storage').useStorage
+  const verifyTelegramData: typeof import('../../server/utils/telegram').verifyTelegramData
   const verifyZendOTP: typeof import('../../server/utils/zend').verifyZendOTP
   const writeEarlyHints: typeof import('../../node_modules/h3').writeEarlyHints
 }
@@ -189,11 +192,12 @@ export { queryCollection, queryCollectionSearchSections, queryCollectionNavigati
 export { parseMarkdown } from '/Users/maxwellcofie/WebstormProjects/minutes2match/node_modules/@nuxtjs/mdc/dist/runtime/parser';
 export { stringifyMarkdown } from '/Users/maxwellcofie/WebstormProjects/minutes2match/node_modules/@nuxtjs/mdc/dist/runtime/stringify';
 export { getGeminiModel, auditProfileWithAI } from '/Users/maxwellcofie/WebstormProjects/minutes2match/server/utils/ai';
-export { DiscordColors, notifyDiscord, notifyNewSignup, notifyPaymentSuccess, notifyMatchUnlocked, notifyEventBooking, notifyError, notifyUserLogin } from '/Users/maxwellcofie/WebstormProjects/minutes2match/server/utils/discord';
+export { DiscordColors, notifyRedemption, notifyDiscord, notifyNewSignup, notifyPaymentSuccess, notifyMatchUnlocked, notifyEventBooking, notifyError, notifyUserLogin } from '/Users/maxwellcofie/WebstormProjects/minutes2match/server/utils/discord';
 export { sendHubtelSMS } from '/Users/maxwellcofie/WebstormProjects/minutes2match/server/utils/hubtel';
 export { unlockMatch } from '/Users/maxwellcofie/WebstormProjects/minutes2match/server/utils/match';
 export { usePasskeyUtils } from '/Users/maxwellcofie/WebstormProjects/minutes2match/server/utils/passkeys';
 export { normalizeGhanaPhone, isSamePhone } from '/Users/maxwellcofie/WebstormProjects/minutes2match/server/utils/phone';
 export { checkRateLimit, getClientIP, enforceRateLimit } from '/Users/maxwellcofie/WebstormProjects/minutes2match/server/utils/rateLimiter';
 export { stripEmojis, sendSMS } from '/Users/maxwellcofie/WebstormProjects/minutes2match/server/utils/sms';
+export { verifyTelegramData, parseTelegramInitData } from '/Users/maxwellcofie/WebstormProjects/minutes2match/server/utils/telegram';
 export { sendZendSMS, sendZendBulkSMS, sendZendOTP, verifyZendOTP, ZEND_BASE_URL, SENDER_ID } from '/Users/maxwellcofie/WebstormProjects/minutes2match/server/utils/zend';

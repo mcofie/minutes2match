@@ -382,6 +382,7 @@ import type { M2MDatabase } from '~/types/database.types'
 const route = useRoute()
 const user = useSupabaseUser()
 const toast = useToast()
+const { isTMA, tgUser } = useTelegram()
 
 useHead({
   title: 'Vibe Check',
@@ -817,7 +818,8 @@ const updateUserProfile = async (explicitUserId?: string) => {
       religion: form.religion || null,
       height_cm: form.height,
       occupation: form.occupation || null,
-      is_verified: true
+      is_verified: true,
+      telegram_id: (isTMA.value && tgUser.value) ? tgUser.value.id.toString() : undefined
     })
     .eq('id', userId)
 

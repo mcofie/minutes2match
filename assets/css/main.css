@@ -149,3 +149,19 @@ h6 {
     -ms-overflow-style: none;
     scrollbar-width: none;
 }
+
+/* Telegram Mini App Theme Support */
+:root.tma {
+    --color-bg-main: var(--tg-theme-bg-color);
+    --color-bg-alt: var(--tg-theme-secondary-bg-color);
+    --color-text-main: var(--tg-theme-text-color);
+    --color-text-muted: var(--tg-theme-hint-color);
+    --color-brand-primary: var(--tg-theme-button-color);
+    --color-text-inverse: var(--tg-theme-button-text-color);
+    --color-brand-accent: var(--tg-theme-link-color);
+}
+
+body.tma {
+    background-color: var(--tg-theme-bg-color);
+    color: var(--tg-theme-text-color);
+}

@@ -10,8 +10,10 @@
 
 export default defineNuxtRouteMiddleware(async (to) => {
     // 1. Skip checks for public routes
-    const publicRoutes = ['/', '/login', '/vibe-check']
-    const isPublic = publicRoutes.some(route => to.path === route || to.path.startsWith('/vibe-check'))
+    const publicRoutes = ['/', '/login', '/vibe-check', '/manage', '/speed-date', '/s']
+    const isPublic = publicRoutes.some(route => to.path === route || to.path.startsWith('/vibe-check') || to.path.startsWith('/manage') || to.path.startsWith('/speed-date') || to.path.startsWith('/s'))
+
+
     if (isPublic) return
 
     const user = useSupabaseUser()

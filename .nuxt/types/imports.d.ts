@@ -204,6 +204,7 @@ declare global {
   const useSupabaseCookieRedirect: typeof import('../../node_modules/@nuxtjs/supabase/dist/runtime/composables/useSupabaseCookieRedirect').useSupabaseCookieRedirect
   const useSupabaseSession: typeof import('../../node_modules/@nuxtjs/supabase/dist/runtime/composables/useSupabaseSession').useSupabaseSession
   const useSupabaseUser: typeof import('../../node_modules/@nuxtjs/supabase/dist/runtime/composables/useSupabaseUser').useSupabaseUser
+  const useTelegram: typeof import('../../composables/useTelegram').useTelegram
   const useTemplateRef: typeof import('vue').useTemplateRef
   const useToast: typeof import('../../composables/useToast').useToast
   const useTransitionState: typeof import('vue').useTransitionState
@@ -458,6 +459,7 @@ declare module 'vue' {
     readonly useSupabaseCookieRedirect: UnwrapRef<typeof import('../../node_modules/@nuxtjs/supabase/dist/runtime/composables/useSupabaseCookieRedirect')['useSupabaseCookieRedirect']>
     readonly useSupabaseSession: UnwrapRef<typeof import('../../node_modules/@nuxtjs/supabase/dist/runtime/composables/useSupabaseSession')['useSupabaseSession']>
     readonly useSupabaseUser: UnwrapRef<typeof import('../../node_modules/@nuxtjs/supabase/dist/runtime/composables/useSupabaseUser')['useSupabaseUser']>
+    readonly useTelegram: UnwrapRef<typeof import('../../composables/useTelegram')['useTelegram']>
     readonly useTemplateRef: UnwrapRef<typeof import('vue')['useTemplateRef']>
     readonly useToast: UnwrapRef<typeof import('../../composables/useToast')['useToast']>
     readonly useTransitionState: UnwrapRef<typeof import('vue')['useTransitionState']>

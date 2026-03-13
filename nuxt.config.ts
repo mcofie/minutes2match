@@ -24,7 +24,12 @@ export default defineNuxtConfig({
         '/shot/**': { ssr: false },
         '/shoot-your-shot': { ssr: false },
         '/payment/shot-callback': { ssr: false },
+        '/manage/**': { ssr: false },
+        '/speed-date/**': { ssr: false },
+        '/s/**': { ssr: false },
     },
+
+
     image: {
         provider: 'none',
         domains: ['ziglffbvcexvwguqopqm.supabase.co'],
@@ -98,6 +103,9 @@ export default defineNuxtConfig({
                 { rel: 'icon', type: 'image/png', sizes: '32x32', href: '/logo-icon.png' },
                 { rel: 'apple-touch-icon', sizes: '180x180', href: '/logo-icon.png' },
             ],
+            script: [
+                { src: 'https://telegram.org/js/telegram-web-app.js', defer: true }
+            ]
         }
     },
     supabase: {
@@ -135,6 +143,7 @@ export default defineNuxtConfig({
         cronSecret: process.env.CRON_SECRET,
         discordWebhookUrl: process.env.DISCORD_WEBHOOK_URL,
         geminiApiKey: process.env.GEMINI_API_KEY,
+        telegramBotToken: process.env.TELEGRAM_BOT_TOKEN,
         // Public keys (available client-side)
         public: {
             appVersion: '1.4.0',

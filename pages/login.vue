@@ -28,8 +28,25 @@
         <!-- Phone Input Step -->
         <div v-if="!otpSent" class="space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-300">
           
+          <div v-if="isTMA" class="space-y-4">
+            <button 
+              @click="handleTelegramLogin"
+              :disabled="sending || isLoggingIn"
+              class="w-full py-4 rounded-[16px] font-bold uppercase tracking-widest text-sm transition-all bg-[#0088cc] text-white hover:bg-[#0077b5] border-2 border-[#0088cc] flex items-center justify-center gap-3"
+            >
+              <span class="text-xl">✈️</span>
+              <span>{{ isLoggingIn ? 'Verifying...' : 'Continue with Telegram' }}</span>
+            </button>
+            <div class="flex items-center gap-4 p-2">
+              <div class="h-[1px] flex-1 bg-stone-200"></div>
+              <span class="text-[10px] font-bold uppercase tracking-widest text-stone-300 whitespace-nowrap">OR USE PHONE</span>
+              <div class="h-[1px] flex-1 bg-stone-200"></div>
+            </div>
+          </div>
+
           <!-- TOP: PHONE INPUT -->
           <div class="space-y-4">
+
             <div class="space-y-2">
               <label class="block text-xs font-bold uppercase tracking-widest text-stone-900">Phone Number</label>
               <div class="flex items-center w-full px-4 py-4 border-2 border-stone-200 rounded-[16px] bg-white focus-within:ring-0 focus-within:border-black transition-all group hover:border-stone-400 relative">
@@ -179,6 +196,7 @@ definePageMeta({
 const supabase = useSupabaseClient()
 const user = useSupabaseUser()
 const toast = useToast()
+const { isTMA, initData, tgUser } = useTelegram()
 
 // Track if we're in the middle of a login attempt
 const isLoggingIn = ref(false)
@@ -262,6 +280,32 @@ const pickLoginContact = async () => {
   }
 }
 
+const handleTelegramLogin = async () => {
+    if (!initData.value) return
+
+    error.value = ''
+    isLoggingIn.value = true
+
+    try {
+        const result = await $fetch<any>('/api/auth/telegram', {
+            method: 'POST',
+            body: { initData: initData.value }
+        })
+
+        if (result.success && result.isRegistered) {
+            await signUserIn(result)
+        } else {
+            // User not registered - prompt them to link their phone
+            error.value = 'Telegram account not linked. Please sign in with your phone once to link your Telegram account.'
+            toast.info('Linking Required', 'Sign in with your phone once to link your Telegram account.')
+        }
+    } catch (err: any) {
+        error.value = err.data?.message || 'Telegram login failed'
+    } finally {
+        isLoggingIn.value = false
+    }
+}
+
 const handlePasskeyLogin = async () => {
     error.value = ''
     authMethod.value = 'passkey'
@@ -295,6 +339,20 @@ const signUserIn = async (result: any) => {
     }
 
     console.log('[Login] signInWithPassword succeeded, user:', signInData.user?.id)
+
+    // 1.5. Link Telegram ID if in TMA
+    if (isTMA.value && tgUser.value && signInData.user) {
+        try {
+            await supabase
+                .schema('m2m')
+                .from('profiles')
+                .update({ telegram_id: tgUser.value.id.toString() })
+                .eq('id', signInData.user.id)
+            console.log('[Login] Linked Telegram ID:', tgUser.value.id)
+        } catch (linkError) {
+            console.error('[Login] Failed to link Telegram ID:', linkError)
+        }
+    }
 
     // Wait for the @nuxtjs/supabase module to process onAuthStateChange
     // and populate the useSupabaseUser() composable + set cookies
