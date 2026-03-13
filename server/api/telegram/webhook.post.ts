@@ -1,6 +1,6 @@
 
 import { createClient } from '@supabase/supabase-js';
-import { sendTelegramMessage } from '~/server/utils/telegram-bot';
+import { sendTelegramMessage, sendTelegramPhoto } from '~/server/utils/telegram-bot';
 import { calculatePersona, personas } from '~/server/utils/personas';
 
 // Constants for Conversational Vibe Check
@@ -322,35 +322,85 @@ async function handleMatches(chatId: number, tgUserId: number, supabase: any, co
         id, 
         status, 
         match_score,
-        user_1:user_1_id(display_name),
-        user_2:user_2_id(display_name)
+        user_1:user_1_id(id, display_name, dating_persona, photo_url, gender, birth_date, location),
+        user_2:user_2_id(id, display_name, dating_persona, photo_url, gender, birth_date, location)
       `)
       .or(`user_1_id.eq.${profile.id},user_2_id.eq.${profile.id}`)
       .order('created_at', { ascending: false })
-      .limit(3);
-  
+      .limit(5);
+
     if (!matches || matches.length === 0) {
       return sendTelegramMessage(chatId, "✨ You don't have any matches yet. Keep your profile updated and we'll notify you when someone vibes with you!");
     }
   
-    let msg = "🔥 *Your Latest Matches*\n\n";
-    matches.forEach((m: any) => {
-      const status = m.status === 'unlocked' ? '✅ Unlocked' : '⏳ Pending';
+    await sendTelegramMessage(chatId, `🔥 *You have ${matches.length} recent match${matches.length !== 1 ? 'es' : ''}!*\n\nHere's who caught your vibe:`, {
+        parse_mode: 'Markdown'
+    });
+
+    for (const m of matches) {
+      const otherUser = m.user_1.id === profile.id ? m.user_2 : m.user_1;
+      
+      const status = m.status === 'unlocked' ? '✅ Unlocked' : '🔒 Locked';
       const score = m.match_score ? `${m.match_score}%` : '??%';
-      msg += `💖 *Match* (${score})\nStatus: ${status}\n\n`;
-    });
-  
-    msg += "Tap below to view full profiles and start chatting!";
-  
-    await sendTelegramMessage(chatId, msg, {
-      parse_mode: 'Markdown',
-      reply_markup: {
-        inline_keyboard: [
-          [{ text: '✨ Open My Match Deck', web_app: { url: `${config.public.baseUrl}/matches` } }]
-        ]
+      const persona = otherUser.dating_persona ? personas[otherUser.dating_persona] : null;
+      const personaText = persona ? `${persona.name} ${persona.emoji}` : 'Unknown Vibe';
+      
+      let ageText = '';
+      if (otherUser.birth_date) {
+        const diffMs = Date.now() - new Date(otherUser.birth_date).getTime();
+        const ageDate = new Date(diffMs); 
+        const age = Math.abs(ageDate.getUTCFullYear() - 1970);
+        ageText = `, ${age}`;
       }
-    });
+      
+      const caption = `
+💖 *Match Compatibility: ${score}*
+
+👤 *${otherUser.display_name}*${ageText}
+📍 ${otherUser.location ? otherUser.location.charAt(0).toUpperCase() + otherUser.location.slice(1) : 'Unknown location'}
+✨ ${personaText}
+
+*Status:* ${status}
+      `.trim();
+
+      const buttonText = m.status === 'unlocked' ? '💬 Open Chat in App' : '🔓 Unlock Match';
+      const keyboard = {
+        inline_keyboard: [
+          [{ text: buttonText, web_app: { url: `${config.public.baseUrl}/matches` } }]
+        ]
+      };
+
+      if (otherUser.photo_url && otherUser.photo_url.startsWith('https://')) {
+        try {
+            await sendTelegramPhoto(chatId, otherUser.photo_url, {
+                caption,
+                parse_mode: 'Markdown',
+                reply_markup: keyboard
+            });
+        } catch (err) {
+            // Fallback to text if photo fails
+            await sendTelegramMessage(chatId, caption, {
+                parse_mode: 'Markdown',
+                reply_markup: keyboard
+            });
+        }
+      } else {
+        await sendTelegramMessage(chatId, caption, {
+            parse_mode: 'Markdown',
+            reply_markup: keyboard
+        });
+      }
+    }
   
+    // Add final trailing button to see all
+    await sendTelegramMessage(chatId, "Tap the button below to view all your connections inside M2M.", {
+        reply_markup: {
+            inline_keyboard: [
+                [{ text: "✨ Open Full Match Deck", web_app: { url: `${config.public.baseUrl}/matches` } }]
+            ]
+        }
+    });
+
     return { status: 'success' };
 }
 

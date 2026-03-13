@@ -29,6 +29,32 @@ export async function sendTelegramMessage(chatId: string | number, text: string,
     return response;
 }
 
+export async function sendTelegramPhoto(chatId: string | number, photoUrl: string, options: {
+    caption?: string,
+    parse_mode?: 'Markdown' | 'HTML' | 'MarkdownV2',
+    reply_markup?: any
+} = {}) {
+    const config = useRuntimeConfig();
+    const token = config.telegramBotToken;
+
+    if (!token) {
+        throw new Error('TELEGRAM_BOT_TOKEN is not configured.');
+    }
+
+    const url = `https://api.telegram.org/bot${token}/sendPhoto`;
+
+    const response = await $fetch<any>(url, {
+        method: 'POST',
+        body: {
+            chat_id: chatId,
+            photo: photoUrl,
+            ...options
+        }
+    });
+
+    return response;
+}
+
 /**
  * Sets the webhook for the Telegram bot.
  */
