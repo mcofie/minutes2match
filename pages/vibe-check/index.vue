@@ -424,6 +424,25 @@ onMounted(async () => {
   } else {
     isCheckingAuth.value = false
   }
+
+  // Handle Bot Pre-fills
+  if (route.query.persona) {
+    const { personas } = usePersona()
+    assignedPersona.value = personas[route.query.persona as string] || null
+    console.log('[VibeCheck] Pre-filled persona from bot:', assignedPersona.value?.name)
+  }
+
+  if (route.query.phone) {
+    let cleanPhone = (route.query.phone as string).replace(/^\+233/, '').replace(/^233/, '').replace(/^0+/, '')
+    form.phone = cleanPhone
+    console.log('[VibeCheck] Pre-filled phone from bot:', form.phone)
+  }
+
+  if (isTMA.value && tgUser.value) {
+    if (!form.displayName) {
+        form.displayName = tgUser.value.first_name || ''
+    }
+  }
   
   fetchVibeQuestions()
 })
