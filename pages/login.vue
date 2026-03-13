@@ -196,7 +196,9 @@ definePageMeta({
 const supabase = useSupabaseClient()
 const user = useSupabaseUser()
 const toast = useToast()
-const { isTMA, initData, tgUser } = useTelegram()
+const { isTMA: isTMARaw, initData, tgUser } = useTelegram()
+const isMounted = ref(false)
+const isTMA = computed(() => isMounted.value && isTMARaw.value)
 
 // Track if we're in the middle of a login attempt
 const isLoggingIn = ref(false)
@@ -245,6 +247,7 @@ const authMethod = ref<'otp' | 'passkey' | null>(null)
 const storedName = ref('')
 
 onMounted(async () => {
+    isMounted.value = true
     storedName.value = localStorage.getItem('m2m_display_name') || ''
     
     // Auto-trigger Conditional UI (Quietly wait for browser autofill)

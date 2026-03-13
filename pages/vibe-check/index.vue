@@ -382,7 +382,9 @@ import type { M2MDatabase } from '~/types/database.types'
 const route = useRoute()
 const user = useSupabaseUser()
 const toast = useToast()
-const { isTMA, tgUser, hapticFeedback } = useTelegram()
+const { isTMA: isTMARaw, tgUser, hapticFeedback } = useTelegram()
+const isMounted = ref(false)
+const isTMA = computed(() => isMounted.value && isTMARaw.value)
 
 useHead({
   title: 'Vibe Check',
@@ -399,6 +401,7 @@ const isReturningUser = ref(false) // User who logged in but hasn't completed vi
 
 // Check if user is already logged in
 onMounted(async () => {
+  isMounted.value = true
   const isRetakeRequest = route.query.retake === 'true'
   const isReturnUser = route.query.returnUser === 'true'
   
