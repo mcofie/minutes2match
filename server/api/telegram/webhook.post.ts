@@ -327,7 +327,10 @@ Ready to find your vibe? Minutes 2 Match is a science-backed speed dating platfo
 
   // The URL to the welcome video (.mp4 format).
   // Replace this with your actual video URL once hosted!
-  const videoUrl = 'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4'; // Placeholder for testing
+  const videoUrl = 'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4'; 
+  
+  // Your preferred welcome image
+  const fallbackPhoto = 'https://ziglffbvcexvwguqopqm.supabase.co/storage/v1/object/public/m2m-assets/welcome_v2.png'; // Please upload the new image to this path in Supabase
 
   try {
     // Set Bot Commands Menu (Persistent)
@@ -345,12 +348,21 @@ Ready to find your vibe? Minutes 2 Match is a science-backed speed dating platfo
       reply_markup: keyboard
     });
   } catch (err) {
-    // If the video link is invalid or fails, gracefully fallback to text-only mode
-    console.warn('[Telegram] Failed to send welcome video, falling back to text:', err);
-    await sendTelegramMessage(chatId, welcomeMessage, {
-      parse_mode: 'Markdown',
-      reply_markup: keyboard
-    });
+    // If video fails, try to send the cinematic Hero Photo I created
+    console.warn('[Telegram] Video failed, attempting cinematic photo fallback');
+    try {
+      await sendTelegramPhoto(chatId, fallbackPhoto, {
+        caption: welcomeMessage,
+        parse_mode: 'Markdown',
+        reply_markup: keyboard
+      });
+    } catch (photoErr) {
+      // Fallback to pure text as a last resort
+      await sendTelegramMessage(chatId, welcomeMessage, {
+        parse_mode: 'Markdown',
+        reply_markup: keyboard
+      });
+    }
   }
 
   return { status: 'success' };
