@@ -1,6 +1,7 @@
 import { createClient } from '@supabase/supabase-js'
 import { enforceRateLimit } from '~/server/utils/rateLimiter'
 import { notifyNewSignup } from '~/server/utils/discord'
+import { notifyUser } from '~/server/utils/notify'
 
 export default defineEventHandler(async (event) => {
     // Rate limit: 3 signup attempts per 5 minutes per IP
@@ -171,6 +172,25 @@ export default defineEventHandler(async (event) => {
             phone,
             displayName
         })
+
+        // Send Welcome Message to User
+        const welcomeMessage = `Welcome to Minutes 2 Match, ${displayName}! We're thrilled to have you. To start getting personalized matches, make sure your profile is 100% complete.`
+        try {
+            await notifyUser(userId, welcomeMessage, { 
+                type: 'generic',
+                smsPriority: 'high',
+                telegramOptions: {
+                    reply_markup: {
+                        inline_keyboard: [
+                            [{ text: '👤 Complete Profile', web_app: { url: useRuntimeConfig().public.baseUrl + '/profile' } }]
+                        ]
+                    }
+                }
+            })
+            console.log(`[Signup] Welcome message sent to ${userId}`)
+        } catch (notifyError) {
+            console.error('[Signup] Failed to send welcome message:', notifyError)
+        }
 
         // Track referral if a code was provided
         if (referralCode) {

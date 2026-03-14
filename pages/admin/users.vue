@@ -103,6 +103,10 @@
               <span v-if="user.is_active === false" class="badge badge--gray ml-1" title="User is incognito (Ghost Mode)">
                 Paused
               </span>
+              <span v-if="user.telegram_id" class="badge badge--blue ml-1" title="Connected to Telegram">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="inline-block mr-1"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"></path></svg>
+                TG
+              </span>
             </td>
             <td>{{ formatDate(user.created_at) }}</td>
             <td>
@@ -849,7 +853,7 @@ const fetchUsers = async () => {
   
   let query = supabase
     .from('profiles')
-    .select('*', { count: 'exact' })
+    .select('*, telegram_id', { count: 'exact' })
   
   // Apply Filters
   if (filters.gender) {

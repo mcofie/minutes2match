@@ -334,6 +334,28 @@ async function handleSubscriptionPayment(supabase: any, metadata: any) {
         console.error('[Webhook] Failed to create subscription:', error)
     } else {
         console.log('[Webhook] Subscription activated for user:', metadata.userId)
+        
+        // Send welcome message using our multi-channel notification utility
+        // This will prioritize Telegram if available, falling back to SMS
+        const welcomeMessage = "🎉 Woohoo! Your Minutes 2 Match subscription is now active! You now have full access to view unlimited matches and send messages. Tap the app to explore your connections today!"
+        
+        try {
+            await notifyUser(metadata.userId, welcomeMessage, { 
+                type: 'generic', 
+                smsPriority: 'high',
+                telegramOptions: {
+                    reply_markup: {
+                        inline_keyboard: [
+                            [{ text: '🚀 View Matches', web_app: { url: useRuntimeConfig().public.baseUrl + '/matches' } }],
+                            [{ text: '👤 Update Profile', web_app: { url: useRuntimeConfig().public.baseUrl + '/profile' } }]
+                        ]
+                    }
+                }
+            })
+            console.log(`[Webhook] Subscription welcome message sent to user: ${metadata.userId}`)
+        } catch (notifyError) {
+            console.error(`[Webhook] Failed to send subscription welcome message to user ${metadata.userId}:`, notifyError)
+        }
     }
 }
 
