@@ -44,8 +44,8 @@ export default defineEventHandler(async (event) => {
 
     // 3. Matchmaker Engine (Mutually Exclusive Logic)
     // Map participant numbers to user IDs for fast lookup
-    const numToId = new Map(participants.map(p => [p.participant_number, p.user_id]))
-    const idToInfo = new Map(participants.map(p => [p.user_id, p]))
+    const numToId = new Map(participants.map((p: any) => [p.participant_number, p.user_id])) as any
+    const idToInfo = new Map(participants.map((p: any) => [p.user_id, p])) as any
 
     const matchesFound = []
     const processedPairs = new Set<string>()
@@ -58,7 +58,7 @@ export default defineEventHandler(async (event) => {
         if (!toId || !fromParticipantNum) continue
 
         // Check if the other person also said "Yes" to them
-        const counterVote = votes.find(v =>
+        const counterVote = votes.find((v: any) =>
             v.from_user_id === toId &&
             v.to_participant_number === fromParticipantNum
         )

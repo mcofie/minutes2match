@@ -249,7 +249,7 @@ const handleClaimDiscount = async (venue: any) => {
 
 
 const handleResetRedemption = (venueId: string) => {
-   delete redemptions[venueId]
+   delete redemptions.value[venueId]
 }
 const getAge = (birthDate: string | null): number => {
   if (!birthDate) return 25
