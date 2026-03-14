@@ -1,13 +1,26 @@
 <template>
-  <div class="max-w-2xl mx-auto py-8">
+  <div class="max-w-2xl mx-auto px-4 sm:px-0">
     <Head>
       <Title>Inbox | Minutes 2 Match</Title>
     </Head>
 
+    <NuxtLink 
+      to="/me"
+      class="inline-flex items-center gap-1.5 text-[10px] font-bold tracking-widest uppercase text-stone-400 hover:text-black dark:hover:text-white transition-colors py-2 mb-2 w-fit"
+    >
+      ← Back
+    </NuxtLink>
+
     <div class="flex items-center justify-between mb-8">
        <div>
-          <h2 class="text-2xl md:text-3xl font-bold tracking-tight dark:text-white">Your Inbox</h2>
-          <p class="text-xs md:text-sm text-stone-500 dark:text-stone-400 mt-1">Updates, match reveals, and event alerts.</p>
+          <h2 class="text-2xl font-bold tracking-tight dark:text-white leading-none">Your Inbox</h2>
+          <p class="text-[10px] sm:text-xs font-bold uppercase tracking-widest text-stone-400 dark:text-stone-300 mt-1.5 flex items-center gap-2">
+            <span>Updates</span>
+            <span class="w-1 h-1 bg-stone-200 rounded-full"></span>
+            <span>Match Reveals</span>
+            <span class="w-1 h-1 bg-stone-200 rounded-full"></span>
+            <span>Alerts</span>
+          </p>
        </div>
        <button 
          v-if="unreadCount > 0"
@@ -51,12 +64,21 @@
                 {{ getIcon(notification.type) }}
              </div>
              <div class="flex-1 min-w-0">
-                <div class="flex items-center justify-between gap-4 mb-0.5">
-                   <p class="text-[10px] font-bold text-stone-400 uppercase tracking-widest">{{ formatDateRelative(notification.created_at) }}</p>
-                   <span v-if="!notification.read" class="w-2 h-2 bg-rose-500 rounded-full"></span>
+                <div class="flex items-center justify-between gap-4 mb-1">
+                   <p class="text-[9px] font-bold text-stone-400 dark:text-stone-300 uppercase tracking-widest">{{ formatDateRelative(notification.created_at) }}</p>
+                   <span v-if="!notification.read" class="w-2 h-2 bg-rose-500 rounded-full shadow-[0_0_8px_rgba(244,63,94,0.5)]"></span>
                 </div>
-                <h4 class="font-bold text-black dark:text-white truncate">{{ notification.title }}</h4>
-                <p class="text-xs text-stone-500 dark:text-stone-400 line-clamp-2 leading-relaxed">{{ notification.message }}</p>
+                <h4 class="text-sm font-bold text-black dark:text-white mb-0.5">{{ notification.title }}</h4>
+                <p 
+                  class="text-[11px] text-stone-500 dark:text-stone-400 leading-relaxed transition-all duration-300"
+                  :class="{ 'line-clamp-2': !isExpanded(notification.id) }"
+                >
+                  {{ notification.message }}
+                </p>
+                <div v-if="isTruncated(notification.message) && !isExpanded(notification.id)" class="mt-2 text-[9px] font-bold text-stone-400 dark:text-stone-300 uppercase tracking-widest flex items-center gap-1.5">
+                  <span class="w-4 h-px bg-stone-100 dark:bg-stone-800"></span>
+                  Read more
+                </div>
              </div>
           </div>
        </div>
@@ -71,6 +93,21 @@ definePageMeta({
 })
 
 const { notifications, unreadCount, loading, fetchNotifications, markAsRead, markAllAsRead } = useNotifications()
+
+// Local state for expanded messages
+const expandedIds = ref<Set<string>>(new Set())
+
+const toggleExpand = (id: string) => {
+    if (expandedIds.value.has(id)) {
+        expandedIds.value.delete(id)
+    } else {
+        expandedIds.value.add(id)
+    }
+}
+
+const isExpanded = (id: string) => expandedIds.value.has(id)
+
+const isTruncated = (msg: string) => msg && msg.length > 80 // Simple heuristic for truncation UI hint
 
 onMounted(async () => {
     const { initDashboard } = useDashboard()
@@ -115,9 +152,15 @@ const formatDateRelative = (dateString: string) => {
 }
 
 const handleNotificationClick = (notification: any) => {
+    // 1. Mark as read
     if (!notification.read) markAsRead(notification.id)
     
-    // Logic to navigate if notification has a target
+    // 2. Toggle expand if it's potentially long
+    if (isTruncated(notification.message)) {
+        toggleExpand(notification.id)
+    }
+    
+    // 3. Navigate if it's meant to take you somewhere
     if (notification.data?.match_id) navigateTo(`/me/connection/${notification.data.match_id}`)
     else if (notification.data?.event_id) navigateTo('/events')
     else if (notification.type === 'profile_reminder') navigateTo('/me')

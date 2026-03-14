@@ -129,15 +129,18 @@
             </template>
             
             <template v-else-if="currentUserPaid">
-              <div class="flex flex-col">
+              <div class="flex flex-col flex-1 pl-1">
                 <span class="text-[9px] font-bold text-amber-500 uppercase tracking-wider flex items-center gap-1">
                    Pending Match
                 </span>
                 <span v-if="expiresAt" class="text-[10px] text-stone-400 font-medium mt-0.5">
                   Expires in {{ formatTimeRemaining }}
                 </span>
+                <div v-if="expiresAt" class="w-full h-1 mt-1.5 bg-stone-100 rounded-full overflow-hidden">
+                   <div class="h-full bg-amber-400" :style="{ width: timeRemainingPercentage + '%' }"></div>
+                </div>
               </div>
-              <div class="w-6 h-6 flex items-center justify-center rounded-full bg-amber-50 text-amber-500">
+              <div class="w-6 h-6 ml-3 flex items-center justify-center rounded-full bg-amber-50 text-amber-500 shrink-0">
                 <svg class="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
               </div>
             </template>
@@ -329,9 +332,16 @@
               </div>
               
               <!-- Icebreakers -->
-              <div v-if="unlocked && icebreakers.length > 0" class="mt-6">
-                <h3 class="text-xs font-bold text-stone-400 uppercase tracking-widest mb-3">Icebreaker Suggestions</h3>
-                <div class="space-y-2">
+              <div v-if="unlocked" class="mt-6">
+                <h3 class="text-xs font-bold text-stone-900 uppercase tracking-widest mb-3 flex items-center gap-2">
+                   <span class="text-rose-500">🤖</span> Smart Icebreakers
+                </h3>
+                <div v-if="loadingIcebreakers" class="space-y-2">
+                   <div class="h-10 bg-stone-50 rounded-lg animate-pulse"></div>
+                   <div class="h-10 bg-stone-50 rounded-lg animate-pulse"></div>
+                   <div class="h-10 bg-stone-50 rounded-lg animate-pulse"></div>
+                </div>
+                <div v-else-if="icebreakers.length > 0" class="space-y-2">
                   <button 
                     v-for="(icebreaker, idx) in icebreakers" 
                     :key="idx"
@@ -406,6 +416,13 @@
                     Call
                   </a>
                 </div>
+                <a 
+                  :href="proposeDateWhatsAppLink" 
+                  target="_blank"
+                  class="flex items-center justify-center gap-2 w-full py-3 bg-rose-50 text-rose-600 border border-rose-200 rounded-lg font-bold hover:bg-rose-100 transition-colors mt-2"
+                >
+                  <span class="text-lg">🥂</span> Propose a Date
+                </a>
               </div>
             </template>
             
@@ -506,10 +523,41 @@ const navigateToConnection = () => {
   router.push(`/me/connection/${props.matchId}`)
 }
 
+// Icebreaker API state
+const icebreakers = ref<string[]>([])
+const loadingIcebreakers = ref(false)
+const icebreakersLoaded = ref(false)
+
+const loadIcebreakers = async () => {
+   if (icebreakersLoaded.value || loadingIcebreakers.value) return
+   loadingIcebreakers.value = true
+   
+   try {
+      const response = await $fetch<any>('/api/ai/icebreakers', {
+         method: 'POST',
+         body: {
+            matchName: props.displayName,
+            sharedInterests: props.sharedInterests || [],
+            matchBio: props.bio,
+            matchVibe: props.vibeSummary
+         }
+      })
+      if (response && response.icebreakers && response.icebreakers.length > 0) {
+         icebreakers.value = response.icebreakers
+      }
+   } catch (e) {
+      console.error('Failed to load icebreakers', e)
+   } finally {
+      loadingIcebreakers.value = false
+      icebreakersLoaded.value = true
+   }
+}
+
 onMounted(() => {
   if (props.unlocked) {
     showCelebration.value = true
     setTimeout(() => { showCelebration.value = false }, 5000)
+    loadIcebreakers()
   }
 })
 
@@ -518,6 +566,7 @@ watch(() => props.unlocked, (newVal) => {
     showCelebration.value = true
     isUnlocking.value = false // Reset loading on success
     setTimeout(() => { showCelebration.value = false }, 5000)
+    loadIcebreakers()
   }
 })
 
@@ -559,47 +608,17 @@ const matchedTimeAgo = computed(() => {
   return `${Math.floor(days / 30)} months ago`
 })
 
-// Icebreaker suggestions based on shared interests
-const icebreakers = computed(() => {
-  if (!props.sharedInterests || props.sharedInterests.length === 0) {
-    return [
-      `Hi ${props.displayName || 'there'}! I noticed we matched. What's keeping you busy these days?`,
-      `Hey! 👋 Excited to connect with you. What made you join Minutes2Match?`
-    ]
-  }
-  
-  const suggestions: string[] = []
-  const name = props.displayName || 'there'
-  
-  props.sharedInterests.slice(0, 2).forEach(interest => {
-    switch (interest) {
-      case 'travel':
-        suggestions.push(`Hi ${name}! I saw we both love traveling ✈️ What's the most memorable place you've visited?`)
-        break
-      case 'fitness':
-        suggestions.push(`Hey ${name}! Fellow fitness enthusiast here 💪 What's your go-to workout?`)
-        break
-      case 'cooking':
-        suggestions.push(`Hi ${name}! I noticed we're both into cooking 🍳 What's your signature dish?`)
-        break
-      case 'movies':
-        suggestions.push(`Hey ${name}! Movie lover here too 🎬 Seen anything good lately?`)
-        break
-      case 'music':
-        suggestions.push(`Hi ${name}! What kind of music gets you going? 🎵`)
-        break
-      case 'food':
-        suggestions.push(`Hey ${name}! Fellow foodie here 🍕 What's your favorite spot in town?`)
-        break
-      case 'reading':
-        suggestions.push(`Hi ${name}! I love that we both enjoy reading 📚 Any book recommendations?`)
-        break
-      default:
-        suggestions.push(`Hi ${name}! Great that we have ${getInterestLabel(interest)} in common! Tell me more about it.`)
-    }
-  })
-  
-  return suggestions.slice(0, 2)
+// Time Scarcity Percentage
+const timeRemainingPercentage = computed(() => {
+   if (!props.matchedAt || !props.expiresAt) return 0
+   const start = new Date(props.matchedAt).getTime()
+   const end = new Date(props.expiresAt).getTime()
+   const now = Date.now()
+   
+   if (now >= end) return 0
+   const totalDuration = end - start
+   const remaining = end - now
+   return Math.max(0, Math.min(100, (remaining / totalDuration) * 100))
 })
 
 const cardClasses = computed(() => {
@@ -629,7 +648,17 @@ const whatsappLink = computed(() => {
   if (cleanPhone.startsWith('0')) cleanPhone = '233' + cleanPhone.slice(1)
   else if (!cleanPhone.startsWith('+') && !cleanPhone.startsWith('233')) cleanPhone = '233' + cleanPhone
   cleanPhone = cleanPhone.replace(/^\+/, '')
-  const message = encodeURIComponent(icebreakers.value[0] || `Hi ${props.displayName || 'there'}! 👋 We matched on Minutes2Match.`)
+  const message = encodeURIComponent(icebreakers.value?.[0] || `Hi ${props.displayName || 'there'}! 👋 We matched on Minutes2Match.`)
+  return `https://wa.me/${cleanPhone}?text=${message}`
+})
+
+const proposeDateWhatsAppLink = computed(() => {
+  if (!props.phone) return '#'
+  let cleanPhone = props.phone.replace(/[\s-]/g, '')
+  if (cleanPhone.startsWith('0')) cleanPhone = '233' + cleanPhone.slice(1)
+  else if (!cleanPhone.startsWith('+') && !cleanPhone.startsWith('233')) cleanPhone = '233' + cleanPhone
+  cleanPhone = cleanPhone.replace(/^\+/, '')
+  const message = encodeURIComponent(`Hi ${props.displayName || 'there'}! 👋 I saw we matched on M2M. 🥂 Are you free for drinks at an M2M Partner Venue this week?`)
   return `https://wa.me/${cleanPhone}?text=${message}`
 })
 

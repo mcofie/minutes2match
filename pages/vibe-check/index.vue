@@ -202,7 +202,10 @@
           <button
             :disabled="!canProceedStep2"
             @click="nextStep"
-            class="w-full bg-black text-white py-4 rounded-lg font-bold uppercase tracking-widest text-sm hover:bg-rose-500 hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,0.2)] hover:-translate-y-[1px] transition-all disabled:opacity-50 disabled:cursor-not-allowed border-2 border-black"
+            class="w-full py-4 rounded-xl font-bold uppercase tracking-widest text-sm transition-all border-2 active:scale-[0.98] disabled:cursor-not-allowed"
+            :class="!canProceedStep2
+              ? 'bg-stone-100 text-stone-400 border-stone-200 shadow-none'
+              : 'bg-rose-500 text-white border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:bg-rose-600 hover:-translate-y-[1px] hover:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] cursor-pointer'"
           >
             Let's vibe check! 🎯
           </button>
@@ -261,10 +264,11 @@
               <span class="font-bold text-stone-900 select-none mr-3 border-r-2 border-stone-200 pr-3 font-mono">+233</span>
               <input
                 type="tel"
+                inputmode="numeric"
                 v-model="form.phone"
-                placeholder="20 123 4567"
-                class="flex-1 text-lg font-bold outline-none bg-transparent placeholder-stone-300 text-stone-900 font-mono tracking-wide pr-8"
-                maxlength="10"
+                placeholder="201234567"
+                class="flex-1 text-lg font-bold outline-none bg-transparent placeholder-stone-300 text-stone-900 font-mono tracking-wide pr-8 no-spin"
+                maxlength="15"
               />
               <button v-if="contactPickerSupported" @click.prevent="pickVibeContact" type="button" class="absolute right-3 top-1/2 -translate-y-1/2 text-stone-400 hover:text-rose-500 transition-colors p-1" title="Select from Contacts">
                 <span class="text-xl">📱</span>
@@ -275,20 +279,30 @@
           <button
             :disabled="!isValidPhone || sendingOtp"
             @click="handleSendOtp"
-            class="w-full bg-black text-white py-4 rounded-lg font-bold uppercase tracking-widest text-sm hover:bg-rose-500 hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,0.2)] hover:-translate-y-[1px] transition-all disabled:opacity-50 disabled:cursor-not-allowed border-2 border-black"
+            class="w-full py-4 rounded-xl font-bold uppercase tracking-widest text-sm transition-all border-2 active:scale-[0.98] disabled:cursor-not-allowed"
+            :class="!isValidPhone || sendingOtp
+                ? 'bg-stone-100 text-stone-400 border-stone-200 shadow-none'
+                : 'bg-rose-500 text-white border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:bg-rose-600 hover:-translate-y-[1px] hover:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] cursor-pointer'"
           >
             {{ sendingOtp ? 'Sending...' : 'Send Code 📨' }}
           </button>
         </div>
 
         <div class="space-y-6" v-else>
+          <div class="text-center">
+             <div class="inline-flex flex-col items-center gap-1 px-4 py-2 rounded-xl border border-black bg-stone-100 text-stone-900 mb-6 font-mono">
+                <span class="text-[10px] font-bold uppercase tracking-widest text-stone-400">Check your {{ sentVia === 'telegram' ? 'Telegram ✉️' : 'SMS 📱' }}</span>
+                <span class="text-xs font-bold">{{ fullPhone }}</span>
+             </div>
+          </div>
           <div class="space-y-4">
-            <label class="block text-xs font-bold uppercase tracking-widest text-stone-900 w-full text-center">Enter the 6-digit code</label>
+            <label class="block text-xs font-bold uppercase tracking-widest text-stone-900 w-full text-center">Verification Code</label>
             <input
-              type="text"
+              type="tel"
+              inputmode="numeric"
               v-model="otpCode"
               placeholder="000000"
-              class="w-full py-4 text-4xl font-bold tracking-[0.5em] text-center outline-none bg-transparent border-b-4 border-stone-200 focus:border-black transition-colors placeholder-stone-200 font-mono"
+              class="w-full py-4 text-4xl font-bold tracking-[0.5em] text-center outline-none bg-transparent border-b-4 border-stone-200 focus:border-black transition-colors placeholder-stone-200 font-mono no-spin"
               maxlength="6"
               @keyup.enter="otpCode.length === 6 && handleVerifyOtp()"
             />
@@ -309,7 +323,10 @@
           <button
             :disabled="otpCode.length !== 6 || verifyingOtp"
             @click="handleVerifyOtp"
-            class="w-full bg-black text-white py-4 rounded-lg font-bold uppercase tracking-widest text-sm hover:bg-rose-500 hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,0.2)] hover:-translate-y-[1px] transition-all disabled:opacity-50 disabled:cursor-not-allowed border-2 border-black"
+            class="w-full py-4 rounded-xl font-bold uppercase tracking-widest text-sm transition-all border-2 active:scale-[0.98] disabled:cursor-not-allowed"
+            :class="otpCode.length !== 6 || verifyingOtp
+              ? 'bg-stone-100 text-stone-400 border-stone-200 shadow-none'
+              : 'bg-rose-500 text-white border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:bg-rose-600 hover:-translate-y-[1px] hover:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] cursor-pointer'"
           >
             {{ verifyingOtp ? 'Verifying...' : 'Verify & Continue ✨' }}
           </button>
@@ -352,7 +369,7 @@
           
           <button
             @click="finishOnboarding"
-            class="w-full bg-black text-white py-5 rounded-lg font-bold uppercase tracking-widest text-lg hover:bg-rose-500 hover:shadow-[6px_6px_0px_0px_rgba(0,0,0,0.2)] hover:-translate-y-[1px] transition-all border-2 border-black shadow-[6px_6px_0px_0px_rgba(244,63,94,1)]"
+            class="w-full bg-rose-500 text-white py-5 rounded-xl font-bold uppercase tracking-widest text-lg hover:bg-rose-600 hover:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] hover:-translate-y-[1px] transition-all border-2 border-black shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] active:scale-[0.98]"
           >
             Go to Account ✨
           </button>
@@ -579,6 +596,7 @@ const verifyingOtp = ref(false)
 const fallbackTimer = ref(0)
 let fallbackInterval: ReturnType<typeof setInterval> | null = null
 const fallbackTriggered = ref(false)
+const sentVia = ref('')
 
 onUnmounted(() => {
   if (fallbackInterval) clearInterval(fallbackInterval)
@@ -600,7 +618,13 @@ const maxBirthDate = computed(() => {
 
 const isValidPhone = computed(() => {
   const cleaned = form.phone.replace(/\D/g, '')
-  return cleaned.length >= 9
+  // Handles 201234567 (9), 0201234567 (10), or 233201234567 (12)
+  return cleaned.length >= 9 && cleaned.length <= 15
+})
+
+const fullPhone = computed(() => {
+  const cleaned = form.phone.replace(/\D/g, '').replace(/^0+/, '')
+  return cleaned.startsWith('233') ? '+' + cleaned : '+233' + cleaned
 })
 
 const canProceedStep2 = computed(() => {
@@ -670,12 +694,10 @@ const handleSendOtp = async () => {
   otpError.value = ''
   
   try {
-    const fullPhone = '+233' + form.phone.replace(/\D/g, '').replace(/^0+/, '')
-    
     // First check if this is a seeded/verified user who can skip OTP
     const checkResult = await $fetch<any>('/api/auth/check-existing-user', {
       method: 'POST',
-      body: { phone: fullPhone }
+      body: { phone: fullPhone.value }
     })
     
     if (checkResult.exists && !checkResult.requiresOtp && checkResult.email && checkResult.password) {
@@ -715,8 +737,9 @@ const handleSendOtp = async () => {
     
     // Normal flow: send OTP
     const { sendOTP } = useZend()
-    const otpResult = await sendOTP(fullPhone, undefined) // default provider
+    const otpResult = await sendOTP(fullPhone.value, undefined) // default provider
     otpId.value = otpResult.otpId
+    sentVia.value = otpResult.provider || 'sms'
     otpSent.value = true
 
     // Autonomous UI Failover Strategy
@@ -735,7 +758,7 @@ const handleSendOtp = async () => {
           toast.info('Network Warning', 'Network seems slow. Sending a backup verification code now...')
           console.log('[Vibe Check Auto-Failover] Firing Zend backup after 45s delay')
           // Silently trigger the backup SMS
-          sendOTP(fullPhone, 'zend')
+          sendOTP(fullPhone.value, 'zend')
         }
       }
     }, 1000) // 1 second intervals
@@ -889,7 +912,9 @@ const createUserProfile = async () => {
         religion: form.religion || null,
         heightCm: form.height,
         occupation: form.occupation || null,
-        vibeAnswers
+        vibeAnswers,
+        telegramId: (isTMA.value && tgUser.value) ? tgUser.value.id.toString() : undefined,
+        photoUrl: (isTMA.value && tgUser.value?.photo_url) ? tgUser.value.photo_url : undefined
       }
     })
 

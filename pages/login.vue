@@ -54,17 +54,11 @@
                 <input
                   type="tel"
                   inputmode="numeric"
-                  pattern="[0-9 ]*"
                   v-model="formattedPhone"
-                  placeholder="20 123 4567"
+                  placeholder="201234567"
                   autocomplete="username webauthn"
-                  class="flex-1 text-[17px] font-bold outline-none bg-transparent placeholder-stone-300 text-stone-900 font-mono tracking-widest pr-8"
-                  maxlength="12"
-                  @keydown="(e) => { 
-                    const allowed = ['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab', 'Enter', 'Home', 'End'];
-                    if (allowed.includes(e.key) || e.ctrlKey || e.metaKey || e.altKey) return;
-                    if (!/^[0-9]$/.test(e.key)) e.preventDefault();
-                  }"
+                  class="flex-1 text-[17px] font-bold outline-none bg-transparent placeholder-stone-300 text-stone-900 font-mono tracking-widest pr-8 no-spin"
+                  maxlength="15"
                   @keyup.enter="isValidPhone && sendOtp()"
                 />
                 <button v-if="contactPickerSupported" @click.prevent="pickLoginContact" type="button" class="absolute right-3 top-1/2 -translate-y-1/2 text-stone-400 hover:text-rose-500 transition-colors p-1" title="Select from Contacts">
@@ -77,7 +71,10 @@
             <button 
               :disabled="!isValidPhone || sending || isLoggingIn"
               @click="() => sendOtp()"
-              class="w-full py-4 rounded-[16px] font-bold uppercase tracking-widest text-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed bg-stone-500 text-white hover:bg-stone-600 disabled:bg-stone-400 disabled:hover:bg-stone-400 border-2 border-transparent"
+              class="w-full py-4 rounded-[16px] font-bold uppercase tracking-widest text-sm transition-all border-2 active:scale-[0.98] disabled:cursor-not-allowed"
+              :class="!isValidPhone || sending || isLoggingIn 
+                ? 'bg-stone-100 text-stone-400 border-stone-200' 
+                : 'bg-rose-500 text-white border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:bg-rose-600 hover:-translate-y-[1px] hover:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] cursor-pointer'"
             >
               {{ sending ? 'Sending...' : 'Continue with Phone' }}
             </button>
@@ -95,7 +92,10 @@
               @click="handlePasskeyLogin"
               :disabled="sending || isLoggingIn"
               type="button"
-              class="w-full py-4 rounded-[16px] font-bold uppercase tracking-widest text-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed bg-black text-white hover:bg-rose-500 hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,0.2)] hover:-translate-y-[1px] border-2 border-black flex items-center justify-center gap-3"
+              class="w-full py-4 rounded-[16px] font-bold uppercase tracking-widest text-sm transition-all border-2 active:scale-[0.98] disabled:cursor-not-allowed flex items-center justify-center gap-3"
+              :class="sending || isLoggingIn
+                ? 'bg-stone-100 text-stone-400 border-stone-200 shadow-none'
+                : 'bg-rose-500 text-white border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:bg-rose-600 hover:-translate-y-[1px] hover:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] cursor-pointer'"
             >
               <span class="text-lg">{{ authMethod === 'passkey' ? '🧬' : '👋' }}</span>
               <span>{{ authMethod === 'passkey' ? 'Verifying Passkey...' : 'Continue with Passkey' }}</span>
@@ -115,18 +115,20 @@
         <!-- OTP Verification Step -->
         <div v-else class="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
           <div class="text-center">
-             <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-black bg-stone-100 text-xs font-bold text-stone-900 mb-6 font-mono">
-                <span>Sent to +233 {{ phone }}</span>
+             <div class="inline-flex flex-col items-center gap-1 px-4 py-2 rounded-xl border border-black bg-stone-100 text-stone-900 mb-6 font-mono">
+                <span class="text-[10px] font-bold uppercase tracking-widest text-stone-400">Check your {{ sentVia === 'telegram' ? 'Telegram ✉️' : 'SMS 📱' }}</span>
+                <span class="text-xs font-bold">{{ fullPhone }}</span>
              </div>
           </div>
 
           <div class="space-y-4">
             <label class="block text-xs font-bold uppercase tracking-widest text-stone-900 text-center">Verification Code</label>
             <input
-              type="text"
+              type="tel"
+              inputmode="numeric"
               v-model="otpCode"
               placeholder="000000"
-              class="w-full py-4 text-4xl font-bold tracking-[0.5em] text-center outline-none bg-transparent border-b-4 border-stone-200 focus:border-black transition-colors placeholder-stone-200 font-mono"
+              class="w-full py-4 text-4xl font-bold tracking-[0.5em] text-center outline-none bg-transparent border-b-4 border-stone-200 focus:border-black transition-colors placeholder-stone-200 font-mono no-spin"
               maxlength="6"
               @keyup.enter="otpCode.length === 6 && verifyOtp()"
               id="otp-input"
@@ -136,7 +138,10 @@
           <button 
             :disabled="otpCode.length !== 6 || verifying"
             @click="verifyOtp"
-            class="w-full bg-black text-white py-4 rounded-lg font-bold uppercase tracking-widest text-sm hover:bg-rose-500 hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,0.2)] hover:-translate-y-[1px] transition-all disabled:opacity-50 disabled:cursor-not-allowed border-2 border-black mt-8"
+            class="w-full py-4 rounded-xl font-bold uppercase tracking-widest text-sm transition-all border-2 active:scale-[0.98] disabled:cursor-not-allowed mt-8"
+            :class="otpCode.length !== 6 || verifying
+              ? 'bg-stone-100 text-stone-400 border-stone-200 shadow-none'
+              : 'bg-rose-500 text-white border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:bg-rose-600 hover:-translate-y-[1px] hover:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] cursor-pointer'"
           >
             {{ verifying ? 'Verifying...' : 'Sign In' }}
           </button>
@@ -207,21 +212,9 @@ const isLoggingIn = ref(false)
 const phone = ref('')
 
 const formattedPhone = computed({
-  get: () => {
-    const p = phone.value.replace(/\D/g, '')
-    if (p.length === 0) return ''
-    if (p.startsWith('0')) { // e.g. 020 123 4567
-      if (p.length <= 3) return p
-      if (p.length <= 6) return `${p.slice(0,3)} ${p.slice(3)}`
-      return `${p.slice(0,3)} ${p.slice(3,6)} ${p.slice(6,10)}`
-    } else { // e.g. 20 123 4567
-      if (p.length <= 2) return p
-      if (p.length <= 5) return `${p.slice(0,2)} ${p.slice(2)}`
-      return `${p.slice(0,2)} ${p.slice(2,5)} ${p.slice(5,9)}`
-    }
-  },
-  set: (val: string) => {
-    phone.value = val.replace(/\D/g, '')
+  get: () => phone.value.replace(/\D/g, ''),
+  set: (val: string | number) => {
+    phone.value = val.toString().replace(/\D/g, '')
   }
 })
 
@@ -235,6 +228,7 @@ const otpId = ref('')
 const fallbackTimer = ref(0)
 let fallbackInterval: ReturnType<typeof setInterval> | null = null
 const fallbackTriggered = ref(false)
+const sentVia = ref('')
 
 onUnmounted(() => {
   if (fallbackInterval) clearInterval(fallbackInterval)
@@ -401,11 +395,20 @@ const signUserIn = async (result: any) => {
 
 const isValidPhone = computed(() => {
   const cleaned = phone.value.replace(/\D/g, '')
-  return cleaned.length >= 9
+  // Handles 201234567 (9), 0201234567 (10), or 233201234567 (12)
+  return cleaned.length >= 9 && cleaned.length <= 15
 })
 
 const fullPhone = computed(() => {
-  return '+233' + phone.value.replace(/\D/g, '').replace(/^0+/, '')
+  let cleaned = phone.value.replace(/\D/g, '')
+  
+  // If user typed +233 or 233, just use it
+  if (cleaned.startsWith('233') && cleaned.length >= 12) {
+    return '+' + cleaned
+  }
+  
+  // Otherwise, handle leading zero and prepend 233
+  return '+233' + cleaned.replace(/^0+/, '')
 })
 
 const sendOtp = async (provider?: 'hubtel' | 'zend') => {
@@ -418,6 +421,7 @@ const sendOtp = async (provider?: 'hubtel' | 'zend') => {
     const { sendOTP } = useZend() // NOTE: It's useZend but now acts as useSMS orchestrator
     const result = await sendOTP(fullPhone.value, provider)
     otpId.value = result.otpId
+    sentVia.value = result.provider || 'sms'
     otpSent.value = true
     
     // Focus OTP input on next tick

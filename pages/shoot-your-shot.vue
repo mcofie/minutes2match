@@ -276,7 +276,10 @@
         <button 
           type="submit" 
           :disabled="submitting || !isComplete" 
-          class="w-full bg-black dark:bg-stone-100 text-white dark:text-black py-4 rounded-xl font-bold text-lg hover:bg-rose-500 dark:hover:bg-rose-500 dark:hover:text-white transition-all shadow-[6px_6px_0px_0px_rgba(244,63,94,1)] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] border border-black dark:border-stone-100 disabled:opacity-50 disabled:cursor-not-allowed"
+          class="w-full py-4 rounded-xl font-bold text-lg transition-all border-2 active:scale-[0.98] disabled:cursor-not-allowed"
+          :class="submitting || !isComplete
+            ? 'bg-stone-100 text-stone-400 border-stone-200 shadow-none'
+            : 'bg-rose-500 text-white border-black shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] hover:bg-rose-600 hover:-translate-y-[1px] hover:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] cursor-pointer'"
         >
           {{ submitting ? 'Setting up payment...' : 'Shoot Your Shot — GH₵15' }}
         </button>

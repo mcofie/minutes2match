@@ -29,7 +29,7 @@ export const useZend = () => {
         console.log(`📱 Sending OTP to: ${phone} (provider: ${provider || 'default'})`)
 
         try {
-            const response = await $fetch<{ success: boolean; otpId: string; expiresAt: string }>('/api/otp/send', {
+            const response = await $fetch<{ success: boolean; otpId: string; expiresAt: string; provider: string }>('/api/otp/send', {
                 method: 'POST',
                 body: { phone, provider }
             })
@@ -42,7 +42,8 @@ export const useZend = () => {
             return {
                 success: true,
                 otpId: response.otpId,
-                expiresAt: response.expiresAt
+                expiresAt: response.expiresAt,
+                provider: response.provider
             }
         } catch (error) {
             console.error('OTP send error:', error)

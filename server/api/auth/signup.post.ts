@@ -27,7 +27,9 @@ export default defineEventHandler(async (event) => {
         heightCm,
         occupation,
         vibeAnswers,
-        referralCode // Optional referral code from URL
+        referralCode, // Optional referral code from URL
+        telegramId,
+        photoUrl
     } = body
 
     if (!phone) {
@@ -147,7 +149,9 @@ export default defineEventHandler(async (event) => {
                 occupation: occupation || null,
                 is_verified: true,
                 // Preserve seeded about_me if it exists
-                about_me: existingAboutMe || null
+                about_me: existingAboutMe || null,
+                telegram_id: telegramId || null,
+                photo_url: photoUrl || null
             })
 
         if (profileError) throw profileError

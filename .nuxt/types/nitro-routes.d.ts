@@ -39,6 +39,9 @@ declare module "nitropack/types" {
     '/api/admin/vouches/resend-sms': {
       'post': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/admin/vouches/resend-sms.post').default>>>>
     }
+    '/api/ai/icebreakers': {
+      'post': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/ai/icebreakers.post').default>>>>
+    }
     '/api/auth/check-existing-user': {
       'post': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/auth/check-existing-user.post').default>>>>
     }

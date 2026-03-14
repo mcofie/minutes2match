@@ -81,16 +81,17 @@ export default defineEventHandler(async (event) => {
         otpRecord = record
 
         // Send via unified SMS orchestrator
-        await sendSMS(normalizedPhone, message, {
+        const smsResult = await sendSMS(normalizedPhone, message, {
             provider: provider, // Allows explicit fallback to 'zend'
             priority: 'urgent'
         })
 
-        console.log(`[OTP] Sent to ${normalizedPhone}, DB ID: ${otpRecord.id}`)
+        console.log(`[OTP] Sent to ${normalizedPhone} via ${smsResult.provider}, DB ID: ${otpRecord.id}`)
         return {
             success: true,
             otpId: otpRecord.id,
-            expiresAt: expiresAt.toISOString()
+            expiresAt: expiresAt.toISOString(),
+            provider: smsResult.provider
         }
     } catch (error: any) {
         console.error(`[OTP] Send failed for ${normalizedPhone} via ${provider || 'primary provider'}:`, error?.message)

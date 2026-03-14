@@ -5,7 +5,7 @@
     </Head>
     <!-- Header -->
     <div class="flex items-center justify-between gap-2 md:gap-4 mb-5 md:mb-8 pt-2">
-       <h2 class="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight dark:text-white whitespace-nowrap overflow-hidden text-ellipsis leading-none">Profile Settings</h2>
+       <h2 class="text-2xl font-bold tracking-tight dark:text-white leading-none">Profile Settings</h2>
        <div class="flex items-center gap-1.5 md:gap-2 shrink-0">
            <span class="inline-flex shrink-0 items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-stone-500 dark:text-stone-400 bg-stone-100 dark:bg-stone-900 border border-stone-200 dark:border-stone-800 px-2 sm:px-3 py-1.5 rounded-full shadow-sm" :title="personaData?.name || 'New Member'">
              <span class="text-xs">{{ personaData?.emoji || '✨' }}</span>
@@ -45,7 +45,7 @@
             <!-- Profile Strength -->
             <div class="w-full mb-6">
                <div class="flex justify-between items-center mb-2">
-                  <span class="text-[9px] font-bold uppercase tracking-widest text-stone-400">Profile Strength</span>
+                  <span class="text-[9px] font-bold uppercase tracking-widest text-stone-400 dark:text-stone-300">Profile Strength</span>
                   <span class="text-xs font-black" :class="profileStrength > 80 ? 'text-emerald-500' : 'text-rose-500'">{{ profileStrength }}%</span>
                </div>
                <div class="w-full h-3 bg-stone-100 dark:bg-stone-800 rounded-full border border-black overflow-hidden relative">
@@ -90,16 +90,16 @@
             </div>
             <div class="space-y-4">
                <div class="space-y-1.5">
-                  <div class="flex justify-between text-[8px] font-bold uppercase tracking-widest text-stone-400">
+                  <div class="flex justify-between text-[8px] font-bold uppercase tracking-widest text-stone-400 dark:text-stone-300">
                      <span>Vibe Harmony</span>
-                     <span class="text-stone-900 dark:text-white">88%</span>
+                     <span class="text-stone-900 dark:text-stone-200">88%</span>
                   </div>
                   <div class="h-1 bg-stone-100 dark:bg-stone-800 rounded-full overflow-hidden">
                      <div class="h-full bg-rose-500 w-[88%] transform group-hover:scale-x-105 transition-transform origin-left"></div>
                   </div>
                </div>
                <div class="space-y-1.5">
-                  <div class="flex justify-between text-[8px] font-bold uppercase tracking-widest text-stone-400">
+                  <div class="flex justify-between text-[8px] font-bold uppercase tracking-widest text-stone-400 dark:text-stone-300">
                      <span>Intent Alignment</span>
                      <span class="text-stone-900 dark:text-white">72%</span>
                   </div>
@@ -128,10 +128,10 @@
          <!-- Community Health Card -->
          <div class="bg-stone-900 text-white p-5 rounded-xl border-2 border-stone-800 shadow-[8px_8px_0px_0px_rgba(0,0,0,0.1)] overflow-hidden relative group animate-in fade-in slide-in-from-bottom-4 duration-700 delay-300">
             <div class="absolute -top-2 -right-2 p-4 opacity-5 text-6xl group-hover:scale-110 transition-transform">🛡️</div>
-            <h4 class="text-[10px] font-black uppercase tracking-[0.25em] text-rose-500 mb-4">Pool Quality Control</h4>
+            <h4 class="text-[10px] font-black uppercase tracking-[0.4em] text-rose-400 mb-4">Pool Quality Control</h4>
             <div class="space-y-4">
                <div class="flex items-center justify-between">
-                  <span class="text-[9px] font-bold uppercase tracking-widest text-stone-400">Match Pool Purity</span>
+                  <span class="text-[9px] font-bold uppercase tracking-widest text-stone-300">Match Pool Purity</span>
                   <span class="text-xs font-black text-emerald-400">98.4%</span>
                </div>
                <div class="h-1.5 w-full bg-stone-800 rounded-full overflow-hidden border border-stone-700">
@@ -142,7 +142,7 @@
                      <span class="text-rose-500 font-black">ACTIVE PURGE:</span> Our algorithm recently removed <span class="text-white font-bold">14 inactive or low-quality profiles</span> to maintain your connection standards.
                   </p>
                </div>
-               <div class="flex items-center gap-2 text-[8px] font-bold uppercase tracking-[0.2em] text-stone-500">
+               <div class="flex items-center gap-2 text-[8px] font-bold uppercase tracking-[0.2em] text-stone-400">
                   <span class="relative flex h-2 w-2">
                      <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                      <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
