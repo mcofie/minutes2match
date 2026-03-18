@@ -6,6 +6,7 @@
  */
 
 import { createClient } from '@supabase/supabase-js'
+import { notifyPaymentInitiated } from '~/server/utils/discord'
 
 interface InitializePaymentBody {
     email: string
@@ -187,6 +188,15 @@ export default defineEventHandler(async (event) => {
             })
         }
         console.log('[Paystack] Created pending payment record:', paymentData.reference)
+        
+        // Notify Discord about the initiated payment
+        await notifyPaymentInitiated({
+            amount: body.amount,
+            currency: 'GHS',
+            purpose: body.metadata?.purpose || 'match_unlock',
+            userEmail: body.email,
+            reference: paymentData.reference
+        })
 
         return paymentData
     } catch (error: any) {

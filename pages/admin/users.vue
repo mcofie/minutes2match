@@ -443,21 +443,112 @@
 
                 <!-- Bio / About Me Card -->
                 <div class="info-card info-card--full">
-                  <h4 class="info-card__title">
-                    <svg class="card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                      <polyline points="14 2 14 8 20 8"/>
-                      <line x1="16" y1="13" x2="8" y2="13"/>
-                      <line x1="16" y1="17" x2="8" y2="17"/>
-                    </svg>
-                    About Me
-                  </h4>
+                  <div class="flex justify-between items-start mb-4">
+                    <h4 class="info-card__title m-0">
+                      <svg class="card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                        <polyline points="14 2 14 8 20 8"/>
+                        <line x1="16" y1="13" x2="8" y2="13"/>
+                        <line x1="16" y1="17" x2="8" y2="17"/>
+                      </svg>
+                      About Me
+                    </h4>
+                    <button 
+                      class="btn-xs border border-stone-200 hover:bg-stone-50 transition-colors flex items-center gap-1 font-bold text-[10px] uppercase"
+                      :disabled="extractingAi"
+                      @click="extractAiPreferences"
+                    >
+                      <svg v-if="extractingAi" class="animate-spin h-3 w-3" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
+                      <span v-else>✨ Refresh AI Analysis</span>
+                    </button>
+                  </div>
                   <p v-if="selectedUser.about_me" class="bio-text">
                     "{{ selectedUser.about_me }}"
                   </p>
                   <p v-else class="bio-text bio-text--empty">
                     No bio added yet
                   </p>
+
+                  <!-- AI Extracted Preferences -->
+                  <div v-if="selectedUser.preferences_extracted && Object.keys(selectedUser.preferences_extracted).length > 0" class="mt-6 pt-6 border-t border-stone-100">
+                    <div class="flex items-center gap-2 mb-4">
+                      <span class="px-2 py-0.5 bg-blue-50 text-blue-600 rounded text-[9px] font-black uppercase tracking-widest border border-blue-100">AI Analyzed Preferences</span>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <!-- Seeking Section -->
+                      <div class="ai-section">
+                        <p class="text-[10px] font-black text-stone-400 uppercase tracking-widest mb-3">Looking For</p>
+                        <div class="space-y-4">
+                          <div v-if="selectedUser.preferences_extracted.seeking?.attributes?.length">
+                            <p class="text-[9px] font-bold text-stone-500 mb-1">Traits & Attributes</p>
+                            <div class="flex flex-wrap gap-1">
+                              <span v-for="attr in selectedUser.preferences_extracted.seeking.attributes" :key="attr" class="px-2 py-0.5 bg-stone-100 text-stone-800 rounded text-[10px] font-medium border border-stone-200">
+                                {{ attr }}
+                              </span>
+                            </div>
+                          </div>
+                          
+                          <div v-if="selectedUser.preferences_extracted.seeking?.lifestyle?.length">
+                            <p class="text-[9px] font-bold text-stone-500 mb-1">Lifestyle Alignment</p>
+                            <div class="flex flex-wrap gap-1">
+                              <span v-for="ls in selectedUser.preferences_extracted.seeking.lifestyle" :key="ls" class="px-2 py-0.5 bg-stone-100 text-stone-800 rounded text-[10px] font-medium border border-stone-200">
+                                {{ ls }}
+                              </span>
+                            </div>
+                          </div>
+
+                          <div v-if="selectedUser.preferences_extracted.seeking?.dealbreakers?.length">
+                            <p class="text-[9px] font-bold text-red-500 mb-1">AI-Detected Dealbreakers</p>
+                            <div class="flex flex-wrap gap-1">
+                              <span v-for="db in selectedUser.preferences_extracted.seeking.dealbreakers" :key="db" class="px-2 py-0.5 bg-red-50 text-red-600 rounded text-[10px] font-bold border border-red-100">
+                                {{ db }}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <!-- Self Section -->
+                      <div class="ai-section">
+                        <p class="text-[10px] font-black text-stone-400 uppercase tracking-widest mb-3">Self Description</p>
+                        <div class="space-y-4">
+                          <div v-if="selectedUser.preferences_extracted.self?.personality?.length">
+                            <p class="text-[9px] font-bold text-stone-500 mb-1">Personality Traits</p>
+                            <div class="flex flex-wrap gap-1">
+                              <span v-for="p in selectedUser.preferences_extracted.self.personality" :key="p" class="px-2 py-0.5 bg-indigo-50 text-indigo-700 rounded text-[10px] font-medium border border-indigo-100">
+                                {{ p }}
+                              </span>
+                            </div>
+                          </div>
+
+                          <div v-if="selectedUser.preferences_extracted.self?.values?.length">
+                            <p class="text-[9px] font-bold text-stone-500 mb-1">Core Values</p>
+                            <div class="flex flex-wrap gap-1">
+                              <span v-for="v in selectedUser.preferences_extracted.self.values" :key="v" class="px-2 py-0.5 bg-indigo-50 text-indigo-700 rounded text-[10px] font-medium border border-indigo-100">
+                                {{ v }}
+                              </span>
+                            </div>
+                          </div>
+
+                          <div v-if="selectedUser.preferences_extracted.self?.lifestyle?.length">
+                            <p class="text-[9px] font-bold text-stone-500 mb-1">Habits & Lifestyle</p>
+                            <div class="flex flex-wrap gap-1">
+                              <span v-for="ls in selectedUser.preferences_extracted.self.lifestyle" :key="ls" class="px-2 py-0.5 bg-indigo-50 text-indigo-700 rounded text-[10px] font-medium border border-indigo-100">
+                                {{ ls }}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div v-else-if="!selectedUser.about_me || selectedUser.about_me.length < 10" class="mt-4 text-[10px] text-stone-400 italic">
+                    Bio is too short for AI analysis (min 10 characters).
+                  </div>
+                  <div v-else-if="extractError" class="mt-4 text-[10px] text-red-500 font-bold">
+                    {{ extractError }}
+                  </div>
                 </div>
 
                 <!-- Interests Card -->
@@ -830,6 +921,8 @@ const fetchingPreview = ref(false)
 const sendingReminder = ref(false)
 const reminderSent = ref(false)
 const reminderPreview = ref<any>(null)
+const extractingAi = ref(false)
+const extractError = ref('')
 
 const userAnswers = ref<any[]>([])
 const loadingAnswers = ref(false)
@@ -1121,6 +1214,38 @@ const closeModal = () => {
   activeTab.value = 'profile'
   reminderSent.value = false
   reminderPreview.value = null
+  extractingAi.value = false
+  extractError.value = ''
+}
+
+const extractAiPreferences = async () => {
+  if (!selectedUser.value) return
+  
+  extractingAi.value = true
+  extractError.value = ''
+  
+  try {
+    const response = await $fetch('/api/ai/extract-preferences', {
+      method: 'POST',
+      body: { userId: selectedUser.value.id }
+    }) as any
+    
+    if (response.success && response.data) {
+      selectedUser.value.preferences_extracted = response.data
+      // Also update in the main list so it persists if modal reopens
+      const index = users.value.findIndex(u => u.id === selectedUser.value.id)
+      if (index !== -1) {
+        users.value[index].preferences_extracted = response.data
+      }
+    } else {
+      extractError.value = response.message || 'AI failed to extract preferences'
+    }
+  } catch (err: any) {
+    console.error('AI Extraction Error:', err)
+    extractError.value = err.data?.message || 'Failed to connect to AI service'
+  } finally {
+    extractingAi.value = false
+  }
 }
 
 const fetchReminderPreview = async () => {

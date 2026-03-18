@@ -157,7 +157,8 @@
             <div class="mt-8 pt-6 border-t border-stone-800">
                <div class="p-4 bg-stone-800/50 rounded-xl border border-stone-700/50">
                   <p class="text-[10px] font-bold text-stone-400 text-center leading-relaxed">
-                    Total Potential Weight: 100 Points<br/>
+                    Base Potential Weight: 100 Points<br/>
+                    AI Synergy Bonus: +10 Points<br/>
                     Penalty Max: -100%+ (Absolute Zero)
                   </p>
                </div>
@@ -239,6 +240,16 @@ const weights = [
        '3+ Shared Badges: 10pts',
        '1 Shared Badge: 5pts'
      ]
+  },
+  {
+      category: 'Persona Synergy (AI)',
+      icon: '🧠',
+      max: 10,
+      description: 'AI-extracted traits from user bios matched against partner requirements.',
+      bullets: [
+        'Trait Alignment: +2-10pts',
+        'Bio-detected Conflict: -30 penalty'
+      ]
   }
 ]
 

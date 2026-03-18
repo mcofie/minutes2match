@@ -99,6 +99,39 @@ export async function notifyNewSignup(user: { email: string; phone?: string; dis
     })
 }
 
+export async function notifyPaymentInitiated(payment: {
+    amount: number
+    currency: string
+    purpose: string
+    userEmail?: string
+    reference: string
+}) {
+    let purposeEmoji = '🎟️'
+    let purposeLabel = 'Event Ticket'
+
+    if (payment.purpose === 'match_unlock') {
+        purposeEmoji = '💍'
+        purposeLabel = 'Match Unlock'
+    } else if (payment.purpose === 'subscription') {
+        purposeEmoji = '⭐'
+        purposeLabel = 'Subscription'
+    } else if (payment.purpose === 'shoot_your_shot') {
+        purposeEmoji = '🎯'
+        purposeLabel = 'Shoot Your Shot'
+    }
+
+    await notifyDiscord({
+        title: `${purposeEmoji} Payment Initiated`,
+        color: DiscordColors.warning,
+        fields: [
+            { name: 'Amount', value: `${payment.currency} ${payment.amount}`, inline: true },
+            { name: 'Type', value: purposeLabel, inline: true },
+            { name: 'Reference', value: payment.reference, inline: true },
+            { name: 'User', value: payment.userEmail || 'Unknown', inline: false },
+        ]
+    })
+}
+
 export async function notifyPaymentSuccess(payment: {
     amount: number
     currency: string
@@ -106,8 +139,19 @@ export async function notifyPaymentSuccess(payment: {
     userEmail?: string
     reference: string
 }) {
-    const purposeEmoji = payment.purpose === 'match_unlock' ? '💕' : '🎟️'
-    const purposeLabel = payment.purpose === 'match_unlock' ? 'Match Unlock' : 'Event Ticket'
+    let purposeEmoji = '🎟️'
+    let purposeLabel = 'Event Ticket'
+
+    if (payment.purpose === 'match_unlock') {
+        purposeEmoji = '💕'
+        purposeLabel = 'Match Unlock'
+    } else if (payment.purpose === 'subscription') {
+        purposeEmoji = '💎'
+        purposeLabel = 'Subscription'
+    } else if (payment.purpose === 'shoot_your_shot') {
+        purposeEmoji = '🚀'
+        purposeLabel = 'Shoot Your Shot'
+    }
 
     await notifyDiscord({
         title: `${purposeEmoji} Payment Received`,

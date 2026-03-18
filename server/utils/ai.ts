@@ -15,10 +15,10 @@ export const getGeminiModel = () => {
     }
 
     console.log('[Gemini] Model initialized successfully with API Key.')
-
     const genAI = new GoogleGenerativeAI(apiKey)
-    // Using gemini-pro as it has the widest availability and stability across v1/v1beta
-    return genAI.getGenerativeModel({ model: "gemini-pro" })
+    // Using gemini-2.5-flash as it has the widest availability and stability
+    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" })
+    return model
 }
 
 /**
@@ -72,6 +72,52 @@ export const auditProfileWithAI = async (profile: {
         return null
     } catch (error) {
         console.error('AI Profile Audit Error:', error)
+        return null
+    }
+}
+
+/**
+ * Extracts structured preferences and traits from a user's bio/about_me text.
+ * Used to power advanced matchmaking based on text-embedded preferences.
+ */
+export const extractPreferencesFromBio = async (bio: string) => {
+    const model = getGeminiModel()
+    if (!model || !bio || bio.length < 10) return null
+
+    const prompt = `
+        You are an expert matchmaker for "Minutes 2 Match", a premium matchmaking service.
+        Analyze the following user bio and extract structured preferences and self-traits.
+        Be objective and only extract what is explicitly or very strongly implied.
+        
+        BIO: "${bio}"
+
+        Respond ONLY in JSON format with this structure:
+        {
+            "seeking": {
+                "attributes": string[], // physical or personality traits they want (e.g. ["tall", "ambitious", "kind"])
+                "dealbreakers": string[], // clear must-NOT-haves (e.g. ["smoker", "unemployed", "lazy"])
+                "lifestyle": string[] // shared habits (e.g. ["active", "homebody", "traveler"])
+            },
+            "self": {
+                "personality": string[], // how they describe themselves (e.g. ["introverted", "funny", "serious"])
+                "values": string[], // things they care about (e.g. ["family-oriented", "career-driven", "faith-based"])
+                "lifestyle": string[] // what they do (e.g. ["hiker", "foodie", "reader"])
+            }
+        }
+    `
+
+    try {
+        const result = await model.generateContent(prompt)
+        const responseText = result.response.text()
+
+        // Clean markdown if AI includes it
+        const jsonMatch = responseText.match(/\{[\s\S]*\}/)
+        if (jsonMatch) {
+            return JSON.parse(jsonMatch[0])
+        }
+        return null
+    } catch (error) {
+        console.error('AI Preference Extraction Error:', error)
         return null
     }
 }

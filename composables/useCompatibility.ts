@@ -25,6 +25,18 @@ export interface UserProfile {
     dealbreakers?: string[]
     min_age?: number
     max_age?: number
+    preferences_extracted?: {
+        seeking: {
+            attributes: string[]
+            dealbreakers: string[]
+            lifestyle: string[]
+        }
+        self: {
+            personality: string[]
+            values: string[]
+            lifestyle: string[]
+        }
+    }
 }
 
 export interface CompatibilityResult {
@@ -35,6 +47,7 @@ export interface CompatibilityResult {
         lifestyleMatch: number // 0-20 points
         maturityMatch: number // 0-10 points
         interestMatch: number // 0-10 points
+        aiSynergy?: number // 0-10 bonus points from bio extraction
     }
     strengths: string[]
     warnings: string[]
@@ -103,7 +116,7 @@ export const useCompatibility = () => {
 
         const strengths: string[] = []
         const warnings: string[] = []
-        const breakdown = { vibeMatch: 0, goalsMatch: 0, lifestyleMatch: 0, maturityMatch: 0, interestMatch: 0 }
+        const breakdown = { vibeMatch: 0, goalsMatch: 0, lifestyleMatch: 0, maturityMatch: 0, interestMatch: 0, aiSynergy: 0 }
         let malus = 0
 
         // 1. HARD FILTER: GENDER & INTEREST (Hard 0 if mismatch)
@@ -255,7 +268,42 @@ export const useCompatibility = () => {
             }
         }
 
-        const rawScore = breakdown.vibeMatch + breakdown.goalsMatch + breakdown.lifestyleMatch + breakdown.maturityMatch + breakdown.interestMatch
+        // 8. AI PREFERENCE SYNERGY (BIO EXTRACTION)
+        if (u1.preferences_extracted && u2.preferences_extracted) {
+            let aiPoints = 0
+            
+            const p1 = u1.preferences_extracted
+            const p2 = u2.preferences_extracted
+
+            // Check match: P1 Seeking vs P2 Self
+            const match1 = (p1.seeking?.attributes || []).filter(a => (p2.self?.personality || []).concat(p2.self?.lifestyle || []).some(s => s.toLowerCase().includes(a.toLowerCase()))).length
+            const match2 = (p2.seeking?.attributes || []).filter(a => (p1.self?.personality || []).concat(p1.self?.lifestyle || []).some(s => s.toLowerCase().includes(a.toLowerCase()))).length
+            
+            aiPoints = (match1 + match2) * 2 // Each match is worth a bit
+            breakdown.aiSynergy = Math.min(10, aiPoints)
+            
+            if (breakdown.aiSynergy >= 6) {
+                strengths.push('Bio Personalities Match ✨')
+            }
+
+            // AI Dealbreakers
+            const aiDealbreakers1 = p1.seeking?.dealbreakers || []
+            const aiDealbreakers2 = p2.seeking?.dealbreakers || []
+            
+            const p1Self = (p1.self?.personality || []).concat(p1.self?.lifestyle || []).concat(p1.self?.values || []).map(s => s.toLowerCase())
+            const p2Self = (p2.self?.personality || []).concat(p2.self?.lifestyle || []).concat(p2.self?.values || []).map(s => s.toLowerCase())
+
+            if (aiDealbreakers1.some(d => p2Self.some(s => s.includes(d.toLowerCase())))) {
+                malus += 30
+                warnings.push('Bio-detected mismatch')
+            }
+            if (aiDealbreakers2.some(d => p1Self.some(s => s.includes(d.toLowerCase())))) {
+                malus += 30
+                warnings.push('Partner bio mismatch')
+            }
+        }
+
+        const rawScore = breakdown.vibeMatch + breakdown.goalsMatch + breakdown.lifestyleMatch + breakdown.maturityMatch + breakdown.interestMatch + (breakdown.aiSynergy || 0)
         const finalScore = Math.max(0, Math.min(100, Math.round(rawScore - malus)))
 
         return {

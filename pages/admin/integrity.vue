@@ -148,6 +148,52 @@
         </table>
       </div>
     </div>
+
+    <!-- AI Database Enrichment -->
+    <div class="mt-8 bg-white rounded-2xl border border-stone-200 overflow-hidden shadow-sm">
+      <div class="p-6 border-b border-stone-100 flex justify-between items-center">
+        <div>
+          <h2 class="text-lg font-bold text-stone-900">AI Database Enrichment 🧬</h2>
+          <p class="text-xs text-stone-500">Extract structured preference data from all user bios for better matchmaking.</p>
+        </div>
+        <button 
+          @click="runBulkExtraction"
+          :disabled="processingBulk"
+          class="bg-blue-600 text-white px-6 py-2.5 rounded-xl font-bold flex items-center gap-2 hover:bg-blue-700 transition-all disabled:opacity-50"
+        >
+          <svg v-if="processingBulk" class="animate-spin h-4 w-4" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
+          <span v-else>🚀 Run Bulk Bio Processing</span>
+        </button>
+      </div>
+      
+      <div v-if="bulkResult" class="p-6 bg-stone-50 animate-in fade-in slide-in-from-top-2 duration-300">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+          <div class="p-4 bg-white rounded-xl border border-stone-100 shadow-sm text-center">
+            <span class="block text-2xl font-black text-stone-900">{{ bulkResult.results?.total || 0 }}</span>
+            <span class="text-[10px] font-bold text-stone-400 uppercase tracking-widest">Total Found</span>
+          </div>
+          <div class="p-4 bg-white rounded-xl border border-stone-100 shadow-sm text-center">
+            <span class="block text-2xl font-black text-emerald-600">{{ bulkResult.results?.processed || 0 }}</span>
+            <span class="text-[10px] font-bold text-stone-400 uppercase tracking-widest">Processed</span>
+          </div>
+          <div class="p-4 bg-white rounded-xl border border-stone-100 shadow-sm text-center">
+            <span class="block text-2xl font-black text-amber-500">{{ bulkResult.results?.skipped || 0 }}</span>
+            <span class="text-[10px] font-bold text-stone-400 uppercase tracking-widest">Skipped (Short)</span>
+          </div>
+          <div class="p-4 bg-white rounded-xl border border-stone-100 shadow-sm text-center">
+            <span class="block text-2xl font-black text-red-500">{{ bulkResult.results?.failed || 0 }}</span>
+            <span class="text-[10px] font-bold text-stone-400 uppercase tracking-widest">Failed</span>
+          </div>
+        </div>
+        <p class="text-sm text-stone-600 bg-white p-3 rounded-lg border border-stone-200">
+          <strong>Summary:</strong> {{ bulkResult.message }}
+        </p>
+      </div>
+
+      <div class="p-6 text-xs text-stone-400 border-t border-stone-100">
+        <p>This process uses Gemini 1.5 Flash to parse "About Me" text into structured JSON. It powers the compatibility scores in the matchmaker.</p>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -160,6 +206,9 @@ definePageMeta({
 const loading = ref(false)
 const auditData = ref<any>(null)
 const selectedUsers = ref<string[]>([])
+
+const processingBulk = ref(false)
+const bulkResult = ref<any>(null)
 
 const integrityRate = computed(() => {
   if (!auditData.value) return 0
@@ -190,6 +239,25 @@ const runAudit = async (deepDive = false) => {
     console.error('Audit failed:', err)
   } finally {
     loading.value = false
+  }
+}
+
+const runBulkExtraction = async () => {
+  if (!confirm('This will process all user bios and may take some time. Proceed?')) return
+  
+  processingBulk.value = true
+  bulkResult.value = null
+  
+  try {
+    const data = await $fetch('/api/admin/ai/bulk-extract-preferences', {
+      method: 'POST'
+    })
+    bulkResult.value = data
+  } catch (err: any) {
+    console.error('Bulk extraction failed:', err)
+    alert('Extraction failed: ' + (err.data?.message || 'Unknown error'))
+  } finally {
+    processingBulk.value = false
   }
 }
 

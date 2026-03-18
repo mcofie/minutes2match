@@ -863,6 +863,15 @@ const saveProfile = async () => {
     } as any).eq('id', userId)
     if (error) throw error
     await fetchProfileById(userId)
+    
+    // Trigger AI Extraction if bio is present
+    if (editForm.about_me && editForm.about_me.length > 10) {
+       $fetch('/api/ai/extract-preferences', {
+           method: 'POST',
+           body: { userId }
+       }).catch(err => console.error('Auto-extraction failed:', err))
+    }
+
     saveSuccess.value = true
     haptic.hapticSuccess()
     toast.success('Profile updated!', 'Your changes have been saved.')

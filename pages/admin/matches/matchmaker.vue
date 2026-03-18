@@ -740,7 +740,8 @@ const computeFullMatch = (u1: any, u2: any) => {
     badges: u.badges,
     dealbreakers: u.dealbreakers,
     min_age: u.min_age,
-    max_age: u.max_age
+    max_age: u.max_age,
+    preferences_extracted: u.preferences_extracted
   })
 
   // Format to correct answer type for calculateCompatibility

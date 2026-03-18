@@ -51,6 +51,7 @@ export type M2MSchema = {
                 events_attended: number
                 created_at: string
                 updated_at: string
+                preferences_extracted: Json | null
             }
             Insert: {
                 id: string
@@ -76,6 +77,7 @@ export type M2MSchema = {
                 events_attended?: number
                 created_at?: string
                 updated_at?: string
+                preferences_extracted?: Json | null
             }
             Update: {
                 id?: string
@@ -101,6 +103,7 @@ export type M2MSchema = {
                 max_age?: number | null
                 events_attended?: number
                 updated_at?: string
+                preferences_extracted?: Json | null
             }
             Relationships: []
         }
