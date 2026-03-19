@@ -29,65 +29,121 @@
       </div>
     </header>
 
-    <!-- Analytics & Stats Grid -->
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-      <!-- Main Revenue Stats -->
-      <div class="lg:col-span-2 grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div class="stat-card success relative overflow-hidden">
-          <div class="stat-icon !bg-emerald-50 text-emerald-600">💰</div>
-          <div>
-            <p class="stat-label">Today</p>
-            <p class="stat-value font-mono">{{ formatGHS(stats.todayRevenue) }}</p>
-            <div class="text-[10px] mt-1 flex items-center gap-1" :class="stats.growth.today >= 0 ? 'text-emerald-600' : 'text-rose-600'">
-              <span v-if="stats.growth.today >= 0">▲</span>
-              <span v-else>▼</span>
-              {{ Math.abs(stats.growth.today) }}% vs yesterday
-            </div>
-          </div>
-        </div>
-        
-        <div class="stat-card info">
-          <div class="stat-icon !bg-blue-50 text-blue-600">�</div>
-          <div>
-            <p class="stat-label">Success Rate</p>
-            <p class="stat-value font-mono">{{ stats.successRate }}%</p>
-            <div class="w-full bg-stone-100 h-1.5 rounded-full mt-2 overflow-hidden">
-              <div class="bg-blue-500 h-full transition-all duration-1000" :style="{ width: `${stats.successRate}%` }"></div>
-            </div>
-          </div>
-        </div>
+    <!-- Period Filters -->
+    <div class="flex items-center gap-2 mb-8 overflow-x-auto no-scrollbar">
+      <button 
+        v-for="p in ['today', 'week', 'month', 'total']" 
+        :key="p"
+        @click="selectedPeriod = p"
+        class="px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition-all whitespace-nowrap border"
+        :class="selectedPeriod === p ? 'bg-stone-900 text-white border-stone-900 shadow-sm' : 'bg-white text-stone-500 border-stone-200 hover:bg-stone-50'"
+      >
+        {{ p }}
+      </button>
+      <div class="h-6 w-px bg-stone-200 mx-2 shrink-0"></div>
+      <div v-if="selectedPeriod === 'custom'" class="flex items-center gap-2 animate-in slide-in-from-left duration-300 shrink-0">
+         <input type="date" v-model="filters.dateFrom" class="text-xs font-bold border border-stone-200 rounded-lg px-3 py-2 outline-none focus:border-stone-400 transition-colors" />
+         <span class="text-xs font-bold text-stone-400">to</span>
+         <input type="date" v-model="filters.dateTo" class="text-xs font-bold border border-stone-200 rounded-lg px-3 py-2 outline-none focus:border-stone-400 transition-colors" />
+      </div>
+      <button 
+        v-else
+        @click="selectedPeriod = 'custom'"
+        class="px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider bg-white text-stone-500 border border-stone-200 hover:bg-stone-50 transition-all shrink-0"
+      >
+        Custom Range
+      </button>
+    </div>
 
-        <div class="stat-card accent">
-          <div class="stat-icon !bg-purple-50 text-purple-600">�</div>
-          <div>
-            <p class="stat-label">Active Subs</p>
-            <div class="flex items-baseline gap-2">
-              <p class="stat-value">{{ subMetrics.total }}</p>
-              <span v-if="subMetrics.expiringSoon > 0" class="text-[10px] font-bold text-rose-500 bg-rose-50 px-1.5 py-0.5 rounded-full animate-pulse">
-                {{ subMetrics.expiringSoon }} dying soon
-              </span>
-            </div>
+    <!-- Stats Overview (Matching admin/index style) -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+      <!-- Period Revenue -->
+      <div class="stat-card group">
+        <div class="flex justify-between items-start mb-4">
+          <div class="p-3 bg-amber-50 text-amber-600 rounded-xl group-hover:bg-amber-100 transition-colors">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
           </div>
+          <span class="text-[10px] font-bold px-2 py-0.5 bg-amber-100/50 text-amber-700 rounded-full uppercase tracking-widest border border-amber-200/50">
+            {{ selectedPeriod }}
+          </span>
+        </div>
+        <div>
+          <span class="block text-3xl font-black text-stone-900 mb-1 leading-none tracking-tight">{{ formatGHS(stats.periodRevenue) }}</span>
+          <span class="text-[11px] font-bold text-stone-400 uppercase tracking-widest leading-none">Selected Revenue</span>
         </div>
       </div>
 
-      <!-- Revenue Split Chart (Simplified CSS Version) -->
-      <div class="stat-card !flex-col !items-start gap-4">
-        <p class="stat-label">Revenue Split</p>
-        <div class="w-full space-y-3">
-          <div v-for="(val, key) in stats.revenueSplit" :key="key" class="space-y-1">
-            <div class="flex justify-between text-xs">
-              <span class="capitalize text-stone-500">{{ key }}</span>
-              <span class="font-bold text-stone-900">{{ formatGHS(val) }}</span>
-            </div>
-            <div class="w-full bg-stone-50 h-2 rounded-full overflow-hidden">
+      <!-- Success Rate -->
+      <div class="stat-card group">
+        <div class="flex justify-between items-start mb-4">
+          <div class="p-3 bg-blue-50 text-blue-600 rounded-xl group-hover:bg-blue-100 transition-colors">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+          </div>
+          <span class="text-[10px] font-bold px-2 py-0.5 bg-blue-100/50 text-blue-700 rounded-full uppercase tracking-widest border border-blue-200/50">
+            {{ stats.successRate }}%
+          </span>
+        </div>
+        <div>
+          <span class="block text-3xl font-black text-stone-900 mb-1 leading-none tracking-tight">{{ stats.successRate }}%</span>
+          <span class="text-[11px] font-bold text-stone-400 uppercase tracking-widest leading-none">Success Rate</span>
+        </div>
+      </div>
+
+      <!-- Avg Order -->
+      <div class="stat-card group">
+        <div class="flex justify-between items-start mb-4">
+          <div class="p-3 bg-emerald-50 text-emerald-600 rounded-xl group-hover:bg-emerald-100 transition-colors">
+             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="18" y1="8" x2="23" y2="13"/><line x1="23" y1="8" x2="18" y2="13"/></svg>
+          </div>
+          <span class="text-[10px] font-bold px-2 py-0.5 bg-emerald-100/50 text-emerald-700 rounded-full uppercase tracking-widest border border-emerald-200/50">
+            KPI
+          </span>
+        </div>
+        <div>
+          <span class="block text-3xl font-black text-stone-900 mb-1 leading-none tracking-tight">{{ formatGHS(stats.avgOrderValue) }}</span>
+          <span class="text-[11px] font-bold text-stone-400 uppercase tracking-widest leading-none">Avg order value</span>
+        </div>
+      </div>
+
+      <!-- Total -->
+      <div class="stat-card group">
+        <div class="flex justify-between items-start mb-4">
+          <div class="p-3 bg-stone-50 text-stone-600 rounded-xl group-hover:bg-stone-100 transition-colors">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+          </div>
+        </div>
+        <div>
+          <span class="block text-3xl font-black text-stone-900 mb-1 leading-none tracking-tight">{{ formatGHS(stats.totalRevenue) }}</span>
+          <span class="text-[11px] font-bold text-stone-400 uppercase tracking-widest leading-none">All-time revenue</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Revenue Split (Matching admin Intent style) -->
+    <div class="bg-white rounded-2xl border border-stone-200 p-6 mb-8 shadow-sm">
+      <div class="flex justify-between items-center mb-8">
+        <h2 class="text-sm font-bold text-stone-900 uppercase tracking-[0.2em]">Revenue Distribution ({{ selectedPeriod }})</h2>
+        <div class="flex gap-4">
+           <div v-for="(val, key) in stats.revenueSplit" :key="key" class="flex items-center gap-1.5">
+              <span class="w-2 h-2 rounded-full" :class="revSplitColor(key)"></span>
+              <span class="text-[10px] font-bold text-stone-400 uppercase tracking-widest">{{ key.replace('_', ' ') }}</span>
+           </div>
+        </div>
+      </div>
+      
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8">
+        <div v-for="(val, key) in stats.revenueSplit" :key="key" class="group">
+           <div class="flex items-end justify-between mb-2">
+              <span class="text-lg font-black text-stone-900 tracking-tight">{{ formatGHS(val) }}</span>
+              <span class="text-[10px] font-black text-stone-400">{{ Math.round((val / (stats.totalRevenue || 1)) * 100) }}%</span>
+           </div>
+           <div class="h-1.5 bg-stone-100 rounded-full overflow-hidden">
               <div 
                 class="h-full rounded-full transition-all duration-1000" 
-                :class="key === 'tickets' ? 'bg-blue-400' : key === 'matches' ? 'bg-rose-400' : 'bg-purple-400'"
-                :style="{ width: `${(val / (stats.totalRevenue || 1)) * 100}%` }"
+                :class="revSplitColor(key)"
+                :style="{ width: `${(val / (stats.periodRevenue || 1)) * 100}%` }"
               ></div>
-            </div>
-          </div>
+           </div>
         </div>
       </div>
     </div>
@@ -118,32 +174,35 @@
       </div>
     </div>
 
-    <!-- Filters Bar -->
-    <div class="filters-bar" v-if="activeTab === 'transactions'">
-      <div class="search-wrapper">
-        <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+    <!-- Filters Bar (Matching admin look) -->
+    <div class="bg-white rounded-2xl border border-stone-200 p-4 mb-4 flex flex-wrap items-center justify-between gap-4 shadow-sm" v-if="activeTab === 'transactions'">
+      <div class="flex-1 min-w-[300px] relative">
+        <svg class="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <circle cx="11" cy="11" r="8"/>
           <line x1="21" y1="21" x2="16.65" y2="16.65"/>
         </svg>
         <input 
           v-model="searchQuery" 
           type="text" 
-          placeholder="Search ref, user, or phone..." 
-          class="search-input"
+          placeholder="Search reference, customer name, or phone..." 
+          class="w-full pl-10 pr-4 py-2 bg-stone-50 border border-stone-100 rounded-xl text-sm focus:outline-none focus:border-stone-300 transition-colors"
         />
       </div>
       
       <div class="flex gap-2">
-        <select v-model="filters.status" class="form-select">
+        <select v-model="filters.status" class="bg-white border border-stone-200 rounded-xl px-4 py-2 text-xs font-bold text-stone-600 focus:outline-none focus:border-stone-400">
           <option value="">All Statuses</option>
           <option value="success">Success</option>
           <option value="pending">Pending</option>
           <option value="failed">Failed</option>
         </select>
-        <select v-model="filters.purpose" class="form-select">
+        <select v-model="filters.purpose" class="bg-white border border-stone-200 rounded-xl px-4 py-2 text-xs font-bold text-stone-600 focus:outline-none focus:border-stone-400">
           <option value="">All Types</option>
           <option value="event_ticket">Event Tickets</option>
           <option value="match_unlock">Match Unlocks</option>
+          <option value="subscription">Subscriptions</option>
+          <option value="spark_deck">Spark Decks</option>
+          <option value="shoot_your_shot">Shoot Your Shots</option>
         </select>
       </div>
     </div>
@@ -203,20 +262,20 @@
                 </div>
               </td>
               <td>
-                <div class="flex flex-col gap-1">
-                   <div class="flex items-center gap-2">
-                      <span 
-                        class="purpose-icon" 
-                        :class="payment.purpose === 'event_ticket' ? 'bg-blue-100 text-blue-600' : 'bg-pink-100 text-pink-600'"
-                      >
-                        {{ payment.purpose === 'event_ticket' ? '🎟️' : '💕' }}
-                      </span>
-                      <span class="text-sm font-medium text-stone-700 capitalize">
-                        {{ payment.purpose?.replace('_', ' ') }}
-                      </span>
-                   </div>
-                   <span class="text-xs font-mono text-stone-400">{{ payment.provider_ref }}</span>
-                </div>
+                    <div class="flex items-center gap-3">
+                       <div 
+                         class="h-10 w-10 rounded-xl flex items-center justify-center text-lg shadow-sm" 
+                         :class="getIconColor(payment.purpose)"
+                       >
+                         {{ getIcon(payment.purpose) }}
+                       </div>
+                       <div class="flex flex-col">
+                          <span class="text-sm font-bold text-stone-900 capitalize leading-tight">
+                            {{ payment.purpose?.replace('_', ' ') }}
+                          </span>
+                          <span class="text-[10px] font-mono text-stone-400 uppercase tracking-widest">{{ payment.provider_ref }}</span>
+                       </div>
+                    </div>
               </td>
               <td>
                 <div class="flex items-center gap-3">
@@ -350,10 +409,13 @@
                  </div>
               </td>
               <td>
-                <div class="status-pill success">
+                <div v-if="isExpired(sub.end_date)" class="status-pill failed !bg-stone-50 !text-stone-400 !border-stone-200">
+                  <span class="dot"></span> Lapsed
+                </div>
+                <div v-else class="status-pill success">
                   <span class="dot"></span> Active
                 </div>
-                <div v-if="sub.auto_renew" class="text-[10px] text-stone-400 mt-1 ml-1 flex items-center gap-1">
+                <div v-if="sub.auto_renew && !isExpired(sub.end_date)" class="text-[10px] text-stone-400 mt-1 ml-1 flex items-center gap-1">
                   <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
                   Auto-renews
                 </div>
@@ -444,6 +506,17 @@ import type { M2MDatabase } from '~/types/database.types'
 
 const supabase = useSupabaseClient<M2MDatabase>()
 
+const revSplitColor = (key: string) => {
+  const colors: Record<string, string> = {
+    'event_ticket': 'bg-blue-400',
+    'match_unlock': 'bg-rose-400',
+    'subscription': 'bg-emerald-400',
+    'spark_deck': 'bg-amber-400',
+    'shoot_your_shot': 'bg-purple-400'
+  }
+  return colors[key] || 'bg-stone-400'
+}
+
 // State
 const currentPage = ref(1)
 const pageSize = ref(15)
@@ -455,6 +528,7 @@ const selectedPayment = ref<any>(null)
 const searchQuery = ref('')
 const subSearchQuery = ref('')
 const activeTab = ref('transactions') // 'transactions' | 'subscriptions'
+const selectedPeriod = ref('total') // 'today' | 'week' | 'month' | 'total' | 'custom'
 
 const subscriptions = ref<any[]>([])
 const loadingSubs = ref(false)
@@ -462,18 +536,20 @@ const sendingReminderId = ref<string | null>(null)
 
 const stats = ref({
   todayRevenue: 0,
-  weekRevenue: 0,
-  monthRevenue: 0,
+  periodRevenue: 0,
   totalRevenue: 0,
   failedCount: 0,
   successRate: 0,
+  avgOrderValue: 0,
   growth: {
     today: 0
   },
   revenueSplit: {
-    tickets: 0,
-    matches: 0,
-    subscriptions: 0
+    event_ticket: 0,
+    match_unlock: 0,
+    subscription: 0,
+    spark_deck: 0,
+    shoot_your_shot: 0
   }
 })
 
@@ -525,6 +601,28 @@ const formatTime = (dateStr: string) => {
   return new Date(dateStr).toLocaleTimeString('en-GB', {
     hour: '2-digit', minute: '2-digit'
   })
+}
+
+const getIcon = (purpose: string) => {
+  switch (purpose) {
+    case 'event_ticket': return '🎟️'
+    case 'match_unlock': return '💕'
+    case 'subscription': return '💎'
+    case 'spark_deck': return '🎁'
+    case 'shoot_your_shot': return '🎯'
+    default: return '💰'
+  }
+}
+
+const getIconColor = (purpose: string) => {
+  switch (purpose) {
+    case 'event_ticket': return 'bg-blue-100 text-blue-600'
+    case 'match_unlock': return 'bg-rose-100 text-rose-600'
+    case 'subscription': return 'bg-emerald-100 text-emerald-600'
+    case 'spark_deck': return 'bg-amber-100 text-amber-600'
+    case 'shoot_your_shot': return 'bg-purple-100 text-purple-600'
+    default: return 'bg-stone-100 text-stone-600'
+  }
 }
 
 // Data Fetching
@@ -592,48 +690,62 @@ const fetchStats = async () => {
     const now = new Date()
     const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString()
     const yesterdayStart = new Date(now.getTime() - 24 * 60 * 60 * 1000).toISOString()
-    const weekStart = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString()
-    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString()
     
+    let periodStart = ''
+    if (selectedPeriod.value === 'today') periodStart = todayStart
+    else if (selectedPeriod.value === 'week') periodStart = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString()
+    else if (selectedPeriod.value === 'month') periodStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString()
+    else if (selectedPeriod.value === 'custom' && filters.dateFrom) periodStart = new Date(filters.dateFrom).toISOString()
+
     // Helper for summing
     const sumAmount = (data: any[]) => (data || []).reduce((sum: number, p: any) => sum + (p.amount || 0), 0)
 
-    // 1. Fetch data in parallel for efficiency
-    const [allSuccessRecent, totalCountResponse, todayResponse, yesterdayResponse, monthResponse, failedCountResponse] = await Promise.all([
-      // Fetch only last 100 successful payments for split (avoid fetching entire table)
-      supabase.from('payments').select('amount, purpose, status').eq('status', 'success').limit(500),
+    // Parallel fetch
+    const [allSuccess, totalCountResponse, todayResponse, yesterdayResponse, periodResponse] = await Promise.all([
+      supabase.from('payments').select('amount, purpose, status').eq('status', 'success'),
       supabase.from('payments').select('id', { count: 'exact', head: true }),
       supabase.from('payments').select('amount').eq('status', 'success').gte('created_at', todayStart),
       supabase.from('payments').select('amount').eq('status', 'success').gte('created_at', yesterdayStart).lte('created_at', todayStart),
-      supabase.from('payments').select('amount').eq('status', 'success').gte('created_at', monthStart),
-      supabase.from('payments').select('id', { count: 'exact', head: true }).eq('status', 'failed').gte('created_at', todayStart)
+      periodStart ? supabase.from('payments').select('amount, purpose').eq('status', 'success').gte('created_at', periodStart) : Promise.resolve({ data: [] })
     ])
 
-    // Success Rate & Total (based on all-caps stats)
-    const successCount = allSuccessRecent.data?.length || 0
-    const totalCount = totalCountResponse.count || 0
-    stats.value.successRate = totalCount ? Math.round((successCount / totalCount) * 100) : 0
+    const recentData = allSuccess.data || []
+    const periodData = selectedPeriod.value === 'total' ? recentData : (periodResponse.data || [])
     
-    // Split based on recent data
-    const recentData = allSuccessRecent.data || []
-    stats.value.revenueSplit = {
-      tickets: sumAmount(recentData.filter((p: any) => p.purpose === 'event_ticket')),
-      matches: sumAmount(recentData.filter((p: any) => p.purpose === 'match_unlock')),
-      subscriptions: sumAmount(recentData.filter((p: any) => ['premium_sub', 'subscription'].includes(p.purpose)))
-    }
+    const totalCount = totalCountResponse.count || 0
+    const successCount = recentData.length
+    
+    stats.value.successRate = totalCount ? Math.round((successCount / totalCount) * 100) : 0
     stats.value.totalRevenue = sumAmount(recentData)
+    stats.value.avgOrderValue = successCount ? Math.round(stats.value.totalRevenue / successCount) : 0
+    
+    // Split based on period data
+    stats.value.revenueSplit = {
+      event_ticket: sumAmount(periodData.filter((p: any) => p.purpose === 'event_ticket')),
+      match_unlock: sumAmount(periodData.filter((p: any) => p.purpose === 'match_unlock')),
+      subscription: sumAmount(periodData.filter((p: any) => ['premium_sub', 'subscription'].includes(p.purpose))),
+      spark_deck: sumAmount(periodData.filter((p: any) => p.purpose === 'spark_deck')),
+      shoot_your_shot: sumAmount(periodData.filter((p: any) => p.purpose === 'shoot_your_shot'))
+    }
 
-    // Time-based values
+    // Time-based
     stats.value.todayRevenue = sumAmount(todayResponse.data || [])
+    stats.value.periodRevenue = selectedPeriod.value === 'total' ? stats.value.totalRevenue : sumAmount(periodResponse.data || [])
+    
     const yesterdayRevenue = sumAmount(yesterdayResponse.data || [])
     stats.value.growth.today = yesterdayRevenue ? Math.round(((stats.value.todayRevenue - yesterdayRevenue) / yesterdayRevenue) * 100) : 100
-    
-    stats.value.monthRevenue = sumAmount(monthResponse.data || [])
-    stats.value.failedCount = failedCountResponse.count || 0
   } catch (e) {
     console.error('Error fetching stats:', e)
   }
 }
+
+watch(selectedPeriod, () => {
+  if (selectedPeriod.value !== 'custom') {
+     filters.dateFrom = ''
+     filters.dateTo = ''
+  }
+  fetchStats()
+})
 
 const resolveAlert = async (alertId: string) => {
   await supabase
@@ -694,6 +806,10 @@ const isExpiringSoon = (endDate: string) => {
   const diff = new Date(endDate).getTime() - new Date().getTime()
   const hours = diff / (1000 * 60 * 60)
   return hours > 0 && hours < 48
+}
+
+const isExpired = (endDate: string) => {
+  return new Date(endDate).getTime() < new Date().getTime()
 }
 
 const bulkRemindExpiring = async () => {
@@ -850,18 +966,20 @@ onMounted(async () => {
 
 .stat-card {
   background: white;
+  padding: 1.5rem;
+  border-radius: 1.25rem;
   border: 1px solid #E5E7EB;
-  border-radius: 12px;
-  padding: 1.25rem;
   display: flex;
-  align-items: center;
-  gap: 1rem;
-  transition: transform 0.2s;
+  flex-direction: column;
+  justify-content: space-between;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
 }
 
 .stat-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+  box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05);
+  border-color: #D1D5DB;
 }
 
 .stat-card.success { border-left: 4px solid #10B981; }

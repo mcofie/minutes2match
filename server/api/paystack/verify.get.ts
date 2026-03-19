@@ -210,7 +210,8 @@ export default defineEventHandler(async (event) => {
                 }
             } else if (metadata.purpose === 'spark_deck') {
                 console.log('[Verify] Spark Deck purchase confirmed for user:', metadata.userId)
-                // Additional logic for order fulfillment could go here
+                const { handleSparkDeckOrder } = await import('~/server/utils/order')
+                await handleSparkDeckOrder(supabase, metadata, config)
             }
         }
 
