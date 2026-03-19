@@ -138,10 +138,10 @@ const processPayment = async () => {
   error.value = null
   
   try {
-    // Generate email from phone (matching dashboard approach)
+    // Force email generation from phone number (ignore personal email)
     const paymentEmail = userProfile.value?.phone 
-       ? `${userProfile.value.phone.replace(/\+/g, '')}@m2match.com` 
-       : (user.value.email || 'user@m2match.com')
+       ? `${userProfile.value.phone.replace(/[\s\+\-]/g, '')}@m2match.com` 
+       : 'customer@m2match.com'
     
     // We pass userId in metadata so callback knows who paid
     const response = await initializePayment(

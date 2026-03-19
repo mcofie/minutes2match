@@ -4,22 +4,68 @@
       <Title>Lobby | Minutes 2 Match</Title>
     </Head>
 
-    <!-- Header Section -->
+    <!-- Header Section (Matching Events/Matches page style) -->
     <div class="flex items-center justify-between flex-wrap gap-4 px-1">
        <div class="space-y-1">
-          <h2 class="text-2xl font-bold tracking-tight dark:text-white">{{ activeLobby?.title || 'The Flash Lobby' }}</h2>
+          <h2 class="text-2xl font-bold tracking-tight text-stone-900">{{ activeLobby?.title || 'The Flash Lobby' }}</h2>
           <div v-if="isLive" class="flex items-center gap-2">
              <span class="relative flex h-2 w-2">
                 <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
                 <span class="relative inline-flex rounded-full h-2 w-2 bg-indigo-600"></span>
              </span>
-             <p class="text-[10px] font-black tracking-widest text-indigo-600 uppercase">Match Window Live</p>
+             <p class="text-[10px] font-black tracking-widest text-indigo-600 uppercase">Live Pulse • {{ lobbyUsers.length }} Users Online</p>
           </div>
        </div>
 
-       <div v-if="isLive" class="px-4 py-2 bg-stone-900 text-white rounded-xl shadow-lg flex items-center gap-3">
-          <span class="text-[10px] font-black uppercase tracking-widest opacity-60">Ends In</span>
-          <span class="text-xs md:text-sm font-black tabular-nums">{{ formattedRemaining }}</span>
+       <div v-if="isLive" class="px-5 py-2.5 bg-stone-900 text-white rounded-xl shadow-lg flex items-center gap-4 transition-all hover:scale-[1.02]">
+          <div class="flex flex-col items-end">
+             <span class="text-[8px] font-black uppercase tracking-widest opacity-60 leading-none mb-1">Ends In</span>
+             <div class="flex items-center gap-1.5" :class="{ 'text-rose-400 animate-pulse': remainingSeconds < 60 && !activeLobby?.is_paused }">
+                <span v-if="remainingSeconds < 60 && !activeLobby?.is_paused" class="text-xs">🚨</span>
+                <span class="text-base md:text-xl font-black tabular-nums tracking-tighter leading-none">{{ formattedRemaining }}</span>
+             </div>
+          </div>
+          <div class="animate-pulse opacity-50">⏳</div>
+       </div>
+    </div>
+
+    <!-- Global Broadcast Bar -->
+    <transition name="slide-up">
+       <div v-if="activeLobby?.announcement" class="p-6 bg-indigo-600 text-white rounded-2xl shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] border-2 border-black flex items-center gap-4 animate-in slide-in-from-left-4 duration-500">
+          <div class="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center text-2xl shrink-0 shadow-inner">📡</div>
+          <div class="flex-1 overflow-hidden">
+             <p class="text-[10px] uppercase font-black tracking-[0.2em] text-indigo-200 leading-none mb-2">Live Admin Broadcast</p>
+             <p class="text-sm md:text-lg font-bold leading-tight line-clamp-2">{{ activeLobby.announcement }}</p>
+          </div>
+       </div>
+    </transition>
+
+    <!-- Admin Override Panel (Dashboard Style) -->
+    <div v-if="isAdmin && isLive" class="bg-white rounded-3xl border border-stone-200 p-8 shadow-sm space-y-8 animate-in slide-in-from-top-4 duration-500 mb-12 relative overflow-hidden">
+       <div class="absolute top-0 right-0 p-4">
+          <span class="px-2 py-1 bg-stone-100 text-[8px] font-black rounded uppercase tracking-widest text-stone-400">Admin Override Active</span>
+       </div>
+
+       <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <button @click="togglePause(activeLobby)" class="flex flex-col items-center justify-center gap-3 p-6 rounded-2xl border border-stone-100 bg-stone-50/50 hover:bg-indigo-50 hover:border-indigo-100 hover:text-indigo-600 transition-all group" :class="activeLobby?.is_paused ? 'bg-amber-50 border-amber-200 text-amber-700' : ''">
+             <span class="text-3xl group-hover:scale-110 transition-transform">{{ activeLobby?.is_paused ? '▶️' : '⏸️' }}</span>
+             <span class="text-[10px] font-black uppercase tracking-widest">{{ activeLobby?.is_paused ? 'Resume' : 'Pause' }}</span>
+          </button>
+          
+          <button @click="addTime(activeLobby, 5)" class="flex flex-col items-center justify-center gap-3 p-6 rounded-2xl border border-stone-100 bg-stone-50/50 hover:bg-stone-100 transition-all group">
+             <span class="text-3xl group-hover:scale-110 transition-transform">➕5</span>
+             <span class="text-[10px] font-black uppercase tracking-widest text-stone-500">Add 5m</span>
+          </button>
+
+          <button @click="addTime(activeLobby, 15)" class="flex flex-col items-center justify-center gap-3 p-6 rounded-2xl border border-stone-100 bg-stone-50/50 hover:bg-stone-100 transition-all group">
+             <span class="text-3xl group-hover:scale-110 transition-transform">➕15</span>
+             <span class="text-[10px] font-black uppercase tracking-widest text-stone-500">Add 15m</span>
+          </button>
+
+          <button @click="stopLobby(activeLobby)" class="flex flex-col items-center justify-center gap-3 p-6 rounded-2xl border border-stone-100 bg-stone-50/50 hover:bg-rose-50 hover:border-rose-100 hover:text-rose-600 transition-all group">
+             <span class="text-3xl group-hover:scale-110 transition-transform">🛑</span>
+             <span class="text-[10px] font-black uppercase tracking-widest">End Session</span>
+          </button>
        </div>
     </div>
 
@@ -32,8 +78,15 @@
           <p class="text-[10px] font-black uppercase tracking-[0.2em] text-stone-400">Flash Lobby is currently offline.</p>
        </div>
 
-       <!-- State: LIVE Discovery Grid -->
-       <template v-if="isLive">
+       <!-- State: PAUSED -->
+       <div v-if="!loading && isLive && activeLobby?.is_paused" class="py-24 text-center border-2 border-dashed border-amber-200 rounded-3xl bg-amber-50/30 px-6">
+          <span class="text-4xl block mb-4">⏸️</span>
+          <p class="text-[10px] font-black uppercase tracking-[0.2em] text-amber-600">Match Window is temporarily paused.</p>
+          <p class="text-[9px] font-bold text-amber-500 uppercase mt-2 tracking-widest">Hold tight, we'll be back in orbit shortly.</p>
+       </div>
+
+      <!-- State: LIVE Discovery Grid -->
+      <template v-if="isLive && !activeLobby?.is_paused">
           <!-- Mobile Active Sparks Reel -->
           <div v-if="activeConnections.length > 0" class="lg:hidden w-full overflow-hidden mb-6">
              <div class="flex items-center gap-3 mb-3 px-1">
@@ -210,15 +263,24 @@ import FloatingFlashChat from '~/components/FloatingFlashChat.vue'
 
 definePageMeta({ layout: 'me', middleware: ['auth'] })
 
-const { activeLobby, lobbyUsers, isLive, remainingSeconds, loading, loadingMore, hasMore, activeFilters, fetchParticipants } = useFlashLobby()
+const { activeLobby, lobbyUsers, isLive, remainingSeconds, loading, loadingMore, hasMore, activeFilters, fetchParticipants, fetchLobbies } = useFlashLobby()
 const { profile, initDashboard } = useDashboard()
+const supabase = useSupabaseClient()
 
+const isAdmin = ref(false)
 const activeConnections = ref<any[]>([])
 const isRestoring = ref(false)
 const lastConnectSuccess = ref(false)
 const selectedChatUser = ref<any>(null)
 const chatOpen = ref(false)
 const sidebarCollapsed = ref(true)
+
+const checkAdmin = async () => {
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return
+    const { data } = await (supabase.schema('m2m').from('admins') as any).select('role').eq('id', user.id).maybeSingle()
+    isAdmin.value = !!data
+}
 
 const fetchExistingConnections = async () => {
    isRestoring.value = true
@@ -267,6 +329,33 @@ const onConnect = async (id: string) => {
    }
 }
 
+// Admin Controls
+const runControl = async (action: string, lobbyId: string, minutes?: number) => {
+   try {
+      await $fetch('/api/admin/flash-lobby/control', {
+         method: 'POST',
+         body: { action, lobbyId, minutes }
+      })
+      await fetchLobbies()
+   } catch (err: any) {
+      console.error('[Admin] Lobby override failed:', err)
+   }
+}
+
+const togglePause = async (lobby: any) => {
+   const action = lobby.is_paused ? 'resume' : 'pause'
+   await runControl(action, lobby.id)
+}
+
+const addTime = async (lobby: any, minutes: number) => {
+   await runControl('addTime', lobby.id, minutes)
+}
+
+const stopLobby = async (lobby: any) => {
+   if (!confirm('Stop this live lobby?')) return
+   await runControl('stop', lobby.id)
+}
+
 const formattedRemaining = computed(() => {
    if (!remainingSeconds?.value) return '00:00'
    const mins = Math.floor(remainingSeconds.value / 60)
@@ -276,6 +365,7 @@ const formattedRemaining = computed(() => {
 
 onMounted(async () => { 
    await initDashboard()
+   checkAdmin()
    fetchExistingConnections() 
 })
 </script>

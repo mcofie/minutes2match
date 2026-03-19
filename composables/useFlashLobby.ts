@@ -97,6 +97,14 @@ export const useFlashLobby = () => {
   
   const remainingSeconds = computed(() => {
     if (!activeLobby.value) return 0
+    
+    // If paused, we show the time that was remaining at the moment of pause
+    if (activeLobby.value.is_paused && activeLobby.value.paused_at) {
+       const end = new Date(activeLobby.value.end_at).getTime()
+       const paused = new Date(activeLobby.value.paused_at).getTime()
+       return Math.max(0, Math.floor((end - paused) / 1000))
+    }
+
     const end = new Date(activeLobby.value.end_at).getTime()
     const diff = Math.floor((end - currentTime.value.getTime()) / 1000)
     return Math.max(0, diff)
@@ -108,17 +116,33 @@ export const useFlashLobby = () => {
     return Math.max(0, start - currentTime.value.getTime())
   })
 
+  let channel: any = null
+
   onMounted(() => {
     fetchLobbies()
     fetchParticipants()
+    
     timer = setInterval(() => {
       currentTime.value = new Date()
-      if (currentTime.value.getSeconds() % 30 === 0) fetchLobbies()
     }, 1000)
+
+    // Realtime subscription for instant Pause/Resume/AddTime feedback
+    channel = supabase
+      .channel('public:flash_lobbies')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'm2m', table: 'flash_lobbies' },
+        () => {
+           console.log('[Lobby] Realtime update detected')
+           fetchLobbies() 
+        }
+      )
+      .subscribe()
   })
 
   onUnmounted(() => {
     if (timer) clearInterval(timer)
+    if (channel) supabase.removeChannel(channel)
   })
 
   return { 

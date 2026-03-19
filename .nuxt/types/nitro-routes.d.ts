@@ -12,6 +12,9 @@ declare module "nitropack/types" {
     '/api/admin/bulk-sms': {
       'post': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/admin/bulk-sms.post').default>>>>
     }
+    '/api/admin/flash-lobby/control': {
+      'post': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/admin/flash-lobby/control.post').default>>>>
+    }
     '/api/admin/notify-incomplete-profiles': {
       'post': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/admin/notify-incomplete-profiles.post').default>>>>
     }

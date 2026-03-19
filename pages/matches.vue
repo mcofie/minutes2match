@@ -293,13 +293,20 @@ const getSharedInterests = (matchInterests: string[] | null): string[] => {
 
 const handleUnlockMatch = async (match: any) => {
   if (!profile.value || !profile.value.id || profile.value.id === 'undefined') return
+  
   try {
     const { initializePayment } = usePaystack()
+    
+    // Force email generation from phone (ignore personal email)
+    const paymentEmail = profile.value.phone 
+       ? `${profile.value.phone.replace(/[\s\+\-]/g, '')}@m2match.com` 
+       : 'customer@m2match.com'
+
     const response = await initializePayment(
-       profile.value.phone ? `${profile.value.phone.replace(/\+/g, '')}@m2match.com` : 'user@m2match.com',
-      match.unlock_price,
-      'match_unlock',
-      { userId: profile.value.id, matchId: match.id }
+       paymentEmail,
+       match.unlock_price,
+       'match_unlock',
+       { userId: profile.value.id, matchId: match.id }
     )
     if (response.type === 'free_unlock' || response.type === 'subscription_unlock') {
         hapticFeedback('medium')
@@ -323,8 +330,14 @@ const handleSubscribe = async () => {
         const { initializePayment } = usePaystack()
         const { data: settingsData } = await supabase.from('settings').select('value').eq('key', 'subscription_price_monthly').single() as { data: any, error: any }
         const price = settingsData?.value?.amount || 50
+        
+        // Force email generation from phone (ignore personal email)
+        const paymentEmail = profile.value.phone 
+           ? `${profile.value.phone.replace(/[\s\+\-]/g, '')}@m2match.com` 
+           : 'customer@m2match.com'
+
         const response = await initializePayment(
-            profile.value.phone ? `${profile.value.phone.replace(/\+/g, '')}@m2match.com` : 'user@m2match.com',
+            paymentEmail,
             price,
             'subscription',
             { userId: profile.value.id }

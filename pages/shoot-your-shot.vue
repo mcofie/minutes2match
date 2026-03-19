@@ -370,17 +370,19 @@ const submitShot = async () => {
   submitting.value = true
 
   try {
-    // Generate email from phone if not provided
+    // Priority: use provided email, fallback to phone-based generation
     let submissionEmail = form.shooterEmail
     if (!submissionEmail && form.shooterPhone) {
        submissionEmail = `${form.shooterPhone.replace(/[\s\+\-]/g, '')}@m2match.com`
     }
+    
+    if (!submissionEmail) throw new Error('Phone or email is required')
 
     const result = await $fetch('/api/shots', {
       method: 'POST',
       body: {
         ...form,
-        shooterEmail: submissionEmail,
+        shooterEmail: submissionEmail, 
         hints: formattedHints.value
       }
     }) as any

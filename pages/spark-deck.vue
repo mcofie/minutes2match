@@ -553,6 +553,16 @@
             </div>
 
             <div class="space-y-1.5">
+              <label class="text-[10px] font-bold uppercase tracking-widest text-stone-500">Email Address (Optional)</label>
+              <input 
+                v-model="shippingDetails.email" 
+                type="email" 
+                placeholder="you@example.com"
+                class="w-full h-14 px-5 bg-white dark:bg-stone-800 border-2 border-black rounded-xl focus:outline-none focus:ring-0 placeholder:text-stone-300 font-medium text-sm"
+              />
+            </div>
+
+            <div class="space-y-1.5">
               <label class="text-[10px] font-bold uppercase tracking-widest text-stone-500">Delivery Address (Accra/Tema)</label>
               <textarea 
                 v-model="shippingDetails.address" 
@@ -606,6 +616,7 @@ const sparkDeckPrice = ref(250)
 const shippingDetails = reactive({
   name: '',
   phone: '',
+  email: '',
   address: ''
 })
 
@@ -664,6 +675,7 @@ onMounted(async () => {
             if (profile) {
                shippingDetails.name = profile.display_name || ''
                shippingDetails.phone = profile.phone || ''
+              shippingDetails.email = user.value?.email || ''
             }
          } catch (err) {
             console.error('Failed to pre-fill shipping details:', err)
@@ -689,15 +701,15 @@ const proceedToCheckout = async () => {
    if (isPurchasing.value || !user.value) return
    isPurchasing.value = true
    
-   try {
+  try {
       const { initializePayment } = usePaystack()
       
-      // Generate email from phone (guest or phone-only user)
-      let customerEmail = user.value?.email
-      const checkoutPhone = shippingDetails.phone || user.value?.phone
+      // Use provided email, fallback to phone-based generation
+      let customerEmail = shippingDetails.email || user.value?.email
       
-      if (!customerEmail && checkoutPhone) {
-         customerEmail = `${checkoutPhone.replace(/[\s\+\-]/g, '')}@m2match.com`
+      if (!customerEmail && (shippingDetails.phone || user.value?.phone)) {
+         const phone = shippingDetails.phone || user.value?.phone
+         customerEmail = `${phone.replace(/[\s\+\-]/g, '')}@m2match.com`
       }
       
       const response = await initializePayment(

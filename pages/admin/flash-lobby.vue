@@ -91,6 +91,98 @@
             </div>
           </div>
         </section>
+        
+        <!-- Live Controls Dashboard (Admin Style) -->
+        <section v-if="activeCount > 0" class="bg-white rounded-2xl border border-stone-200 p-8 shadow-sm animate-in slide-in-from-top-4 duration-500">
+           <div v-for="lobby in lobbies.filter(l => isCurrent(l))" :key="lobby.id" class="space-y-8">
+              <div class="flex items-center justify-between">
+                 <div class="flex items-center gap-4">
+                    <div class="relative flex h-3 w-3">
+                       <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
+                       <span class="relative inline-flex rounded-full h-3 w-3 bg-indigo-600"></span>
+                    </div>
+                    <div>
+                       <h3 class="text-[10px] font-black uppercase tracking-widest text-stone-400 mb-1">Live Event Active</h3>
+                       <h2 class="text-2xl font-black text-stone-900">{{ lobby.title }}</h2>
+                    </div>
+                 </div>
+                 <div class="px-5 py-3 bg-stone-900 text-white rounded-2xl flex items-center gap-4 shadow-lg">
+                    <div class="text-right">
+                       <p class="text-[8px] uppercase font-bold text-stone-400 leading-none mb-1">REMAINING</p>
+                       <p class="text-2xl font-black tabular-nums leading-none">{{ getRemainingFormatted(lobby) }}</p>
+                    </div>
+                    <div class="w-10 h-10 rounded-full border border-white/10 flex items-center justify-center bg-white/5">
+                       <span class="animate-pulse">⏳</span>
+                    </div>
+                 </div>
+              </div>
+
+              <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                 <!-- Control Buttons -->
+                 <button 
+                  @click="togglePause(lobby)"
+                  class="p-5 rounded-2xl border border-stone-100 bg-stone-50/50 flex flex-col items-center gap-3 hover:bg-indigo-50 hover:border-indigo-100 hover:text-indigo-600 transition-all group"
+                  :class="lobby.is_paused ? 'bg-amber-50 border-amber-200 text-amber-700' : ''"
+                 >
+                    <span class="text-2xl transition-transform group-hover:scale-110">{{ lobby.is_paused ? '▶️' : '⏸️' }}</span>
+                    <span class="text-[10px] font-black uppercase tracking-widest">{{ lobby.is_paused ? 'Resume' : 'Pause' }}</span>
+                 </button>
+
+                 <button 
+                  @click="addTime(lobby, 5)"
+                  class="p-5 rounded-2xl border border-stone-100 bg-stone-50/50 flex flex-col items-center gap-3 hover:bg-stone-100 hover:border-stone-200 transition-all group"
+                 >
+                    <span class="text-2xl transition-transform group-hover:scale-110">➕5</span>
+                    <span class="text-[10px] font-black uppercase tracking-widest text-stone-600">Add 5m</span>
+                 </button>
+
+                 <button 
+                  @click="addTime(lobby, 15)"
+                  class="p-5 rounded-2xl border border-stone-100 bg-stone-50/50 flex flex-col items-center gap-3 hover:bg-stone-100 hover:border-stone-200 transition-all group"
+                 >
+                    <span class="text-2xl transition-transform group-hover:scale-110">➕15</span>
+                    <span class="text-[10px] font-black uppercase tracking-widest text-stone-600">Add 15m</span>
+                 </button>
+
+                 <button 
+                  @click="stopLobby(lobby)"
+                  class="p-5 rounded-2xl border border-stone-100 bg-stone-50/50 flex flex-col items-center gap-3 hover:bg-rose-50 hover:border-rose-100 hover:text-rose-600 transition-all group"
+                 >
+                    <span class="text-2xl transition-transform group-hover:scale-110">🛑</span>
+                    <span class="text-[10px] font-black uppercase tracking-widest">End Session</span>
+                 </button>
+              </div>
+
+              <!-- Broadcast Section -->
+              <div class="p-6 bg-stone-900 rounded-3xl space-y-4">
+                 <h4 class="text-[10px] font-black uppercase tracking-widest text-stone-400">Global Broadcast Message</h4>
+                 <div class="flex gap-3">
+                    <input 
+                      v-model="broadcastMessage" 
+                      placeholder="Type a message to all users..." 
+                      class="flex-1 bg-white/10 border border-white/10 rounded-xl px-4 py-3 text-sm text-white outline-none focus:border-indigo-500 transition-all"
+                      @keyup.enter="sendBroadcast(lobby)"
+                    />
+                    <button 
+                      @click="sendBroadcast(lobby)"
+                      class="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all shadow-lg active:scale-95"
+                    >
+                       Send 📡
+                    </button>
+                 </div>
+                 <div v-if="lobby.announcement" class="flex items-center gap-2 p-3 bg-white/5 rounded-xl border border-white/5">
+                    <span class="text-[10px] text-stone-500 font-bold uppercase whitespace-nowrap">Active Now:</span>
+                    <p class="text-[10px] text-stone-300 italic truncate">{{ lobby.announcement }}</p>
+                    <button @click="clearBroadcast(lobby)" class="ml-auto text-stone-500 hover:text-white text-[10px]">✕</button>
+                 </div>
+              </div>
+              
+              <div v-if="lobby.is_paused" class="p-4 bg-amber-50 border border-amber-200 rounded-2xl flex items-center gap-3 animate-pulse">
+                 <span class="text-xl">⏸️</span>
+                 <p class="text-[11px] font-bold text-amber-700 uppercase tracking-tight">System is PAUSED. Discoverability and timer are frozen for all users.</p>
+              </div>
+           </div>
+        </section>
 
         <!-- Ledger Section -->
         <section class="bg-white rounded-2xl border border-stone-200 overflow-hidden shadow-sm">
@@ -257,6 +349,10 @@ interface FlashLobby {
   start_at: string
   end_at: string
   is_active: boolean
+  is_paused?: boolean
+  paused_at?: string
+  announcement?: string
+  announcement_at?: string
 }
 
 const supabase = useSupabaseClient()
@@ -286,6 +382,9 @@ const liveStats = computed(() => [
 
 const liveUsers = ref<any[]>([])
 const reminders = ref<any[]>([])
+const currentTime = ref(new Date())
+let timer: any = null
+let channel: any = null
 
 const fetchReminders = async () => {
   const { data } = await (supabase.schema('m2m').from('flash_lobby_reminders') as any)
@@ -409,6 +508,66 @@ const deleteLobby = async (id: string) => {
   fetchLobbies()
 }
 
+const currentTab = ref('active')
+const broadcastMessage = ref('')
+
+// Live Controls Functions
+const runControl = async (action: string, lobbyId: string, payload: any = {}) => {
+   try {
+      await $fetch('/api/admin/flash-lobby/control', {
+         method: 'POST',
+         body: { action, lobbyId, ...payload }
+      })
+      await fetchLobbies()
+   } catch (err: any) {
+      console.error('[Admin] Control failed:', err)
+      alert('Control failed: ' + (err.data?.message || err.message))
+   }
+}
+
+const sendBroadcast = async (lobby: FlashLobby) => {
+   if (!broadcastMessage.value.trim()) return
+   await runControl('broadcast', lobby.id, { message: broadcastMessage.value.trim() })
+   broadcastMessage.value = ''
+}
+
+const clearBroadcast = async (lobby: FlashLobby) => {
+   await runControl('broadcast', lobby.id, { message: null })
+}
+
+const togglePause = async (lobby: FlashLobby) => {
+   const action = lobby.is_paused ? 'resume' : 'pause'
+   await runControl(action, lobby.id)
+}
+
+const stopLobby = async (lobby: FlashLobby) => {
+   if (!confirm('Abort this live lobby immediately?')) return
+   await runControl('stop', lobby.id)
+}
+
+const addTime = async (lobby: FlashLobby, minutes: number) => {
+   await runControl('addTime', lobby.id, minutes)
+}
+
+const getRemainingFormatted = (lobby: FlashLobby) => {
+   const now = currentTime.value
+   if (lobby.is_paused && lobby.paused_at) {
+      const end = new Date(lobby.end_at).getTime()
+      const paused = new Date(lobby.paused_at).getTime()
+      const diff = Math.max(0, Math.floor((end - paused) / 1000))
+      return formatSeconds(diff)
+   }
+   const end = new Date(lobby.end_at).getTime()
+   const diff = Math.max(0, Math.floor((end - now.getTime()) / 1000))
+   return formatSeconds(diff)
+}
+
+const formatSeconds = (totalSeconds: number) => {
+   const mins = Math.floor(totalSeconds / 60)
+   const secs = totalSeconds % 60
+   return `${mins}:${secs.toString().padStart(2, '0')}`
+}
+
 const getStatus = (lobby: any) => {
   const now = new Date()
   const start = new Date(lobby.start_at)
@@ -437,15 +596,22 @@ onMounted(async () => {
   await fetchLobbies()
   await fetchReminders()
   
-  // Realtime subscription logic could go here
-  // presenceChannel = supabase.channel('lobby-presence')
-  //   .on('presence', { event: 'sync' }, () => {
-  //      presenceCount.value = Object.keys(presenceChannel.presenceState()).length
-  //   })
-  //   .subscribe()
+  timer = setInterval(() => {
+    currentTime.value = new Date()
+  }, 1000)
+
+  // Realtime subscription
+  channel = supabase
+    .channel('admin:flash_lobbies')
+    .on('postgres_changes', { event: '*', schema: 'm2m', table: 'flash_lobbies' }, () => {
+       fetchLobbies()
+    })
+    .subscribe()
 })
 
 onUnmounted(() => {
+  if (timer) clearInterval(timer)
+  if (channel) supabase.removeChannel(channel)
   if (presenceChannel) supabase.removeChannel(presenceChannel)
 })
 </script>

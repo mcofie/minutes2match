@@ -14,6 +14,7 @@ declare global {
   const auditProfileWithAI: typeof import('../../server/utils/ai').auditProfileWithAI
   const cachedEventHandler: typeof import('../../node_modules/nitropack/dist/runtime/internal/cache').cachedEventHandler
   const cachedFunction: typeof import('../../node_modules/nitropack/dist/runtime/internal/cache').cachedFunction
+  const calculateDeliveryDate: typeof import('../../server/utils/order').calculateDeliveryDate
   const calculatePersona: typeof import('../../server/utils/personas').calculatePersona
   const callNodeListener: typeof import('../../node_modules/h3').callNodeListener
   const checkRateLimit: typeof import('../../server/utils/rateLimiter').checkRateLimit
@@ -81,6 +82,7 @@ declare global {
   const getValidatedRouterParams: typeof import('../../node_modules/h3').getValidatedRouterParams
   const handleCacheHeaders: typeof import('../../node_modules/h3').handleCacheHeaders
   const handleCors: typeof import('../../node_modules/h3').handleCors
+  const handleSparkDeckOrder: typeof import('../../server/utils/order').handleSparkDeckOrder
   const isCorsOriginAllowed: typeof import('../../node_modules/h3').isCorsOriginAllowed
   const isError: typeof import('../../node_modules/h3').isError
   const isEvent: typeof import('../../node_modules/h3').isEvent
@@ -216,6 +218,7 @@ export { sendHubtelSMS } from '/Users/maxwellcofie/WebstormProjects/minutes2matc
 export { unlockMatch } from '/Users/maxwellcofie/WebstormProjects/minutes2match/server/utils/match';
 export { runTargetedMatching } from '/Users/maxwellcofie/WebstormProjects/minutes2match/server/utils/matchmaker';
 export { notifyUser } from '/Users/maxwellcofie/WebstormProjects/minutes2match/server/utils/notify';
+export { handleSparkDeckOrder, calculateDeliveryDate } from '/Users/maxwellcofie/WebstormProjects/minutes2match/server/utils/order';
 export { usePasskeyUtils } from '/Users/maxwellcofie/WebstormProjects/minutes2match/server/utils/passkeys';
 export { personas, calculatePersona } from '/Users/maxwellcofie/WebstormProjects/minutes2match/server/utils/personas';
 export { normalizeGhanaPhone, isSamePhone } from '/Users/maxwellcofie/WebstormProjects/minutes2match/server/utils/phone';
