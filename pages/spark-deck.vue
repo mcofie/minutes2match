@@ -681,12 +681,7 @@ onMounted(async () => {
 })
 
 const handlePurchase = async () => {
-   if (!user.value) {
-      toast.info('Login Required', 'Please login or create an account to purchase.')
-      return navigateTo('/login?redirect=/spark-deck')
-   }
-   
-   // Open the shipping details modal
+   // Allow guest checkout - just open the form
    showOrderForm.value = true
 }
 
@@ -697,18 +692,20 @@ const proceedToCheckout = async () => {
    try {
       const { initializePayment } = usePaystack()
       
-      // Use standard M2M email pattern for phone users if no email exists
-      let customerEmail = user.value.email
-      if (!customerEmail && user.value.phone) {
-         customerEmail = `${user.value.phone.replace(/\+/g, '')}@m2match.com`
+      // Generate email from phone (guest or phone-only user)
+      let customerEmail = user.value?.email
+      const checkoutPhone = shippingDetails.phone || user.value?.phone
+      
+      if (!customerEmail && checkoutPhone) {
+         customerEmail = `${checkoutPhone.replace(/[\s\+\-]/g, '')}@m2match.com`
       }
       
       const response = await initializePayment(
-         customerEmail || 'customer@m2match.com',
+         customerEmail || 'guest@m2match.com',
          sparkDeckPrice.value,
          'spark_deck',
          { 
-            userId: user.value.id,
+            userId: user.value?.id || null,
             shippingDetails: {
                name: shippingDetails.name,
                phone: shippingDetails.phone,

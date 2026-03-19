@@ -126,8 +126,8 @@
             </div>
           </div>
           <div>
-            <label class="block text-xs font-bold uppercase tracking-widest text-stone-500 dark:text-stone-400 mb-2">Your Email * <span class="text-stone-300 dark:text-stone-600 normal-case">(for payment receipt)</span></label>
-            <input v-model="form.shooterEmail" type="email" required placeholder="you@email.com" class="w-full bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-lg px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-transparent transition-all placeholder:text-stone-300 dark:placeholder:text-stone-600" />
+            <label class="block text-xs font-bold uppercase tracking-widest text-stone-500 dark:text-stone-400 mb-2">Your Email <span class="text-stone-300 dark:text-stone-600 normal-case">(optional, for receipt)</span></label>
+            <input v-model="form.shooterEmail" type="email" placeholder="you@email.com" class="w-full bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-lg px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-transparent transition-all placeholder:text-stone-300 dark:placeholder:text-stone-600" />
           </div>
         </div>
 
@@ -370,10 +370,17 @@ const submitShot = async () => {
   submitting.value = true
 
   try {
+    // Generate email from phone if not provided
+    let submissionEmail = form.shooterEmail
+    if (!submissionEmail && form.shooterPhone) {
+       submissionEmail = `${form.shooterPhone.replace(/[\s\+\-]/g, '')}@m2match.com`
+    }
+
     const result = await $fetch('/api/shots', {
       method: 'POST',
       body: {
         ...form,
+        shooterEmail: submissionEmail,
         hints: formattedHints.value
       }
     }) as any
