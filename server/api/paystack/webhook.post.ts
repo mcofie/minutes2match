@@ -178,6 +178,9 @@ export default defineEventHandler(async (event) => {
         } else if (metadata.purpose === 'shoot_your_shot') {
             console.log('[Webhook] Processing shoot_your_shot payment')
             await handleShootYourShotPayment(supabase, metadata, config)
+        } else if (metadata.purpose === 'spark_deck') {
+            console.log('[Webhook] Processing spark_deck payment')
+            await handleSparkDeckPayment(supabase, metadata, config)
         } else {
             console.log('[Webhook] Unknown or missing purpose:', metadata.purpose)
         }
@@ -450,4 +453,60 @@ async function handleShootYourShotPayment(supabase: any, metadata: any, config: 
     } catch (error) {
         console.error('[Webhook] Error handling shoot your shot:', error)
     }
+}
+
+/**
+ * Handle Spark Deck payment
+ */
+async function handleSparkDeckPayment(supabase: any, metadata: any, config: any) {
+    console.log('[Webhook] Handling Spark Deck for user:', metadata.userId)
+    
+    try {
+        const shipping = metadata.shippingDetails || {}
+        
+        // Calculate 3 working days delivery date
+        const purchaseDate = new Date()
+        const deliveryDate = calculateDeliveryDate(purchaseDate, 3)
+        const dateString = deliveryDate.toLocaleDateString('en-GB', { day: 'numeric', month: 'long' })
+        
+        // Send confirmation to Discord specifically as a "Product Order"
+        const { notifyDiscord, DiscordColors } = await import('~/server/utils/discord')
+        await notifyDiscord({
+            title: '🎁 New Spark Deck Order!',
+            description: `A new purchase has been completed at ${config.public.baseUrl}/spark-deck`,
+            color: DiscordColors.payment,
+            fields: [
+                { name: 'Recipient', value: shipping.name || 'Unknown', inline: true },
+                { name: 'Phone', value: shipping.phone || 'N/A', inline: true },
+                { name: 'Delivery Address', value: shipping.address || 'N/A', inline: false },
+                { name: 'User ID', value: metadata.userId || 'Guest', inline: false },
+                { name: 'Est. Delivery', value: dateString, inline: true }
+            ]
+        })
+
+        // SMS confirmation to user with receipt and date
+        const message = `🛍️ Receipt: Your M2M Spark Deck (GHS 250) order is confirmed! \n\n📍 Delivery: ${shipping.address?.substring(0, 30)}...\n🚚 Est. Arrival: ${dateString}\n\nThank you for choosing Minutes 2 Match! ✨`
+        
+        if (metadata.userId) {
+            await notifyUser(metadata.userId, message, { type: 'generic', smsPriority: 'high' }).catch(() => {})
+        }
+        
+    } catch (error) {
+        console.error('[Webhook] Error handling spark deck payment:', error)
+    }
+}
+
+/**
+ * Calculate working days (skips Sat/Sun)
+ */
+function calculateDeliveryDate(startDate: Date, workingDays: number): Date {
+    const result = new Date(startDate)
+    let addedDays = 0
+    while (addedDays < workingDays) {
+        result.setDate(result.getDate() + 1)
+        if (result.getDay() !== 0 && result.getDay() !== 6) {
+            addedDays++
+        }
+    }
+    return result
 }

@@ -13,10 +13,15 @@ interface InitializePaymentBody {
     amount: number // Amount in GHS (cedis)
     callback_url?: string
     metadata?: {
-        purpose: 'event_ticket' | 'match_unlock' | 'subscription' | 'shoot_your_shot'
+        purpose: 'event_ticket' | 'match_unlock' | 'subscription' | 'shoot_your_shot' | 'spark_deck'
         userId?: string
         eventId?: string
         matchId?: string
+        shippingDetails?: {
+           name: string
+           phone: string
+           address: string
+        }
     }
 }
 
@@ -195,7 +200,8 @@ export default defineEventHandler(async (event) => {
             currency: 'GHS',
             purpose: body.metadata?.purpose || 'match_unlock',
             userEmail: body.email,
-            reference: paymentData.reference
+            reference: paymentData.reference,
+            shippingDetails: body.metadata?.shippingDetails
         })
 
         return paymentData

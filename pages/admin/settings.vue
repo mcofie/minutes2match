@@ -58,6 +58,18 @@
             />
             <p class="text-xs text-muted mt-1">Fee charged when someone shoots their shot</p>
           </div>
+
+          <div class="form-group">
+            <label class="form-label">Spark Deck Price (GH₵)</label>
+            <input
+              type="number"
+              v-model.number="settings.spark_deck_price_ghs"
+              min="0"
+              step="1"
+              class="form-input"
+            />
+            <p class="text-xs text-muted mt-1">Retail price for the physical Spark Deck</p>
+          </div>
         </div>
       </section>
 
@@ -141,7 +153,8 @@ const settings = reactive({
    default_female_ticket_price: 80,
    match_expiry_days: 7,
    platform_name: 'Minutes to Match',
-   shoot_your_shot_fee: 15
+   shoot_your_shot_fee: 15,
+   spark_deck_price_ghs: 250
 })
 
 // Fetch current settings
@@ -173,6 +186,9 @@ onMounted(() => {
             break
           case 'shoot_your_shot_fee':
             settings.shoot_your_shot_fee = value?.amount || 15
+            break
+          case 'spark_deck_price':
+            settings.spark_deck_price_ghs = value?.amount || 250
             break
         }
       })
@@ -220,6 +236,11 @@ const saveSettings = async () => {
       {
         key: 'shoot_your_shot_fee',
         value: { amount: settings.shoot_your_shot_fee, currency: 'GHS' },
+        updated_at: new Date().toISOString()
+      },
+      {
+        key: 'spark_deck_price',
+        value: { amount: settings.spark_deck_price_ghs, currency: 'GHS' },
         updated_at: new Date().toISOString()
       }
     ] as any

@@ -3,11 +3,14 @@ import { serverSupabaseServiceRole } from '#supabase/server'
 export default defineEventHandler(async (event) => {
     const client = serverSupabaseServiceRole(event)
 
-    const { data: columns, error } = await client
-        .from('information_schema.columns')
-        .select('column_name')
-        .eq('table_schema', 'm2m')
-        .eq('table_name', 'franchise_participants')
+    const { data: profile } = await client
+        .schema('m2m')
+        .from('profiles')
+        .select('*')
+        .limit(1)
+        .single()
 
-    return { columns, error }
+    return { 
+        keys: profile ? Object.keys(profile) : null
+    }
 })

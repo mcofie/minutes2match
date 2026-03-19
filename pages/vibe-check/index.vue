@@ -829,6 +829,19 @@ const handleReturningUserCompletion = async () => {
     if (user.value && assignedPersona.value) {
        await savePersona(user.value.id, assignedPersona.value.id)
     }
+
+    // Trigger Just-In-Time (JIT) Matching
+    // Since we have new Vibe answers, re-run matching to see if any high-quality scores are found.
+    try {
+        if (user.value?.id) {
+            await $fetch('/api/profiles/trigger-match', {
+                method: 'POST',
+                body: { userId: user.value.id }
+            })
+        }
+    } catch (matchError) {
+        console.error('[VibeCheck JIT] Automatch failed after retake:', matchError)
+    }
     
     // Move to results step
     currentStep.value = 11

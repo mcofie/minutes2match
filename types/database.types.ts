@@ -49,6 +49,7 @@ export type M2MSchema = {
                 min_age: number | null
                 max_age: number | null
                 events_attended: number
+                availability: Json | null
                 created_at: string
                 updated_at: string
                 preferences_extracted: Json | null
@@ -75,6 +76,7 @@ export type M2MSchema = {
                 min_age?: number | null
                 max_age?: number | null
                 events_attended?: number
+                availability?: Json | null
                 created_at?: string
                 updated_at?: string
                 preferences_extracted?: Json | null
@@ -102,6 +104,7 @@ export type M2MSchema = {
                 min_age?: number | null
                 max_age?: number | null
                 events_attended?: number
+                availability?: Json | null
                 updated_at?: string
                 preferences_extracted?: Json | null
             }

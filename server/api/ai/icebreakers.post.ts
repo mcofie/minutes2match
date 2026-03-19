@@ -1,7 +1,6 @@
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import { getGeminiModel } from '~/server/utils/ai';
 
 export default defineEventHandler(async (event) => {
-    const config = useRuntimeConfig();
     const body = await readBody(event);
     const { matchName, sharedInterests, matchBio, matchVibe } = body;
 
@@ -10,14 +9,8 @@ export default defineEventHandler(async (event) => {
     }
 
     try {
-        const apiKey = config.geminiApiKey || process.env.GEMINI_API_KEY;
-        if (!apiKey) {
-            // Fallback smart generation if no API key
-            return generateLocalIcebreakers(matchName, sharedInterests, matchVibe);
-        }
-
-        const genAI = new GoogleGenerativeAI(apiKey);
-        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+        const model = getGeminiModel();
+        if (!model) return generateLocalIcebreakers(matchName, sharedInterests, matchVibe);
 
         const prompt = `
         You are an expert dating coach. I just matched with someone on a dating app called Minutes2Match.

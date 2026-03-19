@@ -182,7 +182,7 @@
               <div class="mb-6 md:mb-8">
                  <div class="flex items-baseline gap-1">
                     <span class="text-xl font-serif opacity-40">GH₵</span>
-                    <span class="text-5xl md:text-7xl font-serif font-bold text-rose-500">250</span>
+                    <span class="text-5xl md:text-7xl font-serif font-bold text-rose-500">{{ sparkDeckPrice }}</span>
                  </div>
                  <p class="text-sm md:text-base text-stone-500 mt-3 font-light max-w-sm leading-relaxed">Premium air-cushion finish, linen-textured cardstock. Designed for the bold.</p>
               </div>
@@ -418,8 +418,13 @@
           
           <div class="flex flex-col items-center gap-8">
              <div class="flex flex-col md:flex-row items-center justify-center gap-6 w-full md:w-auto">
-                <button class="w-full md:w-auto px-12 py-5 bg-white dark:bg-stone-900 text-black dark:text-white rounded-lg font-bold uppercase tracking-widest text-xs sm:text-sm hover:bg-rose-500 hover:text-white transition-all shadow-lg active:scale-95 whitespace-nowrap">
-                  Buy Now — GH₵ 250
+                <button 
+                  @click="handlePurchase"
+                  :disabled="isPurchasing"
+                  class="w-full md:w-auto px-12 py-5 bg-white dark:bg-stone-900 text-black dark:text-white rounded-lg font-bold uppercase tracking-widest text-xs sm:text-sm hover:bg-rose-500 hover:text-white transition-all shadow-lg active:scale-95 whitespace-nowrap disabled:opacity-50 flex items-center justify-center gap-2"
+                >
+                  <span v-if="isPurchasing" class="w-4 h-4 border-2 border-stone-200 border-t-black rounded-full animate-spin"></span>
+                  {{ isPurchasing ? 'Processing...' : `Buy Now — GH₵ ${sparkDeckPrice}` }}
                 </button>
                 <button @click="copyAnnouncement" class="text-[10px] font-bold uppercase tracking-[0.3em] text-white/50 hover:text-white transition-colors flex items-center justify-center gap-2 whitespace-nowrap">
                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
@@ -495,9 +500,85 @@
     <!-- Sticky Mobile CTA -->
     <Transition enter-active-class="transition duration-500 ease-out" enter-from-class="translate-y-full" enter-to-class="translate-y-0" leave-active-class="transition duration-300 ease-in" leave-from-class="translate-y-0" leave-to-class="translate-y-full">
       <div v-show="showStickyCTA" class="fixed bottom-0 inset-x-0 z-40 p-4 md:hidden bg-white/80 dark:bg-stone-950/80 backdrop-blur-lg border-t border-black dark:border-stone-800 shadow-xl">
-        <button @click="scrollToSection('purchase')" class="w-full bg-black dark:bg-stone-100 text-white dark:text-black py-4 rounded-xl font-bold uppercase tracking-widest text-xs shadow-[4px_4px_0px_0px_rgba(244,63,94,1)]">
-          GH₵ 250 — Get The Spark Deck
+        <button 
+          @click="handlePurchase"
+          :disabled="isPurchasing"
+          class="w-full bg-black dark:bg-stone-100 text-white dark:text-black py-4 rounded-xl font-bold uppercase tracking-widest text-xs shadow-[4px_4px_0px_0px_rgba(244,63,94,1)] flex items-center justify-center gap-2 disabled:opacity-50"
+        >
+          <span v-if="isPurchasing" class="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
+          {{ isPurchasing ? 'Wait...' : `GH₵ ${sparkDeckPrice} — Get The Spark Deck` }}
         </button>
+      </div>
+    </Transition>
+
+    <!-- Shipping Details Modal -->
+    <Transition name="fade">
+      <div v-if="showOrderForm" class="fixed inset-0 z-[60] flex items-center justify-center p-4">
+        <!-- Backdrop -->
+        <div @click="showOrderForm = false" class="absolute inset-0 bg-stone-900/60 backdrop-blur-sm"></div>
+        
+        <!-- Modal Content -->
+        <div class="relative w-full max-w-lg bg-[#FFFCF8] dark:bg-stone-900 border-4 border-black rounded-3xl p-8 shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] dark:shadow-[12px_12px_0px_0px_rgba(244,63,94,0.3)] animate-premium-modal-enter">
+          <div class="flex justify-between items-start mb-8">
+            <div>
+              <h3 class="text-[10px] font-bold uppercase tracking-[0.25em] text-rose-500 mb-2">Checkout Detail</h3>
+              <h2 class="text-3xl font-serif font-bold tracking-tight">Delivery Details</h2>
+            </div>
+            <button @click="showOrderForm = false" class="w-10 h-10 border-2 border-black rounded-xl flex items-center justify-center hover:bg-stone-100 dark:hover:bg-stone-800 transition-colors">
+              <span class="text-2xl font-light">&times;</span>
+            </button>
+          </div>
+
+          <form @submit.prevent="proceedToCheckout" class="space-y-6">
+            <div class="space-y-1.5">
+              <label class="text-[10px] font-bold uppercase tracking-widest text-stone-500">Recipient Name</label>
+              <input 
+                v-model="shippingDetails.name" 
+                type="text" 
+                required
+                placeholder="Name for the delivery"
+                class="w-full h-14 px-5 bg-white dark:bg-stone-800 border-2 border-black rounded-xl focus:outline-none focus:ring-0 placeholder:text-stone-300 font-medium text-sm"
+              />
+            </div>
+
+            <div class="space-y-1.5">
+              <label class="text-[10px] font-bold uppercase tracking-widest text-stone-500">WhatsApp / Phone Number</label>
+              <input 
+                v-model="shippingDetails.phone" 
+                type="tel" 
+                required
+                placeholder="024 XXX XXXX"
+                class="w-full h-14 px-5 bg-white dark:bg-stone-800 border-2 border-black rounded-xl focus:outline-none focus:ring-0 placeholder:text-stone-300 font-medium text-sm"
+              />
+            </div>
+
+            <div class="space-y-1.5">
+              <label class="text-[10px] font-bold uppercase tracking-widest text-stone-500">Delivery Address (Accra/Tema)</label>
+              <textarea 
+                v-model="shippingDetails.address" 
+                required
+                rows="3"
+                placeholder="House Number, Street Name, Closest Landmark, Area (e.g. Cantonments, East Legon)"
+                class="w-full p-5 bg-white dark:bg-stone-800 border-2 border-black rounded-xl focus:outline-none focus:ring-0 placeholder:text-stone-300 font-medium text-sm resize-none"
+              ></textarea>
+            </div>
+
+            <div class="pt-4">
+              <button 
+                type="submit"
+                :disabled="isPurchasing"
+                class="w-full py-5 bg-black dark:bg-stone-100 text-white dark:text-black rounded-2xl font-bold uppercase tracking-widest text-xs hover:bg-rose-500 dark:hover:bg-rose-500 dark:hover:text-white transition-all active:scale-[0.98] shadow-lg disabled:opacity-50 flex items-center justify-center gap-3"
+              >
+                <span v-if="isPurchasing" class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
+                <span>{{ isPurchasing ? 'Processing...' : `Pay GH₵ ${sparkDeckPrice}` }}</span>
+              </button>
+            </div>
+
+            <p class="text-[9px] text-center text-stone-400 font-bold uppercase tracking-widest italic pt-2">
+              Deliveries within 3 working days across Greater Accra.
+            </p>
+          </form>
+        </div>
       </div>
     </Transition>
 
@@ -510,10 +591,23 @@ import { ref, reactive, onMounted } from 'vue'
 import LivePulse from '~/components/LivePulse.vue'
 
 const config = useRuntimeConfig()
+const supabase = useSupabaseClient()
+const user = useSupabaseUser() as any
+const toast = useToast()
 const mobileMenuOpen = ref(false)
 const showStickyCTA = ref(false)
 const copied = ref(false)
 const activeFaq = ref<number | null>(null)
+const isPurchasing = ref(false)
+const showOrderForm = ref(false)
+const route = useRoute()
+const sparkDeckPrice = ref(250)
+
+const shippingDetails = reactive({
+  name: '',
+  phone: '',
+  address: ''
+})
 
 // Dynamic Card Tilts for Preview Section
 const cardTilts = reactive<Record<number, any>>({})
@@ -542,6 +636,99 @@ if (process.client) {
   window.addEventListener('scroll', () => {
     showStickyCTA.value = window.scrollY > 800
   })
+}
+
+onMounted(async () => {
+   // Fetch dynamic price from settings
+   try {
+      const { data: settingsData } = await supabase
+        .from('settings')
+        .select('value')
+        .eq('key', 'spark_deck_price')
+        .single() as { data: any, error: any }
+      
+      if (settingsData?.value?.amount) {
+         sparkDeckPrice.value = settingsData.value.amount
+      }
+      
+      // Pre-fill shipping details from user profile if logged in
+      if (user.value) {
+         try {
+            const response: any = await supabase
+               .from('profiles')
+               .select('display_name, phone')
+               .eq('id', user.value.id)
+               .single()
+            
+            const profile = response.data
+            if (profile) {
+               shippingDetails.name = profile.display_name || ''
+               shippingDetails.phone = profile.phone || ''
+            }
+         } catch (err) {
+            console.error('Failed to pre-fill shipping details:', err)
+         }
+      }
+   } catch (err) {
+      console.error('Failed to fetch spark deck price:', err)
+   }
+
+   // Celebration if returning from successful payment
+   if (route.query.success === 'true') {
+      toast.success('🎁 Order Confirmed!', 'The M2M Spark Deck is yours! We\'ve sent a receipt to your phone.')
+      // Optionally trigger confetti here too if needed
+   }
+})
+
+const handlePurchase = async () => {
+   if (!user.value) {
+      toast.info('Login Required', 'Please login or create an account to purchase.')
+      return navigateTo('/login?redirect=/spark-deck')
+   }
+   
+   // Open the shipping details modal
+   showOrderForm.value = true
+}
+
+const proceedToCheckout = async () => {
+   if (isPurchasing.value || !user.value) return
+   isPurchasing.value = true
+   
+   try {
+      const { initializePayment } = usePaystack()
+      
+      // Use standard M2M email pattern for phone users if no email exists
+      let customerEmail = user.value.email
+      if (!customerEmail && user.value.phone) {
+         customerEmail = `${user.value.phone.replace(/\+/g, '')}@m2match.com`
+      }
+      
+      const response = await initializePayment(
+         customerEmail || 'customer@m2match.com',
+         sparkDeckPrice.value,
+         'spark_deck',
+         { 
+            userId: user.value.id,
+            shippingDetails: {
+               name: shippingDetails.name,
+               phone: shippingDetails.phone,
+               address: shippingDetails.address
+            }
+         }
+      )
+
+      const authUrl = response.authorization_url || response.data?.authorization_url
+      if (authUrl) {
+         window.location.href = authUrl
+      } else {
+         throw new Error('No authorization URL returned')
+      }
+   } catch (error: any) {
+      console.error('Purchase failed:', error)
+      toast.error('Purchase Failed', error.message || 'Could not start checkout.')
+   } finally {
+      isPurchasing.value = false
+   }
 }
 
 const parallaxX = ref(0)

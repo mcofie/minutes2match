@@ -59,9 +59,11 @@ export async function notifyDiscord(notification: DiscordNotification): Promise<
     const webhookUrl = config.discordWebhookUrl
 
     if (!webhookUrl) {
-        console.warn('[Discord] Webhook URL not configured, skipping notification')
+        console.warn('⚠️ [Discord] Webhook URL not configured (DISCORD_WEBHOOK_URL), skipping notification')
         return
     }
+
+    console.log(`[Discord] Attempting to send notification: ${notification.title}`)
 
     try {
         await $fetch(webhookUrl, {
@@ -105,6 +107,11 @@ export async function notifyPaymentInitiated(payment: {
     purpose: string
     userEmail?: string
     reference: string
+    shippingDetails?: {
+       name: string
+       phone: string
+       address: string
+    }
 }) {
     let purposeEmoji = '🎟️'
     let purposeLabel = 'Event Ticket'
@@ -118,17 +125,27 @@ export async function notifyPaymentInitiated(payment: {
     } else if (payment.purpose === 'shoot_your_shot') {
         purposeEmoji = '🎯'
         purposeLabel = 'Shoot Your Shot'
+    } else if (payment.purpose === 'spark_deck') {
+        purposeEmoji = '🛍️'
+        purposeLabel = 'Spark Deck'
+    }
+
+    const fields: DiscordField[] = [
+        { name: 'Amount', value: `${payment.currency} ${payment.amount}`, inline: true },
+        { name: 'Type', value: purposeLabel, inline: true },
+        { name: 'Reference', value: payment.reference, inline: true },
+        { name: 'User', value: payment.userEmail || 'Unknown', inline: false },
+    ]
+
+    if (payment.shippingDetails) {
+        fields.push({ name: 'Recipient', value: payment.shippingDetails.name, inline: true })
+        fields.push({ name: 'Delivery', value: payment.shippingDetails.address, inline: false })
     }
 
     await notifyDiscord({
         title: `${purposeEmoji} Payment Initiated`,
         color: DiscordColors.warning,
-        fields: [
-            { name: 'Amount', value: `${payment.currency} ${payment.amount}`, inline: true },
-            { name: 'Type', value: purposeLabel, inline: true },
-            { name: 'Reference', value: payment.reference, inline: true },
-            { name: 'User', value: payment.userEmail || 'Unknown', inline: false },
-        ]
+        fields
     })
 }
 
@@ -151,6 +168,9 @@ export async function notifyPaymentSuccess(payment: {
     } else if (payment.purpose === 'shoot_your_shot') {
         purposeEmoji = '🚀'
         purposeLabel = 'Shoot Your Shot'
+    } else if (payment.purpose === 'spark_deck') {
+        purposeEmoji = '🎁'
+        purposeLabel = 'Spark Deck'
     }
 
     await notifyDiscord({
@@ -205,6 +225,22 @@ export async function notifyEventBooking(booking: {
             { name: 'Event', value: booking.eventName, inline: true },
             { name: 'User', value: booking.userName, inline: true },
             { name: 'Tickets', value: String(booking.ticketCount || 1), inline: true },
+        ]
+    })
+}
+
+export async function notifyLobbyReminder(data: {
+    lobbyName: string
+    userName: string
+    userPhone: string
+}) {
+    await notifyDiscord({
+        title: '⚡ New Flash Lobby Reminder',
+        color: DiscordColors.info,
+        fields: [
+            { name: 'Lobby', value: data.lobbyName, inline: true },
+            { name: 'User', value: data.userName, inline: true },
+            { name: 'Phone', value: data.userPhone, inline: true },
         ]
     })
 }

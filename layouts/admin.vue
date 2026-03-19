@@ -64,6 +64,13 @@
             </svg>
             <span class="label">Events</span>
           </NuxtLink>
+          <NuxtLink to="/admin/flash-lobby" class="sidebar-link" @click="sidebarOpen = false">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"/>
+              <polyline points="12 6 12 12 16 14"/>
+            </svg>
+            <span class="label">Flash Lobby</span>
+          </NuxtLink>
           <NuxtLink to="/admin/venues" class="sidebar-link" @click="sidebarOpen = false">
             <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline>

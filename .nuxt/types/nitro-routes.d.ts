@@ -3,6 +3,9 @@ import type { Serialize, Simplify } from "nitropack/types";
 declare module "nitropack/types" {
   type Awaited<T> = T extends PromiseLike<infer U> ? Awaited<U> : T
   interface InternalApi {
+    '/api/admin/ai/bulk-extract-preferences': {
+      'post': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/admin/ai/bulk-extract-preferences.post').default>>>>
+    }
     '/api/admin/analytics': {
       'get': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/admin/analytics.get').default>>>>
     }
@@ -36,8 +39,14 @@ declare module "nitropack/types" {
     '/api/admin/users/:id': {
       'delete': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/admin/users/[id].delete').default>>>>
     }
+    '/api/admin/users/verify': {
+      'post': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/admin/users/verify.post').default>>>>
+    }
     '/api/admin/vouches/resend-sms': {
       'post': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/admin/vouches/resend-sms.post').default>>>>
+    }
+    '/api/ai/extract-preferences': {
+      'post': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/ai/extract-preferences.post').default>>>>
     }
     '/api/ai/icebreakers': {
       'post': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/ai/icebreakers.post').default>>>>
@@ -90,6 +99,9 @@ declare module "nitropack/types" {
     '/api/debug-column': {
       'get': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/debug-column.get').default>>>>
     }
+    '/api/debug-data': {
+      'get': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/debug-data.get').default>>>>
+    }
     '/api/debug-event-column': {
       'get': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/debug-event-column.get').default>>>>
     }
@@ -129,6 +141,26 @@ declare module "nitropack/types" {
     '/api/franchise/vote': {
       'post': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/franchise/vote.post').default>>>>
     }
+    '/api/lobby/connect': {
+      'post': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/lobby/connect.post').default>>>>
+    }
+    '/api/lobby/debug-gender': {
+      'get': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/lobby/debug-gender.get').default>>>>
+    }
+    '/api/lobby/matches': {
+      'get': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/lobby/matches.get').default>>>>
+    }
+    '/api/lobby/messages': {
+      'get': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/lobby/messages.get').default>>>>
+      'post': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/lobby/messages.post').default>>>>
+    }
+    '/api/lobby/participants': {
+      'get': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/lobby/participants.get').default>>>>
+    }
+    '/api/lobby/remind': {
+      'get': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/lobby/remind.get').default>>>>
+      'post': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/lobby/remind.post').default>>>>
+    }
     '/api/matches': {
       'get': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/matches.get').default>>>>
     }
@@ -155,6 +187,9 @@ declare module "nitropack/types" {
     }
     '/api/profiles/create': {
       'post': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/profiles/create.post').default>>>>
+    }
+    '/api/profiles/trigger-match': {
+      'post': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/profiles/trigger-match.post').default>>>>
     }
     '/api/redemptions': {
       'get': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/redemptions.get').default>>>>

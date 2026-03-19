@@ -49,6 +49,15 @@ export default defineEventHandler(async (event) => {
             throw createError({ statusCode: 500, message: 'Failed to save extracted preferences' })
         }
 
+        // Trigger Just-In-Time (JIT) Matching
+        // Since we have new AI-extracted data, re-run matching to see if any high-quality scores are found.
+        try {
+            const { runTargetedMatching } = await import('~/server/utils/matchmaker')
+            await runTargetedMatching(userId)
+        } catch (matchError) {
+            console.error('[Matchmaker JIT] Failed after AI extraction:', matchError)
+        }
+
         return { success: true, data: extracted }
     }
 

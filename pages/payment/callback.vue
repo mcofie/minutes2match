@@ -48,8 +48,12 @@
           class="w-full justify-center !text-base !py-3.5 !rounded-xl shadow-lg shadow-stone-900/10 hover:shadow-stone-900/20 hover:-translate-y-0.5 transition-all duration-300" 
           @click="goToDashboard"
         >
-          Continue to Dashboard
+          {{ paymentPurpose === 'spark_deck' ? 'Return to Spark Deck' : 'Continue to Dashboard' }}
         </UiButton>
+        
+        <p v-if="success && paymentPurpose === 'spark_deck' && redirectCountdown > 0" class="mt-4 text-[10px] text-stone-400 font-bold uppercase tracking-widest">
+           Redirecting in {{ redirectCountdown }}s...
+        </p>
       </div>
       
       <!-- Error State -->
@@ -85,6 +89,7 @@ const loading = ref(true)
 const success = ref(false)
 const message = ref('')
 const paymentPurpose = ref<string | null>(null)
+const redirectCountdown = ref(5)
 
 onMounted(async () => {
   const reference = route.query.reference as string
@@ -122,6 +127,17 @@ onMounted(async () => {
            message.value = 'Welcome to the club! Your Premium Membership is now active.'
         } else if (result.metadata?.purpose === 'shoot_your_shot') {
            message.value = 'Shot fired! 🎯 They\'ll receive a mystery SMS shortly.'
+        } else if (result.metadata?.purpose === 'spark_deck') {
+           message.value = 'Success! Your M2M Spark Deck bundle is secured. We\'ve sent a receipt to your phone, and delivery starts now!'
+           
+           // Start redirect countdown
+           const timer = setInterval(() => {
+              redirectCountdown.value--
+              if (redirectCountdown.value <= 0) {
+                 clearInterval(timer)
+                 navigateTo('/spark-deck?success=true')
+              }
+           }, 1000)
         } else {
           message.value = 'Your payment was processed successfully.'
         }
@@ -141,6 +157,8 @@ const goToDashboard = () => {
   // Redirect to matches tab for match unlock payments
   if (paymentPurpose.value === 'match_unlock') {
     navigateTo('/me?tab=matches')
+  } else if (paymentPurpose.value === 'spark_deck') {
+    navigateTo('/spark-deck')
   } else {
     navigateTo('/me')
   }

@@ -177,3 +177,44 @@ input[type=number].no-spin {
   -moz-appearance: textfield;
   appearance: textfield;
 }
+
+/* Shimmer Loading Effect */
+.animate-shimmer {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.4) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite linear;
+}
+
+.dark .animate-shimmer {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.1) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  background-size: 200% 100%;
+}
+
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+.shimmer-container {
+  overflow: hidden;
+  position: relative;
+}
+
+@keyframes premium-modal-enter {
+  0% { transform: scale(0.95); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.animate-premium-modal-enter {
+  animation: premium-modal-enter 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}

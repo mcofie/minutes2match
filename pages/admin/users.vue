@@ -1009,16 +1009,23 @@ const toggleSelectAll = () => {
 }
 
 const bulkVerify = async () => {
-  if (!confirm(`Verify ${selectedIds.value.length} users?`)) return
+  if (!selectedIds.value.length) return
+  if (!confirm(`Verify ${selectedIds.value.length} users and run JIT matching?`)) return
   
-  const { error } = await (supabase
-    .from('profiles') as any)
-    .update({ is_verified: true })
-    .in('id', selectedIds.value)
-
-  if (!error) {
-    fetchUsers()
-    selectedIds.value = []
+  try {
+    const response = await $fetch('/api/admin/users/verify', {
+      method: 'POST',
+      body: { userIds: selectedIds.value }
+    }) as any
+    
+    if (response.success) {
+      toast.success('Users Verified', `Successfully verified ${selectedIds.value.length} users and ran automated matching.`)
+      fetchUsers()
+      selectedIds.value = []
+    }
+  } catch (err: any) {
+    console.error('Bulk Verify Error:', err)
+    alert(`Failed to verify: ${err.data?.message || 'Server error'}`)
   }
 }
 

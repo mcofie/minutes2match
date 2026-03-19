@@ -52,6 +52,13 @@
               </div>
               
               <span class="text-[9px] font-bold text-black uppercase tracking-widest relative z-10 bg-white px-2 py-0.5 border border-black rounded shadow-[2px_2px_0px_0px_rgba(0,0,0,0.1)]">Private</span>
+
+              <!-- Social Proof: "Someone is waiting!" Nudge -->
+              <div v-if="otherUserPaid" class="absolute bottom-2 inset-x-2 z-20">
+                <div class="bg-rose-500 text-white text-[8px] font-black uppercase tracking-widest py-1 px-2 rounded-md border border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] animate-bounce flex items-center justify-center gap-1">
+                  <span>💖</span> They're waiting!
+                </div>
+              </div>
             </div>
         </div>
         
@@ -91,60 +98,51 @@
             <div v-if="sharedInterests && sharedInterests.length > 0" class="mb-1.5">
               <div class="inline-flex items-center gap-1.5 py-0.5">
                 <span class="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-100/50">
-                  ✨ {{ sharedInterests.length }} shared interests
+                  ✨ {{ sharedInterests?.length }} shared {{ sharedInterests?.length === 1 ? 'interest' : 'interests' }}
                 </span>
               </div>
             </div>
 
             <!-- Bio/Teaser -->
-            <p v-if="unlocked && bio" class="text-xs text-stone-600 line-clamp-2 leading-relaxed">
-              {{ bio }}
+            <p v-if="(unlocked || currentUserPaid) && bio" class="text-xs text-stone-600 line-clamp-3 leading-relaxed mt-1 italic font-medium">
+              "{{ bio }}"
+            </p>
+            <p v-else-if="!unlocked && aiAnalysis" class="text-[10px] text-indigo-600 bg-indigo-50/50 p-2 rounded-lg border border-indigo-100/50 line-clamp-2 leading-relaxed italic mt-1 font-medium">
+              "{{ aiAnalysis?.slice(0, 80) }}..."
             </p>
             <p v-else-if="!unlocked" class="text-xs text-stone-400 line-clamp-2 leading-relaxed italic">
               Unlock to reveal common interests & bio...
             </p>
           </div>
-          
-          <!-- Footer Actions -->
           <div class="flex items-center justify-between mt-3 pt-3 border-t border-stone-50">
-            <template v-if="unlocked">
-              <div class="flex flex-col">
-                <span class="text-[9px] font-bold text-stone-400 uppercase tracking-wider">Status</span>
-                <span class="text-[10px] font-bold text-emerald-600 flex items-center gap-1 mt-0.5">
-                  Matched
-                </span>
-                <button 
-                  @click.stop="$emit('update-status')"
-                  class="text-[9px] font-bold text-stone-400 hover:text-stone-600 underline mt-1 text-left"
-                >
-                  Update Progress
-                </button>
+            <template v-if="unlocked || currentUserPaid">
+              <!-- Left Side: Status Stack -->
+              <div class="flex flex-col gap-1.5 shrink min-w-0 pr-3">
+                 <!-- Status Chip -->
+                 <div :class="unlocked ? 'text-emerald-600 bg-emerald-50 border-emerald-100' : 'text-amber-600 bg-amber-50 border-amber-100'" class="px-2 py-0.5 rounded text-[9px] font-black uppercase border tracking-wider leading-none truncate self-start shrink-0">
+                    {{ unlocked ? 'Matched' : 'Awaiting Partner' }}
+                 </div>
+                 
+                 <!-- Feedback Chip -->
+                 <button 
+                   v-if="unlocked"
+                   @click.stop="$emit('update-status')"
+                   class="px-2 py-0.5 rounded text-[9px] font-black uppercase border border-stone-200 text-stone-400 hover:text-rose-500 hover:border-rose-200 transition-colors leading-none truncate self-start shrink-0"
+                 >
+                   Feedback
+                 </button>
               </div>
-              <button 
-                @click.stop="openContactMethod"
-                class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-black text-white rounded-lg text-xs font-bold hover:bg-stone-800 transition-all shadow-sm"
-              >
-                Message
-              </button>
-            </template>
-            
-            <template v-else-if="currentUserPaid">
-              <div class="flex flex-col flex-1 pl-1">
-                <span class="text-[9px] font-bold text-amber-500 uppercase tracking-wider flex items-center gap-1">
-                   Pending Match
-                </span>
-                <span v-if="expiresAt" class="text-[10px] text-stone-400 font-medium mt-0.5">
-                  Expires in {{ formatTimeRemaining }}
-                </span>
-                <div v-if="expiresAt" class="w-full h-1 mt-1.5 bg-stone-100 rounded-full overflow-hidden">
-                   <div class="h-full bg-amber-400" :style="{ width: timeRemainingPercentage + '%' }"></div>
-                </div>
-              </div>
-              <div class="w-6 h-6 ml-3 flex items-center justify-center rounded-full bg-amber-50 text-amber-500 shrink-0">
-                <svg class="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+
+              <!-- Right Side: Primary Action -->
+              <div class="shrink-0">
+                 <button 
+                   @click.stop="showModal = true"
+                   class="px-3 py-2 bg-black text-white text-[10px] font-black rounded-lg border-2 border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-0.5 hover:translate-y-0.5 transition-all whitespace-nowrap"
+                 >
+                   View Profile
+                 </button>
               </div>
             </template>
-            
             <template v-else>
               <div class="flex items-center gap-2 w-full">
                 <!-- Premium Info Card -->
@@ -251,7 +249,7 @@
                       </div>
                       <p class="text-xs font-bold text-black tracking-wider uppercase bg-amber-400 px-4 py-1.5 rounded-lg border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">Pending</p>
                    </template>
-                   <template v-else>
+                    <template v-else>
                       <div class="p-4 rounded-full bg-white border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] mb-3 transition-transform hover:scale-110 duration-200">
                          <svg class="w-8 h-8 text-black" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
                             <rect x="3" y="11" width="18" height="11" rx="2" ry="2" fill="none"></rect>
@@ -259,6 +257,11 @@
                          </svg>
                       </div>
                       <p class="text-xs font-bold text-black tracking-widest uppercase bg-white px-4 py-1.5 rounded-lg border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">Private</p>
+                      
+                      <!-- Modal Specific Social Proof -->
+                      <div v-if="otherUserPaid" class="mt-4 px-4 py-2 bg-emerald-500 text-white rounded-full border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] text-[10px] font-black uppercase tracking-widest flex items-center gap-2">
+                        <span>💖</span> This match has unlocked you!
+                      </div>
                    </template>
                 </div>
               </template>
@@ -306,9 +309,23 @@
                 <p v-else class="text-stone-400 italic text-sm">No bio shared yet.</p>
               </div>
               <div v-else>
-                <h3 class="text-xs font-bold text-stone-900 uppercase tracking-widest mb-2">The Vibe</h3>
-                <div class="p-4 bg-stone-50 rounded-lg border border-stone-100">
-                  <p class="italic text-stone-600 leading-relaxed">"{{ vibePreview }}"</p>
+                <h3 class="text-xs font-bold text-stone-900 uppercase tracking-widest mb-2">The Personal Vibe</h3>
+                <div class="p-4 bg-stone-50 rounded-lg border border-stone-100 mb-2">
+                  <p v-if="bio" class="italic text-stone-600 leading-relaxed">
+                    "{{ bio.slice(0, 100) }}{{ bio.length > 100 ? '...' : '' }}"
+                  </p>
+                  <p v-else class="italic text-stone-600 leading-relaxed italic">"{{ vibePreview }}"</p>
+                </div>
+                
+                <!-- AI Nudge Note -->
+                <div v-if="aiAnalysis" class="p-4 bg-indigo-50/50 rounded-xl border border-indigo-100 relative overflow-hidden group mb-2 text-left">
+                  <div class="absolute -right-4 -top-4 w-12 h-12 bg-indigo-200/20 rounded-full blur-xl group-hover:scale-150 transition-transform duration-700"></div>
+                  <h4 class="text-[10px] font-bold text-indigo-600 uppercase tracking-widest mb-1.5 flex items-center gap-1.5 relative">
+                    <span>✨</span> AI Compatibility Note
+                  </h4>
+                  <p class="text-[11px] text-stone-700 leading-relaxed relative italic">
+                    "{{ aiAnalysis?.slice(0, 120) }}{{ (aiAnalysis?.length || 0) > 120 ? '...' : '' }}"
+                  </p>
                 </div>
                 <p class="text-xs text-stone-400 mt-2 font-medium flex items-center gap-1">
                   � Unlock to see full profile & contact info
@@ -332,7 +349,7 @@
               </div>
               
               <!-- Icebreakers -->
-              <div v-if="unlocked" class="mt-6">
+              <div v-if="unlocked || currentUserPaid" class="mt-6">
                 <h3 class="text-xs font-bold text-stone-900 uppercase tracking-widest mb-3 flex items-center gap-2">
                    <span class="text-rose-500">🤖</span> Smart Icebreakers
                 </h3>
@@ -351,6 +368,63 @@
                     <span v-if="copiedIndex === idx" class="absolute inset-0 bg-emerald-500 text-white flex items-center justify-center font-bold">Copied!</span>
                     "{{ icebreaker }}"
                   </button>
+                </div>
+              </div>
+
+              <!-- Availability Section (In Modal) -->
+              <div v-if="unlocked || currentUserPaid" class="mt-8 border-t-2 border-stone-100 dark:border-stone-800 pt-8">
+                <div class="flex items-center justify-between mb-4">
+                  <h3 class="text-xs font-black text-stone-900 dark:text-white uppercase tracking-widest flex items-center gap-2">
+                    <span class="text-rose-500">🥂</span> Dating Schedule
+                  </h3>
+                  <div v-if="mutualAvailability.length > 0" class="px-2 py-1 bg-black text-rose-400 text-[9px] font-black rounded-lg border-2 border-rose-500/30 shadow-[4px_4px_0px_0px_rgba(244,63,94,0.1)] animate-in zoom-in-50">
+                    {{ scheduleMatchRate }}% MATCH
+                  </div>
+                </div>
+                
+                <div v-if="mutualAvailability.length > 0" class="grid grid-cols-1 gap-3">
+                   <div 
+                     v-for="overlap in mutualAvailability" 
+                     :key="overlap.day"
+                     class="group/overlap p-4 bg-white dark:bg-stone-900 rounded-2xl border-2 border-black dark:border-stone-700 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-0.5 hover:translate-y-0.5 transition-all relative overflow-hidden"
+                   >
+                     <div class="absolute right-0 top-0 w-16 h-16 bg-rose-500/5 rounded-full -mr-8 -mt-8 group-hover/overlap:scale-150 transition-transform duration-700"></div>
+                     <div class="flex items-start justify-between relative z-10">
+                        <div class="flex flex-col">
+                           <span class="text-[10px] font-black uppercase text-rose-500 tracking-[0.2em] mb-2">{{ overlap.day }}</span>
+                           <div class="flex flex-wrap gap-2">
+                              <div v-for="slot in overlap.slots" :key="slot" class="flex items-center gap-1.5 px-3 py-1.5 bg-stone-50 dark:bg-stone-800 rounded-xl border border-stone-200 dark:border-stone-700">
+                                 <span class="text-[14px]">{{ slot === 'afternoon' ? '☀️' : slot === 'evening' ? '🍹' : '🌙' }}</span>
+                                 <span class="text-[11px] font-bold text-stone-900 dark:text-white capitalize">{{ slot }}</span>
+                              </div>
+                           </div>
+                        </div>
+                        <div class="w-8 h-8 rounded-full bg-rose-100 dark:bg-rose-900/30 flex items-center justify-center text-rose-500 font-bold text-xs animate-pulse">✨</div>
+                     </div>
+                   </div>
+                   <div class="mt-2 p-4 bg-emerald-50 dark:bg-emerald-900/10 rounded-xl border border-emerald-100 dark:border-emerald-900/20 text-center">
+                     <p class="text-[10px] text-emerald-700 font-bold italic">
+                       Great news! Your schedules overlap on {{ mutualAvailability.length }} windows.
+                     </p>
+                   </div>
+                </div>
+
+                <!-- Fallback when no mutual overlaps exist -->
+                <div v-else class="p-8 bg-stone-50 dark:bg-stone-800/50 rounded-2xl border-2 border-dashed border-stone-200 dark:border-stone-700 text-center space-y-3">
+                   <div class="text-3xl opacity-50">🗓️</div>
+                   <div v-if="!matchedUserAvailability || Object.values(matchedUserAvailability).every((a: any) => !a?.length)" class="space-y-1">
+                      <p class="text-xs font-black text-stone-600 dark:text-stone-300 uppercase tracking-widest">No Schedule Data Yet</p>
+                      <p class="text-[10px] text-stone-400 leading-relaxed font-medium capitalize">This user hasn't set their "Ideal Date" windows yet. Try messaging them to coordinate!</p>
+                   </div>
+                   <div v-else class="space-y-1">
+                      <p class="text-xs font-black text-stone-600 dark:text-stone-300 uppercase tracking-widest">No Direct Overlaps</p>
+                      <p class="text-[10px] text-stone-400 leading-relaxed font-medium">Your schedule preferences are different, but don't worry! Most couples find a way to meet outside their "Ideal" windows.</p>
+                   </div>
+                   <div class="pt-2">
+                      <button @click="openContactMethod" class="text-[9px] font-black uppercase tracking-[0.2em] text-rose-500 hover:text-rose-600 underline">
+                         Suggest a time manually
+                      </button>
+                   </div>
                 </div>
               </div>
             </div>
@@ -499,6 +573,10 @@ interface Props {
   gender?: 'male' | 'female'
   hasSubscription?: boolean
   isFreeUnlockEligible?: boolean
+  aiAnalysis?: string
+  otherUserPaid?: boolean
+  availability?: any
+  matchedUserAvailability?: any
 }
 
 const props = defineProps<Props>()
@@ -517,6 +595,52 @@ const copied = ref(false)
 const isUnlocking = ref(false)
 const copiedIndex = ref<number | null>(null)
 const showCelebration = ref(false)
+
+// Shared Availability Logic
+const mutualAvailability = computed(() => {
+  if (!props.availability || !props.matchedUserAvailability) return []
+  
+  const days = ['weekdays', 'friday', 'saturday', 'sunday']
+  
+  // Defensive parsing
+  let user1Avail: any = {}
+  let user2Avail: any = {}
+  
+  try {
+     user1Avail = typeof props.availability === 'string' ? JSON.parse(props.availability) : props.availability
+     user2Avail = typeof props.matchedUserAvailability === 'string' ? JSON.parse(props.matchedUserAvailability) : props.matchedUserAvailability
+  } catch (e) {
+     return []
+  }
+
+  if (!user1Avail || !user2Avail) return []
+
+  const shared: { day: string, slots: string[] }[] = []
+  for (const day of days) {
+    const user1Slots = user1Avail[day] || []
+    const user2Slots = user2Avail[day] || []
+    
+    if (!Array.isArray(user1Slots) || !Array.isArray(user2Slots)) continue
+    
+    const common = user1Slots.filter((slot: string) => user2Slots.includes(slot))
+    
+    if (common.length > 0) {
+      shared.push({ 
+        day: day === 'weekdays' ? 'Weekdays' : day.charAt(0).toUpperCase() + day.slice(1), 
+        slots: common 
+      })
+    }
+  }
+  return shared
+})
+
+const scheduleMatchRate = computed(() => {
+  if (mutualAvailability.value.length === 0) return 0
+  const slots = mutualAvailability.value.reduce((acc: number, curr: any) => acc + curr.slots.length, 0)
+  // Max slots is ~12. Scale to 100.
+  const score = Math.round((slots / 12) * 100)
+  return Math.min(score + 30, 99) // Base 30 + slot bonus
+})
 
 // Navigate to dedicated connection page
 const navigateToConnection = () => {
@@ -582,9 +706,11 @@ const handleUnlock = async () => {
 
 // Compatibility Score (based on shared interests)
 const compatibilityScore = computed(() => {
-  if (!props.sharedInterests || !props.interests) return null
-  if (props.interests.length === 0) return null
-  const score = Math.round((props.sharedInterests.length / Math.max(props.interests.length, 1)) * 100)
+  if (!props.sharedInterests || !props.interests || !Array.isArray(props.interests) || !Array.isArray(props.sharedInterests)) return 0
+  if (props.interests.length === 0) return 0
+  const sharedCount = props.sharedInterests.length
+  const totalCount = props.interests.length
+  const score = Math.round((sharedCount / Math.max(totalCount, 1)) * 100)
   return Math.min(score + 40, 99) // Base of 40% + shared interests bonus, max 99%
 })
 
@@ -658,7 +784,14 @@ const proposeDateWhatsAppLink = computed(() => {
   if (cleanPhone.startsWith('0')) cleanPhone = '233' + cleanPhone.slice(1)
   else if (!cleanPhone.startsWith('+') && !cleanPhone.startsWith('233')) cleanPhone = '233' + cleanPhone
   cleanPhone = cleanPhone.replace(/^\+/, '')
-  const message = encodeURIComponent(`Hi ${props.displayName || 'there'}! 👋 I saw we matched on M2M. 🥂 Are you free for drinks at an M2M Partner Venue this week?`)
+  
+  let sharedNote = ""
+  if (mutualAvailability.value.length > 0) {
+    const first = mutualAvailability.value[0]
+    sharedNote = ` I saw we're both free on ${first.day} ${first.slots.join(' & ')}!`
+  }
+  
+  const message = encodeURIComponent(`Hi ${props.displayName || 'there'}! 👋 I saw we matched on M2M.${sharedNote} 🥂 Are you free for drinks at an M2M Partner Venue?`)
   return `https://wa.me/${cleanPhone}?text=${message}`
 })
 
@@ -726,6 +859,14 @@ const formatTimeRemaining = computed(() => {
     transform: scale(1) translateY(0); 
     filter: blur(0);
   }
+}
+
+@keyframes bounce-subtle {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-2px); }
+}
+.animate-bounce-subtle {
+  animation: bounce-subtle 2s infinite;
 }
 
 /* Modal Content Scrollbar */

@@ -90,7 +90,7 @@
         </div>
 
         <!-- Tabs Navigation (Desktop) -->
-        <div v-if="['/matches', '/events', '/me'].includes(route.path)" class="hidden md:flex md:flex-wrap md:gap-4 mb-8 md:mb-12">
+        <div v-if="['/matches', '/events', '/me', '/lobby'].includes(route.path)" class="hidden md:flex md:flex-wrap md:gap-4 mb-8 md:mb-12">
           <NuxtLink 
             to="/matches"
             class="px-6 py-3 rounded-lg text-xs font-bold uppercase tracking-widest transition-all border-2"
@@ -105,6 +105,14 @@
             :class="route.path === '/events' ? 'bg-black dark:bg-stone-100 text-white dark:text-black border-black dark:border-stone-100 shadow-[4px_4px_0px_0px_rgba(244,63,94,1)]' : 'bg-white dark:bg-stone-900 text-stone-500 dark:text-stone-400 border-stone-200 dark:border-stone-700 hover:border-black dark:hover:border-stone-500 hover:text-black dark:hover:text-stone-200'"
           >
             Events
+          </NuxtLink>
+          <NuxtLink 
+            to="/lobby"
+            class="px-6 py-3 rounded-lg text-xs font-bold uppercase tracking-widest transition-all border-2 flex items-center gap-2"
+            :class="route.path === '/lobby' ? 'bg-black dark:bg-stone-100 text-white dark:text-black border-black dark:border-stone-100 shadow-[4px_4px_0px_0px_rgba(99,102,241,1)]' : 'bg-white dark:bg-stone-900 text-stone-500 dark:text-stone-400 border-stone-200 dark:border-stone-700 hover:border-black dark:hover:border-stone-500 hover:text-black dark:hover:text-stone-200'"
+          >
+            Lobby
+            <span v-if="isLive" class="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-pulse"></span>
           </NuxtLink>
           <NuxtLink 
             to="/me"
@@ -160,7 +168,7 @@
       </footer>
 
       <!-- Mobile Bottom Navigation -->
-      <nav v-if="['/matches', '/events', '/me'].includes(route.path)" class="md:hidden fixed bottom-6 left-4 right-4 z-[60] bg-white dark:bg-stone-900 border-2 border-black dark:border-stone-700 rounded-2xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,0.1)] pb-safe transition-transform duration-300">
+      <nav v-if="['/matches', '/events', '/me', '/lobby'].includes(route.path)" class="md:hidden fixed bottom-6 left-4 right-4 z-[60] bg-white dark:bg-stone-900 border-2 border-black dark:border-stone-700 rounded-2xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,0.1)] pb-safe transition-transform duration-300">
         <div class="flex justify-around items-center h-16 px-2">
            <NuxtLink to="/matches" class="flex flex-col items-center justify-center gap-1 w-16 transition-all active:scale-95" :class="route.path === '/matches' ? 'text-rose-500' : 'text-stone-400 dark:text-stone-500'">
               <div class="relative">
@@ -173,6 +181,13 @@
               <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10zm0-12H5V6h14v2zm-7 5h5v5h-5v-5z"/></svg>
               <span class="text-[9px] font-bold uppercase tracking-widest">Events</span>
            </NuxtLink>
+            <NuxtLink to="/lobby" class="flex flex-col items-center justify-center gap-1 w-16 transition-all active:scale-95" :class="route.path === '/lobby' ? 'text-indigo-500' : 'text-stone-400 dark:text-stone-500'">
+              <div class="relative">
+                 <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M13 2.05v2.02c3.39.49 6 3.39 6.49 6.78h2.02C20.99 5.96 17.54 2.51 13 2.05zM11 2.05c-4.54.46-8 3.91-8.51 8.45h2.02c.49-3.39 3.1-6.29 6.49-6.78V2.05zM19.49 13c-.49 3.39-3.1 6.29-6.49 6.78v2.02c4.54-.46 8-3.91 8.51-8.45h-2.02zM11 19.78c-3.39-.49-6-3.39-6.49-6.78H2.49c.51 4.54 3.96 7.99 8.51 8.45v-2.02z"/></svg>
+                 <span v-if="isLive" class="absolute -top-1 -right-1 w-2.5 h-2.5 bg-indigo-500 rounded-full border border-white dark:border-stone-900 animate-pulse"></span>
+              </div>
+              <span class="text-[9px] font-bold uppercase tracking-widest">Lobby</span>
+            </NuxtLink>
            <NuxtLink to="/me" class="flex flex-col items-center justify-center gap-1 w-16 transition-all active:scale-95" :class="route.path === '/me' ? 'text-black dark:text-white' : 'text-stone-400 dark:text-stone-500'">
               <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
               <span class="text-[9px] font-bold uppercase tracking-widest">Profile</span>
@@ -189,6 +204,7 @@ const route = useRoute()
 const config = useRuntimeConfig()
 const { authReady, profile, subscription, pendingMatchCount, isProfileIncomplete, initDashboard } = useDashboard()
 const { unreadCount, fetchNotifications } = useNotifications()
+const { isLive } = useFlashLobby()
 
 onMounted(async () => {
     await initDashboard()

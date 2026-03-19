@@ -23,6 +23,7 @@ export const useDashboard = () => {
         }
         try {
             const { data, error } = await supabase
+                .schema('m2m')
                 .from('profiles')
                 .select('*')
                 .eq('id', userId)

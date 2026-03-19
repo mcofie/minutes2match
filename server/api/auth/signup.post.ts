@@ -170,6 +170,18 @@ export default defineEventHandler(async (event) => {
                 .upsert(vibeEntries, { onConflict: 'user_id,question_key' })
         }
 
+        // 4. Trigger Just-In-Time (JIT) Matching
+        // Since the user is newly verified, we scan for high-quality matches immediately.
+        try {
+            const { runTargetedMatching } = await import('~/server/utils/matchmaker')
+            const matchResult = await runTargetedMatching(userId)
+            if (matchResult?.matched) {
+                console.log(`[JIT Match] Created immediate match for ${userId} with score ${matchResult.score}%`)
+            }
+        } catch (matchError) {
+            console.error('[JIT Match] Automatic matching failed for new signup:', matchError)
+        }
+
         // Send Discord notification for new signup
         await notifyNewSignup({
             email,

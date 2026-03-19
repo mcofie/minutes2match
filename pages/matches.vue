@@ -13,8 +13,13 @@
              </span>
              <span class="text-[9px] font-black uppercase tracking-widest text-emerald-700 dark:text-emerald-400">High Quality Pool Verified</span>
           </div>
-          <span class="text-sm font-medium text-stone-500 dark:text-stone-400 bg-stone-100 dark:bg-stone-800 px-3 py-1 rounded-full">{{ matches.length }} matches</span>
+          <span class="text-sm font-medium text-stone-500 dark:text-stone-400 bg-stone-100 dark:bg-stone-800 px-3 py-1 rounded-full">{{ matches?.length || 0 }} matches</span>
        </div>
+    </div>
+
+    <!-- Flash Lobby Entry Point -->
+    <div class="mb-4">
+      <FlashLobbyBanner />
     </div>
 
     <!-- Quality Assurance Banner -->
@@ -80,6 +85,10 @@
           :gender="match.matchedProfile?.gender"
           :hasSubscription="!!subscription"
           :isFreeUnlockEligible="profile && !profile.has_used_free_unlock"
+          :aiAnalysis="match.ai_analysis"
+          :otherUserPaid="match.otherUserPaid"
+          :availability="profile?.availability"
+          :matchedUserAvailability="match.matchedProfile?.availability"
           @unlock="handleUnlockMatch(match)"
           @update-status="navigateToFeedback(match)"
         />

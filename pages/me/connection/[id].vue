@@ -206,7 +206,6 @@
         <!-- Main Content (Form-like Inputs) -->
         <div class="md:col-span-8 lg:col-span-9 space-y-6">
           
-          <!-- Basic Details -->
           <!-- Compatibility & Date Idea (Editorial Style) -->
           <div v-if="match?.unlocked && matchProfile" class="grid sm:grid-cols-2 gap-8 mb-8">
              <!-- Vibe Match (Editorial Report) -->
@@ -256,6 +255,70 @@
                 <p class="font-serif italic text-stone-600 dark:text-stone-300 leading-relaxed max-w-xs mx-auto">
                    "{{ dateIdea.desc }}"
                 </p>
+             </div>
+          </div>
+
+          <!-- Dating Schedule (New Section) -->
+          <div v-if="match?.unlocked || match?.currentUserPaid" class="bg-white dark:bg-stone-900 p-6 md:p-8 rounded-xl border-2 border-black dark:border-stone-700 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] dark:shadow-[8px_8px_0px_0px_rgba(255,255,255,0.05)]">
+             <div class="flex items-center justify-between mb-6">
+                <div class="flex items-center gap-3">
+                   <div class="w-10 h-10 bg-rose-50 dark:bg-rose-900/30 rounded-lg flex items-center justify-center text-xl border-2 border-black dark:border-stone-600 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">🥂</div>
+                   <h3 class="text-2xl font-serif font-bold text-black dark:text-white">Dating Schedule</h3>
+                </div>
+                <div v-if="mutualAvailability.length > 0" class="px-3 py-1 bg-black text-rose-400 text-[10px] font-black rounded-lg border-2 border-rose-500 shadow-[4px_4px_0px_0px_rgba(244,63,94,0.1)] animate-in zoom-in-50">
+                   {{ scheduleMatchRate }}% Match
+                </div>
+             </div>
+
+             <div v-if="mutualAvailability.length > 0" class="space-y-4">
+                <div 
+                  v-for="overlap in mutualAvailability" 
+                  :key="overlap.day"
+                  class="group/overlap p-5 bg-stone-50 dark:bg-stone-800/50 rounded-2xl border-2 border-black dark:border-stone-700 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-0.5 hover:translate-y-0.5 transition-all"
+                >
+                  <div class="flex items-start justify-between">
+                     <div class="flex flex-col">
+                        <span class="text-[11px] font-black uppercase text-rose-500 tracking-[0.2em] mb-3">{{ overlap.day }}</span>
+                        <div class="flex flex-wrap gap-3">
+                           <div v-for="slot in overlap.slots" :key="slot" class="flex items-center gap-2 px-4 py-2 bg-white dark:bg-stone-900 rounded-xl border-2 border-stone-200 dark:border-stone-700">
+                              <span class="text-xl">{{ slot === 'afternoon' ? '☀️' : slot === 'evening' ? '🍹' : '🌙' }}</span>
+                              <span class="text-sm font-bold text-stone-900 dark:text-white capitalize">{{ slot }}</span>
+                           </div>
+                        </div>
+                     </div>
+                     <span class="text-2xl animate-pulse">✨</span>
+                  </div>
+                </div>
+                <div class="p-4 bg-emerald-50 dark:bg-emerald-950/30 rounded-xl border-2 border-dashed border-emerald-200 dark:border-emerald-800 text-center">
+                   <p class="text-sm text-emerald-700 dark:text-emerald-400 font-bold italic">
+                     Perfect! You both are free on {{ mutualAvailability.length }} windows.
+                   </p>
+                </div>
+             </div>
+
+             <!-- Fallback when no mutual overlaps exist -->
+             <div v-else class="p-10 bg-stone-50 dark:bg-stone-800/50 rounded-2xl border-2 border-dashed border-stone-200 dark:border-stone-700 text-center space-y-4">
+                <div class="text-5xl opacity-40">🗓️</div>
+                <div v-if="!matchProfile?.availability || Object.values(matchProfile.availability).every((a: any) => !a?.length)" class="space-y-2">
+                   <p class="text-sm font-black text-stone-700 dark:text-stone-300 uppercase tracking-[0.2em]">Schedules Awaiting</p>
+                   <p class="text-xs text-stone-500 leading-relaxed font-medium max-w-sm mx-auto">
+                     {{ matchProfile?.display_name }} hasn't set their date windows yet. Coordinate with them manually while you wait!
+                   </p>
+                </div>
+                <div v-else class="space-y-2">
+                   <p class="text-sm font-black text-stone-700 dark:text-stone-300 uppercase tracking-[0.2em]">No Direct Overlaps</p>
+                   <p class="text-xs text-stone-500 leading-relaxed font-medium max-w-sm mx-auto">
+                     Your ideal times don't overlap, but most matches find a way to meet outside their "Ideal" windows anyway.
+                   </p>
+                </div>
+                <div class="pt-4">
+                   <button 
+                     @click="openContactMethod" 
+                     class="px-6 py-3 bg-white dark:bg-stone-900 text-rose-500 rounded-xl font-black text-xs uppercase tracking-widest border-2 border-rose-500 shadow-[4px_4px_0px_0px_rgba(244,63,94,1)] hover:shadow-none hover:translate-x-0.5 hover:translate-y-0.5 transition-all"
+                   >
+                      Suggest a time manually
+                   </button>
+                </div>
              </div>
           </div>
 
@@ -1047,6 +1110,64 @@ const dateIdea = computed(() => {
    
    return { title: 'Classic Dinner Date', emoji: '🥂', desc: 'Pick a restaurant with great ambiance and get to know each other properly.' }
 })
+
+// Availability Logic
+const mutualAvailability = computed(() => {
+  if (!currentUser.value?.availability || !matchProfile.value?.availability) return []
+  
+  const days = ['weekdays', 'friday', 'saturday', 'sunday']
+  
+  // Defensive parsing
+  let user1Avail: any = {}
+  let user2Avail: any = {}
+  
+  try {
+     user1Avail = typeof currentUser.value.availability === 'string' ? JSON.parse(currentUser.value.availability) : currentUser.value.availability
+     user2Avail = typeof matchProfile.value.availability === 'string' ? JSON.parse(matchProfile.value.availability) : matchProfile.value.availability
+  } catch (e) {
+     return []
+  }
+
+  if (!user1Avail || !user2Avail) return []
+
+  const shared: { day: string, slots: string[] }[] = []
+  for (const day of days) {
+    const user1Slots = user1Avail[day] || []
+    const user2Slots = user2Avail[day] || []
+    
+    if (!Array.isArray(user1Slots) || !Array.isArray(user2Slots)) continue
+    
+    const common = user1Slots.filter((slot: string) => user2Slots.includes(slot))
+    
+    if (common.length > 0) {
+      shared.push({ 
+        day: day === 'weekdays' ? 'Weekdays' : day.charAt(0).toUpperCase() + day.slice(1), 
+        slots: common 
+      })
+    }
+  }
+  return shared
+})
+
+const scheduleMatchRate = computed(() => {
+  if (mutualAvailability.value.length === 0) return 0
+  const slots = mutualAvailability.value.reduce((acc: number, curr: any) => acc + curr.slots.length, 0)
+  // Max slots is ~12. Scale to 100.
+  const score = Math.round((slots / 12) * 100)
+  return Math.min(score + 30, 99) // Base 30 + slot bonus
+})
+
+const openContactMethod = () => {
+   if (!matchProfile.value) return
+   const method = matchProfile.value.preferred_contact_method || 'phone'
+   if (method === 'instagram' && matchProfile.value.instagram_handle) {
+      window.open(`https://instagram.com/${matchProfile.value.instagram_handle.replace('@', '')}`, '_blank')
+   } else if (method === 'snapchat' && matchProfile.value.snapchat_handle) {
+      window.open(`https://snapchat.com/add/${matchProfile.value.snapchat_handle}`, '_blank')
+   } else if (matchProfile.value.phone) {
+      window.open(`https://wa.me/${matchProfile.value.phone?.replace(/\D/g, '')}`, '_blank')
+   }
+}
 
 // Fetch match data
 const loadMatchData = async () => {

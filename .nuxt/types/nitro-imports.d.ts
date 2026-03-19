@@ -46,10 +46,12 @@ declare global {
   const dynamicEventHandler: typeof import('../../node_modules/h3').dynamicEventHandler
   const enforceRateLimit: typeof import('../../server/utils/rateLimiter').enforceRateLimit
   const eventHandler: typeof import('../../node_modules/h3').eventHandler
+  const extractPreferencesFromBio: typeof import('../../server/utils/ai').extractPreferencesFromBio
   const fetchWithEvent: typeof import('../../node_modules/h3').fetchWithEvent
   const fromNodeMiddleware: typeof import('../../node_modules/h3').fromNodeMiddleware
   const fromPlainHandler: typeof import('../../node_modules/h3').fromPlainHandler
   const fromWebHandler: typeof import('../../node_modules/h3').fromWebHandler
+  const generateMatchExplanation: typeof import('../../server/utils/ai').generateMatchExplanation
   const getClientIP: typeof import('../../server/utils/rateLimiter').getClientIP
   const getCookie: typeof import('../../node_modules/h3').getCookie
   const getGeminiModel: typeof import('../../server/utils/ai').getGeminiModel
@@ -94,8 +96,10 @@ declare global {
   const notifyDiscord: typeof import('../../server/utils/discord').notifyDiscord
   const notifyError: typeof import('../../server/utils/discord').notifyError
   const notifyEventBooking: typeof import('../../server/utils/discord').notifyEventBooking
+  const notifyLobbyReminder: typeof import('../../server/utils/discord').notifyLobbyReminder
   const notifyMatchUnlocked: typeof import('../../server/utils/discord').notifyMatchUnlocked
   const notifyNewSignup: typeof import('../../server/utils/discord').notifyNewSignup
+  const notifyPaymentInitiated: typeof import('../../server/utils/discord').notifyPaymentInitiated
   const notifyPaymentSuccess: typeof import('../../server/utils/discord').notifyPaymentSuccess
   const notifyRedemption: typeof import('../../server/utils/discord').notifyRedemption
   const notifyUser: typeof import('../../server/utils/notify').notifyUser
@@ -116,6 +120,7 @@ declare global {
   const readRawBody: typeof import('../../node_modules/h3').readRawBody
   const readValidatedBody: typeof import('../../node_modules/h3').readValidatedBody
   const removeResponseHeader: typeof import('../../node_modules/h3').removeResponseHeader
+  const runTargetedMatching: typeof import('../../server/utils/matchmaker').runTargetedMatching
   const runTask: typeof import('../../node_modules/nitropack/dist/runtime/internal/task').runTask
   const sanitizeStatusCode: typeof import('../../node_modules/h3').sanitizeStatusCode
   const sanitizeStatusMessage: typeof import('../../node_modules/h3').sanitizeStatusMessage
@@ -175,6 +180,9 @@ declare global {
   export type { HubtelSMSResponse } from '../../server/utils/hubtel'
   import('../../server/utils/hubtel')
   // @ts-ignore
+  export type { MatchCandidate } from '../../server/utils/matchmaker'
+  import('../../server/utils/matchmaker')
+  // @ts-ignore
   export type { Persona } from '../../server/utils/personas'
   import('../../server/utils/personas')
   // @ts-ignore
@@ -202,10 +210,11 @@ export { useImage } from '/Users/maxwellcofie/WebstormProjects/minutes2match/nod
 export { queryCollection, queryCollectionSearchSections, queryCollectionNavigation, queryCollectionItemSurroundings } from '/Users/maxwellcofie/WebstormProjects/minutes2match/node_modules/@nuxt/content/dist/runtime/nitro';
 export { parseMarkdown } from '/Users/maxwellcofie/WebstormProjects/minutes2match/node_modules/@nuxtjs/mdc/dist/runtime/parser';
 export { stringifyMarkdown } from '/Users/maxwellcofie/WebstormProjects/minutes2match/node_modules/@nuxtjs/mdc/dist/runtime/stringify';
-export { getGeminiModel, auditProfileWithAI } from '/Users/maxwellcofie/WebstormProjects/minutes2match/server/utils/ai';
-export { DiscordColors, notifyRedemption, notifyDiscord, notifyNewSignup, notifyPaymentSuccess, notifyMatchUnlocked, notifyEventBooking, notifyError, notifyUserLogin } from '/Users/maxwellcofie/WebstormProjects/minutes2match/server/utils/discord';
+export { getGeminiModel, auditProfileWithAI, extractPreferencesFromBio, generateMatchExplanation } from '/Users/maxwellcofie/WebstormProjects/minutes2match/server/utils/ai';
+export { DiscordColors, notifyRedemption, notifyDiscord, notifyNewSignup, notifyPaymentInitiated, notifyPaymentSuccess, notifyMatchUnlocked, notifyEventBooking, notifyLobbyReminder, notifyError, notifyUserLogin } from '/Users/maxwellcofie/WebstormProjects/minutes2match/server/utils/discord';
 export { sendHubtelSMS } from '/Users/maxwellcofie/WebstormProjects/minutes2match/server/utils/hubtel';
 export { unlockMatch } from '/Users/maxwellcofie/WebstormProjects/minutes2match/server/utils/match';
+export { runTargetedMatching } from '/Users/maxwellcofie/WebstormProjects/minutes2match/server/utils/matchmaker';
 export { notifyUser } from '/Users/maxwellcofie/WebstormProjects/minutes2match/server/utils/notify';
 export { usePasskeyUtils } from '/Users/maxwellcofie/WebstormProjects/minutes2match/server/utils/passkeys';
 export { personas, calculatePersona } from '/Users/maxwellcofie/WebstormProjects/minutes2match/server/utils/personas';

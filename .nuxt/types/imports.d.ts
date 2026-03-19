@@ -5,8 +5,11 @@ declare global {
   const acceptHMRUpdate: typeof import('../../node_modules/@pinia/nuxt/dist/runtime/composables').acceptHMRUpdate
   const addRouteMiddleware: typeof import('../../node_modules/nuxt/dist/app/composables/router').addRouteMiddleware
   const badges: typeof import('../../composables/useBadges').badges
+  const calculateAge: typeof import('../../composables/useCompatibility').calculateAge
+  const calculateCompatibility: typeof import('../../composables/useCompatibility').calculateCompatibility
   const callOnce: typeof import('../../node_modules/nuxt/dist/app/composables/once').callOnce
   const cancelIdleCallback: typeof import('../../node_modules/nuxt/dist/app/compat/idle-callback').cancelIdleCallback
+  const checkAgeViolation: typeof import('../../composables/useCompatibility').checkAgeViolation
   const clearError: typeof import('../../node_modules/nuxt/dist/app/composables/error').clearError
   const clearNuxtData: typeof import('../../node_modules/nuxt/dist/app/composables/asyncData').clearNuxtData
   const clearNuxtState: typeof import('../../node_modules/nuxt/dist/app/composables/state').clearNuxtState
@@ -30,6 +33,7 @@ declare global {
   const effect: typeof import('vue').effect
   const effectScope: typeof import('vue').effectScope
   const getAppManifest: typeof import('../../node_modules/nuxt/dist/app/composables/manifest').getAppManifest
+  const getCompatibilityTier: typeof import('../../composables/useCompatibility').getCompatibilityTier
   const getCurrentInstance: typeof import('vue').getCurrentInstance
   const getCurrentScope: typeof import('vue').getCurrentScope
   const getRandomQuestions: typeof import('../../composables/useShotHints').getRandomQuestions
@@ -38,6 +42,7 @@ declare global {
   const hasInjectionContext: typeof import('vue').hasInjectionContext
   const inject: typeof import('vue').inject
   const injectHead: typeof import('../../node_modules/nuxt/dist/app/composables/head').injectHead
+  const isCompatibleProfession: typeof import('../../composables/useCompatibility').isCompatibleProfession
   const isNuxtError: typeof import('../../node_modules/nuxt/dist/app/composables/error').isNuxtError
   const isPrerendered: typeof import('../../node_modules/nuxt/dist/app/composables/payload').isPrerendered
   const isProxy: typeof import('vue').isProxy
@@ -125,6 +130,7 @@ declare global {
   const useEventSeo: typeof import('../../composables/useSeo').useEventSeo
   const useFaviconPwaIcon: typeof import('../../node_modules/@vite-pwa/nuxt/dist/runtime/composables/index').useFaviconPwaIcon
   const useFetch: typeof import('../../node_modules/nuxt/dist/app/composables/fetch').useFetch
+  const useFlashLobby: typeof import('../../composables/useFlashLobby').useFlashLobby
   const useFormValidation: typeof import('../../composables/useFormValidation').useFormValidation
   const useHaptic: typeof import('../../composables/useHaptic').useHaptic
   const useHead: typeof import('../../node_modules/nuxt/dist/app/composables/head').useHead
@@ -260,8 +266,11 @@ declare module 'vue' {
     readonly acceptHMRUpdate: UnwrapRef<typeof import('../../node_modules/@pinia/nuxt/dist/runtime/composables')['acceptHMRUpdate']>
     readonly addRouteMiddleware: UnwrapRef<typeof import('../../node_modules/nuxt/dist/app/composables/router')['addRouteMiddleware']>
     readonly badges: UnwrapRef<typeof import('../../composables/useBadges')['badges']>
+    readonly calculateAge: UnwrapRef<typeof import('../../composables/useCompatibility')['calculateAge']>
+    readonly calculateCompatibility: UnwrapRef<typeof import('../../composables/useCompatibility')['calculateCompatibility']>
     readonly callOnce: UnwrapRef<typeof import('../../node_modules/nuxt/dist/app/composables/once')['callOnce']>
     readonly cancelIdleCallback: UnwrapRef<typeof import('../../node_modules/nuxt/dist/app/compat/idle-callback')['cancelIdleCallback']>
+    readonly checkAgeViolation: UnwrapRef<typeof import('../../composables/useCompatibility')['checkAgeViolation']>
     readonly clearError: UnwrapRef<typeof import('../../node_modules/nuxt/dist/app/composables/error')['clearError']>
     readonly clearNuxtData: UnwrapRef<typeof import('../../node_modules/nuxt/dist/app/composables/asyncData')['clearNuxtData']>
     readonly clearNuxtState: UnwrapRef<typeof import('../../node_modules/nuxt/dist/app/composables/state')['clearNuxtState']>
@@ -285,6 +294,7 @@ declare module 'vue' {
     readonly effect: UnwrapRef<typeof import('vue')['effect']>
     readonly effectScope: UnwrapRef<typeof import('vue')['effectScope']>
     readonly getAppManifest: UnwrapRef<typeof import('../../node_modules/nuxt/dist/app/composables/manifest')['getAppManifest']>
+    readonly getCompatibilityTier: UnwrapRef<typeof import('../../composables/useCompatibility')['getCompatibilityTier']>
     readonly getCurrentInstance: UnwrapRef<typeof import('vue')['getCurrentInstance']>
     readonly getCurrentScope: UnwrapRef<typeof import('vue')['getCurrentScope']>
     readonly getRandomQuestions: UnwrapRef<typeof import('../../composables/useShotHints')['getRandomQuestions']>
@@ -293,6 +303,7 @@ declare module 'vue' {
     readonly hasInjectionContext: UnwrapRef<typeof import('vue')['hasInjectionContext']>
     readonly inject: UnwrapRef<typeof import('vue')['inject']>
     readonly injectHead: UnwrapRef<typeof import('../../node_modules/nuxt/dist/app/composables/head')['injectHead']>
+    readonly isCompatibleProfession: UnwrapRef<typeof import('../../composables/useCompatibility')['isCompatibleProfession']>
     readonly isNuxtError: UnwrapRef<typeof import('../../node_modules/nuxt/dist/app/composables/error')['isNuxtError']>
     readonly isPrerendered: UnwrapRef<typeof import('../../node_modules/nuxt/dist/app/composables/payload')['isPrerendered']>
     readonly isProxy: UnwrapRef<typeof import('vue')['isProxy']>
@@ -380,6 +391,7 @@ declare module 'vue' {
     readonly useEventSeo: UnwrapRef<typeof import('../../composables/useSeo')['useEventSeo']>
     readonly useFaviconPwaIcon: UnwrapRef<typeof import('../../node_modules/@vite-pwa/nuxt/dist/runtime/composables/index')['useFaviconPwaIcon']>
     readonly useFetch: UnwrapRef<typeof import('../../node_modules/nuxt/dist/app/composables/fetch')['useFetch']>
+    readonly useFlashLobby: UnwrapRef<typeof import('../../composables/useFlashLobby')['useFlashLobby']>
     readonly useFormValidation: UnwrapRef<typeof import('../../composables/useFormValidation')['useFormValidation']>
     readonly useHaptic: UnwrapRef<typeof import('../../composables/useHaptic')['useHaptic']>
     readonly useHead: UnwrapRef<typeof import('../../node_modules/nuxt/dist/app/composables/head')['useHead']>

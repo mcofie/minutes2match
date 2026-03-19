@@ -16,8 +16,8 @@ export const getGeminiModel = () => {
 
     console.log('[Gemini] Model initialized successfully with API Key.')
     const genAI = new GoogleGenerativeAI(apiKey)
-    // Using gemini-2.5-flash as it has the widest availability and stability
-    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" })
+    // Using gemini-1.5-flash-latest for best compatibility with current SDK and v1beta/v1 endpoints
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-latest" })
     return model
 }
 
@@ -118,6 +118,45 @@ export const extractPreferencesFromBio = async (bio: string) => {
         return null
     } catch (error) {
         console.error('AI Preference Extraction Error:', error)
+        return null
+    }
+}
+
+/**
+ * Generates a warm, insightful explanation of why two users were matched.
+ * Focuses on shared values, complementary personas, and 'synergy'.
+ */
+export const generateMatchExplanation = async (user1: any, user2: any, score: number) => {
+    const model = getGeminiModel()
+    if (!model) return null
+
+    const prompt = `
+        You are an elite matchmaker for "Minutes 2 Match".
+        Explain why these two users are a great match with a compatibility score of ${score}%.
+        Write a SHORT, warm, and insightful paragraph (max 3-4 sentences).
+        Focus on:
+        1. Shared values/interests (e.g. if both are 'adventurer' or both like 'fitness').
+        2. Complementary traits.
+        3. Why they should meet.
+
+        USER 1 (Male/Female): 
+        - Name: ${user1.display_name}
+        - Persona: ${user1.dating_persona}
+        - Bio Extracts: ${JSON.stringify(user1.preferences_extracted || {})}
+        
+        USER 2 (Male/Female):
+        - Name: ${user2.display_name}
+        - Persona: ${user2.dating_persona}
+        - Bio Extracts: ${JSON.stringify(user2.preferences_extracted || {})}
+
+        Respond ONLY with the explanation paragraph. Do NOT use markdown. Start directly with the explanation.
+    `
+
+    try {
+        const result = await model.generateContent(prompt)
+        return result.response.text().trim()
+    } catch (error) {
+        console.error('AI Match Explanation Error:', error)
         return null
     }
 }

@@ -23,6 +23,7 @@ export const useMatchStore = defineStore('matches', () => {
                     user_2:profiles!matches_user_2_id_fkey(*)
                 `)
                 .or(`user_1_id.eq.${userId},user_2_id.eq.${userId}`)
+                .not('created_by_label', 'eq', 'flash_lobby')
                 .in('status', ['pending_payment', 'partial_payment', 'unlocked'])
                 .order('created_at', { ascending: false })
 
@@ -33,14 +34,16 @@ export const useMatchStore = defineStore('matches', () => {
                     enrichedProfiles = await MatchService.enrichMatches(partnerIds)
                 }
                 matches.value = data.map((match: any) => {
-                    const partnerId = match.user_1_id === userId ? match.user_2_id : match.user_1_id
-                    const basicProfile = match.user_1_id === userId ? match.user_2 : match.user_1
+                    const isUser1 = match.user_1_id === userId
+                    const partnerId = isUser1 ? match.user_2_id : match.user_1_id
+                    const basicProfile = isUser1 ? match.user_2 : match.user_1
                     const fullProfile = enrichedProfiles[partnerId] || basicProfile
                     return {
                         ...match,
                         matchedProfile: fullProfile,
                         vibeAnswers: fullProfile?.vibeAnswers || [],
-                        currentUserPaid: match.user_1_id === userId ? match.user_1_paid : match.user_2_paid
+                        currentUserPaid: isUser1 ? match.user_1_paid : match.user_2_paid,
+                        otherUserPaid: isUser1 ? match.user_2_paid : match.user_1_paid
                     }
                 })
             } else {

@@ -208,6 +208,9 @@ export default defineEventHandler(async (event) => {
                             auto_renew: false
                         })
                 }
+            } else if (metadata.purpose === 'spark_deck') {
+                console.log('[Verify] Spark Deck purchase confirmed for user:', metadata.userId)
+                // Additional logic for order fulfillment could go here
             }
         }
 

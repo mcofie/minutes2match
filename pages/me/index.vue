@@ -161,9 +161,10 @@
               v-for="section in profileSections" 
               :key="'m-'+section.id"
               @click="activeProfileSection = section.id as any"
-              class="flex-shrink-0 px-5 py-2.5 rounded-full border-2 text-[10px] font-bold uppercase tracking-widest transition-all whitespace-nowrap"
+              class="flex-shrink-0 px-5 py-2.5 rounded-full border-2 text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap flex items-center gap-2"
               :class="activeProfileSection === section.id ? 'bg-black dark:bg-stone-100 text-white dark:text-black border-black dark:border-stone-100 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]' : 'bg-white dark:bg-stone-900 text-stone-500 border-stone-200 dark:border-stone-800'"
             >
+              <span class="text-sm">{{ section.icon }}</span>
               {{ section.label }}
             </button>
          </div>
@@ -476,6 +477,17 @@
             </div>
          </div>
 
+          <!-- AVAILABILITY SECTION -->
+          <div v-if="activeProfileSection === 'availability'" class="animate-in fade-in slide-in-from-right-4 duration-300">
+             <div class="bg-white dark:bg-stone-900 p-4 sm:p-6 md:p-8 rounded-xl border-2 border-black dark:border-stone-700 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] md:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,0.05)]">
+                <h3 class="text-lg md:text-2xl font-serif font-bold text-black dark:text-white mb-6 md:mb-8 flex items-center gap-2">
+                   <span>Dating Availability</span>
+                   <div class="h-px flex-1 bg-stone-100 dark:bg-stone-800"></div>
+                </h3>
+                <AvailabilityPicker v-model="editForm.availability" />
+             </div>
+          </div>
+
          <!-- SECURITY SECTION -->
          <div v-if="activeProfileSection === 'security'" class="space-y-8 animate-in fade-in slide-in-from-right-4 duration-300">
             <div class="bg-white dark:bg-stone-900 p-4 sm:p-6 md:p-8 rounded-xl border-2 border-black dark:border-stone-700 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] md:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,0.05)]">
@@ -711,11 +723,12 @@ const toast = useToast()
 const haptic = useHaptic()
 const { profile, subscription, fetchProfileById, trustScore } = useDashboard()
 
-const activeProfileSection = ref<'identity' | 'lifestyle' | 'hobbies' | 'matching' | 'account' | 'security'>('identity')
+const activeProfileSection = ref<'identity' | 'lifestyle' | 'hobbies' | 'availability' | 'matching' | 'account' | 'security'>('identity')
 const profileSections = [
   { id: 'identity', label: 'Identity', icon: '👤', desc: 'Basic info & bio' },
   { id: 'lifestyle', label: 'Lifestyle', icon: '🌟', desc: 'Social & details' },
   { id: 'hobbies', label: 'Hobbies', icon: '🎨', desc: 'Your interests' },
+  { id: 'availability', label: 'Availability', icon: '📅', desc: 'When you are free' },
   { id: 'matching', label: 'Matching', icon: '💍', desc: 'Who you seek' },
   { id: 'security', label: 'Security', icon: '🔒', desc: 'Passkeys & Login' },
   { id: 'account', label: 'Account', icon: '⚙️', desc: 'Status & Subscription' }
@@ -723,7 +736,8 @@ const profileSections = [
 
 const editForm = reactive({
   display_name: '', gender: '', birth_date: '', location: '', intent: '', interested_in: '', genotype: '', religion: '', height_cm: null as number | null, occupation: '', instagram_handle: '', snapchat_handle: '', preferred_contact_method: 'phone', about_me: '', min_age: 18, max_age: 50, interests: [] as string[], is_active: true,
-  dealbreakers: { genotype: [] as string[], intent: [] as string[], religion: [] as string[] }
+  dealbreakers: { genotype: [] as string[], intent: [] as string[], religion: [] as string[] },
+  availability: { weekdays: [], friday: [], saturday: [], sunday: [] }
 })
 
 const availableInterests = [
@@ -858,8 +872,9 @@ const saveProfile = async () => {
 
   saving.value = true
   try {
-    const { error } = await supabase.from('profiles').update({
-        display_name: editForm.display_name, gender: editForm.gender, birth_date: editForm.birth_date, location: editForm.location, intent: editForm.intent, interested_in: editForm.interested_in, genotype: editForm.genotype || null, religion: editForm.religion || null, height_cm: editForm.height_cm, occupation: editForm.occupation || null, instagram_handle: editForm.instagram_handle || null, snapchat_handle: editForm.snapchat_handle || null, preferred_contact_method: editForm.preferred_contact_method || 'phone', about_me: editForm.about_me || null, min_age: editForm.min_age, max_age: editForm.max_age, interests: editForm.interests, dealbreakers: editForm.dealbreakers
+    console.log('[Profile] Saving availability to schema m2m:', editForm.availability)
+    const { error } = await supabase.schema('m2m').from('profiles').update({
+        display_name: editForm.display_name, gender: editForm.gender, birth_date: editForm.birth_date, location: editForm.location, intent: editForm.intent, interested_in: editForm.interested_in, genotype: editForm.genotype || null, religion: editForm.religion || null, height_cm: editForm.height_cm, occupation: editForm.occupation || null, instagram_handle: editForm.instagram_handle || null, snapchat_handle: editForm.snapchat_handle || null, preferred_contact_method: editForm.preferred_contact_method || 'phone', about_me: editForm.about_me || null, min_age: editForm.min_age, max_age: editForm.max_age, interests: editForm.interests, dealbreakers: editForm.dealbreakers, availability: editForm.availability
     } as any).eq('id', userId)
     if (error) throw error
     await fetchProfileById(userId)
@@ -877,6 +892,7 @@ const saveProfile = async () => {
     toast.success('Profile updated!', 'Your changes have been saved.')
     setTimeout(() => { saveSuccess.value = false }, 3000)
   } catch (err) {
+    console.error('[Profile] Save failed:', err)
     haptic.hapticError()
     toast.error('Failed to save profile', 'Please try again.')
   } finally {
@@ -956,9 +972,25 @@ const handleSubscribe = async () => {
 
 watch(() => profile.value, (newProfile) => {
   if (newProfile) {
+    // Defensive availability parsing
+    const serverAvail = newProfile.availability
+    let parsedAvail: any = {}
+    try {
+       parsedAvail = (typeof serverAvail === 'string' && serverAvail ? JSON.parse(serverAvail) : serverAvail) || {}
+    } catch (e) {
+       console.error('[Profile] Error parsing availability JSON:', e)
+       parsedAvail = {}
+    }
+
     Object.assign(editForm, {
       display_name: newProfile.display_name || '', gender: newProfile.gender || '', birth_date: newProfile.birth_date || '', location: newProfile.location || '', intent: newProfile.intent || '', interested_in: newProfile.interested_in || '', genotype: newProfile.genotype || '', religion: newProfile.religion || '', height_cm: newProfile.height_cm || null, occupation: newProfile.occupation || '', instagram_handle: newProfile.instagram_handle || '', snapchat_handle: newProfile.snapchat_handle || '', preferred_contact_method: newProfile.preferred_contact_method || 'phone', about_me: newProfile.about_me || '', min_age: newProfile.min_age || 18, max_age: newProfile.max_age || 50, interests: [...(newProfile.interests || [])], is_active: newProfile.is_active !== false,
-      dealbreakers: { genotype: newProfile.dealbreakers?.genotype || [], intent: newProfile.dealbreakers?.intent || [], religion: newProfile.dealbreakers?.religion || [] }
+      dealbreakers: { genotype: newProfile.dealbreakers?.genotype || [], intent: newProfile.dealbreakers?.intent || [], religion: newProfile.dealbreakers?.religion || [] },
+      availability: {
+         weekdays: parsedAvail.weekdays || [],
+         friday: parsedAvail.friday || [],
+         saturday: parsedAvail.saturday || [],
+         sunday: parsedAvail.sunday || []
+      }
     })
     fetchUserPayments(newProfile.id)
     fetchPasskeys() // Always fetch passkeys so global badges show correctly

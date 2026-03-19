@@ -14,10 +14,16 @@ type HydrationStrategies = {
 type LazyComponent<T> = DefineComponent<HydrationStrategies, {}, {}, {}, {}, {}, {}, { hydrated: () => void }> & T
 
 
+export const AvailabilityPicker: typeof import("../components/AvailabilityPicker.vue").default
 export const BlindProfileCard: typeof import("../components/BlindProfileCard.vue").default
 export const CompatibilityBreakdown: typeof import("../components/CompatibilityBreakdown.vue").default
 export const EventCard: typeof import("../components/EventCard.vue").default
 export const EventsEmptyState: typeof import("../components/EventsEmptyState.vue").default
+export const FlashLobbyBanner: typeof import("../components/FlashLobbyBanner.vue").default
+export const FlashLobbyCard: typeof import("../components/FlashLobbyCard.vue").default
+export const FlashLobbyState: typeof import("../components/FlashLobbyState.vue").default
+export const FlashLobbyTimer: typeof import("../components/FlashLobbyTimer.vue").default
+export const FloatingFlashChat: typeof import("../components/FloatingFlashChat.vue").default
 export const LivePulse: typeof import("../components/LivePulse.vue").default
 export const PWAInstallPrompt: typeof import("../components/PWAInstallPrompt.vue").default
 export const Pagination: typeof import("../components/Pagination.vue").default
@@ -28,6 +34,7 @@ export const SubscriptionCard: typeof import("../components/SubscriptionCard.vue
 export const UserActivityTimeline: typeof import("../components/UserActivityTimeline.vue").default
 export const VibeCard: typeof import("../components/VibeCard.vue").default
 export const SkeletonEventCard: typeof import("../components/skeleton/EventCard.vue").default
+export const SkeletonFlashLobbyCard: typeof import("../components/skeleton/FlashLobbyCard.vue").default
 export const SkeletonMatchCard: typeof import("../components/skeleton/MatchCard.vue").default
 export const SkeletonProfileCard: typeof import("../components/skeleton/ProfileCard.vue").default
 export const UiButton: typeof import("../components/ui/Button.vue").default
@@ -100,10 +107,16 @@ export const MDCCached: typeof import("../node_modules/@nuxtjs/mdc/dist/runtime/
 export const MDCRenderer: typeof import("../node_modules/@nuxtjs/mdc/dist/runtime/components/MDCRenderer.vue").default
 export const MDCSlot: typeof import("../node_modules/@nuxtjs/mdc/dist/runtime/components/MDCSlot.vue").default
 export const NuxtIsland: typeof import("../node_modules/nuxt/dist/app/components/nuxt-island").default
+export const LazyAvailabilityPicker: LazyComponent<typeof import("../components/AvailabilityPicker.vue").default>
 export const LazyBlindProfileCard: LazyComponent<typeof import("../components/BlindProfileCard.vue").default>
 export const LazyCompatibilityBreakdown: LazyComponent<typeof import("../components/CompatibilityBreakdown.vue").default>
 export const LazyEventCard: LazyComponent<typeof import("../components/EventCard.vue").default>
 export const LazyEventsEmptyState: LazyComponent<typeof import("../components/EventsEmptyState.vue").default>
+export const LazyFlashLobbyBanner: LazyComponent<typeof import("../components/FlashLobbyBanner.vue").default>
+export const LazyFlashLobbyCard: LazyComponent<typeof import("../components/FlashLobbyCard.vue").default>
+export const LazyFlashLobbyState: LazyComponent<typeof import("../components/FlashLobbyState.vue").default>
+export const LazyFlashLobbyTimer: LazyComponent<typeof import("../components/FlashLobbyTimer.vue").default>
+export const LazyFloatingFlashChat: LazyComponent<typeof import("../components/FloatingFlashChat.vue").default>
 export const LazyLivePulse: LazyComponent<typeof import("../components/LivePulse.vue").default>
 export const LazyPWAInstallPrompt: LazyComponent<typeof import("../components/PWAInstallPrompt.vue").default>
 export const LazyPagination: LazyComponent<typeof import("../components/Pagination.vue").default>
@@ -114,6 +127,7 @@ export const LazySubscriptionCard: LazyComponent<typeof import("../components/Su
 export const LazyUserActivityTimeline: LazyComponent<typeof import("../components/UserActivityTimeline.vue").default>
 export const LazyVibeCard: LazyComponent<typeof import("../components/VibeCard.vue").default>
 export const LazySkeletonEventCard: LazyComponent<typeof import("../components/skeleton/EventCard.vue").default>
+export const LazySkeletonFlashLobbyCard: LazyComponent<typeof import("../components/skeleton/FlashLobbyCard.vue").default>
 export const LazySkeletonMatchCard: LazyComponent<typeof import("../components/skeleton/MatchCard.vue").default>
 export const LazySkeletonProfileCard: LazyComponent<typeof import("../components/skeleton/ProfileCard.vue").default>
 export const LazyUiButton: LazyComponent<typeof import("../components/ui/Button.vue").default>

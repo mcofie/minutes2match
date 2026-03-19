@@ -857,6 +857,22 @@
               <p class="text-stone-500 text-sm mt-2">Compatibility Score</p>
             </div>
 
+            <!-- AI Analysis / Insight -->
+            <div v-if="compatibilityMatch.ai_analysis" class="mb-8 p-5 bg-gradient-to-br from-indigo-50 to-purple-50 rounded-2xl border border-indigo-100 shadow-sm relative overflow-hidden">
+              <div class="absolute -top-6 -right-6 w-24 h-24 bg-purple-200/20 rounded-full blur-2xl"></div>
+              <div class="text-xs font-bold text-indigo-600 uppercase tracking-wider mb-3 flex items-center gap-2 relative">
+                <span class="text-base">✨</span> AI Match Insight
+              </div>
+              <p class="text-sm text-stone-700 leading-relaxed font-medium relative italic">
+                "{{ compatibilityMatch.ai_analysis }}"
+              </p>
+              <div class="mt-3 flex items-center gap-2 text-[10px] text-indigo-400 font-bold uppercase tracking-tight relative">
+                <span>{{ compatibilityMatch.created_by === 'system_jit' ? 'Triggered Dynamic Match' : 'System Optimized Connection' }}</span>
+                <span class="h-1 w-1 rounded-full bg-indigo-200"></span>
+                <span>Gemini 1.5 Flash Verified</span>
+              </div>
+            </div>
+
             <!-- Positive Reasons -->
             <div v-if="compatibilityMatch.match_reasons?.length" class="mb-6">
               <div class="text-xs font-bold text-emerald-600 uppercase tracking-wider mb-3 flex items-center gap-2">
