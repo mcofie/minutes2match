@@ -148,7 +148,7 @@ export default defineNuxtConfig({
         telegramBotToken: process.env.TELEGRAM_BOT_TOKEN,
         // Public keys (available client-side)
         public: {
-            appVersion: '1.6.0',
+            appVersion: '1.7.0',
             paystackPublicKey: process.env.PAYSTACK_PUBLIC_KEY,
             baseUrl: process.env.BASE_URL || 'http://localhost:3000',
         }
