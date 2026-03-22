@@ -10,8 +10,8 @@ export default defineEventHandler(async (event) => {
     const body = await readBody<{ userId: string }>(event)
     const { userId } = body
 
-    if (!userId) {
-        throw createError({ statusCode: 400, message: 'Missing userId' })
+    if (!userId || userId === 'undefined') {
+        throw createError({ statusCode: 400, message: 'Invalid or missing userId' })
     }
 
     const config = useRuntimeConfig()

@@ -16,8 +16,8 @@ export const getGeminiModel = () => {
 
     console.log('[Gemini] Model initialized successfully with API Key.')
     const genAI = new GoogleGenerativeAI(apiKey)
-    // Using gemini-1.5-flash-latest for best compatibility with current SDK and v1beta/v1 endpoints
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-latest" })
+    // Using gemini-1.5-flash for best compatibility
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" })
     return model
 }
 

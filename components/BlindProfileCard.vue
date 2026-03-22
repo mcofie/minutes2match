@@ -468,34 +468,38 @@
             
             <template v-else-if="unlocked && (!preferredContactMethod || preferredContactMethod === 'phone') && phone">
               <div class="space-y-3">
-                <div class="flex items-center gap-3 p-3 rounded-lg border border-stone-200">
-                  <span class="flex-1 font-mono text-stone-600 text-sm pl-2">{{ phone }}</span>
-                  <button @click="copyPhone" class="px-3 py-1 bg-stone-100 text-[10px] font-bold text-stone-600 rounded hover:bg-stone-200 uppercase tracking-wide">
-                    {{ copied ? 'Copied' : 'Copy' }}
+                <!-- Phone Copy Box -->
+                <div class="flex items-center justify-between p-2 rounded-xl border border-stone-200 bg-white shadow-sm">
+                  <span class="font-mono text-stone-700 font-medium text-sm pl-3">{{ phone }}</span>
+                  <button @click="copyPhone" class="px-4 py-2 bg-stone-100 text-[10px] font-black tracking-widest text-stone-600 uppercase rounded-lg hover:bg-stone-200 transition-colors">
+                    {{ copied ? 'Copied!' : 'Copy' }}
                   </button>
                 </div>
                 
-                <div class="flex gap-3">
+                <!-- Action Buttons -->
+                <div class="grid grid-cols-2 gap-3">
                   <a 
                     :href="whatsappLink" 
                     target="_blank"
-                    class="flex-[2] flex items-center justify-center gap-2 px-6 py-3 bg-[#1C1917] text-white rounded-lg font-bold hover:bg-black transition-colors"
+                    class="flex items-center justify-center py-3.5 bg-black text-white rounded-xl font-bold text-[15px] shadow-sm active:scale-[0.98] transition-all"
                   >
-                    <span>WhatsApp</span>
+                    WhatsApp
                   </a>
                   <a 
                     :href="`tel:${phone}`"
-                    class="flex-1 flex items-center justify-center px-6 py-3 bg-stone-100 text-stone-900 border border-stone-200 rounded-lg font-bold hover:bg-stone-200 transition-colors"
+                    class="flex items-center justify-center py-3.5 bg-stone-50 border border-stone-200 text-stone-900 rounded-xl font-bold text-[15px] shadow-sm active:scale-[0.98] transition-all hover:bg-stone-100"
                   >
                     Call
                   </a>
                 </div>
+                
+                <!-- Propose a Date -->
                 <a 
                   :href="proposeDateWhatsAppLink" 
                   target="_blank"
-                  class="flex items-center justify-center gap-2 w-full py-3 bg-rose-50 text-rose-600 border border-rose-200 rounded-lg font-bold hover:bg-rose-100 transition-colors mt-2"
+                  class="flex items-center justify-center gap-2 w-full py-3.5 bg-rose-50 border border-rose-100 text-rose-600 rounded-xl font-bold text-[15px] shadow-sm active:scale-[0.98] transition-all mt-2"
                 >
-                  <span class="text-lg">🥂</span> Propose a Date
+                  <span class="text-base">🥂</span> Propose a Date
                 </a>
               </div>
             </template>

@@ -32,6 +32,10 @@ export interface MatchCandidate {
  * @param minScore Minimum score threshold (default 75)
  */
 export async function runTargetedMatching(userId: string, minScore = 75) {
+    if (!userId || userId === 'undefined') {
+        console.warn('[Matchmaker] Aborting: Invalid userId provided (undefined)')
+        return null
+    }
     const config = useRuntimeConfig()
     const supabase = createClient(config.supabaseUrl, config.supabaseServiceKey, {
         db: { schema: 'm2m' }

@@ -207,53 +207,47 @@
         <div class="md:col-span-8 lg:col-span-9 space-y-6">
           
           <!-- Compatibility & Date Idea (Editorial Style) -->
-          <div v-if="match?.unlocked && matchProfile" class="grid sm:grid-cols-2 gap-8 mb-8">
-             <!-- Vibe Match (Editorial Report) -->
-             <div class="bg-white dark:bg-stone-900 border border-black dark:border-stone-700 p-8 flex flex-col justify-between text-center relative shadow-[4px_4px_0px_0px_rgba(0,0,0,0.1)] hover:shadow-none transition-shadow duration-300">
-                <!-- Decorative Corner Lines -->
-                <div class="absolute top-2 left-2 w-4 h-4 border-t border-l border-black dark:border-white"></div>
-                <div class="absolute top-2 right-2 w-4 h-4 border-t border-r border-black dark:border-white"></div>
-                <div class="absolute bottom-2 left-2 w-4 h-4 border-b border-l border-black dark:border-white"></div>
-                <div class="absolute bottom-2 right-2 w-4 h-4 border-b border-r border-black dark:border-white"></div>
-                
+          <!-- Compatibility & Date Idea (Clean Layout with Neo-Brutalist Frame) -->
+          <div v-if="match?.unlocked && matchProfile" class="grid lg:grid-cols-2 gap-8 mb-8 relative z-10">
+             <!-- Vibe Match -->
+             <div class="bg-white dark:bg-stone-900 p-6 md:p-8 rounded-xl border-2 border-black dark:border-stone-700 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] dark:shadow-[8px_8px_0px_0px_rgba(255,255,255,0.05)] flex flex-col justify-between hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-x-1 hover:translate-y-1 transition-all">
                 <div>
-                   <h3 class="font-serif italic text-xl text-stone-900 dark:text-stone-100 mb-2">The Compatibility Report</h3>
-                   <div class="w-12 h-px bg-black md:mx-auto mb-6"></div>
+                   <h3 class="font-serif font-bold text-3xl text-black dark:text-white mb-8 tracking-tight">Compatibility</h3>
                    
-                   <div v-if="sharedInterests.length" class="mb-6">
-                      <div class="text-xs font-bold uppercase tracking-widest text-stone-400 mb-2">Key Areas of Connection</div>
-                      <div class="flex flex-wrap justify-center gap-x-4 gap-y-2">
-                         <span v-for="interest in sharedInterests" :key="interest" class="font-serif text-lg border-b border-stone-200">
+                   <div v-if="sharedInterests.length" class="mb-8">
+                      <div class="text-[10px] font-black uppercase tracking-[0.2em] text-[#a8a29e] dark:text-stone-400 mb-4">Shared Interests</div>
+                      <div class="flex flex-wrap gap-2">
+                         <span v-for="interest in sharedInterests" :key="interest" class="px-4 py-2 bg-stone-100 dark:bg-stone-800 text-stone-900 dark:text-stone-100 rounded-lg border-2 border-stone-200 dark:border-stone-700 text-xs font-bold uppercase tracking-widest transition-colors hover:border-black dark:hover:border-white">
                             {{ getInterestLabel(interest) }}
                          </span>
                       </div>
                    </div>
-                   <div v-else class="mb-6">
-                      <p class="font-serif text-stone-500">"A study in contrasts."</p>
+                   <div v-else class="mb-8 p-4 bg-stone-50 dark:bg-stone-800 rounded-xl border-2 border-dashed border-stone-200 dark:border-stone-700">
+                      <p class="text-stone-500 font-medium text-sm">No direct shared interests yet.</p>
                    </div>
                 </div>
 
-                <div class="text-[10px] font-bold uppercase tracking-widest text-stone-400 mt-4">
-                   established {{ new Date(match.created_at).toLocaleDateString() }}
+                <div class="flex items-center gap-2.5 text-xs text-stone-500 mt-4 font-bold uppercase tracking-widest">
+                   <div class="w-2.5 h-2.5 rounded-full bg-emerald-500 border border-emerald-700"></div>
+                   Connected {{ new Date(match.created_at).toLocaleDateString('en-GB') }}
                 </div>
              </div>
              
-             <!-- Smart Date Idea (Editor's Pick) -->
-             <div v-if="dateIdea" class="bg-stone-50 dark:bg-stone-800 border border-black dark:border-stone-600 p-8 flex flex-col justify-center text-center relative shadow-[4px_4px_0px_0px_rgba(0,0,0,0.1)] hover:shadow-none transition-shadow duration-300">
-                <div class="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-black text-white px-3 py-1 text-[10px] font-bold uppercase tracking-widest">
-                   Editor's Choice
+             <!-- Smart Date Idea -->
+             <div v-if="dateIdea" class="bg-stone-50 dark:bg-stone-900 p-6 md:p-8 rounded-xl border-2 border-black dark:border-stone-700 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] dark:shadow-[8px_8px_0px_0px_rgba(255,255,255,0.05)] flex flex-col relative hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-x-1 hover:translate-y-1 transition-all">
+                <div class="flex items-center gap-4 mb-8">
+                   <div class="w-12 h-12 rounded-xl bg-white dark:bg-stone-800 flex items-center justify-center text-2xl border-2 border-black dark:border-stone-700 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+                      {{ dateIdea.emoji }}
+                   </div>
+                   <h3 class="text-[10px] font-black uppercase tracking-[0.2em] text-black dark:text-stone-400">Smart Date Idea</h3>
                 </div>
                 
-                <h3 class="text-xs font-bold uppercase tracking-widest text-stone-400 mb-4">Our Recommendation</h3>
-                
-                <div class="text-4xl mb-4">{{ dateIdea.emoji }}</div>
-                
-                <h4 class="font-serif font-bold text-2xl text-black dark:text-white leading-tight mb-4">
+                <h4 class="font-serif font-bold text-3xl text-black dark:text-white leading-tight mb-4 tracking-tight">
                    {{ dateIdea.title }}
                 </h4>
                 
-                <p class="font-serif italic text-stone-600 dark:text-stone-300 leading-relaxed max-w-xs mx-auto">
-                   "{{ dateIdea.desc }}"
+                <p class="text-stone-600 dark:text-stone-400 leading-relaxed text-base font-medium">
+                   {{ dateIdea.desc }}
                 </p>
              </div>
           </div>
@@ -501,18 +495,18 @@
           </div>
 
           <!-- Connection Progress Feedback -->
-          <div id="feedback-section" v-if="match?.unlocked" class="relative overflow-hidden bg-[#7e22ce] dark:bg-purple-950 p-6 md:p-8 rounded-xl border-2 border-black dark:border-white shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] dark:shadow-[8px_8px_0px_0px_rgba(255,255,255,1)]">
+          <div id="feedback-section" v-if="match?.unlocked" class="relative overflow-hidden bg-[#7e22ce] dark:bg-purple-950 p-6 md:p-8 rounded-2xl border-2 border-black dark:border-white shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] dark:shadow-[8px_8px_0px_0px_rgba(255,255,255,1)]">
             <!-- Background Pattern -->
-            <div class="absolute inset-0 opacity-10 bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:16px_16px]"></div>
+            <div class="absolute inset-0 opacity-[0.2]" style="background-image: radial-gradient(#000 1px, transparent 1px); background-size: 16px 16px;"></div>
             
             <div class="relative z-10 flex items-center gap-5 mb-8">
-              <div class="w-14 h-14 bg-white text-black rounded-xl border-2 border-black flex items-center justify-center text-3xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transform -rotate-3">
+              <div class="w-14 h-14 bg-white text-black rounded-2xl border-2 border-black flex items-center justify-center text-3xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
                 💬
               </div>
               <div>
-                <h3 class="text-2xl font-black !text-white text-white uppercase tracking-tighter leading-none mb-1 drop-shadow-md" style="color: white !important;">HOW'S IT GOING?</h3>
-                <div class="inline-block bg-black/30 backdrop-blur-sm px-2 py-1 rounded text-xs font-bold !text-white text-white uppercase tracking-widest border border-white/20" style="color: white !important;">
-                  Connection Check-in
+                <h3 class="text-2xl font-bold text-white uppercase tracking-tight mb-1" style="color: white !important;">HOW'S IT GOING?</h3>
+                <div class="inline-block bg-[#4c1d95] dark:bg-black px-2.5 py-1 rounded text-[10px] font-bold text-white uppercase tracking-widest">
+                  CONNECTION CHECK-IN
                 </div>
               </div>
             </div>
@@ -520,20 +514,20 @@
             <!-- Current Status Display -->
             <div 
               v-if="match.feedback_status && match.feedback_status !== 'pending'" 
-              class="relative z-10 mb-8 p-0"
+              class="relative z-10 mb-8"
             >
-              <div class="flex items-center justify-between p-4 bg-white dark:bg-stone-900 rounded-xl border-2 border-black dark:border-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)]">
+              <div class="flex items-center justify-between p-5 bg-white dark:bg-stone-900 rounded-2xl border-2 border-black dark:border-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)]">
                 <div>
-                  <span class="text-[10px] font-black uppercase tracking-widest text-[#57534e] dark:text-stone-400 mb-1 block">Current Status</span>
+                  <span class="text-[10px] font-bold uppercase tracking-widest text-[#57534e] dark:text-stone-400 mb-2 block">Current Status</span>
                   <div class="flex items-center gap-3">
                     <span class="text-2xl">{{ getFeedbackIcon(match.feedback_status) }}</span>
-                    <span class="text-lg font-bold text-black dark:text-white capitalize">{{ getFeedbackLabel(match.feedback_status) }}</span>
+                    <span class="text-xl font-bold text-black dark:text-white capitalize">{{ getFeedbackLabel(match.feedback_status) }}</span>
                   </div>
                 </div>
                 
                 <button 
                   @click="showFeedbackEditor = !showFeedbackEditor"
-                  class="text-xs font-bold text-black dark:text-white hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black px-4 py-2 rounded border-2 border-black dark:border-stone-500 transition-all uppercase tracking-wide"
+                  class="text-[11px] font-bold text-black dark:text-white hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black px-5 py-2.5 rounded-lg border-2 border-black dark:border-stone-500 transition-all uppercase tracking-widest"
                 >
                   {{ showFeedbackEditor ? 'Cancel' : 'Update' }}
                 </button>
@@ -551,21 +545,21 @@
                   :key="option.value"
                   @click="feedbackForm.status = option.value"
                   :class="[
-                    'group relative p-5 rounded-xl border-2 text-left transition-all duration-200 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)]',
+                    'group relative p-5 rounded-2xl border-2 text-left transition-all duration-200 outline-none shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)]',
                     feedbackForm.status === option.value 
-                      ? 'border-black dark:border-white bg-white dark:bg-stone-900 translate-x-[-2px] translate-y-[-2px] ring-2 ring-yellow-400 dark:ring-yellow-400 ring-offset-2 ring-offset-[#7e22ce] dark:ring-offset-purple-900' 
-                      : 'border-black dark:border-white bg-white dark:bg-stone-900 hover:translate-x-[-2px] hover:translate-y-[-2px]'
+                      ? 'border-black dark:border-white bg-white dark:bg-stone-900 ring-[3px] ring-yellow-400 ring-offset-[3px] ring-offset-[#7e22ce] dark:ring-offset-purple-900' 
+                      : 'border-black dark:border-white bg-white dark:bg-stone-900 hover:-translate-y-0.5'
                   ]"
                 >
-                  <div class="flex items-start gap-4">
+                  <div class="flex items-center gap-4">
                     <div class="text-3xl transition-transform duration-200 group-hover:scale-110">
                       {{ option.icon }}
                     </div>
                     <div>
-                      <span class="font-bold text-base block mb-1 text-black dark:text-white">
+                      <span class="font-bold text-lg block text-black dark:text-white mb-0.5 tracking-tight">
                         {{ option.label }}
                       </span>
-                      <span class="text-xs font-bold text-[#57534e] dark:text-stone-400 group-hover:text-black dark:group-hover:text-white transition-colors">
+                      <span class="text-sm font-medium text-stone-700 dark:text-stone-400">
                         {{ option.desc }}
                       </span>
                     </div>
@@ -574,7 +568,7 @@
                   <!-- Checkmark -->
                   <div 
                     v-if="feedbackForm.status === option.value"
-                    class="absolute top-3 right-3 w-6 h-6 bg-yellow-400 text-black rounded-full flex items-center justify-center text-xs border-2 border-black"
+                    class="absolute top-4 right-4 w-6 h-6 bg-yellow-400 text-black rounded-full flex items-center justify-center border-2 border-black"
                   >
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
                   </div>
@@ -582,13 +576,13 @@
               </div>
 
               <!-- Notes -->
-              <div class="space-y-2">
-                <label class="text-[10px] font-black uppercase text-white tracking-widest px-1">Share more details (optional)</label>
+              <div class="space-y-3 mt-4">
+                <label class="text-[10px] font-bold uppercase text-white tracking-widest px-1 drop-shadow-sm">Share more details (optional)</label>
                 <textarea 
                   v-model="feedbackForm.note"
-                  rows="3"
+                  rows="4"
                   placeholder="How did it go? Any feedback for us?"
-                  class="w-full p-4 rounded-xl border-2 border-transparent focus:border-yellow-400 bg-black/40 text-base outline-none resize-none text-white placeholder:text-white/60 transition-all focus:bg-black/50 backdrop-blur-sm"
+                  class="w-full p-5 rounded-xl border-2 border-[#4c1d95] focus:border-yellow-400 bg-[#4c1d95] text-base outline-none resize-none text-white placeholder:text-white/40 transition-all font-medium"
                 ></textarea>
               </div>
 
@@ -596,7 +590,7 @@
               <button 
                 @click="saveFeedback"
                 :disabled="savingFeedback || !feedbackForm.status"
-                class="w-full py-4 bg-yellow-400 hover:bg-yellow-300 text-black font-black rounded-xl transition-all shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] hover:-translate-y-1 active:translate-y-0 active:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-sm uppercase tracking-widest border-2 border-black"
+                class="w-full py-4 bg-yellow-400 hover:bg-yellow-300 text-black font-bold rounded-xl transition-all shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] hover:-translate-y-0.5 active:translate-y-0 active:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-[13px] uppercase tracking-widest border-2 border-black mt-2"
               >
                 <span v-if="savingFeedback" class="animate-spin w-4 h-4 border-2 border-black/30 border-t-black rounded-full"></span>
                 {{ savingFeedback ? 'Saving...' : 'Update Connection Status' }}

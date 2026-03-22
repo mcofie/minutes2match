@@ -9,47 +9,53 @@
        </div>
     </div>
 
-    <div v-for="day in days" :key="day.id" 
-         class="group bg-white dark:bg-stone-900 p-5 rounded-2xl border-2 border-black dark:border-stone-700 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,0.05)] hover:-translate-y-1 transition-all duration-300">
+    <div v-for="day in days" :key="day.id" class="mb-10 last:mb-0">
       
-      <div class="flex items-center justify-between mb-5">
-        <div class="flex items-center gap-3">
-          <div 
-            class="w-10 h-10 rounded-xl bg-stone-50 dark:bg-stone-800 border-2 border-black dark:border-stone-700 flex items-center justify-center text-xl shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] group-hover:bg-rose-500 group-hover:text-white transition-all duration-500"
-            :class="{ 'bg-rose-500 text-white': modelValue[day.id]?.length > 0 }"
-          >
-            {{ day.icon }}
-          </div>
-          <div>
-            <h4 class="text-xs font-black uppercase tracking-widest text-stone-900 dark:text-white leading-none">{{ day.label }}</h4>
-            <p class="text-[8px] font-bold text-stone-400 uppercase tracking-tighter mt-1">{{ day.desc }}</p>
-          </div>
+      <!-- Day Header -->
+      <div class="flex items-center gap-4 mb-5 border-b border-stone-200 dark:border-stone-800 pb-4">
+        <div 
+          class="w-12 h-12 rounded-full border border-stone-200 dark:border-stone-800 flex items-center justify-center text-2xl transition-all duration-500"
+          :class="{ 'bg-rose-50 border-rose-200 text-rose-500 dark:bg-rose-500/10 dark:border-rose-500/30': modelValue[day.id]?.length > 0, 'bg-[#FFFCF8] text-stone-500 dark:bg-stone-900': !modelValue[day.id]?.length }"
+        >
+          <span class="relative z-10 transform group-hover:scale-110 transition-transform">{{ day.icon }}</span>
         </div>
-        <div v-if="modelValue[day.id]?.length" class="px-2 py-0.5 bg-rose-500 text-white text-[8px] font-black rounded-lg border border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] animate-in zoom-in-50">
-          {{ modelValue[day.id]?.length }} SLOTS
+        <div class="flex-1">
+          <h4 class="text-2xl font-serif font-medium text-stone-900 dark:text-stone-100 tracking-tight leading-none">{{ day.label }}</h4>
+          <p class="text-[10px] text-stone-400 uppercase tracking-[0.2em] mt-1.5">{{ day.desc }}</p>
+        </div>
+        <div v-if="modelValue[day.id]?.length" class="text-[10px] font-bold text-rose-500 uppercase tracking-widest flex items-center gap-1.5 animate-in fade-in">
+          <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
+          {{ modelValue[day.id]?.length }} Selected
         </div>
       </div>
 
-      <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+      <!-- Slots Grid -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
         <button 
           v-for="slot in slots" 
           :key="slot.id"
           type="button"
           @click="toggle(day.id, slot.id)"
-          class="group/btn relative py-4 px-2 rounded-xl border-2 text-[10px] font-black uppercase tracking-tight transition-all active:scale-90 flex flex-col items-center justify-center gap-1.5 overflow-hidden"
+          class="relative p-4 rounded-2xl border transition-all duration-300 flex items-center justify-between group/btn overflow-hidden"
           :class="isSlotSelected(day.id, slot.id) 
-            ? 'bg-black text-white border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]' 
-            : 'bg-stone-50 dark:bg-stone-800 text-stone-400 border-stone-200 dark:border-stone-700 hover:border-black hover:text-stone-900'"
+            ? 'border-black dark:border-white bg-black text-white dark:bg-white dark:text-black shadow-md scale-[1.02]' 
+            : 'border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 text-stone-500 hover:border-stone-400 dark:hover:border-stone-600'"
         >
-          <div v-if="isSlotSelected(day.id, slot.id)" class="absolute inset-0 bg-gradient-to-tr from-rose-500/20 to-transparent opacity-50"></div>
+          <!-- Content -->
+          <div class="flex items-center gap-4 relative z-10">
+            <span class="text-2xl" :class="isSlotSelected(day.id, slot.id) ? 'opacity-100' : 'opacity-60 grayscale group-hover/btn:grayscale-0'">{{ slot.icon }}</span>
+            <div class="text-left">
+              <span class="block text-xs font-bold uppercase tracking-widest" :class="isSlotSelected(day.id, slot.id) ? 'text-white dark:text-black' : 'text-stone-900 dark:text-stone-100'">{{ slot.label }}</span>
+              <span class="block text-[9px] font-medium opacity-60 uppercase tracking-[0.15em] mt-0.5" :class="isSlotSelected(day.id, slot.id) ? 'text-stone-300 dark:text-stone-600' : 'text-stone-400'">{{ slot.time }}</span>
+            </div>
+          </div>
           
-          <span class="text-lg group-hover/btn:scale-125 transition-transform duration-300 relative z-10">{{ slot.icon }}</span>
-          <span class="relative z-10">{{ slot.label }}</span>
-          <span class="text-[7px] opacity-60 font-bold relative z-10">{{ slot.time }}</span>
-          
-          <!-- Selection indicator -->
-          <div v-if="isSlotSelected(day.id, slot.id)" class="absolute top-1.5 right-1.5 w-3 h-3 bg-rose-500 text-white rounded-sm flex items-center justify-center text-[7px] border border-black animate-in zoom-in-75">
-            ✓
+          <!-- Circle Checkmark -->
+          <div 
+            class="w-6 h-6 rounded-full border flex items-center justify-center transition-all duration-300 relative z-10"
+            :class="isSlotSelected(day.id, slot.id) ? 'border-transparent bg-white text-black dark:bg-black dark:text-white' : 'border-stone-300 dark:border-stone-700 text-transparent'"
+          >
+            <svg v-if="isSlotSelected(day.id, slot.id)" xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
           </div>
         </button>
       </div>
