@@ -83,69 +83,72 @@
          </div>
 
          <!-- Match Compatibility Radar -->
-         <div class="bg-white dark:bg-stone-900 p-5 rounded-xl border-2 border-black dark:border-stone-700 shadow-[8px_8px_0px_0px_rgba(244,63,94,0.1)] group overflow-hidden relative animate-in fade-in slide-in-from-bottom-4 duration-700 delay-100">
-            <div class="flex items-center justify-between mb-4">
-               <h4 class="text-[10px] font-black uppercase tracking-[0.2em] text-stone-900 dark:text-white">Compatibility Radar</h4>
-               <span class="px-2 py-0.5 bg-rose-50 dark:bg-rose-900/30 text-rose-500 text-[8px] font-black rounded border border-rose-200 dark:border-rose-900/50">LIVE</span>
+         <div class="bg-white dark:bg-stone-900 p-6 md:p-8 rounded-xl border-2 border-black dark:border-stone-700 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] md:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] dark:shadow-[8px_8px_0px_0px_rgba(255,255,255,0.05)] group relative animate-in fade-in slide-in-from-bottom-4 duration-700 delay-100 hover:-translate-y-1 hover:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] md:hover:shadow-[10px_10px_0px_0px_rgba(0,0,0,1)] transition-all">
+            <div class="flex items-center justify-between mb-8">
+               <h4 class="text-[12px] font-bold text-black dark:text-white uppercase tracking-wider">Compatibility Radar</h4>
+               <span class="px-3 py-1 bg-[#fff1f2] dark:bg-rose-900/30 text-[#f43f5e] text-[10px] font-bold rounded border border-[#fecdd3] dark:border-rose-900/50 uppercase tracking-widest">Live</span>
             </div>
-            <div class="space-y-4">
-               <div class="space-y-1.5">
-                  <div class="flex justify-between text-[8px] font-bold uppercase tracking-widest text-stone-400 dark:text-stone-300">
+            
+            <div class="space-y-6">
+               <div class="space-y-2">
+                  <div class="flex justify-between items-center text-[10px] font-bold uppercase tracking-[0.15em] text-[#a8a29e] dark:text-stone-300">
                      <span>Vibe Harmony</span>
-                     <span class="text-stone-900 dark:text-stone-200">88%</span>
+                     <span class="text-black dark:text-stone-200">88%</span>
                   </div>
-                  <div class="h-1 bg-stone-100 dark:bg-stone-800 rounded-full overflow-hidden">
-                     <div class="h-full bg-rose-500 w-[88%] transform group-hover:scale-x-105 transition-transform origin-left"></div>
+                  <div class="h-2 bg-[#f5f5f4] dark:bg-stone-800 rounded-full overflow-hidden">
+                     <div class="h-full bg-[#f43f5e] w-[88%] transform group-hover:scale-x-105 transition-transform origin-left rounded-full"></div>
                   </div>
                </div>
-               <div class="space-y-1.5">
-                  <div class="flex justify-between text-[8px] font-bold uppercase tracking-widest text-stone-400 dark:text-stone-300">
+               
+               <div class="space-y-2">
+                  <div class="flex justify-between items-center text-[10px] font-bold uppercase tracking-[0.15em] text-[#a8a29e] dark:text-stone-300">
                      <span>Intent Alignment</span>
-                     <span class="text-stone-900 dark:text-white">72%</span>
+                     <span class="text-black dark:text-white">72%</span>
                   </div>
-                  <div class="h-1 bg-stone-100 dark:bg-stone-800 rounded-full overflow-hidden">
-                     <div class="h-full bg-black dark:bg-white w-[72%] transform group-hover:scale-x-105 transition-transform origin-left"></div>
+                  <div class="h-2 bg-[#f5f5f4] dark:bg-stone-800 rounded-full overflow-hidden">
+                     <div class="h-full bg-black dark:bg-white w-[72%] transform group-hover:scale-x-105 transition-transform origin-left rounded-full"></div>
                   </div>
                </div>
             </div>
-            <div class="mt-4 pt-4 border-t border-stone-100 dark:border-stone-800">
-               <p class="text-[9px] text-stone-500 dark:text-stone-400 leading-tight">Your persona aligns best with <span class="text-stone-900 dark:text-white font-bold">"The Intellectual"</span> and <span class="text-stone-900 dark:text-white font-bold">"The Adventurer"</span> types this week.</p>
+            
+            <div class="mt-8 pt-6 border-t border-[#f5f5f4] dark:border-stone-800">
+               <p class="text-[14px] text-[#57534e] dark:text-stone-400 leading-relaxed font-medium">Your persona aligns best with <span class="text-black dark:text-white font-bold">"The Intellectual"</span> and <span class="text-black dark:text-white font-bold">"The Adventurer"</span> types this week.</p>
             </div>
          </div>
 
          <!-- Persona Detail Card -->
-         <div v-if="personaData" class="bg-white dark:bg-stone-900 p-5 rounded-xl border-2 border-black dark:border-stone-700 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] group hover:-translate-y-1 transition-all animate-in fade-in slide-in-from-bottom-4 duration-700 delay-200">
-            <div class="flex items-center gap-3 mb-4">
-               <div class="w-10 h-10 rounded-lg border-2 border-black bg-rose-500 flex items-center justify-center text-xl shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">{{ personaData.emoji }}</div>
+         <div v-if="personaData" class="bg-white dark:bg-stone-900 p-6 md:p-8 rounded-xl border-2 border-black dark:border-stone-700 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] md:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] dark:shadow-[8px_8px_0px_0px_rgba(255,255,255,0.05)] group hover:-translate-y-1 hover:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] md:hover:shadow-[10px_10px_0px_0px_rgba(0,0,0,1)] transition-all animate-in fade-in slide-in-from-bottom-4 duration-700 delay-200">
+            <div class="flex items-center gap-4 mb-6">
+               <div class="w-[60px] h-[60px] rounded-[18px] border-2 border-black bg-[#ff0042] flex items-center justify-center text-3xl shadow-none">{{ personaData.emoji }}</div>
                <div>
-                  <h4 class="text-xs font-black uppercase tracking-widest leading-none">{{ personaData.name }}</h4>
-                  <p class="text-[9px] font-bold text-stone-400 uppercase mt-1">Your Vibe</p>
+                  <h4 class="text-[18px] font-bold text-black uppercase tracking-tight">{{ personaData.name }}</h4>
+                  <p class="text-[10px] font-bold text-[#a8a29e] uppercase tracking-[0.15em] mt-1">Your Vibe</p>
                </div>
             </div>
-            <p class="text-[11px] text-stone-600 dark:text-stone-300 leading-relaxed italic">"{{ personaData.description }}"</p>
+            <p class="text-[15px] font-medium text-[#57534e] dark:text-stone-300 leading-relaxed italic">"{{ personaData.description }}"</p>
          </div>
 
          <!-- Community Health Card -->
-         <div class="bg-stone-900 text-white p-5 rounded-xl border-2 border-stone-800 shadow-[8px_8px_0px_0px_rgba(0,0,0,0.1)] overflow-hidden relative group animate-in fade-in slide-in-from-bottom-4 duration-700 delay-300">
-            <div class="absolute -top-2 -right-2 p-4 opacity-5 text-6xl group-hover:scale-110 transition-transform">🛡️</div>
-            <h4 class="text-[10px] font-black uppercase tracking-[0.4em] text-rose-400 mb-4">Pool Quality Control</h4>
-            <div class="space-y-4">
-               <div class="flex items-center justify-between">
-                  <span class="text-[9px] font-bold uppercase tracking-widest text-stone-300">Match Pool Purity</span>
-                  <span class="text-xs font-black text-emerald-400">98.4%</span>
+         <div class="bg-stone-900 text-white p-6 md:p-8 rounded-xl border-2 border-stone-800 shadow-[4px_4px_0px_0px_rgba(0,0,0,0.2)] md:shadow-[8px_8px_0px_0px_rgba(0,0,0,0.2)] dark:shadow-[8px_8px_0px_0px_rgba(255,255,255,0.05)] overflow-hidden relative group hover:-translate-y-1 hover:shadow-[6px_6px_0px_0px_rgba(0,0,0,0.2)] md:hover:shadow-[10px_10px_0px_0px_rgba(0,0,0,0.2)] transition-all animate-in fade-in slide-in-from-bottom-4 duration-700 delay-300">
+            <div class="absolute -top-2 -right-2 p-4 opacity-[0.02] text-6xl group-hover:scale-110 transition-transform">🛡️</div>
+            <h4 class="text-[12px] font-black uppercase tracking-[0.2em] text-[#1c1917] mb-8">Pool Quality Control</h4>
+            <div class="space-y-6">
+               <div class="flex items-center justify-between mb-4">
+                  <span class="text-[11px] font-bold uppercase tracking-[0.15em] text-[#f5f5f4]">Match Pool Purity</span>
+                  <span class="text-[18px] font-medium text-[#00f28e]">98.4%</span>
                </div>
-               <div class="h-1.5 w-full bg-stone-800 rounded-full overflow-hidden border border-stone-700">
-                  <div class="h-full bg-emerald-500 w-[98%] shadow-[0_0_8px_rgba(16,185,129,0.5)]"></div>
+               <div class="h-2 w-full bg-[#1c1917] rounded-full overflow-hidden mb-8">
+                  <div class="h-full bg-[#00f28e] w-[98%] shadow-[0_0_8px_rgba(0,242,142,0.5)] rounded-full"></div>
                </div>
-               <div class="pt-2 border-t border-stone-800/50">
-                  <p class="text-[10px] text-stone-300 leading-relaxed">
-                     <span class="text-rose-500 font-black">ACTIVE PURGE:</span> Our algorithm recently removed <span class="text-white font-bold">14 inactive or low-quality profiles</span> to maintain your connection standards.
+               <div class="pt-2">
+                  <p class="text-[14px] text-[#d6d3d1] leading-relaxed font-medium">
+                     <span class="text-[#ff0042] font-bold uppercase tracking-widest text-[11px] mr-1">Active Purge:</span> Our algorithm recently removed <span class="text-white font-bold">14 inactive or low-quality profiles</span> to maintain your connection standards.
                   </p>
                </div>
-               <div class="flex items-center gap-2 text-[8px] font-bold uppercase tracking-[0.2em] text-stone-400">
-                  <span class="relative flex h-2 w-2">
-                     <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                     <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+               <div class="flex items-center gap-3 text-[10px] font-bold uppercase tracking-[0.15em] text-[#a8a29e] mt-2 pt-4">
+                  <span class="relative flex h-3 w-3">
+                     <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#00f28e] opacity-75"></span>
+                     <span class="relative inline-flex rounded-full h-3 w-3 bg-[#00f28e]"></span>
                   </span>
                   Vetting Pulse: Healthy
                </div>

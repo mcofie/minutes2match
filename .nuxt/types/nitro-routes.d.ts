@@ -24,6 +24,9 @@ declare module "nitropack/types" {
     '/api/admin/notify-missing-details': {
       'post': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/admin/notify-missing-details.post').default>>>>
     }
+    '/api/admin/notify-spark': {
+      'post': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/admin/notify-spark.post').default>>>>
+    }
     '/api/admin/notify-user-missing-details': {
       'post': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/admin/notify-user-missing-details.post').default>>>>
     }
@@ -224,6 +227,9 @@ declare module "nitropack/types" {
     }
     '/api/stats/social-proof': {
       'get': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/stats/social-proof.get').default>>>>
+    }
+    '/api/sync/notify-player': {
+      'post': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/sync/notify-player.post').default>>>>
     }
     '/api/telegram/setup-webhook': {
       'get': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/telegram/setup-webhook.get').default>>>>

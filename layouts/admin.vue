@@ -71,6 +71,12 @@
             </svg>
             <span class="label">Flash Lobby</span>
           </NuxtLink>
+          <NuxtLink to="/admin/spark-deck" class="sidebar-link" @click="sidebarOpen = false">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+            </svg>
+            <span class="label">Spark Deck</span>
+          </NuxtLink>
           <NuxtLink to="/admin/venues" class="sidebar-link" @click="sidebarOpen = false">
             <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline>
@@ -201,6 +207,7 @@ const pageTitle = computed(() => {
   if (path === '/admin/matches/scoring-logic') return 'Scoring Logic Breakdown'
   if (path.startsWith('/admin/matches')) return 'Matchmaker Tool'
   if (path.startsWith('/admin/events')) return 'Event Management'
+  if (path.startsWith('/admin/spark-deck')) return 'Spark Deck Sync'
   if (path === '/admin/messaging/history') return 'SMS History'
   if (path.startsWith('/admin/messaging')) return 'SMS Messaging'
   if (path.startsWith('/admin/questions')) return 'Vibe Questions'
