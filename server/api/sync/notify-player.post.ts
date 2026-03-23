@@ -57,6 +57,15 @@ export default defineEventHandler(async (event) => {
             { name: 'Location', value: loc, inline: true }
         ]
     })
+  } else if (action === 'instructions_viewed') {
+    await notifyDiscord({
+        title: `📖 How To Play Scanned`,
+        description: `Someone just scanned the Rules card and is reading the Spark Deck instructions!`,
+        color: DiscordColors.info,
+        fields: [
+            { name: 'Location', value: 'Global (Web)', inline: true }
+        ]
+    })
   }
   
   return { success: true }

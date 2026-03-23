@@ -52,7 +52,7 @@
         </div>
       </div>
 
-      <section v-for="level in ['spark', 'fire', 'inferno']" :key="level">
+      <section v-for="level in ['spark', 'fire', 'inferno', 'wildcard']" :key="level">
         <div class="flex items-center gap-3 mb-4">
           <h2 class="text-xl font-bold text-stone-900 capitalize" :class="getLevelTextColor(level)">The {{ level }}</h2>
           <span class="px-2.5 py-0.5 rounded-full bg-stone-100 text-stone-600 text-xs font-bold border border-stone-200">
@@ -92,14 +92,14 @@
 
             <h3 class="font-black text-stone-900 text-xl mb-4 pr-16 leading-tight">{{ poll.question }}</h3>
 
-            <!-- Massive Brutalist Stats & Progress -->
-            <div class="mt-auto space-y-4 pb-4">
-               <div class="border-2 border-stone-200 rounded-xl p-3 bg-stone-50 transition-colors" :class="{'border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] bg-white': poll.option_a_count > poll.option_b_count}">
+            <!-- Massive Brutalist Stats & Progress for standard polls -->
+            <div v-if="poll.level_id !== 'wildcard'" class="mt-auto space-y-4 pb-4">
+               <div class="border-2 border-stone-200 rounded-xl p-3 bg-stone-50 transition-colors" :class="{'border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] bg-white': (poll.option_a_count || 0) > (poll.option_b_count || 0)}">
                  <div class="flex justify-between items-end mb-2">
                    <span class="text-sm font-black uppercase tracking-wider text-black truncate pr-2">{{ poll.option_a_label }}</span>
                    <div class="text-right">
                       <span class="text-xs font-bold text-stone-500 mr-2">{{ getPercentage(poll.option_a_count, poll.option_b_count) }}%</span>
-                      <span class="text-xl font-black text-black">{{ poll.option_a_count }}</span>
+                      <span class="text-xl font-black text-black">{{ poll.option_a_count || 0 }}</span>
                    </div>
                  </div>
                  <div class="h-2 w-full bg-stone-200 rounded-full overflow-hidden border border-stone-300">
@@ -107,12 +107,12 @@
                  </div>
                </div>
 
-               <div class="border-2 border-stone-200 rounded-xl p-3 bg-stone-50 transition-colors" :class="{'border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] bg-white': poll.option_b_count > poll.option_a_count}">
+               <div class="border-2 border-stone-200 rounded-xl p-3 bg-stone-50 transition-colors" :class="{'border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] bg-white': (poll.option_b_count || 0) > (poll.option_a_count || 0)}">
                  <div class="flex justify-between items-end mb-2">
                    <span class="text-sm font-black uppercase tracking-wider text-black truncate pr-2">{{ poll.option_b_label }}</span>
                    <div class="text-right">
                       <span class="text-xs font-bold text-stone-500 mr-2">{{ getPercentage(poll.option_b_count, poll.option_a_count) }}%</span>
-                      <span class="text-xl font-black text-black">{{ poll.option_b_count }}</span>
+                      <span class="text-xl font-black text-black">{{ poll.option_b_count || 0 }}</span>
                    </div>
                  </div>
                  <div class="h-2 w-full bg-stone-200 rounded-full overflow-hidden border border-stone-300">
@@ -121,18 +121,21 @@
                </div>
             </div>
 
+            <!-- Spacer for wildcards to maintain card layout -->
+            <div v-if="poll.level_id === 'wildcard'" class="mt-auto h-4"></div>
+
             <!-- Footer Meta -->
-            <div class="pt-4 border-t border-stone-100 flex justify-between items-center text-[10px] text-stone-500 font-bold uppercase tracking-widest mt-2 relative">
-               <span class="flex items-center gap-1.5" title="Total unique times this QR code was scanned">
-                 👁️ <span class="text-black">{{ poll.view_count || 0 }}</span> Opens
+            <div class="pt-4 border-t border-stone-100 flex items-center text-[10px] text-stone-500 font-bold uppercase tracking-widest mt-2 relative" :class="poll.level_id === 'wildcard' ? 'justify-start' : 'justify-between'">
+               <span class="flex items-center gap-1.5" title="Total unique times this question was viewed">
+                 👁️ <span class="text-black">{{ poll.view_count || 0 }}</span> Views
                </span>
                
-               <button v-if="poll.is_active" @click="triggerConfetti(poll)" class="absolute left-1/2 -translate-x-1/2 flex items-center gap-1.5 px-3 py-1 bg-black text-white border-2 border-black rounded-full transition-all font-bold shadow-[2px_2px_0px_0px_rgba(255,255,255,0.4)] hover:bg-white hover:text-black active:scale-95 hover:translate-y-0.5" title="Blast Confetti!">
+               <button v-if="poll.is_active && poll.level_id !== 'wildcard'" @click="triggerConfetti(poll)" class="absolute left-1/2 -translate-x-1/2 flex items-center gap-1.5 px-3 py-1 bg-black text-white border-2 border-black rounded-full transition-all font-bold shadow-[2px_2px_0px_0px_rgba(255,255,255,0.4)] hover:bg-white hover:text-black active:scale-95 hover:translate-y-0.5" title="Blast Confetti!">
                   🎉 Blast
                </button>
 
-               <span class="flex items-center gap-1.5" title="Total amount of votes cast">
-                 ✓ <span class="text-black">{{ poll.option_a_count + poll.option_b_count }}</span> Votes
+               <span class="flex items-center gap-1.5 ml-auto" v-if="poll.level_id !== 'wildcard'" title="Total amount of votes cast">
+                 ✓ <span class="text-black">{{ (poll.option_a_count || 0) + (poll.option_b_count || 0) }}</span> Votes
                </span>
             </div>
             
@@ -173,6 +176,7 @@
                         <option value="spark">The Spark</option>
                         <option value="fire">The Fire</option>
                         <option value="inferno">The Inferno</option>
+                        <option value="wildcard">The Wildcard</option>
                       </select>
                     </div>
                     <div class="form-group">
@@ -218,15 +222,15 @@
                         class="w-full px-4 py-3 rounded-xl border border-stone-200 focus:outline-none focus:ring-2 focus:ring-black/5 text-lg font-medium" />
                     </div>
 
-                    <div class="grid grid-cols-2 gap-4 bg-stone-50 p-4 rounded-xl border border-stone-100">
+                    <div v-if="form.level_id !== 'wildcard'" class="grid grid-cols-2 gap-4 bg-stone-50 p-4 rounded-xl border border-stone-100">
                        <div class="form-group">
                          <label class="block text-xs font-bold uppercase tracking-wider text-stone-500 mb-2">Option A Label</label>
-                         <input v-model="form.option_a_label" type="text" placeholder="Ghana Jollof" required
+                         <input v-model="form.option_a_label" type="text" placeholder="Ghana Jollof" :required="form.level_id !== 'wildcard'"
                            class="w-full px-4 py-2 rounded-lg border border-stone-200 focus:outline-none focus:ring-2 focus:ring-black/5" />
                        </div>
                        <div class="form-group">
                          <label class="block text-xs font-bold uppercase tracking-wider text-stone-500 mb-2">Option B Label</label>
-                         <input v-model="form.option_b_label" type="text" placeholder="Waakye" required
+                         <input v-model="form.option_b_label" type="text" placeholder="Waakye" :required="form.level_id !== 'wildcard'"
                            class="w-full px-4 py-2 rounded-lg border border-stone-200 focus:outline-none focus:ring-2 focus:ring-black/5" />
                        </div>
                     </div>
@@ -235,18 +239,19 @@
 
               <!-- Media & Delivery -->
               <div>
-                 <h3 class="text-xs font-bold uppercase tracking-wider text-stone-400 mb-4 pt-4 border-t border-stone-100">Media & Delivery</h3>
+                 <h3 v-if="form.level_id !== 'wildcard'" class="text-xs font-bold uppercase tracking-wider text-stone-400 mb-4 pt-4 border-t border-stone-100">Media & Delivery</h3>
                  <div class="space-y-4">
-                    <div class="form-group">
+                    <div v-if="form.level_id !== 'wildcard'" class="form-group">
                       <label class="block text-sm font-medium text-stone-700 mb-1">Custom Spotify Playlist URI (Optional)</label>
                       <input v-model="form.spotify_uri" type="text" placeholder="https://open.spotify.com/playlist/..."
                         class="w-full px-4 py-2 rounded-xl border border-stone-200 focus:outline-none focus:ring-2 focus:ring-black/5 text-sm" />
                       <p class="text-xs text-stone-400 mt-1">Leave blank to use the default Tech-Noir playlist for this level.</p>
                     </div>
 
-                    <label class="flex items-center gap-3 cursor-pointer select-none mt-4 py-2">
+                    <label class="flex items-center gap-3 cursor-pointer select-none mt-4 py-2" :class="{'pt-4 border-t border-stone-100': form.level_id === 'wildcard'}">
                        <input type="checkbox" v-model="form.is_active" class="w-5 h-5 rounded text-black focus:ring-black border-stone-300" />
-                       <span class="font-medium text-stone-900">Set as Active Poll</span>
+                       <span v-if="form.level_id === 'wildcard'" class="font-medium text-stone-900">Include in Active Wildcard Pool</span>
+                       <span v-else class="font-medium text-stone-900">Set as Active Poll</span>
                     </label>
                  </div>
               </div>
@@ -311,7 +316,7 @@ const fetchPolls = async () => {
 }
 
 const groupedPolls = computed(() => {
-  const groups: Record<string, any[]> = { spark: [], fire: [], inferno: [] }
+  const groups: Record<string, any[]> = { spark: [], fire: [], inferno: [], wildcard: [] }
   polls.value.forEach(p => {
      if (groups[p.level_id]) groups[p.level_id].push(p)
   })
@@ -321,15 +326,18 @@ const groupedPolls = computed(() => {
 onMounted(fetchPolls)
 
 const getPercentage = (count1: number, count2: number) => {
-  const total = count1 + count2
+  const safeCount1 = count1 || 0
+  const safeCount2 = count2 || 0
+  const total = safeCount1 + safeCount2
   if (total === 0) return 0
-  return Math.round((count1 / total) * 100)
+  return Math.round((safeCount1 / total) * 100)
 }
 
 const getLevelTextColor = (lvl: string) => {
    if(lvl === 'spark') return 'text-yellow-600'
    if(lvl === 'fire') return 'text-orange-600'
    if(lvl === 'inferno') return 'text-rose-600'
+   if(lvl === 'wildcard') return 'text-purple-600'
    return 'text-stone-900'
 }
 
@@ -337,6 +345,7 @@ const getLevelBgColor = (lvl: string) => {
    if(lvl === 'spark') return 'bg-yellow-400'
    if(lvl === 'fire') return 'bg-orange-500'
    if(lvl === 'inferno') return 'bg-rose-500'
+   if(lvl === 'wildcard') return 'bg-purple-500'
    return 'bg-black'
 }
 

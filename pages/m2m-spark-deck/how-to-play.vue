@@ -227,7 +227,24 @@
 </template>
 
 <script setup lang="ts">
+import { onMounted } from 'vue'
+
 useHead({ title: 'How to Play | Minutes 2 Match' })
+
+onMounted(() => {
+  if (typeof window !== 'undefined') {
+    const viewKey = 'm2m_viewed_how_to_play'
+    if (!localStorage.getItem(viewKey)) {
+      localStorage.setItem(viewKey, 'true')
+      
+      // Fire and forget Discord webhook
+      $fetch('/api/sync/notify-player', {
+        method: 'POST',
+        body: { action: 'instructions_viewed' }
+      }).catch(() => {})
+    }
+  }
+})
 </script>
 
 <style scoped>

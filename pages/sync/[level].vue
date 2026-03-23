@@ -54,6 +54,42 @@
       Establishing Sync...
     </div>
 
+    <!-- Wildcard Quick View -->
+    <div v-else-if="level === 'wildcard'" class="w-full max-w-sm mx-auto z-10 animate-in fade-in zoom-in-95 duration-500 flex flex-col justify-center h-full px-3">
+      <div class="text-center mb-12 relative animate-in slide-in-from-bottom-2 fade-in" :key="pollData?.id">
+        <div class="flex flex-col items-center justify-center mb-6">
+           <h2 class="inline-block px-3 py-1 bg-stone-100 dark:bg-stone-800 text-[10px] font-black uppercase tracking-widest border-2 border-black dark:border-stone-700 rounded-full shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.05)] text-stone-600 dark:text-stone-300">Wildcard</h2>
+        </div>
+        <h1 class="text-3xl sm:text-4xl font-black font-serif italic leading-tight text-black dark:text-white px-2">{{ pollData?.question || 'Drawing blank...' }}</h1>
+      </div>
+
+      <div class="space-y-6">
+        <button 
+          @click="fetchPoll" 
+          class="w-full relative group bg-purple-500 text-white rounded-xl border-2 border-black shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] p-6 transition-all hover:-translate-y-1 hover:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] active:translate-y-1 active:translate-x-1 active:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] font-bold uppercase tracking-widest text-sm"
+        >
+          <span class="relative z-10 flex items-center justify-center gap-2">
+            <svg class="w-5 h-5 group-hover:rotate-180 transition-transform duration-500 ease-out" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+              <circle cx="8.5" cy="8.5" r="1.5" fill="currentColor"></circle>
+              <circle cx="15.5" cy="15.5" r="1.5" fill="currentColor"></circle>
+              <circle cx="15.5" cy="8.5" r="1.5" fill="currentColor"></circle>
+              <circle cx="8.5" cy="15.5" r="1.5" fill="currentColor"></circle>
+              <circle cx="12" cy="12" r="1.5" fill="currentColor"></circle>
+            </svg>
+            Roll Die
+          </span>
+        </button>
+      </div>
+      
+      <!-- Growth Loop Link -->
+      <div class="mt-12 text-center pb-8 flex-shrink-0">
+          <NuxtLink to="/shop" @click="trackDiscord('shop_visited')" class="text-[9px] font-black uppercase tracking-widest text-stone-500 border-2 border-stone-200 px-4 py-2 rounded-full hover:border-black hover:text-black transition-colors">
+             Get Your Own Spark Deck →
+          </NuxtLink>
+      </div>
+    </div>
+
     <!-- Poll View -->
     <div v-else-if="!hasVoted" class="w-full max-w-sm mx-auto z-10 animate-in fade-in zoom-in-95 duration-500 flex flex-col justify-center h-full px-3">
       <div class="text-center mb-12 relative">
@@ -250,6 +286,11 @@ const themes = {
     color: 'text-rose-500',
     fill: 'bg-rose-500',
     uri: 'https://open.spotify.com/playlist/37i9dQZF1DX1lVhptIYRda'
+  },
+  wildcard: {
+    color: 'text-purple-500',
+    fill: 'bg-purple-500',
+    uri: 'https://open.spotify.com/playlist/37i9dQZF1DXcBWIGoYBM5M'
   }
 }
 const theme = themes[level as keyof typeof themes] || themes.spark
@@ -310,6 +351,19 @@ const fetchPoll = async () => {
      } catch (e) {
         console.warn('Geo lookup failed, falling back to Global', e)
         userCountry = 'Global'
+     }
+  }
+
+  // WILDCARD - Dynamic Random Select
+  if (level === 'wildcard') {
+     const { data: wildcards } = await supabase.schema('m2m').from('poll_questions')
+        .select('*')
+        .eq('level_id', 'wildcard')
+        .eq('is_active', true)
+        
+     if (wildcards && wildcards.length > 0) {
+        pollData.value = wildcards[Math.floor(Math.random() * wildcards.length)]
+        return
      }
   }
 
@@ -388,25 +442,30 @@ const setupRealtime = () => {
 
 onMounted(async () => {
   try {
-     if (typeof window !== 'undefined') {
-        const storedVote = localStorage.getItem(`m2m_voted_${level}`)
-        const storedVoteOption = localStorage.getItem(`m2m_voted_${level}_option`)
-        
-        if (storedVote) {
-           hasVoted.value = true
-        }
-        if (storedVoteOption) {
-           myVoteOption.value = storedVoteOption
-        }
-     }
-
      const { data: { session } } = await supabase.auth.getSession()
      if (!session) {
        await supabase.auth.signInAnonymously()
      }
 
-     // Fetch the seasonal poll first!
+     // Fetch the seasonal/random poll first!
      await fetchPoll()
+     
+     if (typeof window !== 'undefined' && pollData.value?.id) {
+        // Only block if they voted on THIS specific question ID, not just the level string
+        const modernVoteKey = `m2m_voted_poll_${pollData.value.id}`
+        const modernVoteOption = localStorage.getItem(`${modernVoteKey}_option`)
+        
+        // Backwards compatibility check
+        const legacyStoredVote = level !== 'wildcard' ? localStorage.getItem(`m2m_voted_${level}`) : null
+        const legacyStoredOption = level !== 'wildcard' ? localStorage.getItem(`m2m_voted_${level}_option`) : null
+        
+        if (localStorage.getItem(modernVoteKey) || legacyStoredVote) {
+           hasVoted.value = true
+        }
+        if (modernVoteOption || legacyStoredOption) {
+           myVoteOption.value = modernVoteOption || legacyStoredOption
+        }
+     }
      
      // Log a unique view!
      if (pollData.value?.id) {
@@ -447,8 +506,15 @@ const castVote = async (option: 'A' | 'B') => {
   myVoteOption.value = option
   
   if (typeof window !== 'undefined') {
-     localStorage.setItem(`m2m_voted_${level}`, 'true')
-     localStorage.setItem(`m2m_voted_${level}_option`, option)
+     // Save per-poll to enable unlimited Wildcard votes
+     localStorage.setItem(`m2m_voted_poll_${pollData.value.id}`, 'true')
+     localStorage.setItem(`m2m_voted_poll_${pollData.value.id}_option`, option)
+     
+     // Legacy support strictly for traditional levels
+     if (level !== 'wildcard') {
+        localStorage.setItem(`m2m_voted_${level}`, 'true')
+        localStorage.setItem(`m2m_voted_${level}_option`, option)
+     }
   }
   
   // Use the exact poll ID so it works across seasons
