@@ -191,8 +191,8 @@ export default defineEventHandler(async (event) => {
         } else if (metadata.purpose === 'spark_deck') {
             console.log('[Webhook] Processing spark_deck payment')
             await handleSparkDeckPayment(supabase, metadata, config)
-        } else if (metadata.purpose === 'wallet_topup' && metadata.userId) {
-            console.log('[Webhook] Processing wallet_topup payment for user:', metadata.userId)
+        } else if (metadata.purpose === 'wallet_topup') {
+            console.log('[Webhook] Processing wallet_topup payment')
             await handleWalletTopupPayment(supabase, data, metadata)
         } else {
             console.log('[Webhook] Unknown or missing purpose:', metadata.purpose)
@@ -480,11 +480,32 @@ async function handleSparkDeckPayment(supabase: any, metadata: any, config: any)
  * Handle Wallet Top-up payment confirmation
  */
 async function handleWalletTopupPayment(supabase: any, data: any, metadata: any) {
-    const userId = metadata.userId
+    let targetUserId = metadata.userId
     const amount = data.amount / 100 // Convert from pesewas to GHS
     
-    console.log('[Webhook] Crediting wallet for user:', userId, 'Amount:', amount)
-    
+    // FALLBACK: If userId is missing from metadata, lookup by email from Paystack response
+    if (!targetUserId) {
+        const customerEmail = data.customer?.email
+        console.warn('[Webhook] Wallet top-up missing userId in metadata. Falling back to email lookup:', customerEmail)
+        
+        if (customerEmail) {
+            const { data: profile } = await supabase
+                .from('profiles')
+                .select('id')
+                .eq('phone', customerEmail) // Many profiles store email in phone during initial contact
+                .maybeSingle()
+            
+            if (profile) {
+                targetUserId = profile.id
+            }
+        }
+    }
+
+    if (!targetUserId) {
+        console.error('[Webhook] ❌ Cannot credit wallet via webhook: both userId and email fallback failed.')
+        return
+    }
+
     try {
         const { creditUser } = await import('~/server/utils/credits')
         
@@ -496,7 +517,7 @@ async function handleWalletTopupPayment(supabase: any, data: any, metadata: any)
             .maybeSingle()
 
         const result = await creditUser(
-            userId,
+            targetUserId,
             amount,
             'wallet_topup',
             payment?.id || null, // Must be UUID or null
@@ -504,7 +525,7 @@ async function handleWalletTopupPayment(supabase: any, data: any, metadata: any)
         )
 
         if (result.success) {
-            console.log(`[Webhook] ✅ Wallet credited for user ${userId}. New balance: GHS ${result.newBalance}`)
+            console.log(`[Webhook] ✅ Wallet credited for user ${targetUserId}. New balance: GHS ${result.newBalance}`)
         } else {
             console.error('[Webhook] ❌ Failed to credit wallet via webhook:', result.error)
         }

@@ -1127,8 +1127,8 @@ const handleTopUp = async () => {
         return
     }
 
-    if (!user.value?.email) {
-        useToast().error('User email not found. Please log in again.')
+    if (!user.value?.id || !user.value?.email) {
+        useToast().error('User identity not found. Please log in again.')
         return
     }
 

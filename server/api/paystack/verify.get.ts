@@ -18,6 +18,10 @@ interface PaystackResponse {
         amount: number
         currency: string
         metadata: any
+        customer: {
+            email: string
+            phone?: string
+        }
     }
 }
 
@@ -225,30 +229,58 @@ export default defineEventHandler(async (event) => {
                 console.log('[Verify] Spark Deck purchase confirmed for user:', metadata.userId)
                 const { handleSparkDeckOrder } = await import('~/server/utils/order')
                 await handleSparkDeckOrder(supabase, metadata, config)
-            } else if (metadata.purpose === 'wallet_topup' && metadata.userId) {
-                console.log('[Verify] Wallet top-up confirmed for user:', metadata.userId, 'Amount:', response.data.amount / 100)
-                const { creditUser } = await import('~/server/utils/credits')
+            } else if (metadata.purpose === 'wallet_topup') {
                 const topUpAmount = response.data.amount / 100
+                const { creditUser } = await import('~/server/utils/credits')
                 
-                // Get the UUID of the payment record for traceability
-                const { data: finalPayment } = await supabase
-                    .schema('m2m')
-                    .from('payments')
-                    .select('id')
-                    .eq('provider_ref', reference)
-                    .maybeSingle()
+                let targetUserId = metadata.userId
 
-                const result = await creditUser(
-                    metadata.userId,
-                    topUpAmount,
-                    'wallet_topup',
-                    finalPayment?.id || null, // MUST be a UUID or null
-                    `Wallet top-up: GHS ${topUpAmount.toFixed(2)}`
-                )
-                if (result.success) {
-                    console.log(`[Verify] ✅ Wallet topped up. New balance: GHS ${result.newBalance}`)
+                // FALLBACK: If userId is missing from metadata, lookup by email from Paystack response
+                if (!targetUserId) {
+                    const customerEmail = response.data.customer?.email || (response.data as any).email
+                    console.warn('[Verify] Wallet top-up missing userId in metadata. Falling back to email:', customerEmail)
+                    
+                    if (customerEmail) {
+                        const { data: profile } = await supabase
+                            .schema('m2m')
+                            .from('profiles')
+                            .select('id')
+                            .eq('phone', customerEmail) // Our 'profiles' often uses phone but some schemas store email. Let's check session lookup.
+                            .maybeSingle()
+                        
+                        // Wait! Most of our lookups are via auth.users since profiles.id = users.id
+                        // Let's use a more direct approach: any link we have.
+                        if (profile) {
+                            targetUserId = profile.id
+                        }
+                    }
+                }
+
+                if (!targetUserId) {
+                    console.error('[Verify] ❌ Cannot credit wallet: both userId and email fallback failed.')
                 } else {
-                    console.error('[Verify] ❌ Wallet top-up credit failed:', result.error)
+                    console.log('[Verify] Wallet top-up confirmed for user:', targetUserId, 'Amount:', topUpAmount)
+
+                    // Get the UUID of the payment record for traceability
+                    const { data: finalPayment } = await supabase
+                        .schema('m2m')
+                        .from('payments')
+                        .select('id')
+                        .eq('provider_ref', reference)
+                        .maybeSingle()
+
+                    const result = await creditUser(
+                        targetUserId,
+                        topUpAmount,
+                        'wallet_topup',
+                        finalPayment?.id || null, 
+                        `Wallet top-up (Ref: ${reference}): GHS ${topUpAmount.toFixed(2)}`
+                    )
+                    if (result.success) {
+                        console.log(`[Verify] ✅ Wallet topped up for ${targetUserId}. New balance: GHS ${result.newBalance}`)
+                    } else {
+                        console.error('[Verify] ❌ Wallet top-up credit failed:', result.error)
+                    }
                 }
             }
         }

@@ -45,6 +45,9 @@ declare module "nitropack/types" {
     '/api/admin/users/:id': {
       'delete': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/admin/users/[id].delete').default>>>>
     }
+    '/api/admin/users/credits': {
+      'post': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/admin/users/credits.post').default>>>>
+    }
     '/api/admin/users/verify': {
       'post': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/admin/users/verify.post').default>>>>
     }

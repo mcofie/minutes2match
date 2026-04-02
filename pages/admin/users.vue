@@ -235,6 +235,16 @@
               </svg>
               Vibe Check
             </button>
+            <button 
+              class="user-tab" 
+              :class="{ active: activeTab === 'wallet' }"
+              @click="activeTab = 'wallet'"
+            >
+              <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/>
+              </svg>
+              Wallet
+            </button>
           </div>
           
           <div class="modal__content user-content">
@@ -771,6 +781,75 @@
                 :user="selectedUser" 
               />
             </div>
+
+            <!-- Wallet Tab -->
+            <div v-if="activeTab === 'wallet'" class="tab-content">
+              <div class="space-y-6">
+                <!-- Current Balance Card -->
+                <div class="bg-black text-white p-8 rounded-[2rem] flex flex-col items-center justify-center text-center space-y-2">
+                   <p class="text-[10px] font-black uppercase tracking-[0.3em] opacity-40">Available Balance</p>
+                   <div class="flex items-baseline gap-1">
+                      <span class="text-stone-400 font-mono text-sm">GHS</span>
+                      <span v-if="loadingWallet" class="text-3xl font-black tabular-nums animate-pulse">...</span>
+                      <span v-else class="text-4xl font-black tabular-nums font-mono">{{ userBalance.toFixed(2) }}</span>
+                   </div>
+                </div>
+
+                <!-- Adjustment Form -->
+                <div class="bg-white p-6 rounded-3xl border border-stone-200 space-y-6">
+                   <div class="flex items-center justify-between">
+                      <h4 class="text-[10px] font-black uppercase tracking-widest text-stone-400">Manual Adjustment</h4>
+                      <div class="flex bg-stone-100 p-1 rounded-lg">
+                         <button 
+                            @click="walletType = 'credit'"
+                            class="px-4 py-1.5 text-[10px] font-black uppercase tracking-widest rounded-md transition-all"
+                            :class="walletType === 'credit' ? 'bg-white text-black shadow-sm' : 'text-stone-400'"
+                         >Add</button>
+                         <button 
+                            @click="walletType = 'debit'"
+                            class="px-4 py-1.5 text-[10px] font-black uppercase tracking-widest rounded-md transition-all"
+                            :class="walletType === 'debit' ? 'bg-white text-rose-600 shadow-sm' : 'text-stone-400'"
+                         >Deduct</button>
+                      </div>
+                   </div>
+
+                   <div class="grid grid-cols-2 gap-4">
+                      <div>
+                         <label class="block text-[10px] font-bold text-stone-400 uppercase mb-2">Amount (GHS)</label>
+                         <input v-model.number="walletAmount" type="number" min="1" class="w-full p-4 bg-stone-50 rounded-2xl text-sm font-bold outline-none border border-transparent focus:border-black" />
+                      </div>
+                      <div>
+                         <label class="block text-[10px] font-bold text-stone-400 uppercase mb-2">Reason</label>
+                         <select v-model="walletReason" class="w-full p-4 bg-stone-50 rounded-2xl text-xs font-bold outline-none border border-transparent">
+                            <option value="reward">🎉 Reward / Promo</option>
+                            <option value="refund">🔙 Refund</option>
+                            <option value="compensation">🎁 Compensation</option>
+                            <option value="adjustment">⚙️ Admin Correction</option>
+                         </select>
+                      </div>
+                   </div>
+
+                   <div>
+                      <label class="block text-[10px] font-bold text-stone-400 uppercase mb-2">Internal Note</label>
+                      <input v-model="walletDescription" placeholder="e.g. Compensation for match bug" class="w-full p-4 bg-stone-50 rounded-2xl text-xs outline-none" />
+                   </div>
+
+                   <button 
+                      @click="adjustWallet"
+                      :disabled="adjustingWallet || !walletAmount"
+                      class="w-full py-4 bg-black text-white rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] active:scale-95 disabled:opacity-30 flex items-center justify-center gap-2"
+                   >
+                      <span v-if="adjustingWallet" class="w-3 h-3 border-2 border-white border-t-transparent animate-spin rounded-full"></span>
+                      {{ walletType === 'credit' ? 'Grant Credits Now' : 'Process Deduction' }}
+                   </button>
+                </div>
+
+                <!-- Quick History Hint -->
+                <div class="text-center">
+                   <p class="text-[10px] text-stone-400 font-medium italic">All adjustments are logged in the immutable m2m.credit_transactions ledger.</p>
+                </div>
+              </div>
+            </div>
             
             <!-- Suggested Matches (New Section in Profile) -->
             <div v-if="activeTab === 'profile'" class="mt-6 border-t pt-6">
@@ -882,6 +961,7 @@ definePageMeta({
 })
 
 const supabase = useSupabaseClient()
+const toast = useToast()
 
 // State
 const loading = ref(true)
@@ -927,7 +1007,7 @@ const extractError = ref('')
 const userAnswers = ref<any[]>([])
 const loadingAnswers = ref(false)
 const questionsMap = ref<Record<string, string>>({})
-const activeTab = ref<'profile' | 'activity' | 'vibes'>('profile')
+const activeTab = ref<'profile' | 'activity' | 'vibes' | 'wallet'>('profile')
 const loadingActivity = ref(false)
 const referrerName = ref('')
 const userActivity = reactive({
@@ -1191,6 +1271,14 @@ const viewUser = async (user: any) => {
 
   // Fetch Suggestions
   fetchSuggestions(user)
+
+  // Wallet State Reset & Fetch
+  userBalance.value = 0
+  walletAmount.value = 15
+  walletType.value = 'credit'
+  walletReason.value = 'reward'
+  walletDescription.value = ''
+  fetchUserBalance(user.id)
 
   // Fetch answers and activity in parallel
   try {
@@ -1569,6 +1657,61 @@ const interestLabels: Record<string, string> = {
 
 const getInterestLabel = (interestId: string): string => {
   return interestLabels[interestId] || interestId
+}
+
+// Wallet Management
+const adjustingWallet = ref(false)
+const walletAmount = ref(15)
+const walletType = ref<'credit' | 'debit'>('credit')
+const walletReason = ref('reward')
+const walletDescription = ref('')
+const userBalance = ref(0)
+const loadingWallet = ref(false)
+
+const fetchUserBalance = async (userId: string) => {
+  loadingWallet.value = true
+  try {
+    const { data } = await supabase
+      .schema('m2m')
+      .from('user_credits')
+      .select('balance')
+      .eq('user_id', userId)
+      .single()
+    userBalance.value = data?.balance || 0
+  } catch (e) {
+    userBalance.value = 0
+  } finally {
+    loadingWallet.value = false
+  }
+}
+
+const adjustWallet = async () => {
+  if (!selectedUser.value || adjustingWallet.value) return
+  
+  adjustingWallet.value = true
+  try {
+    const response = await $fetch('/api/admin/users/credits', {
+      method: 'POST',
+      body: {
+        userId: selectedUser.value.id,
+        amount: walletAmount.value,
+        type: walletType.value,
+        reason: walletReason.value,
+        description: walletDescription.value
+      }
+    }) as any
+    
+    if (response.success) {
+      toast.success('Wallet Updated', `New balance: GHS ${response.newBalance}`)
+      userBalance.value = response.newBalance
+      walletAmount.value = 15
+      walletDescription.value = ''
+    }
+  } catch (err: any) {
+    toast.error('Adjustment Failed', err.data?.message || 'Error updating credits')
+  } finally {
+    adjustingWallet.value = false
+  }
 }
 
 // Initialize
