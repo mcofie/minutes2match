@@ -7,8 +7,9 @@ import { getUserBalance } from '~/server/utils/credits'
  */
 export default defineEventHandler(async (event) => {
     const user = await serverSupabaseUser(event)
-    if (!user) {
-        throw createError({ statusCode: 401, message: 'Unauthorized' })
+    if (!user || !user.id || user.id === 'undefined') {
+        console.warn('[Credits API] Invalid or missing user ID in session')
+        return { balance: 0, transactions: [] }
     }
 
     const client = serverSupabaseServiceRole(event) as any

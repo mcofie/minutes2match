@@ -25,6 +25,11 @@ function getSupabase() {
 export async function getUserBalance(userId: string): Promise<number> {
     const supabase = getSupabase()
 
+    if (!userId || userId === 'undefined') {
+        console.warn('[Credits] getUserBalance called with invalid userId:', userId)
+        return 0
+    }
+
     const { data, error } = await supabase
         .schema('m2m')
         .from('user_credits')
@@ -45,6 +50,8 @@ export async function getUserBalance(userId: string): Promise<number> {
  */
 async function ensureCreditRecord(userId: string): Promise<void> {
     const supabase = getSupabase()
+
+    if (!userId || userId === 'undefined') return
 
     const { data: existing } = await supabase
         .schema('m2m')
@@ -72,6 +79,10 @@ export async function creditUser(
     referenceId?: string,
     description?: string
 ): Promise<CreditResult> {
+    if (!userId || userId === 'undefined') {
+        return { success: false, newBalance: 0, error: 'Invalid User ID' }
+    }
+
     if (amount <= 0) {
         return { success: false, newBalance: 0, error: 'Amount must be positive' }
     }
@@ -149,6 +160,10 @@ export async function debitUser(
     referenceId?: string,
     description?: string
 ): Promise<CreditResult> {
+    if (!userId || userId === 'undefined') {
+        return { success: false, newBalance: 0, error: 'Invalid User ID' }
+    }
+
     if (amount <= 0) {
         return { success: false, newBalance: 0, error: 'Amount must be positive' }
     }
