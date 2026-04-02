@@ -69,9 +69,22 @@ export default defineEventHandler(async (event) => {
         console.log('[Verify] Paystack response:', response.data.status, 'Amount:', response.data.amount)
 
         const paymentSuccess = response.data.status === 'success'
-        const metadata = response.data.metadata || {}
+        let metadata = response.data.metadata
+        
+        // Safety: Paystack sometimes returns metadata as a JSON string
+        if (typeof metadata === 'string') {
+           try {
+              metadata = JSON.parse(metadata)
+           } catch (e) {
+              console.warn('[Verify] Failed to parse metadata string:', e)
+              metadata = {}
+           }
+        }
+        
+        metadata = metadata || {}
 
-        console.log('[Verify] Metadata:', JSON.stringify(metadata))
+        console.log('[Verify] Parsed Metadata:', JSON.stringify(metadata))
+        console.log('[Verify] Purpose:', metadata.purpose, 'User ID:', metadata.userId)
 
         // First check if payment record exists (for upsert)
         const { data: paymentRecord } = await supabase

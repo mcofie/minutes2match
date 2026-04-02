@@ -83,10 +83,20 @@ export default defineEventHandler(async (event) => {
     }
 
     const data = body.data
-    const metadata = data.metadata || {}
+    let metadata = data.metadata || {}
+
+    // Safety: Paystack returns metadata as a JSON string in webhooks too
+    if (typeof metadata === 'string') {
+        try {
+            metadata = JSON.parse(metadata)
+        } catch (e) {
+            console.warn('[Webhook] Failed to parse metadata string:', e)
+            metadata = {}
+        }
+    }
 
     console.log('[Webhook] Processing charge.success for reference:', data.reference)
-    console.log('[Webhook] Metadata:', JSON.stringify(metadata))
+    console.log('[Webhook] Parsed Metadata:', JSON.stringify(metadata))
 
     // Initialize Supabase with service role for bypassing RLS
     const supabaseUrl = config.supabaseUrl
@@ -181,6 +191,9 @@ export default defineEventHandler(async (event) => {
         } else if (metadata.purpose === 'spark_deck') {
             console.log('[Webhook] Processing spark_deck payment')
             await handleSparkDeckPayment(supabase, metadata, config)
+        } else if (metadata.purpose === 'wallet_topup' && metadata.userId) {
+            console.log('[Webhook] Processing wallet_topup payment for user:', metadata.userId)
+            await handleWalletTopupPayment(supabase, data, metadata)
         } else {
             console.log('[Webhook] Unknown or missing purpose:', metadata.purpose)
         }
@@ -461,6 +474,43 @@ async function handleShootYourShotPayment(supabase: any, metadata: any, config: 
 async function handleSparkDeckPayment(supabase: any, metadata: any, config: any) {
     const { handleSparkDeckOrder } = await import('~/server/utils/order')
     await handleSparkDeckOrder(supabase, metadata, config)
+}
+
+/**
+ * Handle Wallet Top-up payment confirmation
+ */
+async function handleWalletTopupPayment(supabase: any, data: any, metadata: any) {
+    const userId = metadata.userId
+    const amount = data.amount / 100 // Convert from pesewas to GHS
+    
+    console.log('[Webhook] Crediting wallet for user:', userId, 'Amount:', amount)
+    
+    try {
+        const { creditUser } = await import('~/server/utils/credits')
+        
+        // Find payment UUID for ledger reference
+        const { data: payment } = await supabase
+            .from('payments')
+            .select('id')
+            .eq('provider_ref', data.reference)
+            .maybeSingle()
+
+        const result = await creditUser(
+            userId,
+            amount,
+            'wallet_topup',
+            payment?.id || null, // Must be UUID or null
+            `Wallet Top-up (via Webhook): GHS ${amount.toFixed(2)}`
+        )
+
+        if (result.success) {
+            console.log(`[Webhook] ✅ Wallet credited for user ${userId}. New balance: GHS ${result.newBalance}`)
+        } else {
+            console.error('[Webhook] ❌ Failed to credit wallet via webhook:', result.error)
+        }
+    } catch (err) {
+        console.error('[Webhook] Unexpected error in handleWalletTopupPayment:', err)
+    }
 }
 
 /**
