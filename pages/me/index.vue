@@ -733,25 +733,25 @@
                            <input 
                               v-model.number="topUpCustomAmount"
                               type="number"
-                              min="5"
+                              min="1"
                               max="500"
-                              step="5"
-                              placeholder="Enter amount (min 5)"
+                              step="1"
+                              placeholder="Enter amount (min 1)"
                               class="w-full pl-14 pr-4 py-3 rounded-xl border-2 border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-800 text-stone-900 dark:text-stone-100 font-mono font-bold text-lg focus:border-green-500 focus:ring-2 focus:ring-green-500/20 outline-none transition-all"
                            />
                         </div>
-                        <p v-if="topUpCustomAmount && topUpCustomAmount >= 5" class="mt-2 text-[10px] font-bold text-stone-400 uppercase tracking-widest">
+                        <p v-if="topUpCustomAmount && topUpCustomAmount >= 1" class="mt-2 text-[10px] font-bold text-stone-400 uppercase tracking-widest">
                            ≈ {{ Math.floor(topUpCustomAmount / 15) }} match unlock{{ Math.floor(topUpCustomAmount / 15) !== 1 ? 's' : '' }}
                            <span v-if="topUpCustomAmount % 15 > 0"> + GHS {{ (topUpCustomAmount % 15).toFixed(0) }} remainder</span>
                         </p>
-                        <p v-else-if="topUpCustomAmount && topUpCustomAmount < 5" class="mt-2 text-[10px] font-bold text-rose-500 uppercase tracking-widest">Minimum top-up is GHS 5</p>
+                        <p v-else-if="topUpCustomAmount && topUpCustomAmount < 1" class="mt-2 text-[10px] font-bold text-rose-500 uppercase tracking-widest">Minimum top-up is GHS 1</p>
                      </div>
                   </div>
 
                   <!-- Top Up Button -->
                   <button 
                      @click="handleTopUp"
-                     :disabled="topUpLoading || (!topUpCustom && !topUpAmount) || (topUpCustom && (!topUpCustomAmount || topUpCustomAmount < 5))"
+                     :disabled="topUpLoading || (!topUpCustom && !topUpAmount) || (topUpCustom && (!topUpCustomAmount || topUpCustomAmount < 1))"
                      class="w-full py-3.5 rounded-xl font-black text-sm uppercase tracking-widest transition-all duration-200 flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed"
                      :class="topUpLoading 
                         ? 'bg-stone-200 dark:bg-stone-700 text-stone-500'
@@ -1122,8 +1122,8 @@ const topUpLoading = ref(false)
 const handleTopUp = async () => {
     const finalAmount = topUpCustom.value ? topUpCustomAmount.value : topUpAmount.value
     
-    if (!finalAmount || finalAmount < 5) {
-        useToast().error('Please select a valid top-up amount (min GHS 5)')
+    if (!finalAmount || finalAmount < 1) {
+        useToast().error('Please select a valid top-up amount (min GHS 1)')
         return
     }
 
