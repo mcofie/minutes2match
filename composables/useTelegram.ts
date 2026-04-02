@@ -5,7 +5,7 @@ export const useTelegram = () => {
   const isTMA = ref(false);
   let webApp: any = null;
 
-  if (process.client) {
+  if (import.meta.client) {
     try {
       const nuxtApp = useNuxtApp();
       if (nuxtApp) {
@@ -26,17 +26,17 @@ export const useTelegram = () => {
   });
 
   const showAlert = (message: string) => {
-    if (process.client && webApp) webApp.showAlert(message);
-    else if (process.client) alert(message);
+    if (import.meta.client && webApp) webApp.showAlert(message);
+    else if (import.meta.client) alert(message);
   };
 
   const showConfirm = (message: string, callback: (ok: boolean) => void) => {
-    if (process.client && webApp) webApp.showConfirm(message, callback);
-    else if (process.client) callback(confirm(message));
+    if (import.meta.client && webApp) webApp.showConfirm(message, callback);
+    else if (import.meta.client) callback(confirm(message));
   };
 
   const hapticFeedback = (type: 'light' | 'medium' | 'heavy' | 'rigid' | 'soft' = 'medium') => {
-    if (process.client && webApp?.HapticFeedback) {
+    if (import.meta.client && webApp?.HapticFeedback) {
       try {
         webApp.HapticFeedback.impactOccurred(type);
       } catch (e) {}
@@ -44,7 +44,7 @@ export const useTelegram = () => {
   };
 
   const setMainButton = (text: string, onClick: () => void) => {
-    if (process.client && webApp?.MainButton) {
+    if (import.meta.client && webApp?.MainButton) {
       webApp.MainButton.text = text;
       webApp.MainButton.onClick(onClick);
       webApp.MainButton.show();
@@ -52,20 +52,20 @@ export const useTelegram = () => {
   };
 
   const hideMainButton = () => {
-    if (process.client && webApp?.MainButton) {
+    if (import.meta.client && webApp?.MainButton) {
       webApp.MainButton.hide();
     }
   };
 
   const setBackButton = (onClick: () => void) => {
-    if (process.client && webApp?.BackButton) {
+    if (import.meta.client && webApp?.BackButton) {
       webApp.BackButton.onClick(onClick);
       webApp.BackButton.show();
     }
   };
 
   const hideBackButton = () => {
-    if (process.client && webApp?.BackButton) {
+    if (import.meta.client && webApp?.BackButton) {
       webApp.BackButton.hide();
     }
   };

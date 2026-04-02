@@ -643,7 +643,7 @@ const toggleFaq = (index: number) => {
   activeFaq.value = activeFaq.value === index ? null : index
 }
 
-if (process.client) {
+if (import.meta.client) {
   window.addEventListener('scroll', () => {
     showStickyCTA.value = window.scrollY > 800
   })

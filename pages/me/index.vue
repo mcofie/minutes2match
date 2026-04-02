@@ -1007,7 +1007,7 @@ const supabase = useSupabaseClient<M2MDatabase>() as any
 const user = useSupabaseUser()
 const toast = useToast()
 const haptic = useHaptic()
-const { profile, subscription, fetchProfileById, trustScore } = useDashboard()
+const { profile, subscription, fetchProfileById, trustScore, currentUserId, initDashboard } = useDashboard()
 
 const activeProfileSection = ref<'identity' | 'lifestyle' | 'hobbies' | 'availability' | 'matching' | 'account' | 'security'>('identity')
 const profileSections = [
@@ -1120,42 +1120,64 @@ const topUpCustomAmount = ref<number>(0)
 const topUpLoading = ref(false)
 
 const handleTopUp = async () => {
+    console.log('[Top-up] Initiation started...')
     const finalAmount = topUpCustom.value ? topUpCustomAmount.value : topUpAmount.value
+    console.log('[Top-up] Amount determined:', finalAmount)
     
     if (!finalAmount || finalAmount < 1) {
-        useToast().error('Please select a valid top-up amount (min GHS 1)')
+        console.warn('[Top-up] Invalid amount:', finalAmount)
+        toast.error('Missing Amount', 'Please select a valid top-up amount (min GHS 1)')
         return
     }
 
-    if (!user.value?.id || !user.value?.email) {
-        useToast().error('User identity not found. Please log in again.')
+    let userId = currentUserId.value
+    
+    // Safety: If ID is missing, try to initialize the dashboard again
+    if (!userId) {
+        console.log('[Top-up] ID missing, attempting emergency dashboard init...')
+        const success = await initDashboard(true)
+        if (success) userId = currentUserId.value
+    }
+
+    if (!userId) {
+        console.error('[Top-up] Still missing user ID after init retry')
+        toast.error('Auth Error', 'User identity not found. Please log in again.')
         return
     }
+
+    // Paystack requires an email. If anonymous, we use a placeholder based on ID
+    const paystackEmail = user.value?.email || `${userId.substring(0, 8)}@anonymous.m2match.com`
+    console.log('[Top-up] Using email for Paystack:', paystackEmail)
 
     topUpLoading.value = true
     try {
+        console.log('[Top-up] Requesting initialization from API...')
         const response = await $fetch<{ authorization_url: string }>('/api/paystack/initialize', {
             method: 'POST',
             body: {
-                email: user.value.email,
+                email: paystackEmail,
                 amount: finalAmount,
                 metadata: {
                     purpose: 'wallet_topup',
-                    userId: user.value.id
+                    userId: userId
                 }
             }
         })
 
+        console.log('[Top-up] API Response:', response)
+
         if (response?.authorization_url) {
+            console.log('[Top-up] Redirecting to Paystack:', response.authorization_url)
             window.location.href = response.authorization_url
         } else {
-            throw new Error('Failed to get payment URL')
+            throw new Error('Failed to get payment URL from response')
         }
     } catch (err: any) {
-        console.error('Top-up failed:', err)
-        useToast().error(err.data?.message || 'Failed to initialize top-up. Please try again.')
+        console.error('[Top-up] Error during initialization:', err)
+        toast.error('Initialization Failed', err.data?.message || 'Failed to initialize top-up. Please try again.')
     } finally {
         topUpLoading.value = false
+        console.log('[Top-up] Process complete.')
     }
 }
 
