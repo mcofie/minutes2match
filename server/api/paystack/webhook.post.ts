@@ -486,17 +486,18 @@ async function handleWalletTopupPayment(supabase: any, data: any, metadata: any)
     // FALLBACK: If userId is missing from metadata, lookup by email from Paystack response
     if (!targetUserId) {
         const customerEmail = data.customer?.email
-        console.warn('[Webhook] Wallet top-up missing userId in metadata. Falling back to email lookup:', customerEmail)
+        console.warn('[Webhook] Wallet top-up missing userId in metadata. Falling back to Auth lookup:', customerEmail)
         
         if (customerEmail) {
-            const { data: profile } = await supabase
-                .from('profiles')
-                .select('id')
-                .eq('phone', customerEmail) // Many profiles store email in phone during initial contact
-                .maybeSingle()
-            
-            if (profile) {
-                targetUserId = profile.id
+            try {
+                // Directly retrieve the user profile from Supabase Auth
+                const { data: userData } = await (supabase.auth.admin as any).getUserByEmail(customerEmail)
+                if (userData?.user?.id) {
+                    targetUserId = userData.user.id
+                    console.log('[Webhook] Successfully resolved user via Auth fallback:', targetUserId)
+                }
+            } catch (authErr) {
+                console.error('[Webhook] Auth lookup failed during fallback:', authErr)
             }
         }
     }

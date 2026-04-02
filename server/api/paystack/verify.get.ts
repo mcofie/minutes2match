@@ -237,21 +237,18 @@ export default defineEventHandler(async (event) => {
 
                 // FALLBACK: If userId is missing from metadata, lookup by email from Paystack response
                 if (!targetUserId) {
-                    const customerEmail = response.data.customer?.email || (response.data as any).email
-                    console.warn('[Verify] Wallet top-up missing userId in metadata. Falling back to email:', customerEmail)
+                    const customerEmail = response.data.customer?.email
+                    console.warn('[Verify] Wallet top-up missing userId in metadata. Falling back to Auth lookup for email:', customerEmail)
                     
                     if (customerEmail) {
-                        const { data: profile } = await supabase
-                            .schema('m2m')
-                            .from('profiles')
-                            .select('id')
-                            .eq('phone', customerEmail) // Our 'profiles' often uses phone but some schemas store email. Let's check session lookup.
-                            .maybeSingle()
-                        
-                        // Wait! Most of our lookups are via auth.users since profiles.id = users.id
-                        // Let's use a more direct approach: any link we have.
-                        if (profile) {
-                            targetUserId = profile.id
+                        try {
+                            const { data: userData } = await (supabase.auth.admin as any).getUserByEmail(customerEmail)
+                            if (userData?.user?.id) {
+                                targetUserId = userData.user.id
+                                console.log('[Verify] Resolved userId via Auth Admin:', targetUserId)
+                            }
+                        } catch (authErr) {
+                            console.error('[Verify] Auth fallback failed:', authErr)
                         }
                     }
                 }

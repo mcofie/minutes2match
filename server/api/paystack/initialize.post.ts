@@ -7,6 +7,7 @@
 
 import { createClient } from '@supabase/supabase-js'
 import { notifyPaymentInitiated } from '~/server/utils/discord'
+import { unlockMatch } from '~/server/utils/match'
 
 interface InitializePaymentBody {
     email: string
@@ -46,20 +47,16 @@ export default defineEventHandler(async (event) => {
         })
     }
 
-    // Debug: Log key info (only prefix for security)
-    console.log('[Paystack] Key prefix:', config.paystackSecretKey.substring(0, 10) + '...')
-    console.log('[Paystack] Key length:', config.paystackSecretKey.length)
-
+    // Initialize Supabase for eligibility checks
+    const supabaseUrl = config.supabaseUrl
+    const supabaseServiceKey = config.supabaseServiceKey
+    const supabase = createClient(supabaseUrl, supabaseServiceKey, {
+        db: { schema: 'm2m' }
+    })
 
     // Check for "First Match Free" or "Active Subscription" eligibility
     if (body.metadata?.purpose === 'match_unlock' && body.metadata.userId && body.metadata.matchId) {
         try {
-            const supabaseUrl = config.supabaseUrl
-            const supabaseServiceKey = config.supabaseServiceKey
-            const supabase = createClient(supabaseUrl, supabaseServiceKey, {
-                db: { schema: 'm2m' }
-            })
-
             // Fetch user profile and subscription status
             const { data: profile } = await supabase
                 .from('profiles')
@@ -189,32 +186,34 @@ export default defineEventHandler(async (event) => {
             access_code: response.data.access_code
         }
 
-        // Create pending payment record immediately using service role
-        // This MUST succeed before user is redirected to Paystack
-        const supabaseUrl = config.supabaseUrl
-        const supabaseServiceKey = config.supabaseServiceKey
+        // Robust User ID Resolution: Ensure we have a userId before creating the payment record
+        let targetUserId = body.metadata?.userId
 
-        if (!supabaseUrl || !supabaseServiceKey) {
-            console.error('[Paystack] Missing Supabase configuration - supabaseUrl:', !!supabaseUrl, 'supabaseServiceKey:', !!supabaseServiceKey)
-            throw createError({
-                statusCode: 500,
-                message: 'Server configuration error: Supabase not configured'
-            })
+        if (!targetUserId && body.email) {
+            console.log('[Paystack] Missing userId in metadata, attempting lookup by email:', body.email)
+            try {
+                // Use the auth.admin API (available with service role key) to find the user
+                const { data: userData } = await (supabase.auth.admin as any).getUserByEmail(body.email)
+                if (userData?.user?.id) {
+                    targetUserId = userData.user.id
+                    console.log('[Paystack] Resolved userId from email:', targetUserId)
+                    if (!body.metadata) body.metadata = { purpose: 'match_unlock' }
+                    body.metadata.userId = targetUserId
+                }
+            } catch (authErr) {
+                console.error('[Paystack] Unexpected error during auth lookup:', authErr)
+            }
         }
-
-        const supabase = createClient(supabaseUrl, supabaseServiceKey, {
-            db: { schema: 'm2m' }
-        })
 
         const { error: insertError } = await supabase
             .from('payments')
             .insert({
-                user_id: body.metadata?.userId,
+                user_id: targetUserId,
                 amount: body.amount,
                 currency: 'GHS',
                 provider: 'paystack',
                 provider_ref: paymentData.reference,
-                purpose: body.metadata?.purpose || 'match_unlock', // 'subscription' will pass through here if strictly typed in DB constraint? Need to update DB constraint check?
+                purpose: body.metadata?.purpose || 'match_unlock',
                 status: 'pending',
                 metadata: body.metadata
             })
@@ -240,20 +239,10 @@ export default defineEventHandler(async (event) => {
 
         return paymentData
     } catch (error: any) {
-        console.error('Paystack Initialize Error:', {
-            message: error.message,
-            data: error.data,
-            statusCode: error.statusCode,
-            body: {
-                email: body.email,
-                amount: body.amount,
-                metadata: body.metadata
-            }
-        })
+        console.error('Paystack Initialize Error:', error)
         throw createError({
             statusCode: 500,
             message: `Failed to initialize payment: ${error.data?.message || error.message || 'Unknown error'}`
         })
     }
 })
-
