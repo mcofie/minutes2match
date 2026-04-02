@@ -216,11 +216,20 @@ export default defineEventHandler(async (event) => {
                 console.log('[Verify] Wallet top-up confirmed for user:', metadata.userId, 'Amount:', response.data.amount / 100)
                 const { creditUser } = await import('~/server/utils/credits')
                 const topUpAmount = response.data.amount / 100
+                
+                // Get the UUID of the payment record for traceability
+                const { data: finalPayment } = await supabase
+                    .schema('m2m')
+                    .from('payments')
+                    .select('id')
+                    .eq('provider_ref', reference)
+                    .maybeSingle()
+
                 const result = await creditUser(
                     metadata.userId,
                     topUpAmount,
                     'wallet_topup',
-                    reference,
+                    finalPayment?.id || null, // MUST be a UUID or null
                     `Wallet top-up: GHS ${topUpAmount.toFixed(2)}`
                 )
                 if (result.success) {

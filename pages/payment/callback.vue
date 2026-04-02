@@ -138,6 +138,8 @@ onMounted(async () => {
                  navigateTo('/spark-deck?success=true')
               }
            }, 1000)
+        } else if (result.metadata?.purpose === 'wallet_topup') {
+            message.value = 'M2M Wallet topped up! Your new balance is live and ready for your next connection.'
         } else {
           message.value = 'Your payment was processed successfully.'
         }
