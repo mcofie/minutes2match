@@ -31,7 +31,6 @@ export async function getUserBalance(userId: string): Promise<number> {
     }
 
     const { data, error } = await supabase
-        .schema('m2m')
         .from('user_credits')
         .select('balance')
         .eq('user_id', userId)
@@ -54,7 +53,6 @@ async function ensureCreditRecord(userId: string): Promise<void> {
     if (!userId || userId === 'undefined') return
 
     const { data: existing } = await supabase
-        .schema('m2m')
         .from('user_credits')
         .select('id')
         .eq('user_id', userId)
@@ -62,7 +60,6 @@ async function ensureCreditRecord(userId: string): Promise<void> {
 
     if (!existing) {
         await supabase
-            .schema('m2m')
             .from('user_credits')
             .insert({ user_id: userId, balance: 0 })
     }
@@ -94,7 +91,6 @@ export async function creditUser(
 
         // Fetch current balance
         const { data: current } = await supabase
-            .schema('m2m')
             .from('user_credits')
             .select('balance')
             .eq('user_id', userId)
@@ -105,7 +101,6 @@ export async function creditUser(
 
         // Update balance
         const { error: updateError } = await supabase
-            .schema('m2m')
             .from('user_credits')
             .update({ balance: newBalance })
             .eq('user_id', userId)
@@ -117,7 +112,6 @@ export async function creditUser(
 
         // Record transaction
         const { data: txn, error: txnError } = await supabase
-            .schema('m2m')
             .from('credit_transactions')
             .insert({
                 user_id: userId,
@@ -175,7 +169,6 @@ export async function debitUser(
 
         // Fetch current balance
         const { data: current } = await supabase
-            .schema('m2m')
             .from('user_credits')
             .select('balance')
             .eq('user_id', userId)
@@ -195,7 +188,6 @@ export async function debitUser(
 
         // Update balance
         const { error: updateError } = await supabase
-            .schema('m2m')
             .from('user_credits')
             .update({ balance: newBalance })
             .eq('user_id', userId)
@@ -207,7 +199,6 @@ export async function debitUser(
 
         // Record transaction
         const { data: txn, error: txnError } = await supabase
-            .schema('m2m')
             .from('credit_transactions')
             .insert({
                 user_id: userId,
