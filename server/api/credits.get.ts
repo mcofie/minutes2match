@@ -6,9 +6,15 @@ import { getUserBalance } from '~/server/utils/credits'
  * Returns the authenticated user's M2M Credit balance and recent transactions.
  */
 export default defineEventHandler(async (event) => {
-    const user = await serverSupabaseUser(event)
+    let user = null
+    try {
+        user = await serverSupabaseUser(event)
+    } catch (err: any) {
+        console.warn('[Credits API] Session check failed:', err.message || err)
+    }
+
     if (!user || !user.id || user.id === 'undefined') {
-        console.warn('[Credits API] Invalid or missing user ID in session')
+        console.warn('[Credits API] No valid user ID found in session')
         return { balance: 0, transactions: [] }
     }
 
