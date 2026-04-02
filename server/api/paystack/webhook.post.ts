@@ -377,7 +377,7 @@ async function sendPaymentReminderSMS(
     }
 
     const paidUserName = paidUser?.display_name || 'Someone'
-    const message = `${paidUserName} has unlocked your match on Minutes2Match! Pay now to see their full profile.`
+    const message = `${paidUserName} has unlocked your match on Minutes2Match! You have 48 hours to unlock back — otherwise the match expires and ${paidUserName} gets a full credit refund. Don't miss out! 💕`
 
     try {
         await notifyUser(unpaidUser.id, message, { type: 'match', matchId: metadata.matchId })

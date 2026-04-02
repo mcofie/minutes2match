@@ -152,7 +152,7 @@ export const useDashboard = () => {
                 await new Promise(resolve => setTimeout(resolve, 400))
             }
 
-            if (userId) {
+            if (userId && userId !== 'undefined') {
                 currentUserId.value = userId
                 // Trigger fetches in parallel
                 await Promise.all([

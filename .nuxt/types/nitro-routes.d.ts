@@ -81,6 +81,9 @@ declare module "nitropack/types" {
     '/api/auth/telegram': {
       'post': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/auth/telegram.post').default>>>>
     }
+    '/api/credits': {
+      'get': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/credits.get').default>>>>
+    }
     '/api/cron/auto-match': {
       'get': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/cron/auto-match.get').default>>>>
     }
@@ -89,6 +92,9 @@ declare module "nitropack/types" {
     }
     '/api/cron/engagement-nudge': {
       'get': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/cron/engagement-nudge.get').default>>>>
+    }
+    '/api/cron/expire-matches': {
+      'get': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/cron/expire-matches.get').default>>>>
     }
     '/api/cron/match-expiration-reminder': {
       'get': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/cron/match-expiration-reminder.get').default>>>>

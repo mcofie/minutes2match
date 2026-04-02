@@ -147,7 +147,7 @@ export default defineEventHandler(async (event) => {
                     } else {
                         updateData.status = 'partial_payment'
                         const exp = new Date()
-                        exp.setHours(exp.getHours() + 72)
+                        exp.setHours(exp.getHours() + 48)
                         updateData.expires_at = exp.toISOString()
 
                         // SMS nudge
@@ -212,6 +212,22 @@ export default defineEventHandler(async (event) => {
                 console.log('[Verify] Spark Deck purchase confirmed for user:', metadata.userId)
                 const { handleSparkDeckOrder } = await import('~/server/utils/order')
                 await handleSparkDeckOrder(supabase, metadata, config)
+            } else if (metadata.purpose === 'wallet_topup' && metadata.userId) {
+                console.log('[Verify] Wallet top-up confirmed for user:', metadata.userId, 'Amount:', response.data.amount / 100)
+                const { creditUser } = await import('~/server/utils/credits')
+                const topUpAmount = response.data.amount / 100
+                const result = await creditUser(
+                    metadata.userId,
+                    topUpAmount,
+                    'wallet_topup',
+                    reference,
+                    `Wallet top-up: GHS ${topUpAmount.toFixed(2)}`
+                )
+                if (result.success) {
+                    console.log(`[Verify] ✅ Wallet topped up. New balance: GHS ${result.newBalance}`)
+                } else {
+                    console.error('[Verify] ❌ Wallet top-up credit failed:', result.error)
+                }
             }
         }
 

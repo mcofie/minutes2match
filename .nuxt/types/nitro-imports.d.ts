@@ -26,6 +26,8 @@ declare global {
   const createEvent: typeof import('../../node_modules/h3').createEvent
   const createEventStream: typeof import('../../node_modules/h3').createEventStream
   const createRouter: typeof import('../../node_modules/h3').createRouter
+  const creditUser: typeof import('../../server/utils/credits').creditUser
+  const debitUser: typeof import('../../server/utils/credits').debitUser
   const defaultContentType: typeof import('../../node_modules/h3').defaultContentType
   const defineAppConfig: typeof import('../../node_modules/@nuxt/nitro-server/dist/runtime/utils/config').defineAppConfig
   const defineCachedEventHandler: typeof import('../../node_modules/nitropack/dist/runtime/internal/cache').defineCachedEventHandler
@@ -78,6 +80,7 @@ declare global {
   const getRouterParam: typeof import('../../node_modules/h3').getRouterParam
   const getRouterParams: typeof import('../../node_modules/h3').getRouterParams
   const getSession: typeof import('../../node_modules/h3').getSession
+  const getUserBalance: typeof import('../../server/utils/credits').getUserBalance
   const getValidatedQuery: typeof import('../../node_modules/h3').getValidatedQuery
   const getValidatedRouterParams: typeof import('../../node_modules/h3').getValidatedRouterParams
   const handleCacheHeaders: typeof import('../../node_modules/h3').handleCacheHeaders
@@ -179,6 +182,9 @@ declare global {
 // for type re-export
 declare global {
   // @ts-ignore
+  export type { CreditResult } from '../../server/utils/credits'
+  import('../../server/utils/credits')
+  // @ts-ignore
   export type { HubtelSMSResponse } from '../../server/utils/hubtel'
   import('../../server/utils/hubtel')
   // @ts-ignore
@@ -213,6 +219,7 @@ export { queryCollection, queryCollectionSearchSections, queryCollectionNavigati
 export { parseMarkdown } from '/Users/maxwellcofie/WebstormProjects/minutes2match/node_modules/@nuxtjs/mdc/dist/runtime/parser';
 export { stringifyMarkdown } from '/Users/maxwellcofie/WebstormProjects/minutes2match/node_modules/@nuxtjs/mdc/dist/runtime/stringify';
 export { getGeminiModel, auditProfileWithAI, extractPreferencesFromBio, generateMatchExplanation } from '/Users/maxwellcofie/WebstormProjects/minutes2match/server/utils/ai';
+export { getUserBalance, creditUser, debitUser } from '/Users/maxwellcofie/WebstormProjects/minutes2match/server/utils/credits';
 export { DiscordColors, notifyRedemption, notifyDiscord, notifyNewSignup, notifyPaymentInitiated, notifyPaymentSuccess, notifyMatchUnlocked, notifyEventBooking, notifyLobbyReminder, notifyError, notifyUserLogin } from '/Users/maxwellcofie/WebstormProjects/minutes2match/server/utils/discord';
 export { sendHubtelSMS } from '/Users/maxwellcofie/WebstormProjects/minutes2match/server/utils/hubtel';
 export { unlockMatch } from '/Users/maxwellcofie/WebstormProjects/minutes2match/server/utils/match';

@@ -191,6 +191,7 @@
                 <template v-if="!unlocking">
                   <span v-if="subscription">Unlock for Free (Subscription)</span>
                   <span v-else-if="currentUser && !currentUser.has_used_free_unlock">Unlock for Free (First Match)</span>
+                  <span v-else-if="creditBalance >= (match?.unlock_price || 15)">Use M2M Credit (GHS {{ creditBalance }})</span>
                   <span v-else>Unlock for GH₵{{ match?.unlock_price || 10 }}</span>
                 </template>
                 <span v-else>Processing...</span>
@@ -791,20 +792,40 @@ const getAge = (birthDate: string | null) => {
   return age
 }
 
+// Live countdown timer for connection page
+const liveNow = ref(Date.now())
+let connectionCountdownInterval: ReturnType<typeof setInterval> | null = null
+
 const formatTimeRemaining = (expiresAt: string) => {
-  if (!expiresAt) return '24h'
-  const now = new Date().getTime()
-  const end = new Date(expiresAt).getTime()
-  const diff = end - now
+  if (!expiresAt) return '48h'
+  const diff = new Date(expiresAt).getTime() - liveNow.value
   
   if (diff <= 0) return 'Expired'
   
   const hours = Math.floor(diff / (1000 * 60 * 60))
-  if (hours > 24) {
+  const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60))
+  const seconds = Math.floor((diff % (1000 * 60)) / 1000)
+  
+  if (hours >= 24) {
      const days = Math.floor(hours / 24)
-     return `${days}d left`
+     const remainHours = hours % 24
+     return `${days}d ${remainHours}h ${String(minutes).padStart(2, '0')}m`
   }
-  return `${hours}h left`
+  if (hours > 0) {
+    return `${hours}h ${String(minutes).padStart(2, '0')}m ${String(seconds).padStart(2, '0')}s`
+  }
+  return `${String(minutes).padStart(2, '0')}m ${String(seconds).padStart(2, '0')}s`
+}
+
+// Credit balance
+const creditBalance = ref(0)
+const fetchCreditBalance = async () => {
+   try {
+      const data = await $fetch<{ balance: number }>('/api/credits')
+      creditBalance.value = data?.balance || 0
+   } catch (err) {
+      console.error('Failed to fetch credit balance:', err)
+   }
 }
 
 // --- Feedback Logic ---
@@ -814,6 +835,14 @@ const feedbackSaved = ref(false)
 
 // Auto-open feedback editor if coming from SMS notification or /me page link
 onMounted(() => {
+  // Start live countdown timer
+  connectionCountdownInterval = setInterval(() => {
+    liveNow.value = Date.now()
+  }, 1000)
+  
+  // Fetch credit balance
+  fetchCreditBalance()
+  
   if (route.query.feedback === 'true') {
     showFeedbackEditor.value = true
     // Scroll to feedback section after a short delay
@@ -823,6 +852,12 @@ onMounted(() => {
         feedbackSection.scrollIntoView({ behavior: 'smooth', block: 'center' })
       }
     }, 300)
+  }
+})
+
+onUnmounted(() => {
+  if (connectionCountdownInterval) {
+    clearInterval(connectionCountdownInterval)
   }
 })
 

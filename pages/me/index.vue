@@ -15,7 +15,11 @@
              <span>🛡️</span> 
              <span>{{ trustScore || 60 }}%</span>
            </span>
-           <span v-if="passkeys.length > 0" class="hidden md:inline-flex shrink-0 items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-100 dark:border-indigo-900/30 px-3 py-1.5 rounded-full shadow-sm cursor-pointer" @click="activeProfileSection = 'security'" title="Biometric Login Enabled">
+           <span v-if="creditBalanceDashboard > 0" @click="activeProfileSection = 'account'" class="inline-flex shrink-0 items-center gap-1 text-[10px] font-bold uppercase tracking-widest text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-900/20 border border-green-100 dark:border-green-900/30 px-2 sm:px-3 py-1.5 rounded-full shadow-sm cursor-pointer hover:bg-green-100 dark:hover:bg-green-900/30 transition-colors" title="M2M Credit — tap to view wallet">
+             <span>💚</span> 
+             <span>GHS {{ creditBalanceDashboard.toFixed(2) }}</span>
+           </span>
+           <span v-if="passkeys.length > 0" class="hidden md:inline-flex shrink-0 items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-indigo-600 dark:indigo-400 bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-100 dark:border-indigo-900/30 px-3 py-1.5 rounded-full shadow-sm cursor-pointer" @click="activeProfileSection = 'security'" title="Biometric Login Enabled">
              <span class="text-xs">🔑</span>
              <span>Protected</span>
            </span>
@@ -531,6 +535,284 @@
 
          <!-- ACCOUNT SECTION -->
          <div v-if="activeProfileSection === 'account'" class="space-y-8 animate-in fade-in slide-in-from-right-4 duration-300">
+            <!-- M2M Credit Card -->
+            <div class="space-y-6">
+               <!-- Physical Credit Card (Flippable) -->
+               <div class="mx-auto w-full max-w-[420px]" style="perspective: 1200px;">
+                  <div 
+                     @click="cardFlipped = !cardFlipped"
+                     class="relative aspect-[1.586/1] cursor-pointer transition-transform duration-700 select-none"
+                     :class="cardFlipped ? 'credit-card-flipped' : ''"
+                     style="transform-style: preserve-3d;"
+                  >
+                     <!-- ===== FRONT FACE ===== -->
+                     <div class="absolute inset-0 rounded-[20px] overflow-hidden backface-hidden" :style="{ background: cardGradient, boxShadow: `0 20px 60px -15px ${cardShadow}` }">
+                        <!-- Card texture overlay -->
+                        <div class="absolute inset-0 opacity-[0.03]" style="background-image: radial-gradient(circle at 2px 2px, rgba(0,0,0,0.3) 1px, transparent 0); background-size: 8px 8px;"></div>
+                        
+                        <!-- Soft glow decoration -->
+                        <div class="absolute -top-20 -right-20 w-64 h-64 rounded-full bg-white/10 blur-3xl"></div>
+                        <div class="absolute -bottom-16 -left-16 w-48 h-48 rounded-full blur-2xl" :class="cardAccentGlow"></div>
+                        
+                        <!-- Large decorative heart watermark -->
+                        <div class="absolute top-1/2 right-6 -translate-y-1/2 opacity-[0.07] pointer-events-none">
+                           <svg width="120" height="120" viewBox="0 0 24 24" fill="currentColor" :class="cardTextDark"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+                        </div>
+
+                        <!-- Card Content -->
+                        <div class="relative z-10 h-full flex flex-col justify-between p-6 sm:p-7">
+                           <!-- Top Row: Logo & Contactless -->
+                           <div class="flex items-start justify-between">
+                              <div class="flex items-center gap-2">
+                                 <div class="w-8 h-8 rounded-lg bg-white/30 backdrop-blur-sm flex items-center justify-center border border-white/20">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" :class="cardTextDark"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+                                 </div>
+                                 <span class="text-[11px] font-black tracking-[0.15em] uppercase" :class="cardTextMuted">Minutes2Match</span>
+                              </div>
+                              <div class="opacity-40">
+                                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" :class="cardTextDark">
+                                    <path d="M7.5 12a4.5 4.5 0 0 1 4.5-4.5"/>
+                                    <path d="M5 12a7 7 0 0 1 7-7"/>
+                                    <path d="M10 12a2 2 0 0 1 2-2"/>
+                                 </svg>
+                              </div>
+                           </div>
+                           
+                           <!-- Middle: EMV Chip -->
+                           <div class="flex items-center gap-4">
+                              <div class="w-11 h-8 rounded-md bg-gradient-to-br from-amber-200 via-yellow-200 to-amber-300 border border-amber-300/50 shadow-sm relative overflow-hidden">
+                                 <div class="absolute inset-0 grid grid-cols-3 grid-rows-3 gap-px p-px opacity-30">
+                                    <div class="bg-amber-400 rounded-[1px]"></div><div class="bg-amber-400 rounded-[1px]"></div><div class="bg-amber-400 rounded-[1px]"></div>
+                                    <div class="bg-amber-400 rounded-[1px]"></div><div class="bg-amber-300 rounded-[1px]"></div><div class="bg-amber-400 rounded-[1px]"></div>
+                                    <div class="bg-amber-400 rounded-[1px]"></div><div class="bg-amber-400 rounded-[1px]"></div><div class="bg-amber-400 rounded-[1px]"></div>
+                                 </div>
+                              </div>
+                           </div>
+
+                           <!-- Bottom: Balance & Name -->
+                           <div class="space-y-3">
+                              <div>
+                                 <p class="text-[9px] font-bold uppercase tracking-[0.2em] mb-1" :class="cardTextLight">Available Balance</p>
+                                 <p class="text-2xl sm:text-3xl font-black font-mono tabular-nums tracking-wider leading-none" :class="cardTextDark">
+                                    GHS {{ creditBalanceDashboard.toFixed(2) }}
+                                 </p>
+                              </div>
+                              <div class="flex items-end justify-between">
+                                 <div>
+                                    <p class="text-[8px] font-bold uppercase tracking-[0.15em] mb-0.5" :class="cardTextLight">Cardholder</p>
+                                    <p class="text-[13px] font-bold uppercase tracking-[0.1em]" :class="cardTextMuted">{{ profile?.display_name || 'M2M Member' }}</p>
+                                 </div>
+                                 <div class="text-right">
+                                    <p class="text-[8px] font-bold uppercase tracking-[0.15em] mb-0.5" :class="cardTextLight">Valid</p>
+                                    <p class="text-[13px] font-bold tracking-wide" :class="cardTextMuted">∞</p>
+                                 </div>
+                              </div>
+                           </div>
+                        </div>
+
+                        <!-- Tap hint -->
+                        <div class="absolute bottom-2 left-1/2 -translate-x-1/2 text-[8px] font-bold uppercase tracking-[0.2em] opacity-30" :class="cardTextDark">Tap to flip</div>
+                     </div>
+
+                     <!-- ===== BACK FACE ===== -->
+                     <div class="absolute inset-0 rounded-[20px] overflow-hidden backface-hidden credit-card-back" :style="{ background: cardGradient, boxShadow: `0 20px 60px -15px ${cardShadow}` }">
+                        <!-- Card texture -->
+                        <div class="absolute inset-0 opacity-[0.03]" style="background-image: radial-gradient(circle at 2px 2px, rgba(0,0,0,0.3) 1px, transparent 0); background-size: 8px 8px;"></div>
+
+                        <div class="relative z-10 h-full flex flex-col">
+                           <!-- Magnetic Stripe -->
+                           <div class="w-full h-12 bg-stone-900/70 mt-6"></div>
+                           
+                           <!-- Signature Strip & CVV -->
+                           <div class="px-6 sm:px-7 mt-4 flex items-center gap-3">
+                              <div class="flex-1 h-9 rounded bg-white/60 backdrop-blur-sm flex items-center px-3">
+                                 <span class="text-[10px] italic font-medium text-stone-400">{{ profile?.display_name || 'M2M Member' }}</span>
+                              </div>
+                              <div class="text-right">
+                                 <p class="text-[7px] font-bold uppercase tracking-widest mb-0.5" :class="cardTextLight">CVV</p>
+                                 <p class="text-sm font-black font-mono" :class="cardTextDark">♡♡♡</p>
+                              </div>
+                           </div>
+
+                           <!-- Card details -->
+                           <div class="flex-1 px-6 sm:px-7 py-4 flex flex-col justify-between">
+                              <!-- Stats row -->
+                              <div class="grid grid-cols-3 gap-3">
+                                 <div class="text-center">
+                                    <p class="text-[8px] font-bold uppercase tracking-widest mb-1" :class="cardTextLight">Credits In</p>
+                                    <p class="text-sm font-black font-mono" :class="cardTextDark">{{ creditTransactions.filter((t: any) => t.type === 'credit').length }}</p>
+                                 </div>
+                                 <div class="text-center">
+                                    <p class="text-[8px] font-bold uppercase tracking-widest mb-1" :class="cardTextLight">Spent</p>
+                                    <p class="text-sm font-black font-mono" :class="cardTextDark">{{ creditTransactions.filter((t: any) => t.type === 'debit').length }}</p>
+                                 </div>
+                                 <div class="text-center">
+                                    <p class="text-[8px] font-bold uppercase tracking-widest mb-1" :class="cardTextLight">Balance</p>
+                                    <p class="text-sm font-black font-mono" :class="cardTextDark">{{ creditBalanceDashboard.toFixed(0) }}</p>
+                                 </div>
+                              </div>
+
+                              <!-- Bottom branding -->
+                              <div class="flex items-end justify-between">
+                                 <div>
+                                    <p class="text-[8px] font-bold uppercase tracking-[0.15em]" :class="cardTextLight">M2M Credit System</p>
+                                    <p class="text-[7px] uppercase tracking-[0.1em]" :class="cardTextLight">Non-transferable • Non-withdrawable</p>
+                                 </div>
+                                 <div class="w-8 h-8 rounded-lg bg-white/20 backdrop-blur-sm flex items-center justify-center border border-white/10">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" :class="cardTextDark"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+                                 </div>
+                              </div>
+                           </div>
+                        </div>
+
+                        <!-- Tap hint -->
+                        <div class="absolute bottom-2 left-1/2 -translate-x-1/2 text-[8px] font-bold uppercase tracking-[0.2em] opacity-30" :class="cardTextDark">Tap to flip back</div>
+                     </div>
+                  </div>
+               </div>
+
+               <!-- Top Up Wallet -->
+               <div class="bg-white dark:bg-stone-900 rounded-xl border-2 border-stone-200 dark:border-stone-700 p-4 sm:p-5 overflow-hidden">
+                  <div class="flex items-center justify-between mb-4">
+                     <p class="text-[10px] font-black uppercase tracking-widest text-stone-400 dark:text-stone-500">Top Up Wallet</p>
+                     <span class="text-[9px] font-bold text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20 px-2 py-0.5 rounded-full">Instant Credit</span>
+                  </div>
+
+                  <!-- Quick Amount Buttons -->
+                  <div class="grid grid-cols-2 gap-3 mb-4">
+                     <button 
+                        @click="topUpAmount = 15; topUpCustom = false"
+                        class="relative p-4 rounded-xl border-2 transition-all duration-200 text-left group"
+                        :class="topUpAmount === 15 && !topUpCustom 
+                           ? 'border-green-500 bg-green-50 dark:bg-green-900/20 shadow-[0_0_0_1px_rgba(22,163,74,0.3)]' 
+                           : 'border-stone-200 dark:border-stone-700 hover:border-stone-300 dark:hover:border-stone-600 bg-stone-50/50 dark:bg-stone-800/30'"
+                     >
+                        <div class="flex items-center justify-between mb-2">
+                           <span class="text-lg font-black text-stone-900 dark:text-stone-100 font-mono">GHS 15</span>
+                           <span v-if="topUpAmount === 15 && !topUpCustom" class="w-5 h-5 rounded-full bg-green-500 flex items-center justify-center">
+                              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg>
+                           </span>
+                        </div>
+                        <p class="text-[10px] font-bold text-stone-400 dark:text-stone-500 uppercase tracking-widest">1 Match Unlock</p>
+                     </button>
+                     <button 
+                        @click="topUpAmount = 30; topUpCustom = false"
+                        class="relative p-4 rounded-xl border-2 transition-all duration-200 text-left group"
+                        :class="topUpAmount === 30 && !topUpCustom 
+                           ? 'border-green-500 bg-green-50 dark:bg-green-900/20 shadow-[0_0_0_1px_rgba(22,163,74,0.3)]' 
+                           : 'border-stone-200 dark:border-stone-700 hover:border-stone-300 dark:hover:border-stone-600 bg-stone-50/50 dark:bg-stone-800/30'"
+                     >
+                        <div class="flex items-center justify-between mb-2">
+                           <span class="text-lg font-black text-stone-900 dark:text-stone-100 font-mono">GHS 30</span>
+                           <span v-if="topUpAmount === 30 && !topUpCustom" class="w-5 h-5 rounded-full bg-green-500 flex items-center justify-center">
+                              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg>
+                           </span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                           <p class="text-[10px] font-bold text-stone-400 dark:text-stone-500 uppercase tracking-widest">2 Match Unlocks</p>
+                           <span class="text-[8px] font-black uppercase tracking-widest text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 px-1.5 py-0.5 rounded">Popular</span>
+                        </div>
+                     </button>
+                  </div>
+
+                  <!-- Custom Amount -->
+                  <div class="mb-4">
+                     <button 
+                        @click="topUpCustom = !topUpCustom; if (topUpCustom) topUpAmount = 0"
+                        class="w-full text-left px-4 py-3 rounded-xl border-2 transition-all duration-200 flex items-center justify-between"
+                        :class="topUpCustom 
+                           ? 'border-green-500 bg-green-50 dark:bg-green-900/20' 
+                           : 'border-stone-200 dark:border-stone-700 hover:border-stone-300 dark:hover:border-stone-600 bg-stone-50/50 dark:bg-stone-800/30'"
+                     >
+                        <span class="text-xs font-bold text-stone-600 dark:text-stone-400 uppercase tracking-widest">Custom Amount</span>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-stone-400 transition-transform duration-200" :class="topUpCustom ? 'rotate-180' : ''"><path d="M6 9l6 6 6-6"/></svg>
+                     </button>
+                     <div v-if="topUpCustom" class="mt-3 px-1 animate-in fade-in slide-in-from-top-2 duration-200">
+                        <div class="relative">
+                           <span class="absolute left-4 top-1/2 -translate-y-1/2 text-sm font-bold text-stone-400">GHS</span>
+                           <input 
+                              v-model.number="topUpCustomAmount"
+                              type="number"
+                              min="5"
+                              max="500"
+                              step="5"
+                              placeholder="Enter amount (min 5)"
+                              class="w-full pl-14 pr-4 py-3 rounded-xl border-2 border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-800 text-stone-900 dark:text-stone-100 font-mono font-bold text-lg focus:border-green-500 focus:ring-2 focus:ring-green-500/20 outline-none transition-all"
+                           />
+                        </div>
+                        <p v-if="topUpCustomAmount && topUpCustomAmount >= 5" class="mt-2 text-[10px] font-bold text-stone-400 uppercase tracking-widest">
+                           ≈ {{ Math.floor(topUpCustomAmount / 15) }} match unlock{{ Math.floor(topUpCustomAmount / 15) !== 1 ? 's' : '' }}
+                           <span v-if="topUpCustomAmount % 15 > 0"> + GHS {{ (topUpCustomAmount % 15).toFixed(0) }} remainder</span>
+                        </p>
+                        <p v-else-if="topUpCustomAmount && topUpCustomAmount < 5" class="mt-2 text-[10px] font-bold text-rose-500 uppercase tracking-widest">Minimum top-up is GHS 5</p>
+                     </div>
+                  </div>
+
+                  <!-- Top Up Button -->
+                  <button 
+                     @click="handleTopUp"
+                     :disabled="topUpLoading || (!topUpCustom && !topUpAmount) || (topUpCustom && (!topUpCustomAmount || topUpCustomAmount < 5))"
+                     class="w-full py-3.5 rounded-xl font-black text-sm uppercase tracking-widest transition-all duration-200 flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed"
+                     :class="topUpLoading 
+                        ? 'bg-stone-200 dark:bg-stone-700 text-stone-500'
+                        : 'bg-green-600 hover:bg-green-700 text-white shadow-[0_4px_14px_rgba(22,163,74,0.4)] hover:shadow-[0_6px_20px_rgba(22,163,74,0.5)] active:translate-y-0.5'"
+                  >
+                     <div v-if="topUpLoading" class="w-4 h-4 border-2 border-stone-400 border-t-white rounded-full animate-spin"></div>
+                     <template v-else>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14m-7-7h14"/></svg>
+                        Top Up {{ topUpCustom && topUpCustomAmount >= 5 ? `GHS ${topUpCustomAmount}` : topUpAmount ? `GHS ${topUpAmount}` : '' }}
+                     </template>
+                  </button>
+               </div>
+
+               <!-- How Credits Work (below card) -->
+               <div class="bg-white dark:bg-stone-900 rounded-xl border-2 border-stone-200 dark:border-stone-700 p-4 sm:p-5">
+                  <p class="text-[10px] font-black uppercase tracking-widest text-stone-400 dark:text-stone-500 mb-3">How Credits Work</p>
+                  <ul class="space-y-2.5 text-[13px] text-stone-600 dark:text-stone-400 font-medium leading-relaxed">
+                     <li class="flex items-start gap-2.5">
+                        <span class="w-5 h-5 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center text-[10px] shrink-0 mt-0.5">💚</span>
+                        <span>Match expires and you paid? <strong class="text-stone-900 dark:text-stone-200">Full GHS 15 credit refund</strong> to your card</span>
+                     </li>
+                     <li class="flex items-start gap-2.5">
+                        <span class="w-5 h-5 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center text-[10px] shrink-0 mt-0.5">⚡</span>
+                        <span>Credits auto-apply when you unlock your next match</span>
+                     </li>
+                     <li class="flex items-start gap-2.5">
+                        <span class="w-5 h-5 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center text-[10px] shrink-0 mt-0.5">∞</span>
+                        <span>Credits never expire — they stay on your card forever</span>
+                     </li>
+                  </ul>
+               </div>
+
+               <!-- Transaction History (below card) -->
+               <div class="bg-white dark:bg-stone-900 rounded-xl border-2 border-stone-200 dark:border-stone-700 overflow-hidden">
+                  <div class="px-4 sm:px-5 py-3 border-b border-stone-100 dark:border-stone-800 flex items-center justify-between">
+                     <p class="text-[10px] font-black uppercase tracking-widest text-stone-400 dark:text-stone-500">Transaction History</p>
+                     <span v-if="creditTransactions.length > 0" class="text-[9px] font-bold text-stone-400 bg-stone-100 dark:bg-stone-800 px-2 py-0.5 rounded-full">{{ creditTransactions.length }}</span>
+                  </div>
+                  <div v-if="creditTransactions.length > 0" class="divide-y divide-stone-50 dark:divide-stone-800 max-h-[240px] overflow-y-auto">
+                     <div v-for="txn in creditTransactions.slice(0, 8)" :key="txn.id" class="px-4 sm:px-5 py-3 flex items-center justify-between hover:bg-stone-50/50 dark:hover:bg-stone-800/30 transition-colors">
+                        <div class="flex items-center gap-3 min-w-0">
+                           <div class="w-8 h-8 rounded-full flex items-center justify-center text-sm shrink-0" :class="txn.type === 'credit' ? 'bg-green-100 dark:bg-green-900/30' : 'bg-rose-50 dark:bg-rose-900/20'">
+                              {{ txn.type === 'credit' ? '↑' : '↓' }}
+                           </div>
+                           <div class="min-w-0">
+                              <p class="text-xs font-bold text-stone-800 dark:text-stone-200 truncate capitalize">{{ (txn.description || txn.reason).replace(/_/g, ' ') }}</p>
+                              <p class="text-[10px] text-stone-400 dark:text-stone-500 font-medium">{{ new Date(txn.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) }}</p>
+                           </div>
+                        </div>
+                        <span class="text-sm font-black font-mono tabular-nums shrink-0 ml-3" :class="txn.type === 'credit' ? 'text-green-600 dark:text-green-400' : 'text-rose-500'">
+                           {{ txn.type === 'credit' ? '+' : '-' }}{{ parseFloat(txn.amount).toFixed(2) }}
+                        </span>
+                     </div>
+                  </div>
+                  <div v-else class="py-10 text-center">
+                     <div class="text-3xl mb-2 opacity-20">💳</div>
+                     <p class="text-xs text-stone-400 dark:text-stone-500 font-medium italic">No transactions yet</p>
+                  </div>
+               </div>
+            </div>
+
             <!-- Subscription Card -->
             <div class="bg-white dark:bg-stone-900 p-4 sm:p-6 md:p-8 rounded-xl border-2 border-black dark:border-stone-700 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] md:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,0.05)]">
                <h3 class="text-lg md:text-2xl font-serif font-bold text-black dark:text-white mb-6 md:mb-8">Subscription Status</h3>
@@ -722,6 +1004,7 @@ definePageMeta({
 })
 
 const supabase = useSupabaseClient<M2MDatabase>() as any
+const user = useSupabaseUser()
 const toast = useToast()
 const haptic = useHaptic()
 const { profile, subscription, fetchProfileById, trustScore } = useDashboard()
@@ -776,6 +1059,105 @@ const togglingActive = ref(false)
 const photoInput = ref<HTMLInputElement | null>(null)
 const photoPreview = ref<string | null>(null)
 const uploadingPhoto = ref(false)
+
+// M2M Credit Wallet
+const creditBalanceDashboard = ref(0)
+const creditTransactions = ref<any[]>([])
+const cardFlipped = ref(false)
+
+// Gender-based card color scheme
+const cardColorScheme = computed(() => {
+   const gender = editForm.gender || profile.value?.gender
+   if (gender === 'female') {
+      return {
+         gradient: 'linear-gradient(135deg, #fce7f3 0%, #fbcfe8 25%, #f9a8d4 60%, #f472b6 100%)',
+         shadow: 'rgba(236,72,153,0.3)',
+         textDark: 'text-pink-900',
+         textMuted: 'text-pink-900/70',
+         textLight: 'text-pink-800/40',
+         accentGlow: 'bg-pink-400/20'
+      }
+   } else if (gender === 'male') {
+      return {
+         gradient: 'linear-gradient(135deg, #d1fae5 0%, #a7f3d0 25%, #6ee7b7 60%, #34d399 100%)',
+         shadow: 'rgba(22,163,74,0.3)',
+         textDark: 'text-emerald-900',
+         textMuted: 'text-emerald-900/70',
+         textLight: 'text-emerald-800/40',
+         accentGlow: 'bg-emerald-400/20'
+      }
+   }
+   // Default / unset — lavender
+   return {
+      gradient: 'linear-gradient(135deg, #e8e0f0 0%, #d8cceb 25%, #c4b5e0 60%, #a78bda 100%)',
+      shadow: 'rgba(139,92,246,0.3)',
+      textDark: 'text-purple-900',
+      textMuted: 'text-purple-900/70',
+      textLight: 'text-purple-800/40',
+      accentGlow: 'bg-purple-400/20'
+   }
+})
+
+const cardGradient = computed(() => cardColorScheme.value.gradient)
+const cardShadow = computed(() => cardColorScheme.value.shadow)
+const cardTextDark = computed(() => cardColorScheme.value.textDark)
+const cardTextMuted = computed(() => cardColorScheme.value.textMuted)
+const cardTextLight = computed(() => cardColorScheme.value.textLight)
+const cardAccentGlow = computed(() => cardColorScheme.value.accentGlow)
+const fetchCreditData = async () => {
+   try {
+      const data = await $fetch<{ balance: number; transactions: any[] }>('/api/credits')
+      creditBalanceDashboard.value = data?.balance || 0
+      creditTransactions.value = data?.transactions || []
+   } catch (err) {
+      console.error('Failed to fetch credit data:', err)
+   }
+}
+
+const topUpAmount = ref(15)
+const topUpCustom = ref(false)
+const topUpCustomAmount = ref<number>(0)
+const topUpLoading = ref(false)
+
+const handleTopUp = async () => {
+    const finalAmount = topUpCustom.value ? topUpCustomAmount.value : topUpAmount.value
+    
+    if (!finalAmount || finalAmount < 5) {
+        useToast().error('Please select a valid top-up amount (min GHS 5)')
+        return
+    }
+
+    if (!user.value?.email) {
+        useToast().error('User email not found. Please log in again.')
+        return
+    }
+
+    topUpLoading.value = true
+    try {
+        const response = await $fetch<{ authorization_url: string }>('/api/paystack/initialize', {
+            method: 'POST',
+            body: {
+                email: user.value.email,
+                amount: finalAmount,
+                metadata: {
+                    purpose: 'wallet_topup',
+                    userId: user.value.id
+                }
+            }
+        })
+
+        if (response?.authorization_url) {
+            window.location.href = response.authorization_url
+        } else {
+            throw new Error('Failed to get payment URL')
+        }
+    } catch (err: any) {
+        console.error('Top-up failed:', err)
+        useToast().error(err.data?.message || 'Failed to initialize top-up. Please try again.')
+    } finally {
+        topUpLoading.value = false
+    }
+}
 
 // Passkey Logic
 const { isSupported: isPasskeySupported, register: registerPasskey } = usePasskeys()
@@ -1003,6 +1385,23 @@ watch(() => profile.value, (newProfile) => {
 onMounted(async () => {
     const { initDashboard } = useDashboard()
     await initDashboard()
+    fetchCreditData()
 })
 
 </script>
+
+<style scoped>
+/* Credit Card Flip */
+.backface-hidden {
+   -webkit-backface-visibility: hidden;
+   backface-visibility: hidden;
+}
+
+.credit-card-back {
+   transform: rotateY(180deg);
+}
+
+.credit-card-flipped {
+   transform: rotateY(180deg);
+}
+</style>

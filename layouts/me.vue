@@ -29,6 +29,17 @@
                <span v-if="unreadCount > 0" class="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-rose-500 rounded-full border-2 border-[#FFFCF8] dark:border-stone-950 animate-pulse"></span>
             </NuxtLink>
 
+            <!-- M2M Wallet Balance -->
+            <NuxtLink 
+              v-if="walletBalance > 0"
+              to="/me"
+              class="flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1 sm:py-1.5 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-900/40 rounded-full hover:bg-green-100 dark:hover:bg-green-900/30 transition-colors cursor-pointer group"
+              title="M2M Credit — tap to view wallet"
+            >
+              <span class="text-xs">💚</span>
+              <span class="text-[10px] font-bold text-green-700 dark:text-green-400 uppercase tracking-widest group-hover:text-green-900 dark:group-hover:text-green-300 transition-colors">GHS {{ walletBalance.toFixed(2) }}</span>
+            </NuxtLink>
+
             <div class="hidden sm:flex text-right flex-col items-end">
                <div class="flex items-center gap-1.5">
                   <span v-if="profile?.is_active === false" class="text-xs animate-ghost" title="Ghost Mode Active">👻</span>
@@ -206,9 +217,21 @@ const { authReady, profile, subscription, pendingMatchCount, isProfileIncomplete
 const { unreadCount, fetchNotifications } = useNotifications()
 const { isLive } = useFlashLobby()
 
+// M2M Credit Wallet (global)
+const walletBalance = ref(0)
+const fetchWalletBalance = async () => {
+   try {
+      const data = await $fetch<{ balance: number }>('/api/credits')
+      walletBalance.value = data?.balance || 0
+   } catch (err) {
+      // Silently fail — user may not be logged in yet
+   }
+}
+
 onMounted(async () => {
     await initDashboard()
     fetchNotifications()
+    fetchWalletBalance()
 })
 </script>
 

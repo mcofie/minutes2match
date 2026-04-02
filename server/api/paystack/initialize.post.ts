@@ -13,7 +13,7 @@ interface InitializePaymentBody {
     amount: number // Amount in GHS (cedis)
     callback_url?: string
     metadata?: {
-        purpose: 'event_ticket' | 'match_unlock' | 'subscription' | 'shoot_your_shot' | 'spark_deck'
+        purpose: 'event_ticket' | 'match_unlock' | 'subscription' | 'shoot_your_shot' | 'spark_deck' | 'wallet_topup'
         userId?: string
         eventId?: string
         matchId?: string
@@ -91,7 +91,41 @@ export default defineEventHandler(async (event) => {
                 }
             }
 
-            // 2. Check First Match Free
+            // 2. Check M2M Credit Balance
+            const { getUserBalance, debitUser } = await import('~/server/utils/credits')
+            const creditBalance = await getUserBalance(body.metadata.userId)
+
+            if (creditBalance >= body.amount) {
+                console.log(`[Paystack] User ${body.metadata.userId} using M2M Credit (GHS ${creditBalance}). Unlocking match ${body.metadata.matchId} immediately.`)
+
+                // Debit credits
+                const debitResult = await debitUser(
+                    body.metadata.userId,
+                    body.amount,
+                    'match_unlock_spend',
+                    body.metadata.matchId,
+                    `Match unlock via M2M Credit`
+                )
+
+                if (debitResult.success) {
+                    await unlockMatch(body.metadata.matchId, body.metadata.userId)
+                    return {
+                        status: true,
+                        message: `Match unlocked via M2M Credit. Remaining balance: GHS ${debitResult.newBalance}`,
+                        data: {
+                            authorization_url: `${config.public.baseUrl}/me?unlocked=true`,
+                            access_code: 'CREDIT_UNLOCK',
+                            reference: `CREDIT_UNLOCK_${Date.now()}`
+                        },
+                        type: 'credit_unlock',
+                        creditBalance: debitResult.newBalance
+                    }
+                }
+                // If debit failed, fall through to normal payment
+                console.warn('[Paystack] Credit debit failed, falling through to payment:', debitResult.error)
+            }
+
+            // 3. Check First Match Free
             if (profile && !profile.has_used_free_unlock) {
                 console.log(`[Paystack] User ${body.metadata.userId} using First Match Free. Unlocking match ${body.metadata.matchId} immediately.`)
 

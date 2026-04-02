@@ -114,6 +114,24 @@
               Unlock to reveal common interests & bio...
             </p>
           </div>
+          <!-- Countdown Timer Bar (for non-unlocked matches with expiry) -->
+          <div v-if="!unlocked && expiresAt && liveCountdown.total > 0" class="mt-2 px-1">
+             <div class="flex items-center justify-between mb-1">
+                <span class="text-[9px] font-black uppercase tracking-widest" :class="liveCountdown.hours < 6 ? 'text-rose-500' : liveCountdown.hours < 24 ? 'text-amber-500' : 'text-stone-400'">⏰ Expires in</span>
+                <span class="text-[10px] font-mono font-black tabular-nums" :class="liveCountdown.hours < 6 ? 'text-rose-600' : liveCountdown.hours < 24 ? 'text-amber-600' : 'text-stone-600'">{{ liveCountdown.display }}</span>
+             </div>
+             <div class="w-full h-1 bg-stone-100 rounded-full overflow-hidden">
+                <div 
+                  class="h-full rounded-full transition-all duration-1000"
+                  :class="liveCountdown.hours < 6 ? 'bg-rose-500' : liveCountdown.hours < 24 ? 'bg-amber-400' : 'bg-emerald-400'"
+                  :style="{ width: `${timeRemainingPercentage}%` }"
+                ></div>
+             </div>
+          </div>
+          <div v-else-if="!unlocked && expiresAt && liveCountdown.total <= 0" class="mt-2 px-1">
+             <div class="text-[9px] font-black uppercase tracking-widest text-rose-500 text-center py-1 bg-rose-50 rounded border border-rose-100">⏰ Match Expired</div>
+          </div>
+
           <div class="flex items-center justify-between mt-3 pt-3 border-t border-stone-50">
             <template v-if="unlocked || currentUserPaid">
               <!-- Left Side: Status Stack -->
@@ -151,11 +169,12 @@
                   :class="[
                     hasSubscription ? 'bg-gradient-to-br from-amber-50/50 to-orange-50/50 border-amber-100/50' :
                     isFreeUnlockEligible ? 'bg-gradient-to-br from-emerald-50/50 to-teal-50/50 border-emerald-100/50' :
+                    hasSufficientCredit ? 'bg-gradient-to-br from-green-50/50 to-emerald-50/50 border-green-100/50' :
                     'bg-stone-50/80 border-stone-100/50'
                   ]"
                 >
                   <div class="w-6 h-6 shrink-0 rounded-full bg-white/60 backdrop-blur-sm flex items-center justify-center text-xs border border-white/50">
-                    {{ hasSubscription ? '👑' : isFreeUnlockEligible ? '✨' : '🔒' }}
+                    {{ hasSubscription ? '👑' : isFreeUnlockEligible ? '✨' : hasSufficientCredit ? '💚' : '🔒' }}
                   </div>
                   
                   <div class="flex flex-col min-w-0">
@@ -165,8 +184,13 @@
                     <template v-else-if="isFreeUnlockEligible">
                       <span class="text-[9px] font-bold text-emerald-900 truncate">Free Match</span>
                     </template>
+                    <template v-else-if="hasSufficientCredit">
+                      <span class="text-[9px] font-bold text-green-800 truncate">M2M Credit</span>
+                      <span class="text-[8px] text-green-600 truncate">GHS {{ creditBalance }} bal.</span>
+                    </template>
                     <template v-else>
                       <span class="text-xs font-bold text-stone-900">{{ formattedPrice }}</span>
+                      <span v-if="(creditBalance || 0) > 0" class="text-[8px] text-green-600 truncate">💚 GHS {{ creditBalance }} credit</span>
                     </template>
                   </div>
                 </div>
@@ -180,7 +204,7 @@
                   <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:animate-[shimmer_2s_infinite]"></div>
                   <div class="flex items-center gap-1.5 relative z-10">
                     <span v-if="isUnlocking" class="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
-                    <span v-else>{{ isFreeUnlockEligible || hasSubscription ? 'Claim' : 'Unlock' }}</span>
+                    <span v-else>{{ isFreeUnlockEligible || hasSubscription ? 'Claim' : hasSufficientCredit ? 'Use Credit' : 'Unlock' }}</span>
                     <svg v-if="!isUnlocking" class="w-2.5 h-2.5 transition-transform group-hover:translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
                       <path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
                     </svg>
@@ -572,6 +596,7 @@ interface Props {
   interests?: string[]
   sharedInterests?: string[]
   expiresAt?: string
+  creditBalance?: number
   matchedAt?: string
   location?: string
   gender?: 'male' | 'female'
@@ -681,13 +706,6 @@ const loadIcebreakers = async () => {
    }
 }
 
-onMounted(() => {
-  if (props.unlocked) {
-    showCelebration.value = true
-    setTimeout(() => { showCelebration.value = false }, 5000)
-    loadIcebreakers()
-  }
-})
 
 watch(() => props.unlocked, (newVal) => {
   if (newVal) {
@@ -743,11 +761,10 @@ const timeRemainingPercentage = computed(() => {
    if (!props.matchedAt || !props.expiresAt) return 0
    const start = new Date(props.matchedAt).getTime()
    const end = new Date(props.expiresAt).getTime()
-   const now = Date.now()
    
-   if (now >= end) return 0
+   if (now.value >= end) return 0
    const totalDuration = end - start
-   const remaining = end - now
+   const remaining = end - now.value
    return Math.max(0, Math.min(100, (remaining / totalDuration) * 100))
 })
 
@@ -823,17 +840,61 @@ const copyIcebreaker = (text: string, index: number) => {
   setTimeout(() => { copiedIndex.value = null }, 2000)
 }
 
-const hoursRemaining = computed(() => {
-  if (!props.expiresAt) return 0
-  const diffMs = new Date(props.expiresAt).getTime() - Date.now()
-  return Math.max(0, Math.floor(diffMs / (1000 * 60 * 60)))
+// Credit-based unlock
+const hasSufficientCredit = computed(() => {
+  return (props.creditBalance || 0) >= props.unlockPrice
 })
 
-const formatTimeRemaining = computed(() => {
-  const hours = hoursRemaining.value
-  if (hours <= 0) return 'Expired'
-  if (hours < 24) return `${hours}h`
-  return `${Math.floor(hours / 24)}d ${hours % 24}h`
+// Live Countdown Timer
+const now = ref(Date.now())
+let countdownInterval: ReturnType<typeof setInterval> | null = null
+
+const liveCountdown = computed(() => {
+  if (!props.expiresAt) return { total: 0, hours: 0, minutes: 0, seconds: 0, display: '—' }
+  const diff = new Date(props.expiresAt).getTime() - now.value
+  if (diff <= 0) return { total: 0, hours: 0, minutes: 0, seconds: 0, display: 'Expired' }
+  
+  const hours = Math.floor(diff / (1000 * 60 * 60))
+  const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60))
+  const seconds = Math.floor((diff % (1000 * 60)) / 1000)
+  
+  let display = ''
+  if (hours >= 24) {
+    const days = Math.floor(hours / 24)
+    const remainHours = hours % 24
+    display = `${days}d ${remainHours}h ${String(minutes).padStart(2, '0')}m`
+  } else if (hours > 0) {
+    display = `${hours}h ${String(minutes).padStart(2, '0')}m ${String(seconds).padStart(2, '0')}s`
+  } else {
+    display = `${String(minutes).padStart(2, '0')}m ${String(seconds).padStart(2, '0')}s`
+  }
+  
+  return { total: diff, hours, minutes, seconds, display }
+})
+
+const hoursRemaining = computed(() => liveCountdown.value.hours)
+
+const formatTimeRemaining = computed(() => liveCountdown.value.display)
+
+onMounted(() => {
+  // Start countdown interval for live timer
+  if (props.expiresAt && !props.unlocked) {
+    countdownInterval = setInterval(() => {
+      now.value = Date.now()
+    }, 1000)
+  }
+  
+  if (props.unlocked) {
+    showCelebration.value = true
+    setTimeout(() => { showCelebration.value = false }, 5000)
+    loadIcebreakers()
+  }
+})
+
+onUnmounted(() => {
+  if (countdownInterval) {
+    clearInterval(countdownInterval)
+  }
 })
 
 </script>

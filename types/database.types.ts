@@ -470,6 +470,60 @@ export type M2MSchema = {
             }
             Relationships: []
         }
+        user_credits: {
+            Row: {
+                id: string
+                user_id: string
+                balance: number
+                created_at: string
+                updated_at: string
+            }
+            Insert: {
+                id?: string
+                user_id: string
+                balance?: number
+                created_at?: string
+                updated_at?: string
+            }
+            Update: {
+                balance?: number
+                updated_at?: string
+            }
+            Relationships: []
+        }
+        credit_transactions: {
+            Row: {
+                id: string
+                user_id: string
+                amount: number
+                type: 'credit' | 'debit'
+                reason: 'match_expired_refund' | 'match_unlock_spend' | 'admin_adjustment' | 'promotional_credit'
+                reference_id: string | null
+                description: string | null
+                balance_after: number
+                created_at: string
+            }
+            Insert: {
+                id?: string
+                user_id: string
+                amount: number
+                type: 'credit' | 'debit'
+                reason: 'match_expired_refund' | 'match_unlock_spend' | 'admin_adjustment' | 'promotional_credit'
+                reference_id?: string | null
+                description?: string | null
+                balance_after: number
+                created_at?: string
+            }
+            Update: {
+                amount?: number
+                type?: 'credit' | 'debit'
+                reason?: 'match_expired_refund' | 'match_unlock_spend' | 'admin_adjustment' | 'promotional_credit'
+                reference_id?: string | null
+                description?: string | null
+                balance_after?: number
+            }
+            Relationships: []
+        }
     }
     Views: {
         [_ in never]: never
@@ -496,3 +550,5 @@ export type Admin = M2MSchema['Tables']['admins']['Row']
 export type Setting = M2MSchema['Tables']['settings']['Row']
 export type VibeAnswer = M2MSchema['Tables']['vibe_answers']['Row']
 export type OtpCode = M2MSchema['Tables']['otp_codes']['Row']
+export type UserCredit = M2MSchema['Tables']['user_credits']['Row']
+export type CreditTransaction = M2MSchema['Tables']['credit_transactions']['Row']

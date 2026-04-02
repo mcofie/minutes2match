@@ -347,7 +347,7 @@ export default defineEventHandler(async (event) => {
             match_score: match.score,
             match_reasons: match.reasons,
             match_warnings: match.warnings,
-            expires_at: new Date(Date.now() + 72 * 60 * 60 * 1000).toISOString()
+            expires_at: new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString()
         }))
 
         let createdCount = 0

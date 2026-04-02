@@ -7,7 +7,11 @@ export default defineEventHandler(async (event) => {
   const query = getQuery(event)
   const lobbyId = query.lobbyId as string
 
-  if (!lobbyId) return { hasReminder: false }
+  // Robust UUID validation for all inputs to prevent 22P02 errors
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+
+  if (!user.id || !uuidRegex.test(user.id)) return { hasReminder: false }
+  if (!lobbyId || !uuidRegex.test(lobbyId)) return { hasReminder: false }
 
   const service = serverSupabaseServiceRole(event)
   

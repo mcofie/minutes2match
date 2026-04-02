@@ -10,6 +10,14 @@ export default defineEventHandler(async (event) => {
 
   const userId = user.id
 
+  // Robust UUID validation for all inputs to prevent 22P02 errors
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+
+  if (!userId || !uuidRegex.test(userId)) {
+    console.error('[Lobby Matches GET] Invalid user ID format:', userId)
+    return { matches: [], debug: 'Invalid user session' }
+  }
+
   // 1. Fetch matching records (Comprehensive scan)
   const { data: m2mMatches, error: m2mErr } = await client
     .schema('m2m')

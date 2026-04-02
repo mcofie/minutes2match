@@ -163,7 +163,7 @@ export async function runTargetedMatching(userId: string, minScore = 75) {
             match_warnings: bestMatch.warnings,
             ai_analysis: aiExplanation,
             created_by_label: 'system_jit',
-            expires_at: new Date(Date.now() + 72 * 60 * 60 * 1000).toISOString()
+            expires_at: new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString()
         })
         .select()
         .single()
@@ -191,14 +191,14 @@ export async function runTargetedMatching(userId: string, minScore = 75) {
         const { notifyUser } = await import('./notify')
         
         // Notify User A (Triggered User)
-        await notifyUser(userId, `🔥 Great news, ${targetUser.display_name}! We just found a high-quality match for you with **${bestMatch.user2.display_name}** (${bestMatch.score}% compatibility). Check it out now!`, {
+        await notifyUser(userId, `🔥 Great news, ${targetUser.display_name}! We found a match for you: ${bestMatch.user2.display_name} (${bestMatch.score}% compatibility). You have 48 hours to unlock — after that, the match expires. Check it out now!`, {
             type: 'match',
             matchId: newMatch.id,
             smsPriority: 'high'
         })
 
         // Notify User B (The Partner)
-        await notifyUser(bestMatch.user2.id, `👋 Hi ${bestMatch.user2.display_name}! We just found a new match for you: meet **${targetUser.display_name}**! You have a strong ${bestMatch.score}% compatibility score.`, {
+        await notifyUser(bestMatch.user2.id, `👋 Hi ${bestMatch.user2.display_name}! New match alert: ${targetUser.display_name} (${bestMatch.score}% compatibility). You both have 48 hours to unlock before this match expires!`, {
             type: 'match',
             matchId: newMatch.id,
             smsPriority: 'normal'

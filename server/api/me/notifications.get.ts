@@ -8,6 +8,14 @@ export default defineEventHandler(async (event) => {
 
     const client = serverSupabaseServiceRole(event)
 
+    // Robust UUID validation for all inputs to prevent 22P02 errors
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+
+    if (!user.id || !uuidRegex.test(user.id)) {
+        console.error('[Notifications GET] Invalid user ID format:', user.id)
+        return []
+    }
+
     // Fetch from notifications table
     const { data: notifications, error: notifError } = await client
         .schema('m2m')

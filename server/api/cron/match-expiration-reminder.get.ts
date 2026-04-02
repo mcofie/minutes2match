@@ -96,7 +96,7 @@ export default defineEventHandler(async (event) => {
         }
 
         const paidName = paidUser?.display_name || 'Someone'
-        const message = `Reminder: ${paidName}'s match unlock expires in 24 hours! Log in now to see if you want to connect: ${config.public?.baseUrl || 'https://minutes2match.com'}/me`
+        const message = `⏰ Final reminder: ${paidName}'s match unlock expires in ~24 hours! If you don't unlock, the match disappears and ${paidName} gets a credit refund. Unlock now: ${config.public?.baseUrl || 'https://minutes2match.com'}/me`
 
         try {
             await $fetch('/api/send-sms', {

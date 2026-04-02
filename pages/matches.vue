@@ -13,7 +13,10 @@
              </span>
              <span class="text-[9px] font-black uppercase tracking-widest text-emerald-700 dark:text-emerald-400">High Quality Pool Verified</span>
           </div>
-          <span class="text-sm font-medium text-stone-500 dark:text-stone-400 bg-stone-100 dark:bg-stone-800 px-3 py-1 rounded-full">{{ matches?.length || 0 }} matches</span>
+           <span v-if="creditBalance > 0" class="text-sm font-bold text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-900/40 px-3 py-1 rounded-full flex items-center gap-1.5 cursor-help" title="Your M2M Credit balance — use it to unlock matches for free!">
+              💚 GHS {{ creditBalance.toFixed(2) }}
+           </span>
+           <span class="text-sm font-medium text-stone-500 dark:text-stone-400 bg-stone-100 dark:bg-stone-800 px-3 py-1 rounded-full">{{ matches?.length || 0 }} matches</span>
        </div>
     </div>
 
@@ -89,6 +92,7 @@
           :otherUserPaid="match.otherUserPaid"
           :availability="profile?.availability"
           :matchedUserAvailability="match.matchedProfile?.availability"
+          :creditBalance="creditBalance"
           @unlock="handleUnlockMatch(match)"
           @update-status="navigateToFeedback(match)"
         />
@@ -176,6 +180,17 @@ const { fetchMatches } = matchStore
 // Partner Venues & Redemptions
 const partnerVenues = ref<any[]>([])
 const redemptions = ref<Record<string, any>>({})
+
+// M2M Credit Balance
+const creditBalance = ref(0)
+const fetchCreditBalance = async () => {
+   try {
+      const data = await $fetch<{ balance: number }>('/api/credits')
+      creditBalance.value = data?.balance || 0
+   } catch (err) {
+      console.error('Failed to fetch credit balance:', err)
+   }
+}
 
 const claimingVenueIds = ref<Set<string>>(new Set())
 
@@ -308,11 +323,22 @@ const handleUnlockMatch = async (match: any) => {
        'match_unlock',
        { userId: profile.value.id, matchId: match.id }
     )
-    if (response.type === 'free_unlock' || response.type === 'subscription_unlock') {
+    if (response.type === 'free_unlock' || response.type === 'subscription_unlock' || response.type === 'credit_unlock') {
         hapticFeedback('medium')
-        toast.success(response.type === 'free_unlock' ? 'First Match Free!' : 'Unlocked with Subscription', 'Your match has been unlocked successfully.')
+        const titles: Record<string, string> = {
+            free_unlock: 'First Match Free!',
+            subscription_unlock: 'Unlocked with Subscription',
+            credit_unlock: 'Unlocked with M2M Credit! 💚'
+        }
+        const descriptions: Record<string, string> = {
+            free_unlock: 'Your match has been unlocked successfully.',
+            subscription_unlock: 'Your match has been unlocked successfully.',
+            credit_unlock: `Remaining balance: GHS ${response.creditBalance ?? 0}`
+        }
+        toast.success(titles[response.type] || 'Unlocked!', descriptions[response.type] || 'Match unlocked.')
         await fetchMatches(profile.value.id)
         await fetchPendingMatchCount(profile.value.id)
+        fetchCreditBalance()
         return
     }
     const authUrl = response.authorization_url || response.data?.authorization_url
@@ -361,6 +387,7 @@ onMounted(async () => {
         await fetchMatches(currentUserId.value)
         fetchVenues()
         fetchUserRedemptions()
+        fetchCreditBalance()
     } else {
         // Fallback: try to get userId directly if initDashboard couldn't resolve
         try {
@@ -373,6 +400,7 @@ onMounted(async () => {
                 await fetchMatches(fallbackId)
                 fetchVenues()
                 fetchUserRedemptions()
+                fetchCreditBalance()
             } else {
                 loadingMatches.value = false
             }
