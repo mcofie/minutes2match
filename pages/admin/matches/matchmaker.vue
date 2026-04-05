@@ -97,6 +97,11 @@
             <span class="stats-bar__label">Users</span>
           </div>
           <div class="stats-bar__divider"></div>
+          <div class="stats-bar__item stats-bar__item--ghost">
+            <span class="stats-bar__value">{{ incognitoCount }}</span>
+            <span class="stats-bar__label">Incognito</span>
+          </div>
+          <div class="stats-bar__divider"></div>
           <div class="stats-bar__item stats-bar__item--success">
             <span class="stats-bar__value">{{ autoMatches.length }}</span>
             <span class="stats-bar__label">Matches</span>
@@ -329,7 +334,8 @@
 
               <div class="stage-card__location-badges">
                  <span class="badge badge--gray">{{ user1.location || 'Unknown Location' }}</span>
-                 <span class="badge badge--dark">{{ user1.is_verified ? 'Verified' : 'Unverified' }}</span>
+                 <span v-if="user1.is_active === false" class="badge badge--ghost animate-pulse" title="This user is currently in Incognito Mode">👻 Incognito</span>
+                 <span v-else class="badge badge--dark">{{ user1.is_verified ? 'Verified' : 'Unverified' }}</span>
               </div>
             </div>
           </div>
@@ -428,7 +434,8 @@
 
               <div class="stage-card__location-badges">
                  <span class="badge badge--gray">{{ user2.location || 'Unknown Location' }}</span>
-                 <span class="badge badge--dark">{{ user2.is_verified ? 'Verified' : 'Unverified' }}</span>
+                 <span v-if="user2.is_active === false" class="badge badge--ghost animate-pulse" title="This user is currently in Incognito Mode">👻 Incognito</span>
+                 <span v-else class="badge badge--dark">{{ user2.is_verified ? 'Verified' : 'Unverified' }}</span>
               </div>
             </div>
           </div>
@@ -787,8 +794,8 @@ const generateAutoMatches = async () => {
   const potentialMatches: any[] = []
   const usedPairs = new Set<string>()
   
-  // Get all verified users
-  const eligibleUsers = users.value.filter(u => u.is_verified)
+  // Get all verified users who are NOT incognito
+  const eligibleUsers = users.value.filter(u => u.is_verified && u.is_active !== false)
   
   // Compare all pairs
   for (let i = 0; i < eligibleUsers.length; i++) {
@@ -907,16 +914,24 @@ const createBulkMatches = async () => {
 }
 
 // === MANUAL MATCHMAKER ===
+const incognitoCount = computed(() => {
+  return users.value.filter(u => u.is_active === false).length
+})
+
 const candidateScores = computed(() => {
   if (!user1.value) return []
-  return users.value.map(u => {
-    const details = calculateMatchDetails(u)
-    return { ...u, matchDetails: details }
-  }).sort((a, b) => b.matchDetails.score - a.matchDetails.score)
+  // Filter out incognito users from the list of matchable candidates
+  return users.value
+    .filter(u => u.is_active !== false)
+    .map(u => {
+      const details = calculateMatchDetails(u)
+      return { ...u, matchDetails: details }
+    })
+    .sort((a, b) => b.matchDetails.score - a.matchDetails.score)
 })
 
 const filteredCandidates = computed(() => {
-  let list = user1.value ? candidateScores.value : users.value
+  let list = user1.value ? candidateScores.value : users.value.filter(u => u.is_active !== false)
   
   // Filter out self and existing matches
   list = list.filter(u => {
@@ -1406,6 +1421,30 @@ const createMatch = async () => {
   width: 1px;
   height: 32px;
   background: #E5E7EB;
+}
+
+.stat-icon--ghost,
+.stats-bar__item--ghost .stats-bar__value {
+  color: #6B7280;
+}
+
+.stats-bar__item--ghost .stats-bar__label {
+  color: #9CA3AF;
+}
+
+@keyframes ghost-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
+.animate-ghost {
+  animation: ghost-pulse 3s infinite ease-in-out;
+}
+
+.badge--ghost {
+  background: #F3F4F6;
+  color: #6B7280;
+  border: 1px dashed #D1D5DB;
 }
 
 .stats-bar__item--success .stats-bar__value {

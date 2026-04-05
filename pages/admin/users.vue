@@ -112,7 +112,14 @@
             <td>
               <div class="flex items-center gap-2">
                 <button class="btn-secondary btn-sm" @click="viewUser(user)">View Details</button>
-                <button class="btn-primary btn-sm" @click="selectForMatch(user)" title="Add to match">Match</button>
+                <button 
+                  class="btn-primary btn-sm disabled:opacity-50 disabled:cursor-not-allowed" 
+                  :disabled="user.is_active === false"
+                  @click="selectForMatch(user)" 
+                  :title="user.is_active === false ? 'Cannot match an incognito user' : 'Add to match'"
+                >
+                  Match
+                </button>
                 <button 
                   class="p-1 text-stone-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
                   @click="deleteUser(user)"

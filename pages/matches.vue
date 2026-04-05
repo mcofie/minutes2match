@@ -16,6 +16,7 @@
            <span v-if="creditBalance > 0" class="text-sm font-bold text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-900/40 px-3 py-1 rounded-full flex items-center gap-1.5 cursor-help" title="Your M2M Credit balance — use it to unlock matches for free!">
               💚 GHS {{ creditBalance.toFixed(2) }}
            </span>
+           <span v-if="profile?.is_active === false" class="text-xs font-black text-rose-500 bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-900/50 px-3 py-1 rounded-full animate-ghost">👻 Ghost Mode Active</span>
            <span class="text-sm font-medium text-stone-500 dark:text-stone-400 bg-stone-100 dark:bg-stone-800 px-3 py-1 rounded-full">{{ matches?.length || 0 }} matches</span>
        </div>
     </div>
@@ -135,7 +136,7 @@
              <div class="absolute inset-0 opacity-10" style="background-image: radial-gradient(#fff 1px, transparent 1px); background-size: 20px 20px;"></div>
              <div class="relative z-10 flex flex-col md:flex-row items-center justify-center gap-6">
                 <div class="text-left max-w-sm">
-                   <h4 class="text-rose-500 font-white uppercase tracking-[0.3em] text-[10px] mb-2 italic">How it works:</h4>
+                   <h4 class="text-rose-500 font-black uppercase tracking-[0.3em] text-[10px] mb-2 italic">How it works:</h4>
                    <p style="color: #ffffff !important;" class="text-[11px] leading-relaxed italic uppercase font-bold opacity-90">
                       Simply show your <span class="text-rose-500 underline decoration-rose-500/50 underline-offset-4 font-black">unlocked match profile</span> to the staff when you arrive at any partner venue to redeem your M2M rate.
                    </p>
@@ -412,3 +413,15 @@ onMounted(async () => {
     }
 })
 </script>
+
+<style scoped>
+@keyframes ghost-float {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-5px) rotate(5deg); }
+}
+
+.animate-ghost {
+  animation: ghost-float 3s ease-in-out infinite;
+  display: inline-block;
+}
+</style>
