@@ -850,21 +850,30 @@
                        </div>
                     </div>
 
-                   <div class="flex items-center justify-between p-4 bg-stone-50 dark:bg-stone-900 border-2 border-stone-200 dark:border-stone-800 rounded-xl mb-4 group transition-all hover:border-black dark:hover:border-stone-600">
-                      <div>
-                         <p class="text-xs font-bold text-black dark:text-white uppercase tracking-widest">Profile Status</p>
-                         <p class="text-[10px] text-stone-500 uppercase tracking-widest">{{ editForm.is_active ? 'Visible to matches' : 'Hidden from pool' }}</p>
-                      </div>
-                      <button 
-                        @click="toggleAccountActive"
-                        :disabled="togglingActive"
-                        class="w-12 h-7 rounded-full transition-colors relative border-2 border-black"
-                        :class="editForm.is_active ? 'bg-emerald-500' : 'bg-stone-200 dark:bg-stone-800'"
-                      >
-                         <span :class="['absolute top-0.5 w-5 h-5 bg-white rounded-full shadow-md transition-all duration-300 flex items-center justify-center text-[10px]', editForm.is_active ? 'left-6' : 'left-0.5']">
-                            {{ editForm.is_active ? '✓' : '✕' }}
+                   <!-- Privacy & Security -->
+                   <div class="space-y-4">
+                     <div class="flex items-center justify-between bg-stone-50 dark:bg-stone-900/50 p-6 rounded-2xl border-2 border-transparent" :class="!editForm.is_active ? 'border-black bg-stone-100 dark:bg-stone-900' : ''">
+                       <div class="space-y-1">
+                         <div class="flex items-center gap-2">
+                           <span class="text-sm font-black uppercase tracking-widest" :class="!editForm.is_active ? 'text-rose-500' : 'text-stone-900 dark:text-stone-100'">Incognito Mode</span>
+                           <span v-if="!editForm.is_active" class="px-2 py-0.5 bg-rose-500 text-[8px] font-black text-white rounded uppercase tracking-widest animate-pulse">Engaged</span>
+                         </div>
+                         <p class="text-[10px] font-bold text-stone-500 dark:text-stone-400 uppercase tracking-widest leading-relaxed">Vanish from the pool & kill all notifications instantly.</p>
+                       </div>
+                       <button 
+                         @click="toggleIncognito"
+                         :disabled="saving"
+                         class="relative inline-flex h-7 w-12 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-300 ease-in-out focus:outline-none"
+                         :class="!editForm.is_active ? 'bg-black dark:bg-rose-500 shadow-[inset_2px_2px_4px_rgba(0,0,0,0.2)]' : 'bg-stone-200 dark:bg-stone-800'"
+                       >
+                         <span 
+                           class="pointer-events-none inline-block h-6 w-6 transform rounded-full bg-white shadow-[2px_2px_4px_rgba(0,0,0,0.15)] ring-0 transition duration-300 ease-in-out flex items-center justify-center text-[8px]"
+                           :class="!editForm.is_active ? 'translate-x-5' : 'translate-x-0'"
+                         >
+                            {{ !editForm.is_active ? '✓' : '' }}
                          </span>
-                      </button>
+                       </button>
+                     </div>
                    </div>
                   
                   <button @click="handleLogout" class="w-full py-4 bg-white dark:bg-stone-900 border-2 border-black dark:border-stone-700 text-black dark:text-white font-bold uppercase tracking-widest text-sm rounded-xl hover:bg-rose-500 hover:text-white transition-all">
@@ -1316,21 +1325,39 @@ const saveProfile = async () => {
   }
 }
 
-const toggleAccountActive = async () => {
-  const { currentUserId } = useDashboard()
+const toggleIncognito = async () => {
+  const { currentUserId, fetchProfileById } = useDashboard()
   const userId = currentUserId.value
   
-  if (!userId || userId === 'undefined') return
+  if (!userId || userId === 'undefined') {
+    toast.error('Auth Error', 'Your session might have expired. Please login again.')
+    return
+  }
 
-  togglingActive.value = true
+  saving.value = true
   try {
     const newStatus = !editForm.is_active
-    await supabase.from('profiles').update({ is_active: newStatus } as any).eq('id', userId)
+    const { error } = await supabase.schema('m2m').from('profiles').update({ is_active: newStatus } as any).eq('id', userId)
+    if (error) throw error
+    
     editForm.is_active = newStatus
-    toast.success(newStatus ? 'Profile Active!' : 'Profile Paused')
-  } catch (err) { toast.error('Failed to update status') }
-  finally { togglingActive.value = false }
+    await fetchProfileById(userId)
+    
+    haptic.hapticSuccess()
+    toast.success(
+        newStatus ? 'Mode: Live 🚀' : 'Mode: Incognito 🛡️',
+        newStatus ? 'You are now visible in the matching pool.' : 'You have vanished from all feeds.'
+    )
+  } catch (err) {
+    console.error('[Profile] Incognito toggle failed:', err)
+    haptic.hapticError()
+    toast.error('Failed to update status', 'Please try again.')
+  } finally {
+    saving.value = false
+  }
 }
+
+const toggleAccountActive = toggleIncognito // Alias for backward compatibility
 
 const triggerPhotoUpload = () => {
   haptic.hapticTap()

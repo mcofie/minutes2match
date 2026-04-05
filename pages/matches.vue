@@ -130,21 +130,23 @@
          </div>
 
 
-         <!-- Redemption Instructions Banner -->
-         <div class="mt-4 p-6 bg-stone-900 dark:bg-stone-900 rounded-2xl border-2 border-black dark:border-stone-800 text-center relative overflow-hidden group">
-            <div class="absolute inset-0 opacity-10" style="background-image: radial-gradient(#fff 1px, transparent 1px); background-size: 20px 20px;"></div>
-            <div class="relative z-10 flex flex-col md:flex-row items-center justify-center gap-6">
-               <div class="text-left max-w-sm">
-                  <h4 class="text-white font-bold uppercase tracking-widest text-xs mb-2 italic">How it works:</h4>
-                  <p class="text-stone-400 text-[10px] leading-relaxed">Simply show your **unlocked match profile** to the staff when you arrive at any partner venue to redeem your M2M rate.</p>
-               </div>
-               <div class="hidden md:block w-px h-12 bg-white/10"></div>
-               <div class="flex items-center gap-4">
-                  <span class="text-3xl opacity-40 grayscale group-hover:grayscale-0 transition-all duration-700">🥂</span>
-                  <p class="text-[10px] md:text-[11px] font-bold text-white uppercase tracking-widest text-left">Defy the small talk.<br/>Ignite the connection.</p>
-               </div>
-            </div>
-         </div>
+          <!-- Redemption Instructions Banner -->
+          <div class="mt-4 p-6 bg-stone-900 border-2 border-black dark:border-stone-800 text-center relative overflow-hidden group rounded-2xl">
+             <div class="absolute inset-0 opacity-10" style="background-image: radial-gradient(#fff 1px, transparent 1px); background-size: 20px 20px;"></div>
+             <div class="relative z-10 flex flex-col md:flex-row items-center justify-center gap-6">
+                <div class="text-left max-w-sm">
+                   <h4 class="text-rose-500 font-white uppercase tracking-[0.3em] text-[10px] mb-2 italic">How it works:</h4>
+                   <p style="color: #ffffff !important;" class="text-[11px] leading-relaxed italic uppercase font-bold opacity-90">
+                      Simply show your <span class="text-rose-500 underline decoration-rose-500/50 underline-offset-4 font-black">unlocked match profile</span> to the staff when you arrive at any partner venue to redeem your M2M rate.
+                   </p>
+                </div>
+                <div class="hidden md:block w-px h-12 bg-white/20"></div>
+                <div class="flex items-center gap-4">
+                   <span class="text-3xl opacity-40 grayscale group-hover:grayscale-0 transition-all duration-700">🥂</span>
+                   <p class="text-[10px] md:text-[11px] font-black text-white uppercase tracking-widest text-left">Defy the small talk.<br/>Ignite the connection.</p>
+                </div>
+             </div>
+          </div>
       </div>
     </div>
   </div>

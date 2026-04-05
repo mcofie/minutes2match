@@ -57,6 +57,7 @@ export default defineEventHandler(async (event) => {
     .schema('m2m')
     .from('profiles')
     .select('id, display_name, birth_date, dating_persona, photo_url, is_verified, about_me, interests, gender, interested_in, location', { count: 'exact' })
+    .eq('is_active', true)
     .not('display_name', 'is', null)
 
   // 1. Gender Restriction Rule: If Male, show only Female (and vice versa)

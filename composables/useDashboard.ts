@@ -175,14 +175,40 @@ export const useDashboard = () => {
         }
     }
 
+    const toggleIncognito = async () => {
+        if (!currentUserId.value || !profile.value) return
+        
+        try {
+            const newStatus = !profile.value.is_active
+            const { error } = await supabase
+                .schema('m2m')
+                .from('profiles')
+                .update({ is_active: newStatus } as any)
+                .eq('id', currentUserId.value)
+            
+            if (error) throw error
+            
+            // Update local state immediately
+            profile.value = { ...profile.value, is_active: newStatus }
+            
+            toast.success(
+                newStatus ? 'Mode: Live 🚀' : 'Mode: Incognito 🛡️',
+                newStatus ? 'You are now visible in the matching pool.' : 'You have vanished from all feeds.'
+            )
+            return true
+        } catch (err) {
+            console.error('[Dashboard] toggleIncognito failed:', err)
+            toast.error('Failed to update status', 'Please try again.')
+            return false
+        }
+    }
+
     const logout = async () => {
         try {
             await supabase.auth.signOut()
         } catch (err) {
             console.error('[Dashboard] Logout error:', err)
         } finally {
-            // Hard browser redirect is the only way to guarantee a clean slate
-            // in all browsers including Safari
             window.location.href = '/'
         }
     }
@@ -191,12 +217,10 @@ export const useDashboard = () => {
         const { isTMA, tgUser } = useTelegram()
         if (!isTMA.value || !tgUser.value || !currentUserId.value || !profile.value) return
 
-        // Check if already linked or if we need updating
         const needsTelegramId = !profile.value.telegram_id
         const needsPhoto = !profile.value.photo_url || profile.value.photo_url.includes('placeholder')
         
         if (needsTelegramId || (needsPhoto && tgUser.value.photo_url)) {
-            console.log('[Dashboard] Auto-syncing Telegram data...')
             const updateData: any = {}
             if (needsTelegramId) updateData.telegram_id = tgUser.value.id.toString()
             if (needsPhoto && tgUser.value.photo_url) updateData.photo_url = tgUser.value.photo_url
@@ -208,9 +232,7 @@ export const useDashboard = () => {
                     .update(updateData)
                     .eq('id', currentUserId.value)
                 
-                // Update local state
                 profile.value = { ...profile.value, ...updateData }
-                console.log('[Dashboard] Telegram sync successful')
             } catch (err) {
                 console.error('[Dashboard] Telegram sync failed:', err)
             }
@@ -231,6 +253,7 @@ export const useDashboard = () => {
         fetchSubscription,
         fetchPendingMatchCount,
         syncTelegramAccount,
+        toggleIncognito,
         logout
     }
 }

@@ -22,16 +22,23 @@ export async function notifyUser(userId: string, message: string, options: {
         { auth: { persistSession: false } }
     );
 
-    // Fetch user profile to check for telegram_id and phone
+    // Fetch user profile to check for telegram_id, phone, and active status
     const { data: profile, error } = await supabaseAdmin
         .schema('m2m')
         .from('profiles')
-        .select('phone, telegram_id')
+        .select('phone, telegram_id, is_active')
         .eq('id', userId)
         .single();
 
     if (error || !profile) {
         throw new Error(`User profile not found: ${userId}`);
+    }
+
+    // [Incognito Protocol] Suppress non-urgent notifications if user is inactive
+    const isUrgent = options.smsPriority === 'urgent' || options.smsPriority === 'high';
+    if (!profile.is_active && !isUrgent) {
+        console.log(`[Notify] suppressing non-urgent notification for inactive user ${userId}`);
+        return { provider: 'none', success: true, suppressed: true };
     }
 
     // 1. Try Telegram if available

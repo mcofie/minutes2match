@@ -45,7 +45,7 @@ export const useMatchStore = defineStore('matches', () => {
                         currentUserPaid: isUser1 ? match.user_1_paid : match.user_2_paid,
                         otherUserPaid: isUser1 ? match.user_2_paid : match.user_1_paid
                     }
-                })
+                }).filter((m: any) => m.matchedProfile?.is_active !== false)
             } else {
                 matches.value = []
             }

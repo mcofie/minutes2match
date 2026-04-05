@@ -71,16 +71,16 @@
         <!-- Global Ghost Mode Indicator -->
         <div v-if="profile?.is_active === false" class="ghost-banner mb-8 p-4 bg-stone-900 text-white rounded-xl border-2 border-dashed border-stone-500 flex flex-col sm:flex-row items-center justify-between gap-4 animate-in fade-in slide-in-from-top-4 duration-500 shadow-xl overflow-hidden relative group z-50 pointer-events-auto">
            <div class="absolute top-0 left-0 w-1 h-full bg-rose-500"></div>
-            <div class="flex items-center gap-4">
-               <div class="w-12 h-12 bg-stone-800 rounded-full flex items-center justify-center text-2xl border border-stone-700 shadow-inner animate-ghost">👻</div>
-               <div class="flex-1 text-center sm:text-left">
-                  <h3 class="text-xs md:text-sm font-black uppercase tracking-widest text-rose-400 mb-0.5">Incognito Mode Active</h3>
-                  <p class="text-[9px] md:text-[10px] text-stone-400 font-bold uppercase tracking-[0.15em] leading-relaxed">Your profile is currently hidden from the match pool. <span class="text-white">12 potential matches</span> missed your vibe today.</p>
-               </div>
-            </div>
-            <button class="w-full sm:w-auto px-6 py-2.5 bg-rose-500 text-white text-[10px] font-black uppercase tracking-widest rounded-lg hover:bg-rose-600 transition-all shadow-[4px_4px_0px_0px_rgba(0,0,0,0.3)] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] active:translate-x-0.5 active:translate-y-0.5 flex-shrink-0">
-               Go Live ✨
-            </button>
+             <div class="flex items-center gap-4">
+                <div class="w-12 h-12 bg-stone-800 rounded-full flex items-center justify-center text-2xl border border-stone-700 shadow-inner animate-ghost">👻</div>
+                <div class="flex-1 text-center sm:text-left">
+                   <h3 class="text-[10px] md:text-xs font-black uppercase tracking-[0.2em] text-white mb-1.5 opacity-90">Incognito Mode Active</h3>
+                   <p class="text-[9px] md:text-[10px] text-stone-200 font-bold uppercase tracking-[0.15em] leading-relaxed">Your profile is currently hidden from the match pool. <span class="text-rose-400 font-black">12 Potential Matches</span> missed your vibe today.</p>
+                </div>
+             </div>
+             <button @click="toggleAccountActive" class="w-full sm:w-auto px-6 py-2.5 bg-rose-500 text-white text-[10px] font-black uppercase tracking-widest rounded-lg hover:bg-rose-600 transition-all shadow-[4px_4px_0px_0px_rgba(0,0,0,0.3)] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] active:translate-x-0.5 active:translate-y-0.5 flex-shrink-0">
+                Go Live ✨
+             </button>
         </div>
 
         <!-- Incomplete Profile Nudge -->
@@ -213,7 +213,8 @@
 <script setup lang="ts">
 const route = useRoute()
 const config = useRuntimeConfig()
-const { authReady, profile, subscription, pendingMatchCount, isProfileIncomplete, initDashboard } = useDashboard()
+const { authReady, profile, subscription, pendingMatchCount, isProfileIncomplete, initDashboard, toggleIncognito } = useDashboard()
+const toggleAccountActive = toggleIncognito
 const { unreadCount, fetchNotifications } = useNotifications()
 const { isLive } = useFlashLobby()
 
