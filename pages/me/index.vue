@@ -15,7 +15,7 @@
              <span>🛡️</span> 
              <span>{{ trustScore || 60 }}%</span>
            </span>
-           <span v-if="creditBalanceDashboard > 0" @click="activeProfileSection = 'account'" class="inline-flex shrink-0 items-center gap-1 text-[10px] font-bold uppercase tracking-widest text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-900/20 border border-green-100 dark:border-green-900/30 px-2 sm:px-3 py-1.5 rounded-full shadow-sm cursor-pointer hover:bg-green-100 dark:hover:bg-green-900/30 transition-colors" title="M2M Credit — tap to view wallet">
+           <span @click="activeProfileSection = 'account'; fetchCreditData()" class="inline-flex shrink-0 items-center gap-1 text-[10px] font-bold uppercase tracking-widest text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-900/20 border border-green-100 dark:border-green-900/30 px-2 sm:px-3 py-1.5 rounded-full shadow-sm cursor-pointer hover:bg-green-100 dark:hover:bg-green-900/30 transition-colors" title="M2M Credit — tap to view wallet">
              <span>💚</span> 
              <span>GHS {{ creditBalanceDashboard.toFixed(2) }}</span>
            </span>
@@ -74,7 +74,7 @@
             <button 
               v-for="section in profileSections" 
               :key="section.id"
-              @click="activeProfileSection = section.id as any"
+              @click="activeProfileSection = section.id as any; if(section.id === 'account') fetchCreditData()"
               class="w-full text-left p-4 flex items-center gap-4 transition-all border-b border-stone-100 dark:border-stone-800 last:border-0"
               :class="activeProfileSection === section.id ? 'bg-black dark:bg-stone-800 text-white' : 'hover:bg-stone-50 dark:hover:bg-stone-800/50'"
             >
@@ -218,7 +218,14 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div class="space-y-2">
                     <label class="text-[10px] font-bold uppercase text-stone-500 dark:text-stone-400 tracking-widest">Display Name</label>
-                    <input type="text" v-model="editForm.display_name" class="w-full px-4 py-3 rounded-lg border-2 border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-950 dark:text-white focus:border-black dark:focus:border-stone-500 outline-none transition-all font-bold" />
+                    <input 
+                      type="text" 
+                      v-model="editForm.display_name" 
+                      placeholder="Your Name"
+                      class="w-full px-4 py-3 rounded-lg border-2 bg-white dark:bg-stone-950 dark:text-white focus:border-black dark:focus:border-stone-500 outline-none transition-all font-bold" 
+                      :class="!editForm.display_name?.trim() ? 'border-rose-500 bg-rose-50/50' : 'border-stone-200 dark:border-stone-700'"
+                    />
+                    <p v-if="!editForm.display_name?.trim()" class="text-[9px] font-bold text-rose-500 uppercase tracking-widest mt-1">Name is required</p>
                   </div>
                   <div class="space-y-2">
                     <label class="text-[10px] font-bold uppercase text-stone-500 dark:text-stone-400 tracking-widest">Base Location</label>
@@ -669,7 +676,7 @@
                </div>
 
                <!-- Top Up Wallet -->
-               <div class="bg-white dark:bg-stone-900 rounded-xl border-2 border-stone-200 dark:border-stone-700 p-4 sm:p-5 overflow-hidden">
+               <div v-show="false" class="bg-white dark:bg-stone-900 rounded-xl border-2 border-stone-200 dark:border-stone-700 p-4 sm:p-5 overflow-hidden">
                   <div class="flex items-center justify-between mb-4">
                      <p class="text-[10px] font-black uppercase tracking-widest text-stone-400 dark:text-stone-500">Top Up Wallet</p>
                      <span class="text-[9px] font-bold text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20 px-2 py-0.5 rounded-full">Instant Credit</span>
@@ -925,7 +932,7 @@
          <!-- STICKY FOOTER ACTIONS (Only for editable sections) -->
          <div v-if="activeProfileSection !== 'account'" class="bg-white/95 dark:bg-stone-950/95 backdrop-blur-md p-3 md:p-4 rounded-xl border-2 border-black dark:border-stone-700 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] md:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,0.05)] sticky bottom-[104px] md:bottom-8 z-30 flex items-center gap-4 mt-12 transition-all duration-300">
             <button 
-              :disabled="saving"
+              :disabled="saving || !editForm.display_name?.trim()"
               @click="saveProfile"
               class="flex-1 py-4 px-6 bg-black dark:bg-white text-white dark:text-black font-bold uppercase tracking-widest text-[10px] md:text-xs rounded-xl hover:bg-rose-500 dark:hover:bg-rose-500 hover:text-white dark:hover:text-white transition-all flex items-center justify-center gap-3 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:shadow-none active:translate-x-0.5 active:translate-y-0.5 overflow-hidden relative group"
             >
@@ -1271,6 +1278,11 @@ const saveProfile = async () => {
   
   if (!userId || userId === 'undefined') {
     toast.error('Auth Error', 'Your session might have expired. Please login again.')
+    return
+  }
+
+  if (!editForm.display_name?.trim()) {
+    toast.error('Name Required', 'Please enter your name to save the profile.')
     return
   }
 
