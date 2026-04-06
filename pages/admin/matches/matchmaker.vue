@@ -869,7 +869,8 @@ const createBulkMatches = async () => {
       status: 'pending_payment',
       match_score: m.score,
       match_reasons: m.reasons,
-      match_warnings: m.warnings
+      match_warnings: m.warnings,
+      expires_at: new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString()
     }))
     
     const { error } = await supabase
@@ -1024,7 +1025,8 @@ const createMatch = async () => {
         status: 'pending_payment',
         match_score: matchData.value.score,
         match_reasons: matchData.value.reasons,
-        match_warnings: matchData.value.warnings
+        match_warnings: matchData.value.warnings,
+        expires_at: new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString()
       })
     
     if (error) throw error

@@ -22,30 +22,40 @@
     </div>
 
     <!-- Summary Stats -->
-    <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
-      <div class="stat-card group">
+    <div class="grid grid-cols-2 lg:grid-cols-6 gap-4 mb-8">
+      <div class="stat-card group cursor-pointer hover:border-emerald-200" @click="filters.status = 'unlocked'">
         <div class="flex justify-between items-start mb-2">
-          <div class="stat-label">Total Unlocked</div>
-          <div class="h-8 w-8 rounded-full bg-stone-100 flex items-center justify-center text-stone-600 group-hover:bg-stone-200 transition-colors">
+          <div class="stat-label text-emerald-600">Total Unlocked</div>
+          <div class="h-8 w-8 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-600 group-hover:bg-emerald-100 transition-colors">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M2 12h20"/></svg>
           </div>
         </div>
-        <div class="stat-value">{{ feedbackStats.total }}</div>
+        <div class="stat-value text-stone-900">{{ feedbackStats.total }}</div>
       </div>
       
-      <div class="stat-card group">
+      <div class="stat-card group cursor-pointer hover:border-yellow-200" @click="filters.status = 'pending_payment'">
         <div class="flex justify-between items-start mb-2">
-          <div class="stat-label text-yellow-600">Pending Feedback</div>
+          <div class="stat-label text-yellow-600">Awaiting Payment</div>
           <div class="h-8 w-8 rounded-full bg-yellow-50 flex items-center justify-center text-yellow-600 group-hover:bg-yellow-100 transition-colors">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
           </div>
         </div>
-        <div class="stat-value text-stone-900">{{ feedbackStats.pending }}</div>
+        <div class="stat-value text-stone-900">{{ matchStats.pendingPayment }}</div>
       </div>
       
-      <div class="stat-card group">
+      <div class="stat-card group border-rose-100 bg-rose-50/30 cursor-pointer hover:bg-rose-50 transition-all" @click="filters.status = 'expiring_soon'">
         <div class="flex justify-between items-start mb-2">
-          <div class="stat-label text-green-600">Connected</div>
+          <div class="stat-label text-rose-600">Expiring Today</div>
+          <div class="h-8 w-8 rounded-full bg-rose-100 flex items-center justify-center text-rose-600 group-hover:bg-rose-200 transition-colors">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="animate-pulse"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          </div>
+        </div>
+        <div class="stat-value text-rose-700">{{ matchStats.expiringSoon }}</div>
+      </div>
+
+      <div class="stat-card group cursor-pointer" @click="filters.feedbackStatus = 'connected'">
+        <div class="flex justify-between items-start mb-2">
+          <div class="stat-label text-green-600">Final Success</div>
           <div class="h-8 w-8 rounded-full bg-green-50 flex items-center justify-center text-green-600 group-hover:bg-green-100 transition-colors">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
           </div>
@@ -55,22 +65,12 @@
       
       <div class="stat-card group">
         <div class="flex justify-between items-start mb-2">
-          <div class="stat-label text-pink-600">Dating</div>
-          <div class="h-8 w-8 rounded-full bg-pink-50 flex items-center justify-center text-pink-600 group-hover:bg-pink-100 transition-colors">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+          <div class="stat-label text-stone-400">Completion Rate</div>
+          <div class="h-8 w-8 rounded-full bg-stone-50 flex items-center justify-center text-stone-400">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20v-6M6 20V10M18 20V4"/></svg>
           </div>
         </div>
-        <div class="stat-value text-stone-900">{{ feedbackStats.dating }}</div>
-      </div>
-      
-      <div class="stat-card group">
-        <div class="flex justify-between items-start mb-2">
-          <div class="stat-label text-red-600">No Response</div>
-          <div class="h-8 w-8 rounded-full bg-red-50 flex items-center justify-center text-red-600 group-hover:bg-red-100 transition-colors">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.68 13.31a16 16 0 0 0 3.41 2.6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7 2 2 0 0 1 1.72 2v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.42 19.42 0 0 1-3.33-2.67m-2.67-3.34a19.79 19.79 0 0 1-3.07-8.63A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
-          </div>
-        </div>
-        <div class="stat-value text-stone-900">{{ feedbackStats.noResponse }}</div>
+        <div class="stat-value text-stone-900">{{ feedbackStats.total > 0 ? Math.round((feedbackStats.connected / feedbackStats.total) * 100) : 0 }}%</div>
       </div>
     </div>
 
@@ -88,6 +88,7 @@
             <option value="">All Match Statuses</option>
             <option value="pending_payment">Pending Payment</option>
             <option value="partial_payment">Partial Payment</option>
+            <option value="expiring_soon">⏳ Expiring Soon (&lt; 6h)</option>
             <option value="unlocked">Unlocked / Paid</option>
             <option value="rejected">Rejected</option>
             <option value="expired">Expired</option>
@@ -122,7 +123,7 @@
               <th class="py-3 px-3 text-xs font-semibold text-stone-500 uppercase tracking-wider w-28">Date</th>
               <th class="py-3 px-3 text-xs font-semibold text-stone-500 uppercase tracking-wider">Match Participants</th>
               <th class="py-3 px-2 text-xs font-semibold text-stone-500 uppercase tracking-wider text-center w-16">Score</th>
-              <th class="py-3 px-3 text-xs font-semibold text-stone-500 uppercase tracking-wider w-28">Status</th>
+              <th class="py-3 px-3 text-xs font-semibold text-stone-500 uppercase tracking-wider w-36">Status</th>
               <th class="py-3 px-3 text-xs font-semibold text-stone-500 uppercase tracking-wider w-32">Feedback</th>
               <th class="py-3 px-3 text-xs font-semibold text-stone-500 uppercase tracking-wider text-right w-auto">Actions</th>
             </tr>
@@ -156,14 +157,19 @@
                       <img v-if="match.user_1?.photo_url" :src="match.user_1.photo_url" class="h-full w-full rounded-full object-cover" />
                       <span v-else class="text-xs">{{ match.user_1?.display_name?.charAt(0) || '?' }}</span>
                     </div>
-                    <div>
-                      <div class="font-bold text-stone-900 text-sm truncate max-w-[100px] flex items-center gap-1">
+                    <div class="flex flex-col">
+                      <div class="font-bold text-stone-900 text-sm truncate max-w-[100px] flex items-center gap-1 leading-none">
                         <span class="truncate">{{ match.user_1?.display_name || 'Anonymous' }}</span>
                         <span v-if="match.user_1_paid || (match.user_1 && !requiresPayment(match.user_1, match.user_1_paid))" title="Payment Fulfilled" class="text-emerald-500 shrink-0">
                           <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
                         </span>
                       </div>
-                      <div class="text-[10px] text-stone-500 font-mono mt-0.5">{{ match.user_1?.phone }}</div>
+                      <div class="flex flex-col gap-0.5 mt-1 border-t border-stone-50 pt-1">
+                        <div class="text-[9px] text-stone-400 font-mono">{{ match.user_1?.phone }}</div>
+                        <div v-if="match.user_1?.intent" class="text-[8px] uppercase font-bold tracking-widest text-purple-600 bg-purple-50 px-1 py-0.5 rounded leading-none w-fit">
+                          {{ match.user_1.intent }}
+                        </div>
+                      </div>
                     </div>
                   </div>
                   
@@ -178,14 +184,19 @@
                       <img v-if="match.user_2?.photo_url" :src="match.user_2.photo_url" class="h-full w-full rounded-full object-cover" />
                       <span v-else class="text-xs">{{ match.user_2?.display_name?.charAt(0) || '?' }}</span>
                     </div>
-                    <div>
-                      <div class="font-bold text-stone-900 text-sm truncate max-w-[100px] flex items-center gap-1">
+                    <div class="flex flex-col">
+                      <div class="font-bold text-stone-900 text-sm truncate max-w-[100px] flex items-center gap-1 leading-none">
                         <span class="truncate">{{ match.user_2?.display_name || 'Anonymous' }}</span>
                         <span v-if="match.user_2_paid || (match.user_2 && !requiresPayment(match.user_2, match.user_2_paid))" title="Payment Fulfilled" class="text-emerald-500 shrink-0">
                           <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
                         </span>
                       </div>
-                      <div class="text-[10px] text-stone-500 font-mono mt-0.5">{{ match.user_2?.phone }}</div>
+                      <div class="flex flex-col gap-0.5 mt-1 border-t border-stone-50 pt-1">
+                        <div class="text-[9px] text-stone-400 font-mono">{{ match.user_2?.phone }}</div>
+                        <div v-if="match.user_2?.intent" class="text-[8px] uppercase font-bold tracking-widest text-emerald-600 bg-emerald-50 px-1 py-0.5 rounded leading-none w-fit">
+                          {{ match.user_2.intent }}
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -218,8 +229,31 @@
                     </svg>
                   </button>
                 </div>
-                <div v-if="match.status === 'pending_payment'" class="text-xs text-stone-400 mt-1 pl-1">
-                  GH₵{{ match.unlock_price }}
+                <div v-if="['pending_payment', 'partial_payment'].includes(match.status)" class="mt-1 ml-1 flex flex-col gap-1.5">
+                  <div class="flex items-center gap-2 text-[10px] font-bold tracking-tight">
+                    <span class="text-stone-400">GH₵{{ match.unlock_price }}</span>
+                    <span class="w-1 h-1 rounded-full bg-stone-200"></span>
+                    <div class="flex items-center gap-1 group/timer" :class="isExpiringSoon(match.expires_at, match.created_at) ? 'text-rose-600' : 'text-stone-400'">
+                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" :class="isExpiringSoon(match.expires_at, match.created_at) ? 'animate-pulse' : ''"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                      <span>{{ getTimeRemaining(match.expires_at, match.created_at) }}</span>
+                    </div>
+                  </div>
+                  <div class="flex items-center gap-1.5">
+                    <button 
+                      @click="extendExpiry(match)" 
+                      class="text-[9px] font-bold uppercase tracking-widest text-stone-400 hover:text-stone-700 hover:bg-stone-100 px-1.5 py-0.5 rounded transition-all border border-transparent hover:border-stone-200"
+                      title="Extend Expiry +24h"
+                    >
+                      +24h
+                    </button>
+                    <button 
+                      @click="expireMatch(match)" 
+                      class="text-[9px] font-bold uppercase tracking-widest text-stone-400 hover:text-red-600 hover:bg-red-50 px-1.5 py-0.5 rounded transition-all border border-transparent hover:border-red-100"
+                      title="Expire Match Now"
+                    >
+                      Expire
+                    </button>
+                  </div>
                 </div>
               </td>
               <td class="py-4 px-3 align-top pt-5">
@@ -350,7 +384,12 @@
              <div class="flex justify-between items-start mb-4">
                <div>
                   <div class="text-xs text-stone-500 mb-1">{{ formatDate(match.created_at) }}</div>
-                  <span class="badge" :class="getStatusClass(match.status)">{{ formatStatus(match.status) }}</span>
+                  <div class="flex items-center gap-2">
+                    <span class="badge" :class="getStatusClass(match.status)">{{ formatStatus(match.status) }}</span>
+                    <span v-if="['pending_payment', 'partial_payment'].includes(match.status)" class="flex items-center gap-1 text-[10px] font-bold" :class="isExpiringSoon(match.expires_at, match.created_at) ? 'text-rose-600 animate-pulse' : 'text-stone-400'">
+                      ⌛ {{ getTimeRemaining(match.expires_at, match.created_at) }}
+                    </span>
+                  </div>
                </div>
                <div class="flex flex-col items-end gap-1">
                   <button 
@@ -976,6 +1015,10 @@ const filters = reactive({
   search: ''
 })
 
+// Timer state for expiry countdown
+const now = ref(new Date())
+let nowInterval: any = null
+
 // Pagination State
 const currentPage = ref(1)
 const itemsPerPage = ref(10)
@@ -1268,11 +1311,17 @@ const fetchMatches = async () => {
 // Computed
 const filteredMatches = computed(() => {
   return matches.value.filter(m => {
-    // Filter by status
-    if (filters.status && m.status !== filters.status) return false
-    
     // Filter by feedback status
     if (filters.feedbackStatus && (m.feedback_status || 'pending') !== filters.feedbackStatus) return false
+
+    // Special Filter: Expiring Soon
+    if (filters.status === 'expiring_soon') {
+      if (!['pending_payment', 'partial_payment'].includes(m.status)) return false
+      return isExpiringSoon(m.expires_at, m.created_at)
+    }
+    
+    // Filter by status (ensure this is AFTER special filters)
+    if (filters.status && filters.status !== 'expiring_soon' && m.status !== filters.status) return false
     
     // Filter by search (name of either user)
     if (filters.search) {
@@ -1315,6 +1364,14 @@ const shouldShowEllipsis = (page: number) => {
   if (page === totalPages.value - 1 && currentPage.value < totalPages.value - 3) return true
   return false
 }
+
+// Enhanced match statistics
+const matchStats = computed(() => {
+  return {
+    pendingPayment: matches.value.filter(m => ['pending_payment', 'partial_payment'].includes(m.status)).length,
+    expiringSoon: matches.value.filter(m => ['pending_payment', 'partial_payment'].includes(m.status) && isExpiringSoon(m.expires_at, m.created_at)).length
+  }
+})
 
 // Feedback stats for unlocked matches
 const feedbackStats = computed(() => {
@@ -1380,6 +1437,39 @@ const getFeedbackClass = (status: string | null) => {
     case 'unmatched': return 'badge--gray'
     default: return 'badge--yellow'
   }
+}
+
+const getTimeRemaining = (expiresAt: string | null, createdAt?: string) => {
+  let expiry: Date
+  if (!expiresAt) {
+    if (!createdAt) return 'No Time'
+    expiry = new Date(new Date(createdAt).getTime() + 48 * 60 * 60 * 1000)
+  } else {
+    expiry = new Date(expiresAt)
+  }
+  const diff = expiry.getTime() - now.value.getTime()
+  
+  if (diff <= 0) return 'Expired'
+  
+  const days = Math.floor(diff / (1000 * 60 * 60 * 24))
+  const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60))
+  const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60))
+  
+  if (days > 0) return `${days}d ${hours}h`
+  if (hours > 0) return `${hours}h ${minutes}m`
+  return `${minutes}m`
+}
+
+const isExpiringSoon = (expiresAt: string | null, createdAt?: string) => {
+  let expiry: Date
+  if (!expiresAt) {
+    if (!createdAt) return false
+    expiry = new Date(new Date(createdAt).getTime() + 48 * 60 * 60 * 1000)
+  } else {
+    expiry = new Date(expiresAt)
+  }
+  const diff = expiry.getTime() - now.value.getTime()
+  return diff > 0 && diff < (6 * 60 * 60 * 1000) // Less than 6 hours
 }
 
 // Actions
@@ -1457,6 +1547,56 @@ const unlockMatch = async (match: any) => {
   }
 }
 
+const extendExpiry = async (match: any) => {
+  if (!confirm('Add 24h extension to this match?')) return
+  
+  // Calculate new expiry
+  const currentExpiry = match.expires_at ? new Date(match.expires_at) : new Date(new Date(match.created_at).getTime() + 48 * 60 * 60 * 1000)
+  const newExpiry = new Date(currentExpiry.getTime() + 24 * 60 * 60 * 1000).toISOString()
+  
+  try {
+    const { error } = await supabase
+      .from('matches')
+      .update({ expires_at: newExpiry } as any)
+      .eq('id', match.id)
+      
+    if (error) throw error
+    
+    // Update local state
+    const index = matches.value.findIndex(m => m.id === match.id)
+    if (index !== -1) {
+      matches.value[index].expires_at = newExpiry
+    }
+  } catch (e) {
+    alert('Failed to extend expiry')
+  }
+}
+
+const expireMatch = async (match: any) => {
+  if (!confirm('Are you sure you want to EXPIRE this match immediately?')) return
+  
+  try {
+    const { error } = await supabase
+      .from('matches')
+      .update({ 
+        status: 'expired',
+        expires_at: new Date().toISOString() 
+      } as any)
+      .eq('id', match.id)
+      
+    if (error) throw error
+    
+    // Update local state
+    const index = matches.value.findIndex(m => m.id === match.id)
+    if (index !== -1) {
+      matches.value[index].status = 'expired'
+      matches.value[index].expires_at = new Date().toISOString()
+    }
+  } catch (e) {
+    alert('Failed to expire match')
+  }
+}
+
 const confirmDelete = async (match: any) => {
   if (!confirm('Are you sure you want to delete this match? This cannot be undone.')) return
   
@@ -1476,6 +1616,13 @@ const confirmDelete = async (match: any) => {
 
 onMounted(() => {
   fetchMatches()
+  nowInterval = setInterval(() => {
+    now.value = new Date()
+  }, 60000)
+})
+
+onUnmounted(() => {
+  if (nowInterval) clearInterval(nowInterval)
 })
 </script>
 
