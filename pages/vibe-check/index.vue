@@ -131,19 +131,30 @@
               <UiDatePicker 
                 v-model="form.birthDate" 
                 placeholder="Select your birthday"
-                class="font-mono text-sm"
+                class="font-mono text-sm h-[52px]"
                 forBirthday
               />
             </div>
             <div class="space-y-2">
               <label class="block text-xs font-bold uppercase tracking-widest text-stone-900">City</label>
               <div class="relative">
-                <select v-model="form.location" class="w-full px-4 py-3 rounded-lg border-2 border-stone-200 bg-white focus:outline-none focus:border-black transition-all appearance-none font-bold text-sm">
+                <select v-model="form.location" class="w-full px-4 h-[52px] rounded-xl border border-stone-200 dark:border-stone-700 bg-stone-50 dark:bg-stone-900 focus:bg-white dark:focus:bg-stone-800 transition-all appearance-none font-bold text-sm focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-stone-500">
                   <option value="">Select...</option>
                   <option value="accra">Accra</option>
                   <option value="kumasi">Kumasi</option>
                   <option value="tamale">Tamale</option>
                   <option value="takoradi">Takoradi</option>
+                  <option value="tema">Tema</option>
+                  <option value="cape_coast">Cape Coast</option>
+                  <option value="sekondi">Sekondi</option>
+                  <option value="koforidua">Koforidua</option>
+                  <option value="sunyani">Sunyani</option>
+                  <option value="wa">Wa</option>
+                  <option value="ho">Ho</option>
+                  <option value="bolgatanga">Bolgatanga</option>
+                  <option value="techiman">Techiman</option>
+                  <option value="obuasi">Obuasi</option>
+                  <option value="tarkwa">Tarkwa</option>
                   <option value="other">Other</option>
                 </select>
                 <div class="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-xs">▼</div>
@@ -261,7 +272,10 @@
           <div class="space-y-2">
             <label class="block text-xs font-bold uppercase tracking-widest text-stone-900 border-b border-black pb-1 mb-2 inline-block">Phone Number</label>
             <div class="flex items-center w-full px-4 py-3 rounded-lg border-2 border-stone-200 bg-white focus-within:ring-0 focus-within:border-black transition-all group hover:border-stone-400 relative">
-              <span class="font-bold text-stone-900 select-none mr-3 border-r-2 border-stone-200 pr-3 font-mono">+233</span>
+              <span class="flex items-center gap-1 font-bold text-stone-900 select-none mr-3 border-r-2 border-stone-200 pr-3 font-mono">
+                <span>🇬🇭</span>
+                <span>+233</span>
+              </span>
               <input
                 type="tel"
                 inputmode="numeric"

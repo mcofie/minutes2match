@@ -3,7 +3,7 @@
     <!-- Trigger Input -->
     <div 
       @click="togglePopover"
-      class="w-full px-4 py-3 rounded-xl border border-stone-200 dark:border-stone-700 bg-stone-50 dark:bg-stone-900 hover:bg-white dark:hover:bg-stone-800 focus-within:bg-white dark:focus-within:bg-stone-800 focus-within:ring-2 focus-within:ring-black dark:focus-within:ring-stone-500 focus-within:border-transparent transition-all cursor-pointer flex items-center justify-between group"
+      class="w-full h-full px-4 py-3 rounded-xl border border-stone-200 dark:border-stone-700 bg-stone-50 dark:bg-stone-900 hover:bg-white dark:hover:bg-stone-800 focus-within:bg-white dark:focus-within:bg-stone-800 focus-within:ring-2 focus-within:ring-black dark:focus-within:ring-stone-500 focus-within:border-transparent transition-all cursor-pointer flex items-center justify-between group"
       :class="{ 'ring-2 ring-black dark:ring-stone-500 bg-white dark:bg-stone-800 border-transparent': isOpen }"
     >
       <span v-if="modelValue" class="font-medium text-stone-900 dark:text-stone-100">{{ formattedValue }}</span>

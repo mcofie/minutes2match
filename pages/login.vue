@@ -50,7 +50,10 @@
             <div class="space-y-2">
               <label class="block text-xs font-bold uppercase tracking-widest text-stone-900">Phone Number</label>
               <div class="flex items-center w-full px-4 py-4 border-2 border-stone-200 rounded-[16px] bg-white focus-within:ring-0 focus-within:border-black transition-all group hover:border-stone-400 relative">
-                <span class="font-bold text-stone-900 select-none mr-3 border-r-2 border-stone-100 pr-3 font-mono text-lg">+233</span>
+                <span class="flex items-center gap-1 font-bold text-stone-900 select-none mr-3 border-r-2 border-stone-100 pr-3 font-mono text-lg">
+                  <span>🇬🇭</span>
+                  <span>+233</span>
+                </span>
                 <input
                   type="tel"
                   inputmode="numeric"

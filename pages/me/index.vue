@@ -1044,7 +1044,7 @@ const availableInterests = [
 ]
 
 const ghanaLocations = [
-  'Accra', 'East Legon', 'Osu', 'Cantonments', 'Spintex', 'Airport Residential', 'Labone', 'Dzorwulu', 'Madina', 'Adenta', 'Tema', 'Kumasi', 'Tamale', 'Takoradi', 'Cape Coast', 'Koforidua', 'Sunyani', 'Ho', 'Wa'
+  'Accra', 'East Legon', 'Osu', 'Cantonments', 'Spintex', 'Airport Residential', 'Labone', 'Dzorwulu', 'Madina', 'Adenta', 'Tema', 'Kumasi', 'Tamale', 'Takoradi', 'Sekondi', 'Cape Coast', 'Koforidua', 'Sunyani', 'Ho', 'Wa', 'Bolgatanga', 'Techiman', 'Obuasi', 'Tarkwa'
 ]
 
 const commonOccupations = [
