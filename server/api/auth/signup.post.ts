@@ -27,6 +27,7 @@ export default defineEventHandler(async (event) => {
         heightCm,
         occupation,
         vibeAnswers,
+        vibeDimensions,
         referralCode, // Optional referral code from URL
         telegramId,
         photoUrl
@@ -156,12 +157,14 @@ export default defineEventHandler(async (event) => {
 
         if (profileError) throw profileError
 
+
         // 3. Save Vibe Answers
         if (vibeAnswers && Object.keys(vibeAnswers).length > 0) {
             const vibeEntries = Object.entries(vibeAnswers).map(([key, value]) => ({
                 user_id: userId,
                 question_key: key,
-                answer_value: value
+                answer_value: value,
+                dimension: vibeDimensions?.[key] || null
             }))
 
             await supabaseAdmin

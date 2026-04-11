@@ -127,20 +127,44 @@ export const calculateCompatibility = (
 
     const answers1 = new Map(ans1List.map(a => [a.question_key, a.answer]))
     const answers2 = new Map(ans2List.map(a => [a.question_key, a.answer]))
+    
+    // Create Dimension Maps for easier lookup of randomized questions
+    // In the new system, we store the dimension alongside the answer
+    const dims1 = new Map((ans1List as any[]).map(a => [a.dimension || a.question_key, a.answer]))
+    const dims2 = new Map((ans2List as any[]).map(a => [a.dimension || a.question_key, a.answer]))
 
     // 2. VIBE MATCH (40 pts)
     let vibePoints = 0
     let maxVibeWeight = 0
 
-    for (const [key, weight] of Object.entries(DIMENSION_WEIGHTS)) {
-        const a1 = answers1.get(key)
-        const a2 = answers2.get(key)
+    // Dimensions to check (mapping to DIMENSION_WEIGHTS)
+    const dimensionsToCheck = [
+        { dim: 'love_language', weight: 10 },
+        { dim: 'communication', weight: 5 },
+        { dim: 'life_goals', weight: 12 },
+        { dim: 'social', weight: 8 },
+        { dim: 'pace', weight: 5 }
+    ]
+
+    for (const { dim, weight } of dimensionsToCheck) {
+        // Try to get by dimension first (new randomized system)
+        // Fallback to legacy keys (old data)
+        const keyMap: Record<string, string> = {
+            'communication': 'conflict_style',
+            'life_goals': 'life_priority',
+            'social': 'social_energy',
+            'pace': 'relationship_pace'
+        }
+        
+        const a1 = dims1.get(dim) || answers1.get(keyMap[dim] || dim)
+        const a2 = dims2.get(dim) || answers2.get(keyMap[dim] || dim)
+        
         if (a1 && a2) {
             maxVibeWeight += weight
             if (a1 === a2) {
                 vibePoints += weight
-            } else if (COMPATIBILITY_MAP[key]?.[a1]?.includes(a2)) {
-                vibePoints += weight * 0.5 // Lowered partial credit for tighter results
+            } else if (COMPATIBILITY_MAP[dim]?.[a1]?.includes(a2) || COMPATIBILITY_MAP[keyMap[dim] || dim]?.[a1]?.includes(a2)) {
+                vibePoints += weight * 0.5 
             }
         }
     }

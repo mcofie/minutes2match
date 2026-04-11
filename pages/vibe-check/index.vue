@@ -501,6 +501,7 @@ const pickVibeContact = async () => {
 }
 
 const vibeAnswers = reactive<Record<string, string>>({})
+const vibeDimensions = reactive<Record<string, string>>({})
 const currentStep = ref(1)
 const totalSteps = 11
 const totalQuestions = 7 // 5 core + 2 bonus
@@ -535,7 +536,7 @@ interface VibeQuestion {
   display_order: number
   is_active: boolean
   is_core?: boolean
-  dimension?: string
+  dimension: string
 }
 
 const activeQuestions = ref<VibeQuestion[]>([])
@@ -551,41 +552,47 @@ const fetchVibeQuestions = async () => {
       .from('questions')
       .select('*')
       .eq('is_active', true)
-      .order('display_order', { ascending: true })
     
     if (error) throw error
     
     if (data && data.length > 0) {
-      // Separate core and bonus questions
-      const coreQuestions = data.filter((q: any) => q.is_core === true)
-      const bonusQuestions = data.filter((q: any) => q.is_core !== true)
+      // Dimension Pooling Logic: Ensures users answer one from each core dimension
+      const coreDimensions = ['love_language', 'communication', 'social', 'life_goals', 'pace']
+      const finalQuestions: any[] = []
       
-      // Take all core questions (5) and 2 random bonus questions
-      const shuffledBonus = [...bonusQuestions].sort(() => 0.5 - Math.random())
-      const selectedBonus = shuffledBonus.slice(0, 2)
+      // 1. Pick 1 random question for each CORE dimension
+      for (const dim of coreDimensions) {
+          const dimPool = data.filter((q: any) => q.dimension === dim && q.is_core === true)
+          if (dimPool.length > 0) {
+              const selected = dimPool[Math.floor(Math.random() * dimPool.length)]
+              finalQuestions.push(selected)
+          }
+      }
       
-      // Combine: all cores first, then bonus
-      activeQuestions.value = [...coreQuestions, ...selectedBonus] as any
+      // 2. Pick 2 random BONUS questions from non-core dimensions
+      const bonusPool = data.filter((q: any) => q.is_core === false)
+      const shuffledBonus = [...bonusPool].sort(() => 0.5 - Math.random())
+      finalQuestions.push(...shuffledBonus.slice(0, 2))
+      
+      activeQuestions.value = finalQuestions as any
     }
   } catch (err) {
     console.error('Failed to fetch questions:', err)
     // Enhanced fallback questions covering key dimensions
     activeQuestions.value = [
       // Core questions fallback
-      { key: 'love_language', question: 'How do you most feel loved?', category: 'romance', options: ['Words of Affirmation 💬', 'Acts of Service 🛠️', 'Gifts 🎁', 'Quality Time ⏰', 'Physical Touch 🫂'], display_order: 1, is_active: true, is_core: true },
-      { key: 'conflict_style', question: 'When we disagree, I prefer to...', category: 'values', options: ['Talk it out immediately 🗣️', 'Take space first 🧘', 'Find a quick compromise 🤝'], display_order: 2, is_active: true, is_core: true },
-      { key: 'social_energy', question: 'On a scale of homebody to social butterfly, I am...', category: 'lifestyle', options: ['Full homebody 🛋️', 'Balanced ⚖️', 'Life of the party 🦋'], display_order: 3, is_active: true, is_core: true },
-      { key: 'life_priority', question: 'In 5 years, my biggest priority is...', category: 'values', options: ['Career & wealth 💼', 'Family 👨‍👩‍👧', 'Travel & experiences 🌍'], display_order: 4, is_active: true, is_core: true },
-      { key: 'relationship_pace', question: 'When it comes to relationships, I prefer to...', category: 'romance', options: ['Take it slow 🐢', 'Go with the flow 🌊', 'Move with intention 🎯'], display_order: 5, is_active: true, is_core: true },
+      { key: 'love_language', question: 'How do you most feel loved?', category: 'romance', options: ['Words of Affirmation - Tell me you love me 💬', 'Acts of Service - Do things for me 🛠️', 'Receiving Gifts - Surprise me with something 🎁', 'Quality Time - Give me your undivided attention ⏰', 'Physical Touch - Hold me, hug me 🫂'], display_order: 1, is_active: true, is_core: true, dimension: 'love_language' },
+      { key: 'conflict_style', question: 'When we disagree, I prefer to...', category: 'values', options: ['Talk it out immediately - Let\'s resolve this now 🗣️', 'Take space first - I need time to process 🧘', 'Find a quick compromise - Let\'s meet in the middle 🤝', 'Avoid confrontation - It\'ll blow over 😶', 'Write it out - Texting is easier 📝'], display_order: 2, is_active: true, is_core: true, dimension: 'communication' },
+      { key: 'social_energy', question: 'On a scale of homebody to social butterfly, I am...', category: 'lifestyle', options: ['Full homebody - My couch is my bestie 🛋️', 'Mostly introverted - Small gatherings only 🏠', 'Balanced - Depends on my mood ⚖️', 'Mostly extroverted - I love being out 🌟', 'Life of the party - Where\'s the next event? 🦋'], display_order: 3, is_active: true, is_core: true, dimension: 'social' },
+      { key: 'life_priority', question: 'In 5 years, my biggest priority is...', category: 'values', options: ['Building my career and wealth 💼', 'Starting or growing a family 👨‍👩‍👧', 'Traveling and experiencing life 🌍', 'Finding inner peace and balance 🧘', 'Making an impact in my community 🌱'], display_order: 4, is_active: true, is_core: true, dimension: 'life_goals' },
+      { key: 'relationship_pace', question: 'When it comes to relationships, I prefer to...', category: 'romance', options: ['Take it slow - Let\'s be friends first 🐢', 'Go with the flow - See where it goes 🌊', 'Move with intention - I know what I want 🎯', 'Move fast if it feels right - Life is short 🚀'], display_order: 5, is_active: true, is_core: true, dimension: 'pace' },
       // Bonus questions fallback
-      { key: 'weekend_vibe', question: 'It\'s Friday night. What\'s the move?', category: 'lifestyle', options: ['Clubbing 🪩', 'Netflix 🍿', 'Dinner with friends 🍽️'], display_order: 10, is_active: true, is_core: false },
-      { key: 'music_taste', question: 'Pass the aux cord. What are we playing?', category: 'fun', options: ['Afrobeats 🇬🇭', 'Amapiano 🎹', 'R&B 🎷', 'Gospel 🙏'], display_order: 11, is_active: true, is_core: false }
+      { key: 'weekend_vibe', question: 'It\'s Friday night. What\'s the move?', category: 'lifestyle', options: ['Clubbing / Party 🪩', 'Netflix & Chill 🍿', 'Dinner with friends 🍽️'], display_order: 10, is_active: true, is_core: false, dimension: 'lifestyle' },
+      { key: 'music_taste', question: 'Pass the aux cord. What are we playing?', category: 'fun', options: ['Afrobeats 🇬🇭', 'Amapiano 🎹', 'R&B 🎷'], display_order: 11, is_active: true, is_core: false, dimension: 'culture' }
     ]
   } finally {
     loadingQuestions.value = false
   }
-}
-
 // OTP state
 const otpSent = ref(false)
 const otpCode = ref('')
@@ -678,6 +685,12 @@ const nextStep = async () => {
 
 const handleVibeSelect = (key: string, value: string) => {
   vibeAnswers[key] = value
+  // Track dimension for accurate matching
+  const q = activeQuestions.value.find(q => q.key === key)
+  if (q?.dimension) {
+    vibeDimensions[key] = q.dimension
+  }
+  
   hapticFeedback('medium')
   setTimeout(() => {
     if (currentStep.value < 9) {
@@ -891,7 +904,8 @@ const updateUserProfile = async (explicitUserId?: string) => {
     const vibeEntries = Object.entries(vibeAnswers).map(([key, value]) => ({
         user_id: userId,
         question_key: key,
-        answer_value: value
+        answer_value: value,
+        dimension: vibeDimensions[key] || null
     }))
 
     const { error: vibeError } = await supabase
@@ -926,6 +940,7 @@ const createUserProfile = async () => {
         heightCm: form.height,
         occupation: form.occupation || null,
         vibeAnswers,
+        vibeDimensions,
         telegramId: (isTMA.value && tgUser.value) ? tgUser.value.id.toString() : undefined,
         photoUrl: (isTMA.value && tgUser.value?.photo_url) ? tgUser.value.photo_url : undefined
       }
