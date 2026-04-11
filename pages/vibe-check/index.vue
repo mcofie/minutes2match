@@ -593,6 +593,7 @@ const fetchVibeQuestions = async () => {
   } finally {
     loadingQuestions.value = false
   }
+}
 // OTP state
 const otpSent = ref(false)
 const otpCode = ref('')
@@ -708,7 +709,13 @@ const handleSendOtp = async () => {
   
   try {
     // First check if this is a seeded/verified user who can skip OTP
-    const checkResult = await $fetch<any>('/api/auth/check-existing-user', {
+    const checkResult = await $fetch<{
+      exists: boolean
+      requiresOtp: boolean
+      email?: string
+      password?: string
+      displayName?: string
+    }>('/api/auth/check-existing-user', {
       method: 'POST',
       body: { phone: fullPhone.value }
     })
@@ -879,6 +886,7 @@ const updateUserProfile = async (explicitUserId?: string) => {
 
   // Update profile fields
   const { error: profileError } = await supabase
+    .schema('m2m')
     .from('profiles')
     .update({
       display_name: form.displayName.trim(),
@@ -909,6 +917,7 @@ const updateUserProfile = async (explicitUserId?: string) => {
     }))
 
     const { error: vibeError } = await supabase
+        .schema('m2m')
         .from('vibe_answers')
         .upsert(vibeEntries, { onConflict: 'user_id,question_key' })
         

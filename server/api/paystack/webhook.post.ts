@@ -181,7 +181,7 @@ export default defineEventHandler(async (event) => {
             await handleEventTicketPayment(supabase, metadata)
         } else if (metadata.purpose === 'match_unlock') {
             console.log('[Webhook] Processing match_unlock payment')
-            await handleMatchUnlockPayment(supabase, metadata, config)
+            await handleMatchUnlockPayment(supabase, data, metadata, config)
         } else if (metadata.purpose === 'subscription') {
             console.log('[Webhook] Processing subscription payment')
             await handleSubscriptionPayment(supabase, metadata)
@@ -265,7 +265,7 @@ async function handleEventTicketPayment(supabase: any, metadata: any) {
  * Handle match unlock payment with MUTUAL PAYMENT REQUIREMENT
  * Match is only fully revealed when BOTH users have paid
  */
-async function handleMatchUnlockPayment(supabase: any, metadata: any, config: any) {
+async function handleMatchUnlockPayment(supabase: any, data: any, metadata: any, config: any) {
     const matchId = metadata.matchId
     const payingUserId = metadata.userId
 

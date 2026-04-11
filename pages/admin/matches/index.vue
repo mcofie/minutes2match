@@ -1556,6 +1556,7 @@ const extendExpiry = async (match: any) => {
   
   try {
     const { error } = await supabase
+      .schema('m2m')
       .from('matches')
       .update({ expires_at: newExpiry } as any)
       .eq('id', match.id)
@@ -1577,6 +1578,7 @@ const expireMatch = async (match: any) => {
   
   try {
     const { error } = await supabase
+      .schema('m2m')
       .from('matches')
       .update({ 
         status: 'expired',
@@ -1602,6 +1604,7 @@ const confirmDelete = async (match: any) => {
   
   try {
     const { error } = await supabase
+      .schema('m2m')
       .from('matches')
       .delete()
       .eq('id', match.id)

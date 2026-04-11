@@ -53,13 +53,13 @@ export default defineEventHandler(async (event) => {
     }
 
     // 3. Logic
-    const incompleteProfiles = (profiles || []).filter((profile) => {
+    const incompleteProfiles = (profiles || []).filter((profile: any) => {
         const missingFields = REQUIRED_FIELDS.filter(field => {
             const value = profile[field as keyof typeof profile]
             return !value || (typeof value === 'string' && value.trim() === '')
         })
         return missingFields.length >= MIN_MISSING_FIELDS
-    }).map((profile) => {
+    }).map((profile: any) => {
         const missingFields = REQUIRED_FIELDS.filter(field => {
             const value = profile[field as keyof typeof profile]
             return !value || (typeof value === 'string' && value.trim() === '')
@@ -76,7 +76,7 @@ export default defineEventHandler(async (event) => {
             success: true,
             dryRun: true,
             totalIncomplete: incompleteProfiles.length,
-            profiles: incompleteProfiles.map((p) => ({
+            profiles: incompleteProfiles.map((p: any) => ({
                 id: p.id,
                 phone: p.phone,
                 displayName: p.display_name || 'Unknown',

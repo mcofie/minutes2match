@@ -68,6 +68,7 @@ export default defineEventHandler(async (event) => {
 
     let processedCount = 0
     let creditedCount = 0
+    let totalRefunded = 0
 
     for (const match of expiredMatches) {
         try {
@@ -117,6 +118,7 @@ export default defineEventHandler(async (event) => {
 
                     if (creditResult.success) {
                         creditedCount++
+                        totalRefunded += refundAmount
                         console.log(`[Cron:ExpireMatches] ✅ Credited ${payingUserName || payingUserId}: GHS ${refundAmount} → Balance: GHS ${creditResult.newBalance}`)
 
                         // Notify the paying user about their credit
