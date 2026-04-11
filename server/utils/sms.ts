@@ -33,31 +33,34 @@ export async function sendSMS(
     // Errors tracker
     let hubtelError: string | null = null
 
-const tryTelegram = async () => {
-    try {
-        const supabase = createClient(
-            config.supabaseUrl || '',
-            config.supabaseServiceKey || '',
-            { auth: { persistSession: false } }
-        );
+    const tryTelegram = async () => {
+        try {
+            // Lazy load supabase ONLY if we need it
+            if (!config.supabaseUrl || !config.supabaseServiceKey) return null
 
-        const { data: profile } = await supabase
-            .schema('m2m')
-            .from('profiles')
-            .select('telegram_id')
-            .eq('phone', normalizedPhone)
-            .single();
+            const supabase = createClient(
+                config.supabaseUrl,
+                config.supabaseServiceKey,
+                { auth: { persistSession: false } }
+            );
 
-        if (profile?.telegram_id) {
-            console.log(`[SMS] User has Telegram linked. Routing message via Telegram Bot for ${normalizedPhone}...`);
-            await sendTelegramMessage(profile.telegram_id, cleanMessage);
-            return { success: true, provider: 'telegram', id: 'tg_' + Date.now() };
+            const { data: profile } = await supabase
+                .schema('m2m')
+                .from('profiles')
+                .select('telegram_id')
+                .eq('phone', normalizedPhone)
+                .maybeSingle();
+
+            if (profile?.telegram_id) {
+                console.log(`[SMS] User has Telegram linked. Routing message via Telegram Bot for ${normalizedPhone}...`);
+                await sendTelegramMessage(profile.telegram_id, cleanMessage);
+                return { success: true, provider: 'telegram', id: 'tg_' + Date.now() };
+            }
+        } catch (err: any) {
+            console.warn(`[SMS] Telegram routing failed for ${normalizedPhone}: ${err.message}.`);
         }
-    } catch (err: any) {
-        console.warn(`[SMS] Telegram routing failed or unsupported for ${normalizedPhone}: ${err.message}. Falling back to standard SMS...`);
+        return null;
     }
-    return null;
-}
 
 // 1. Try Telegram First (Fastest, Free, Rich Text)
 if (provider !== 'hubtel' && provider !== 'zend') {

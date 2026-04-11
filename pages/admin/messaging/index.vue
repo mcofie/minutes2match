@@ -410,15 +410,17 @@ const sendMessages = async () => {
     const recipients = selectedUsers.value
       .filter(u => u.phone)
       .map(u => ({
+        id: u.id,
         phone: u.phone,
-        name: u.display_name || 'there'
+        name: u.display_name || ''
       }))
 
-    // Call bulk SMS API (no rate limiting)
+    // Call bulk SMS API (server handles history logging in bulk)
     const result = await $fetch<{
       success: boolean
+      broadcastId: string
       summary: { total: number; sent: number; failed: number }
-      results: Array<{ phone: string; success: boolean; error?: string }>
+      results: Array<{ id: string; phone: string; success: boolean; error?: string }>
     }>('/api/admin/bulk-sms', {
       method: 'POST',
       headers: {
@@ -432,34 +434,10 @@ const sendMessages = async () => {
 
     sentCount.value = result.summary.sent
     const failedCount = result.summary.failed
-
-    // Log each message to SMS history
-    for (const recipient of selectedUsers.value) {
-      if (recipient.phone) {
-        const smsResult = result.results.find(r => r.phone.includes(recipient.phone.replace(/^\+233/, '')))
-        const status = smsResult?.success ? 'sent' : 'failed'
-        const personalizedMessage = message.value.replace('{name}', recipient.display_name || 'there')
-        
-        try {
-          // @ts-ignore
-          await supabase.from('sms_history').insert({
-            recipient_id: recipient.id,
-            recipient_phone: recipient.phone,
-            recipient_name: recipient.display_name,
-            message: personalizedMessage,
-            status,
-            broadcast_id: broadcastId,
-            sent_by: user.value?.id
-          })
-        } catch (dbError) {
-          console.error('Failed to log SMS:', dbError)
-        }
-      }
-    }
     
-    // Log the broadcast locally
+    // Log the broadcast locally for the UI
     broadcasts.value.unshift({
-      id: broadcastId,
+      id: result.broadcastId || broadcastId,
       message: message.value,
       count: sentCount.value,
       sent_at: new Date().toISOString()
@@ -467,6 +445,9 @@ const sendMessages = async () => {
     
     // Show success/partial success message
     if (failedCount > 0) {
+      if (sentCount.value === 0) {
+        throw new Error('All messages failed to send. Check logs.')
+      }
       successMessage.value = `Sent ${sentCount.value} messages (${failedCount} failed)`
     } else {
       successMessage.value = `Sent ${sentCount.value} messages successfully!`
@@ -481,7 +462,7 @@ const sendMessages = async () => {
     
   } catch (error: any) {
     console.error('Broadcast error:', error)
-    alert(error.data?.message || 'Failed to send messages. Please try again.')
+    alert(error.data?.message || error.message || 'Failed to send messages. Please try again.')
   } finally {
     sending.value = false
     sentCount.value = 0

@@ -10,19 +10,19 @@ import { serverSupabaseServiceRole, serverSupabaseUser } from '#supabase/server'
 import type { M2MDatabase } from '~/types/database.types'
 
 interface SMSRecipient {
+    id: string
     phone: string
     name?: string
 }
 
 interface SMSResult {
+    id: string
     phone: string
     success: boolean
     messageId?: string
     error?: string
+    provider?: string
 }
-
-// Max recipients per bulk API call (Zend may have its own limits)
-const BULK_BATCH_SIZE = 100
 
 async function delay(ms: number): Promise<void> {
     return new Promise(resolve => setTimeout(resolve, ms))
@@ -46,16 +46,10 @@ export default defineEventHandler(async (event) => {
         .eq('id', user.id)
         .maybeSingle()
 
-    // Fallback for primary developer if not in DB yet
     const isDevAdmin = user.email === 'maxcofie@gmail.com'
-
     if (!adminRecord && !isDevAdmin) {
         console.warn(`[Admin] Denied access to ${user.email} (${user.id})`)
         throw createError({ statusCode: 403, message: 'Admin access required' })
-    }
-
-    if (isDevAdmin && !adminRecord) {
-        console.log(`[Admin] Developer bypass granted for ${user.email}`)
     }
 
     // 3. Parse request body
@@ -70,83 +64,104 @@ export default defineEventHandler(async (event) => {
         throw createError({ statusCode: 400, message: 'Message is required' })
     }
 
-    if (recipients.length > 500) {
-        throw createError({ statusCode: 400, message: 'Maximum 500 recipients per batch' })
+    if (recipients.length > 1000) {
+        throw createError({ statusCode: 400, message: 'Maximum 1000 recipients per batch' })
     }
 
-    // Validate Zend credentials
-    if (!config.zendApiKey) {
-        throw createError({ statusCode: 500, message: 'Zend API key not configured' })
-    }
+    console.log(`[Bulk SMS] Starting broadcast to ${recipients.length} recipients...`)
 
-    console.log(`[Bulk SMS] Starting batch of ${recipients.length} messages via orchestrated providers`)
-
-    // Process messages - use unified sendSMS for Hubtel primary + Zend fallback
+    const broadcastId = crypto.randomUUID()
     const results: SMSResult[] = []
+    const historyToInsert: any[] = []
+    
     let successCount = 0
     let failCount = 0
 
-    // Process in batches of 10 to avoid overwhelming providers or timing out
-    const EXECUTION_BATCH_SIZE = 10
+    // Process in batches to balance speed and stability
+    const BATCH_SIZE = 10
+    const INTER_BATCH_DELAY = 150 // ms
 
-    for (let i = 0; i < recipients.length; i += EXECUTION_BATCH_SIZE) {
-        const batch = recipients.slice(i, i + EXECUTION_BATCH_SIZE)
-
+    for (let i = 0; i < recipients.length; i += BATCH_SIZE) {
+        const batch = recipients.slice(i, i + BATCH_SIZE)
+        
         const batchPromises = batch.map(async (recipient) => {
             if (!recipient.phone) {
-                return { phone: 'unknown', success: false, error: 'No phone number' }
+                return { id: recipient.id, phone: 'unknown', success: false, error: 'No phone number' } as SMSResult
             }
 
             try {
-                // Use the unified sendSMS utility which handles:
-                // 1. Normalization
-                // 2. Hubtel Primary
-                // 3. Zend Fallback
-                // 4. Emoji stripping
                 const personalizedMessage = recipient.name
                     ? message.replace(/\{name\}/g, recipient.name)
                     : message
 
+                // Use the orchestrator (Telegram -> Hubtel -> Zend)
                 const result = await sendSMS(recipient.phone, personalizedMessage, { priority: 'normal' })
 
                 return {
+                    id: recipient.id,
                     phone: recipient.phone,
                     success: true,
                     messageId: result.id,
                     provider: result.provider
-                }
+                } as SMSResult
             } catch (error: any) {
-                console.error(`[Bulk SMS] Failed to send to ${recipient.phone}:`, error.message)
+                console.error(`[Bulk SMS] Failed for ${recipient.phone}:`, error.message)
                 return {
+                    id: recipient.id,
                     phone: recipient.phone,
                     success: false,
-                    error: error.message || 'Failed to send'
-                }
+                    error: error.message || 'Failed'
+                } as SMSResult
             }
         })
 
         const batchResults = await Promise.all(batchPromises)
 
-        for (const res of batchResults) {
+        for (let j = 0; j < batchResults.length; j++) {
+            const res = batchResults[j]
+            const recipient = batch[j]
+            
             results.push(res)
-            if (res.success) {
-                successCount++
-            } else {
-                failCount++
-            }
+            
+            if (res.success) successCount++
+            else failCount++
+
+            // Prepare history log
+            historyToInsert.push({
+                recipient_id: recipient.id,
+                recipient_phone: recipient.phone,
+                recipient_name: recipient.name,
+                message: recipient.name ? message.replace(/\{name\}/g, recipient.name) : message,
+                status: res.success ? 'sent' : 'failed',
+                broadcast_id: broadcastId,
+                sent_by: user.id
+            })
         }
 
-        // Small delay between execution batches
-        if (i + EXECUTION_BATCH_SIZE < recipients.length) {
-            await delay(200)
+        // Add a small delay between batches
+        if (i + BATCH_SIZE < recipients.length) {
+            await delay(INTER_BATCH_DELAY)
         }
     }
 
-    // Log progress
-    console.log(`[Bulk SMS] Completed: ${successCount} success, ${failCount} failed out of ${recipients.length}`)
+    // Bulk Log to DB
+    if (historyToInsert.length > 0) {
+        console.log(`[Bulk SMS] Logging ${historyToInsert.length} history records...`)
+        const { error: logError } = await supabase
+            .schema('m2m')
+            .from('sms_history')
+            .insert(historyToInsert)
+        
+        if (logError) {
+            console.error('[Bulk SMS] Failed to log history:', logError)
+        }
+    }
+
+    console.log(`[Bulk SMS] Broadcast ${broadcastId} finished: ${successCount} success, ${failCount} failed.`)
 
     return {
         success: true,
+        broadcastId,
         summary: {
             total: recipients.length,
             sent: successCount,
