@@ -42,6 +42,8 @@ export default defineEventHandler(async (event) => {
             user_2_id,
             user_1_paid,
             user_2_paid,
+            user_1_amount_paid,
+            user_2_amount_paid,
             unlock_price,
             status,
             expires_at,
@@ -81,30 +83,33 @@ export default defineEventHandler(async (event) => {
             // Determine who paid and who didn't
             const user1Paid = match.user_1_paid
             const user2Paid = match.user_2_paid
-            const unlockPrice = parseFloat(match.unlock_price) || 0
+            
+            // Get actual amounts paid
+            const user1AmountPaid = parseFloat(match.user_1_amount_paid as any) || 0
+            const user2AmountPaid = parseFloat(match.user_2_amount_paid as any) || 0
 
             // Credit the paying user if only one person paid (partial_payment)
-            // Only apply to the GHS 15 tier
-            if (match.status === 'partial_payment' && unlockPrice === CREDIT_ELIGIBLE_PRICE) {
+            // Only apply if they actually paid a positive amount (Free matches don't get refunds)
+            if (match.status === 'partial_payment') {
                 let payingUserId: string | null = null
                 let payingUserName: string | null = null
-                let unpaidUserId: string | null = null
+                let refundAmount = 0
 
-                if (user1Paid && !user2Paid) {
+                if (user1Paid && !user2Paid && user1AmountPaid > 0) {
                     payingUserId = match.user_1_id
                     payingUserName = user1Profile?.display_name
-                    unpaidUserId = match.user_2_id
-                } else if (user2Paid && !user1Paid) {
+                    refundAmount = user1AmountPaid
+                } else if (user2Paid && !user1Paid && user2AmountPaid > 0) {
                     payingUserId = match.user_2_id
                     payingUserName = user2Profile?.display_name
-                    unpaidUserId = match.user_1_id
+                    refundAmount = user2AmountPaid
                 }
 
-                if (payingUserId) {
+                if (payingUserId && refundAmount > 0) {
                     // Credit the paying user
                     const creditResult = await creditUser(
                         payingUserId,
-                        unlockPrice,
+                        refundAmount,
                         'match_expired_refund',
                         match.id,
                         `Refund: Match expired — partner did not unlock within 48 hours`
@@ -112,12 +117,12 @@ export default defineEventHandler(async (event) => {
 
                     if (creditResult.success) {
                         creditedCount++
-                        console.log(`[Cron:ExpireMatches] ✅ Credited ${payingUserName || payingUserId}: GHS ${unlockPrice} → Balance: GHS ${creditResult.newBalance}`)
+                        console.log(`[Cron:ExpireMatches] ✅ Credited ${payingUserName || payingUserId}: GHS ${refundAmount} → Balance: GHS ${creditResult.newBalance}`)
 
                         // Notify the paying user about their credit
                         try {
                             await notifyUser(payingUserId, 
-                                `Hi ${payingUserName || 'there'}! Your match expired because the other person didn't unlock in time. We've credited GHS ${unlockPrice} to your M2M wallet. Use it to unlock your next match for free! 💚`,
+                                `Hi ${payingUserName || 'there'}! Your match expired because the other person didn't unlock in time. We've credited GHS ${refundAmount} to your M2M wallet. Use it to unlock your next match for free! 💚`,
                                 { type: 'generic', smsPriority: 'high' }
                             )
                         } catch (notifErr) {
@@ -146,14 +151,14 @@ export default defineEventHandler(async (event) => {
             try {
                 // Notify both users
                 if (match.user_1_id) {
-                    const msg = match.user_1_paid 
-                        ? `Your match expired. Your GHS ${unlockPrice} has been credited to your M2M wallet. Use it on your next match! 💚`
+                    const msg = (match.user_1_paid && parseFloat(match.user_1_amount_paid as any) > 0) 
+                        ? `Your match expired. Your GHS ${match.user_1_amount_paid} has been credited to your M2M wallet. Use it on your next match! 💚`
                         : `A match opportunity expired. Don't miss the next one — unlock faster next time! ⏰`
                     await notifyUser(match.user_1_id, msg, { type: 'generic' }).catch(() => {})
                 }
                 if (match.user_2_id) {
-                    const msg = match.user_2_paid 
-                        ? `Your match expired. Your GHS ${unlockPrice} has been credited to your M2M wallet. Use it on your next match! 💚`
+                    const msg = (match.user_2_paid && parseFloat(match.user_2_amount_paid as any) > 0) 
+                        ? `Your match expired. Your GHS ${match.user_2_amount_paid} has been credited to your M2M wallet. Use it on your next match! 💚`
                         : `A match opportunity expired. Don't miss the next one — unlock faster next time! ⏰`
                     await notifyUser(match.user_2_id, msg, { type: 'generic' }).catch(() => {})
                 }
@@ -174,17 +179,17 @@ export default defineEventHandler(async (event) => {
         fields: [
             { name: 'Total Expired', value: `${processedCount}`, inline: true },
             { name: 'Credits Issued', value: `${creditedCount}`, inline: true },
-            { name: 'Credit Amount', value: `GHS ${creditedCount * CREDIT_ELIGIBLE_PRICE}`, inline: true }
+            { name: 'Credit Amount', value: `GHS ${totalRefunded}`, inline: true }
         ],
         footer: 'M2M Credit System • Auto-Expiry Cron'
     })
 
-    console.log(`[Cron:ExpireMatches] ✅ Done. Processed: ${processedCount}, Credited: ${creditedCount}`)
+    console.log(`[Cron:ExpireMatches] ✅ Done. Processed: ${processedCount}, Credited: ${creditedCount}, Refunded: GHS ${totalRefunded}`)
 
     return {
         success: true,
         processed: processedCount,
         credited: creditedCount,
-        totalCreditAmount: creditedCount * CREDIT_ELIGIBLE_PRICE
+        totalCreditAmount: totalRefunded
     }
 })

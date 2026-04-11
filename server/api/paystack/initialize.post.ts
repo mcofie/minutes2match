@@ -75,7 +75,7 @@ export default defineEventHandler(async (event) => {
             // 1. Check Subscription
             if (subscription) {
                 console.log(`[Paystack] User ${body.metadata.userId} has active subscription. Unlocking match ${body.metadata.matchId} immediately.`)
-                await unlockMatch(body.metadata.matchId, body.metadata.userId)
+                await unlockMatch(body.metadata.matchId, body.metadata.userId, 0) // No individual cost
                 return {
                     status: true,
                     message: 'Match unlocked via subscription',
@@ -105,7 +105,7 @@ export default defineEventHandler(async (event) => {
                 )
 
                 if (debitResult.success) {
-                    await unlockMatch(body.metadata.matchId, body.metadata.userId)
+                    await unlockMatch(body.metadata.matchId, body.metadata.userId, body.amount)
                     return {
                         status: true,
                         message: `Match unlocked via M2M Credit. Remaining balance: GHS ${debitResult.newBalance}`,
@@ -126,8 +126,8 @@ export default defineEventHandler(async (event) => {
             if (profile && !profile.has_used_free_unlock) {
                 console.log(`[Paystack] User ${body.metadata.userId} using First Match Free. Unlocking match ${body.metadata.matchId} immediately.`)
 
-                // Unlock match
-                await unlockMatch(body.metadata.matchId, body.metadata.userId)
+                // Unlock match (amount = 0)
+                await unlockMatch(body.metadata.matchId, body.metadata.userId, 0)
 
                 // Mark free unlock as used
                 await supabase

@@ -1,6 +1,6 @@
 import { createClient } from '@supabase/supabase-js'
 
-export const unlockMatch = async (matchId: string, userId: string): Promise<void> => {
+export const unlockMatch = async (matchId: string, userId: string, amount: number = 15): Promise<void> => {
     const config = useRuntimeConfig()
     const supabaseUrl = config.supabaseUrl
     const supabaseServiceKey = config.supabaseServiceKey
@@ -43,9 +43,11 @@ export const unlockMatch = async (matchId: string, userId: string): Promise<void
     if (isUser1) {
         updateData.user_1_paid = true
         updateData.user_1_paid_at = new Date().toISOString()
+        updateData.user_1_amount_paid = amount
     } else {
         updateData.user_2_paid = true
         updateData.user_2_paid_at = new Date().toISOString()
+        updateData.user_2_amount_paid = amount
     }
 
     // Check if the OTHER user has already paid

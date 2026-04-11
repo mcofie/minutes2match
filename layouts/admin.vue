@@ -126,6 +126,12 @@
             </svg>
             <span class="label">Payments</span>
           </NuxtLink>
+          <NuxtLink to="/admin/credits" class="sidebar-link" @click="sidebarOpen = false">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/>
+            </svg>
+            <span class="label">Credit Ledger</span>
+          </NuxtLink>
           <NuxtLink to="/admin/integrity" class="sidebar-link" @click="sidebarOpen = false">
             <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
@@ -212,6 +218,7 @@ const pageTitle = computed(() => {
   if (path.startsWith('/admin/messaging')) return 'SMS Messaging'
   if (path.startsWith('/admin/questions')) return 'Vibe Questions'
   if (path.startsWith('/admin/payments')) return 'Payments'
+  if (path.startsWith('/admin/credits')) return 'Credit Ledger'
   if (path.startsWith('/admin/reports')) return 'User Reports'
   if (path.startsWith('/admin/vouches')) return 'Vouch Management'
   if (path.startsWith('/admin/shots')) return 'Shoot Your Shot'

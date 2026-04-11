@@ -273,7 +273,8 @@ async function handleMatchUnlockPayment(supabase: any, metadata: any, config: an
 
     try {
         // Use shared utility to unlock
-        await unlockMatch(matchId, payingUserId)
+        const paidAmount = metadata.amount || (data.amount / 100)
+        await unlockMatch(matchId, payingUserId, paidAmount)
 
         // Fetch match status AFTER unlock to determine if we need to send notifications
         const { data: match } = await supabase
