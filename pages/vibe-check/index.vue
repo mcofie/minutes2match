@@ -67,6 +67,9 @@
           <span class="text-5xl block mb-6 animate-bounce-slow">👋</span>
           <h1 class="text-4xl md:text-5xl font-serif font-bold text-black dark:text-white tracking-tight">Let's meet you!</h1>
           <p class="text-stone-500 dark:text-stone-400 font-light font-serif italic text-lg">This takes about 90 seconds</p>
+          <NuxtLink to="/how-it-works" class="inline-block mt-6 text-[10px] font-bold uppercase tracking-widest text-stone-400 hover:text-rose-500 transition-colors underline decoration-stone-200 underline-offset-4">
+             First time? Learn how M2M works ↗
+          </NuxtLink>
         </div>
 
         <div class="space-y-8">

@@ -16,7 +16,7 @@
         <!-- Center Links (Desktop) -->
         <div class="hidden md:flex items-center gap-10 text-sm font-bold text-stone-900 dark:text-stone-200">
           <button @click="scrollToSection('manifesto')" class="hover:text-rose-500 dark:hover:text-rose-400 transition-colors">Manifesto</button>
-          <button @click="scrollToSection('process')" class="hover:text-rose-500 dark:hover:text-rose-400 transition-colors">Process</button>
+          <NuxtLink to="/how-it-works" class="hover:text-rose-500 dark:hover:text-rose-400 transition-colors">Process</NuxtLink>
           <NuxtLink to="/vouch" class="hover:text-rose-500 dark:hover:text-rose-400 transition-colors">Vouch</NuxtLink>
           <NuxtLink to="/shoot-your-shot" class="hover:text-rose-500 dark:hover:text-rose-400 transition-colors">Shoot Your Shot</NuxtLink>
           <NuxtLink to="/pricing" class="hover:text-rose-500 dark:hover:text-rose-400 transition-colors">Pricing</NuxtLink>
@@ -62,9 +62,9 @@
             <button @click="scrollToSection('manifesto'); mobileMenuOpen = false" class="block w-full text-left py-3 text-sm font-bold hover:text-rose-500 dark:hover:text-rose-400 dark:text-stone-200 transition-colors border-b border-stone-100 dark:border-stone-800">
               Manifesto
             </button>
-            <button @click="scrollToSection('process'); mobileMenuOpen = false" class="block w-full text-left py-3 text-sm font-bold hover:text-rose-500 dark:hover:text-rose-400 dark:text-stone-200 transition-colors border-b border-stone-100 dark:border-stone-800">
+            <NuxtLink to="/how-it-works" @click="mobileMenuOpen = false" class="block w-full text-left py-3 text-sm font-bold hover:text-rose-500 dark:hover:text-rose-400 dark:text-stone-200 transition-colors border-b border-stone-100 dark:border-stone-800">
               Process
-            </button>
+            </NuxtLink>
             <NuxtLink to="/vouch" @click="mobileMenuOpen = false" class="block w-full text-left py-3 text-sm font-bold hover:text-rose-500 dark:hover:text-rose-400 dark:text-stone-200 transition-colors border-b border-stone-100 dark:border-stone-800">
               🤝 Vouch for Friends
             </NuxtLink>
@@ -124,9 +124,9 @@
                     <NuxtLink to="/vibe-check" class="bg-black dark:bg-stone-100 text-white dark:text-black px-12 py-5 rounded-md text-lg font-medium hover:bg-stone-800 dark:hover:bg-white transition-all w-full sm:w-auto min-w-[200px] text-center shadow-[6px_6px_0px_0px_rgba(244,63,94,1)] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] border border-black dark:border-stone-100">
                        Start Vibe Check
                     </NuxtLink>
-                    <button @click="scrollToSection('process')" class="text-black dark:text-stone-300 font-bold uppercase tracking-widest text-sm hover:text-rose-500 dark:hover:text-rose-400 transition-colors">
+                    <NuxtLink to="/how-it-works" class="text-black dark:text-stone-300 font-bold uppercase tracking-widest text-sm hover:text-rose-500 dark:hover:text-rose-400 transition-colors">
                        How does it work?
-                    </button>
+                    </NuxtLink>
                   </div>
                   
                   <div class="text-center lg:text-left pl-1">

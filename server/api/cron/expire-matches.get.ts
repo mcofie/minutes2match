@@ -25,7 +25,15 @@ export default defineEventHandler(async (event) => {
         throw createError({ statusCode: 401, message: 'Unauthorized' })
     }
 
-    const supabase = createClient(config.supabaseUrl, config.supabaseServiceKey, {
+    const supabaseUrl = config.supabaseUrl || process.env.SUPABASE_URL
+    const supabaseServiceKey = config.supabaseServiceKey || process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_KEY
+
+    if (!supabaseUrl || !supabaseServiceKey) {
+        console.error('[Cron:ExpireMatches] Missing Supabase configuration')
+        throw createError({ statusCode: 500, message: 'Server configuration error: SUPABASE_URL or SUPABASE_SERVICE_KEY missing' })
+    }
+
+    const supabase = createClient(supabaseUrl, supabaseServiceKey, {
         db: { schema: 'm2m' }
     })
 
@@ -55,13 +63,17 @@ export default defineEventHandler(async (event) => {
         .lt('expires_at', now.toISOString())
 
     if (error) {
-        console.error('[Cron:ExpireMatches] Query error:', error)
-        throw createError({ statusCode: 500, message: 'Failed to query expired matches' })
+        console.error('[Cron:ExpireMatches] Query error:', JSON.stringify(error))
+        throw createError({ 
+            statusCode: 500, 
+            message: `Failed to query expired matches: ${error.message}`,
+            data: error
+        })
     }
 
     if (!expiredMatches || expiredMatches.length === 0) {
         console.log('[Cron:ExpireMatches] No expired matches found.')
-        return { success: true, processed: 0, credited: 0 }
+        return { success: true, processed: 0, credited: 0, message: 'No matches expired' }
     }
 
     console.log(`[Cron:ExpireMatches] Found ${expiredMatches.length} expired matches to process`)
