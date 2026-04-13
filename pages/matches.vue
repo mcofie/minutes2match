@@ -463,9 +463,14 @@ onMounted(async () => {
 })
 const handleNudgeMatch = async (match: any, customMessage?: string) => {
   try {
+    const { data: { session } } = await supabase.auth.getSession()
+    
     const res = await $fetch('/api/matches/nudge', {
       method: 'POST',
-      body: { matchId: match.id, customMessage }
+      body: { matchId: match.id, customMessage },
+      headers: {
+        Authorization: `Bearer ${session?.access_token}`
+      }
     })
     if ((res as any).success) {
       toast.success('Nudge Sent! ⚡', "We've sent them an SMS alert.")

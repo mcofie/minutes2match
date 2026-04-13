@@ -45,10 +45,42 @@
         
         <!-- Content Section (Right) -->
         <div class="flex-1 p-2.5 sm:p-4 flex flex-col justify-between bg-white dark:bg-stone-900 relative min-w-0">
-          <!-- Match Score Ring (Only show if revealed) -->
-          <div v-if="unlocked || currentUserPaid" class="absolute top-2.5 right-2.5 sm:top-4 sm:right-4 w-7 sm:w-10 h-7 sm:h-10 rounded-full border border-stone-100 dark:border-stone-800 flex items-center justify-center bg-white dark:bg-stone-900 shadow-sm z-10">
-             <div class="absolute inset-0.5 rounded-full border border-rose-500/10"></div>
-             <span class="text-[8px] sm:text-[10px] font-black text-rose-500 leading-none">{{ Math.round(matchScore || 0) }}%</span>
+          <!-- Match Score Activity Indicator (Revealed) -->
+          <div v-if="unlocked || currentUserPaid" class="absolute top-2.5 right-2.5 sm:top-3.5 sm:right-3.5 z-20">
+             <div class="relative w-9 h-9 sm:w-11 sm:h-11 flex items-center justify-center bg-white dark:bg-stone-900 rounded-full border border-stone-100 dark:border-stone-800 shadow-[2px_2px_8px_rgba(0,0,0,0.05)]">
+                <!-- Radial Progress SVG -->
+                <svg class="absolute inset-0 w-full h-full transform -rotate-90">
+                   <circle 
+                      cx="50%" cy="50%" r="40%" 
+                      class="stroke-stone-50 dark:stroke-stone-800/50 fill-none" 
+                      stroke-width="2"
+                   />
+                   <circle 
+                      cx="50%" cy="50%" r="40%" 
+                      class="fill-none transition-all duration-1000 ease-out" 
+                      :class="[
+                         matchScore >= 80 ? 'stroke-emerald-500' : 
+                         matchScore >= 60 ? 'stroke-blue-500' : 'stroke-rose-500'
+                      ]"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      :stroke-dasharray="2 * Math.PI * 40 + '%'"
+                      :stroke-dashoffset="(2 * Math.PI * 40 * (1 - (matchScore || 0) / 100)) + '%'"
+                   />
+                </svg>
+                <div class="flex flex-col items-center justify-center leading-none z-10">
+                   <span 
+                      class="text-[9px] sm:text-[11px] font-black"
+                      :class="[
+                         matchScore >= 80 ? 'text-emerald-600' : 
+                         matchScore >= 60 ? 'text-blue-600' : 'text-rose-600'
+                      ]"
+                   >
+                      {{ Math.round(matchScore || 0) }}<small class="text-[7px] opacity-70">%</small>
+                   </span>
+                   <span class="text-[5px] font-black text-stone-300 dark:text-stone-600 uppercase tracking-tighter mt-0.5">Match</span>
+                </div>
+             </div>
           </div>
 
           <div class="flex flex-col h-full">
@@ -64,19 +96,22 @@
             </div>
 
             <!-- Compatibility Badges (Revealed vs Mystery) -->
-            <div v-if="unlocked || currentUserPaid" class="flex flex-col gap-1.5 py-0.5">
+            <div v-if="unlocked || currentUserPaid" class="flex flex-wrap gap-1.5 py-1">
+               <!-- Intent Status -->
                <div v-if="intent" class="flex items-center">
-                  <div class="px-1.5 py-0.5 bg-stone-50 dark:bg-stone-800/50 border border-stone-100 dark:border-stone-700 rounded-md">
-                     <span class="text-[7.5px] font-black uppercase tracking-widest text-stone-400">Status: {{ intent }}</span>
+                  <div class="px-2 py-0.5 bg-stone-100/50 dark:bg-stone-800/80 border border-stone-200/50 dark:border-stone-700/50 rounded-lg flex items-center gap-1">
+                     <span class="text-[9px] leading-none">{{ intent.toLowerCase().includes('marriage') ? '💍' : '✨' }}</span>
+                     <span class="text-[7.5px] font-black uppercase tracking-wider text-stone-500 dark:text-stone-400">{{ intent }}</span>
                   </div>
                </div>
                
-               <div v-if="sharedInterests && sharedInterests.length > 0" class="flex flex-wrap gap-1 items-center">
-                  <span v-for="interest in sharedInterests.slice(0, 2)" :key="interest" class="px-1.5 py-0.5 bg-rose-50 dark:bg-rose-950/20 border border-rose-100 dark:border-rose-900/10 rounded-md text-[7.5px] font-bold text-rose-500 lowercase tracking-tight">
-                     {{ interest }}
+               <!-- Shared Interests with Emojis -->
+               <div v-if="sharedInterests && sharedInterests.length > 0" class="flex flex-wrap gap-1.5 items-center">
+                  <span v-for="interest in sharedInterests.slice(0, 2)" :key="interest" class="px-2 py-0.5 bg-rose-50/80 dark:bg-rose-950/20 border border-rose-100/50 dark:border-rose-900/20 rounded-lg text-[7.5px] font-bold text-rose-600 dark:text-rose-400 flex items-center gap-1">
+                     {{ getInterestLabel(interest) }}
                   </span>
-                  <span v-if="sharedInterests.length > 2" class="text-[8px] font-bold text-stone-300">
-                     +{{ sharedInterests.length - 2 }}
+                  <span v-if="sharedInterests.length > 2" class="text-[8px] font-black text-stone-300 dark:text-stone-600 uppercase tracking-widest pl-0.5">
+                     +{{ sharedInterests.length - 2 }} More
                   </span>
                </div>
             </div>

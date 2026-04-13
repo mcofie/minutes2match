@@ -1,8 +1,33 @@
-import { serverSupabaseClient, serverSupabaseServiceRole } from '#supabase/server'
+import { serverSupabaseServiceRole, serverSupabaseUser } from '#supabase/server'
 import { sendSMS } from '~/server/utils/sms'
 import { notifyMatchNudge } from '~/server/utils/discord'
 
 export default defineEventHandler(async (event) => {
+  // 1. Verify Authentication
+  let user = await serverSupabaseUser(event)
+  
+  // Fallback: Manually check Authorization header if cookie-based check failed
+  if (!user) {
+    const authHeader = getHeader(event, 'Authorization')
+    if (authHeader?.startsWith('Bearer ')) {
+      const token = authHeader.substring(7)
+      const supabaseAdmin = serverSupabaseServiceRole(event)
+      const { data } = await supabaseAdmin.auth.getUser(token)
+      user = data?.user
+      if (user) console.log('[Nudge Debug] User recovered via Auth Header')
+    }
+  }
+  
+  if (!user || !user.id || user.id === 'undefined') {
+    throw createError({ 
+       statusCode: 401, 
+       message: 'Unauthorized: No valid user session found. Please try logging out and back in.' 
+    })
+  }
+
+  const userId = user.id
+  console.log(`[Nudge Debug] Authenticated User ID: ${userId}`)
+
   const body = await readBody(event)
   const { matchId, customMessage } = body
 
@@ -29,14 +54,18 @@ export default defineEventHandler(async (event) => {
   }
 
   // 2. Identify who is nudging and who is being nudged
-  const user = await serverSupabaseClient(event)
-  const { data: { user: currentUser } } = await user.auth.getUser()
+  const isUser1 = userId === String(match.user_1_id)
+  const isUser2 = userId === String(match.user_2_id)
 
-  if (!currentUser) {
-    throw createError({ statusCode: 401, message: 'Unauthorized' })
+  console.log(`[Nudge Debug] User: ${userId} vs Match Participants: ${match.user_1_id} / ${match.user_2_id}`)
+
+  if (!isUser1 && !isUser2) {
+    throw createError({ 
+       statusCode: 403, 
+       message: `Forbidden: Participant mismatch. User: ${userId} | Match Participants: ${match.user_1_id}, ${match.user_2_id}` 
+    })
   }
 
-  const isUser1 = currentUser.id === match.user_1_id
   const hasNudged = isUser1 ? match.user_1_contacted : match.user_2_contacted
 
   if (hasNudged) {
