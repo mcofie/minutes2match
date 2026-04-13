@@ -1,6 +1,6 @@
 <template>
-  <div>
-    <!-- Compact Card -->
+  <div class="relative">
+    <!-- Premium Match Card -->
     <article 
       class="group relative rounded-[40px] overflow-hidden cursor-pointer transition-all duration-500 border border-stone-100 bg-white hover:-translate-y-1.5 hover:shadow-2xl h-full flex flex-row"
       @click="navigateToConnection"
@@ -8,7 +8,6 @@
       <div class="flex flex-row h-full w-full">
         <!-- Image Section (Left) -->
         <div class="relative w-[40%] sm:w-[45%] h-full flex-shrink-0 overflow-hidden bg-stone-50 border-r border-stone-100">
-          <!-- Gender Badge Overlay -->
           <div 
             v-if="gender"
             class="absolute top-4 left-4 z-20 w-8 h-8 rounded-full flex items-center justify-center text-[10px] font-black bg-white ring-2 ring-black shadow-sm"
@@ -17,7 +16,6 @@
             {{ gender === 'female' ? '♀' : '♂' }}
           </div>
           
-          <!-- Image Layer -->
           <div class="w-full h-full relative group">
             <template v-if="unlocked || currentUserPaid">
               <NuxtImg 
@@ -34,11 +32,10 @@
             <div v-else class="w-full h-full bg-stone-200 relative overflow-hidden">
                <img v-if="photoUrl" :src="photoUrl" class="absolute inset-0 w-full h-full object-cover blur-[20px] scale-125 opacity-40" />
                <div class="absolute inset-0 flex items-center justify-center">
-                  <span class="text-4xl">🔒</span>
+                  <span class="text-4xl text-white/50">🔒</span>
                </div>
             </div>
 
-            <!-- Action Button Overlay (Bottom Center of Image) -->
             <div class="absolute bottom-6 inset-x-0 w-full flex justify-center px-4 animate-in slide-in-from-bottom-4 duration-700">
                <button 
                  @click.stop="unlocked ? navigateToConnection() : handleUnlock()"
@@ -52,16 +49,14 @@
 
         <!-- Content Section (Right) -->
         <div class="flex-1 p-8 sm:p-10 flex flex-col justify-start relative">
-          <!-- Match Score Circle (Top Right) -->
           <div class="absolute top-8 right-8 w-14 h-14 rounded-full border-[3.5px] border-rose-100 flex items-center justify-center bg-rose-50 animate-pulse-subtle">
              <span class="text-[14px] font-black text-[#ff003c]">{{ Math.round(matchScore || 0) }}%</span>
           </div>
 
-          <!-- Profile Details Stack -->
           <div class="space-y-1.5 max-w-[80%]">
              <h3 class="text-4xl font-serif font-black text-stone-900 tracking-tighter italic">
                 {{ (unlocked || currentUserPaid) ? displayName : 'Mystery Fan' }}
-                <span v-if="unlocked || currentUserPaid" class="inline-flex ml-1 w-6 h-6 rounded-full bg-blue-500 items-center justify-center border-2 border-white shadow-sm ring-1 ring-blue-500/20">
+                <span v-if="unlocked || currentUserPaid" class="inline-flex ml-1 w-6 h-6 rounded-full bg-blue-500 items-center justify-center border-2 border-white shadow-sm">
                    <svg class="w-3.5 h-3.5 text-white" fill="currentColor" viewBox="0 0 20 20"><path d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"/></svg>
                 </span>
              </h3>
@@ -69,7 +64,7 @@
              <div class="flex items-center gap-2 text-xl font-bold text-stone-800 tracking-tight">
                 <span>{{ age }}</span>
                 <span class="text-stone-300">•</span>
-                <span class="text-stone-600 font-medium">{{ location || 'East Legon' }}</span>
+                <span class="text-stone-600 font-medium">{{ location || 'Accra' }}</span>
                 <span class="text-2xl">{{ personaEmoji }}</span>
              </div>
 
@@ -78,14 +73,11 @@
              </div>
           </div>
 
-          <!-- Secondary Details -->
           <div class="mt-6 flex flex-col gap-6">
-             <!-- Intent -->
              <div v-if="intent" class="inline-flex self-start px-4 py-2.5 bg-rose-50 text-[#881337] rounded-xl border border-rose-100 font-black uppercase tracking-widest text-[11px] italic">
                 INTENTION: {{ intent }}
              </div>
 
-             <!-- SHARED INTERESTS (NEW) -->
              <div class="border-t border-stone-50 pt-6">
                 <p class="text-[11px] font-black text-stone-300 uppercase tracking-widest mb-4">Shared Foundation</p>
                 <div class="flex flex-wrap gap-2.5">
@@ -102,211 +94,84 @@
                    </template>
                 </div>
              </div>
-          </div>
-        </div>
-      </div>
-    </article>
-
-          <!-- Compact Timer -->
-          <div v-if="!unlocked && expiresAt && liveCountdown.total > 0" class="mt-3 flex items-center gap-2">
-             <div class="flex-1 h-1 bg-stone-100 rounded-full overflow-hidden border border-stone-100">
-                <div 
-                  class="h-full transition-all duration-1000"
-                  :class="liveCountdown.hours < 6 ? 'bg-rose-500' : liveCountdown.hours < 24 ? 'bg-amber-400' : 'bg-emerald-400'"
-                  :style="{ width: `${timeRemainingPercentage}%` }"
-                ></div>
+             
+             <!-- Expiry Status (if applicable) -->
+             <div v-if="!unlocked && expiresAt" class="flex items-center gap-2">
+                <span class="text-[10px] font-black uppercase tracking-widest text-stone-400">Time Left:</span>
+                <span class="text-[11px] font-mono font-black text-rose-500 animate-pulse tabular-nums">{{ liveCountdown.display }}</span>
              </div>
-             <span class="text-[10px] font-mono font-black tabular-nums text-stone-500 shrink-0">{{ liveCountdown.display }} left</span>
-          </div>
-          <div v-else-if="!unlocked && expiresAt && liveCountdown.total <= 0" class="mt-2 px-1">
-             <div class="text-[9px] font-black uppercase tracking-widest text-rose-500 text-center py-1 bg-rose-50 rounded border border-rose-100">⏰ Match Expired</div>
-          </div>
-
-          <div class="mt-2 pt-2 border-t border-stone-100 min-h-[38px] flex flex-col justify-center">
-            <template v-if="unlocked">
-              <div class="flex gap-2 w-full">
-              </div>
-            </template>
-            <template v-else-if="currentUserPaid">
-              <div class="flex flex-col gap-1 w-full text-center">
-                  <p class="text-[9px] font-black text-amber-600 uppercase tracking-[0.1em] animate-pulse">⏳ Awaiting Their Unlock</p>
-                  <p class="text-[8px] font-bold text-stone-400 leading-none">Auto-refund if they miss the window.</p>
-                  <div class="mt-2">
-                    <button 
-                      v-if="!nudged"
-                      @click.stop="showNudgeModal = true"
-                      :disabled="nudging"
-                      class="w-full flex justify-center items-center py-2.5 bg-amber-400 text-black text-[10px] font-black rounded-lg border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-0.5 hover:translate-y-0.5 transition-all whitespace-nowrap uppercase tracking-widest"
-                    >
-                      <span v-if="nudging" class="animate-spin inline-block w-3 h-3 border-2 border-black/30 border-t-black rounded-full mr-1"></span>
-                      <span>Nudge</span>
-                    </button>
-                    <div v-else class="w-full py-2 bg-stone-50 border-2 border-dashed border-stone-200 rounded text-center">
-                       <span class="text-[9px] font-black text-stone-400 uppercase tracking-widest">Nudged via SMS</span>
-                    </div>
-                  </div>
-              </div>
-            </template>
-            <template v-else>
-              <div class="flex flex-col gap-2 w-full mt-1.5">
-                <!-- Premium Info Card -->
-                <div 
-                  class="relative flex items-center justify-between p-1.5 sm:p-2 rounded-xl sm:rounded-2xl bg-stone-50/50 border border-stone-100"
-                >
-                  <div class="flex items-center gap-2 sm:gap-3 min-w-0">
-                    <div v-if="hasSubscription || isFreeUnlockEligible || hasSufficientCredit" class="w-7 h-7 sm:w-8 sm:h-8 shrink-0 rounded-full bg-white flex items-center justify-center shadow-sm text-xs sm:text-sm border border-stone-100">
-                      {{ hasSubscription ? '👑' : isFreeUnlockEligible ? '🎁' : '💚' }}
-                    </div>
-                    
-                    <div class="flex flex-col min-w-0">
-                      <template v-if="hasSubscription">
-                        <span class="text-[10px] sm:text-xs font-black text-amber-900 truncate">PREMIUM</span>
-                      </template>
-                      <template v-else-if="isFreeUnlockEligible">
-                        <span class="text-[10px] sm:text-sm font-black text-emerald-900 truncate">FREE MATCH</span>
-                      </template>
-                      <template v-else-if="hasSufficientCredit">
-                        <span class="text-[10px] sm:text-xs font-black text-green-800 truncate">M2M CREDIT</span>
-                      </template>
-                      <template v-else>
-                        <span class="text-sm sm:text-[17px] font-black text-black leading-none truncate">{{ formattedPrice }}</span>
-                      </template>
-                    </div>
-                  </div>
-
-                  <div 
-                    v-if="!hasSubscription && !isFreeUnlockEligible"
-                    class="px-1.5 py-1 bg-emerald-50 rounded-lg border border-emerald-100 flex flex-col items-end justify-center leading-none shrink-0 text-right"
-                  >
-                    <span class="text-[8px] sm:text-[10px] font-black text-emerald-700 uppercase italic">Risk-Free</span>
-                    <span class="text-[5px] sm:text-[6.5px] font-bold text-emerald-600 uppercase tracking-tighter mt-0.5">Refund if ignored</span>
-                  </div>
-                </div>
-
-                 <!-- Action Button -->
-                <button 
-                  @click.stop="handleUnlock"
-                  :disabled="isUnlocking"
-                  class="w-full flex justify-center py-2.5 bg-black text-white text-[10px] font-black rounded-lg border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-0.5 hover:translate-y-0.5 transition-all whitespace-nowrap uppercase tracking-widest"
-                >
-                  <div class="flex items-center gap-1 relative z-10 font-black">
-                    <span v-if="isUnlocking" class="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
-                    <span v-else>{{ isFreeUnlockEligible || hasSubscription ? 'Claim' : 'Unlock' }}</span>
-                  </div>
-                </button>
-              </div>
-            </template>
           </div>
         </div>
       </div>
-      
-      <!-- Hover Glow Effect -->
-      <div class="absolute inset-0 rounded-2xl ring-1 ring-inset ring-black/5 pointer-events-none"></div>
     </article>
 
-
-
-    <!-- "The Match Case" Modal (Minimal) -->
+    <!-- Match Case Modal (Re-styled Minimal) -->
     <Teleport to="body">
-      <div 
-        v-if="showAnalysisModal" 
-        class="fixed inset-0 z-[120] flex items-center justify-center p-6 bg-black/40 backdrop-blur-sm transition-all duration-300"
-        @click.self="showAnalysisModal = false"
-      >
-        <div class="relative w-full max-w-sm bg-white rounded-3xl border-2 border-black shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] flex flex-col p-8 animate-in zoom-in-95 duration-200">
-           <button @click="showAnalysisModal = false" class="absolute top-6 right-6 text-stone-300 hover:text-stone-900 transition-colors">
-              <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M18 6L6 18M6 6l12 12"/></svg>
+      <div v-if="showAnalysisModal" class="fixed inset-0 z-[120] flex items-center justify-center p-6 bg-black/40 backdrop-blur-sm transition-all duration-300" @click.self="showAnalysisModal = false">
+        <div class="relative w-full max-w-sm bg-white rounded-[40px] border border-stone-100 shadow-2xl flex flex-col p-10 animate-in zoom-in-95 duration-300">
+           <button @click="showAnalysisModal = false" class="absolute top-8 right-8 text-stone-300 hover:text-stone-900 transition-colors">
+              <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
            </button>
 
-           <!-- Header -->
            <div class="flex items-center gap-4 mb-8">
-              <div class="shrink-0 w-16 h-16 bg-stone-50 rounded-2xl border-2 border-black flex items-center justify-center text-4xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+              <div class="shrink-0 w-16 h-16 bg-stone-50 rounded-3xl border border-stone-100 flex items-center justify-center text-4xl shadow-sm">
                 {{ personaEmoji }}
               </div>
               <div>
-                 <h3 class="text-xl font-black uppercase tracking-tight text-black leading-tight">The {{ personaName }} Case</h3>
-                 <p class="text-[10px] font-black uppercase tracking-widest text-rose-500 mt-1">Classified Compatibility Report</p>
+                 <h3 class="text-xl font-black uppercase tracking-tight text-stone-900 leading-tight">Match Intelligence</h3>
+                 <p class="text-[10px] font-black uppercase tracking-widest text-rose-500 mt-1">Classified Report</p>
               </div>
            </div>
 
-           <!-- Body Content -->
-           <div class="space-y-6 mb-8">
-              <!-- AI Narrative Quote -->
+           <div class="space-y-6 mb-10">
               <div v-if="aiAnalysis" class="relative">
-                 <div class="absolute -left-3 top-0 bottom-0 w-[3px] bg-black rounded-full"></div>
-                 <p class="text-[14px] font-semibold text-stone-800 leading-relaxed pl-1">
-                    "{{ aiAnalysis }}"
-                 </p>
+                 <p class="text-[15px] font-bold text-stone-800 leading-relaxed italic">"{{ aiAnalysis }}"</p>
               </div>
 
-              <!-- Match Reasons List -->
-              <div v-if="matchReasons?.length" class="space-y-4">
+              <div v-if="matchReasons?.length" class="space-y-3">
                  <div v-for="(reason, idx) in matchReasons.slice(0, 3)" :key="idx" class="flex items-start gap-3">
-                    <span class="text-rose-500 font-black text-lg leading-none -mt-1">↳</span>
-                    <p class="text-sm font-bold text-stone-800 leading-snug">{{ reason }}</p>
+                    <span class="text-emerald-500 font-black">✓</span>
+                    <p class="text-sm font-bold text-stone-600 leading-tight">{{ reason }}</p>
                  </div>
               </div>
 
-              <!-- Shared Foundation (Interests) -->
-              <div v-if="sharedInterests?.length" class="p-5 bg-stone-50 rounded-2xl border border-stone-100 flex items-center justify-between">
+              <div class="flex items-center justify-between p-6 bg-rose-50 text-rose-500 rounded-[30px] border border-rose-100">
                  <div class="flex flex-col">
-                    <span class="text-[10px] font-black uppercase tracking-widest text-stone-400 mb-1">Shared Worldview</span>
-                    <span class="text-xs font-black text-stone-900">{{ sharedInterests.slice(0, 3).join(', ') || 'Aligned Outlook' }}</span>
+                    <span class="text-[10px] font-black uppercase tracking-widest opacity-60">Confidence Level</span>
+                    <span class="text-xs font-black uppercase">Deep Alignment</span>
                  </div>
-                 <div class="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600 text-xs font-black">✓</div>
-              </div>
-              
-              <!-- Confidence Score -->
-              <div class="flex items-center justify-between p-6 bg-black text-white rounded-2xl">
-                 <div class="flex flex-col">
-                    <span class="text-[10px] font-black uppercase tracking-widest text-stone-400 mb-1">M2M Score</span>
-                    <span class="text-xs font-black uppercase text-rose-500">Strong Probability</span>
-                 </div>
-                 <span class="text-5xl font-black tracking-tighter">{{ Math.round(matchScore || 0) }}%</span>
+                 <span class="text-5xl font-serif font-black italic tracking-tighter">{{ Math.round(matchScore || 0) }}%</span>
               </div>
            </div>
 
-           <!-- Action -->
-           <button 
-              @click="showAnalysisModal = false; handleUnlock();"
-              class="w-full py-5 bg-rose-500 text-white font-black uppercase tracking-widest text-sm rounded-2xl shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] active:shadow-none active:translate-x-1.5 active:translate-y-1.5 transition-all flex items-center justify-center gap-3 group"
-           >
-              Start Your Story
-              <span class="text-xl group-hover:translate-x-2 transition-transform">→</span>
+           <button @click="showAnalysisModal = false; handleUnlock();" class="w-full py-5 bg-[#ff003c] text-white font-black uppercase tracking-widest text-sm rounded-3xl shadow-xl shadow-rose-100 hover:scale-[1.02] active:scale-95 transition-all">
+              Initialize Connection
            </button>
         </div>
       </div>
     </Teleport>
 
-    <!-- Nudge Modal (Minimal) -->
+    <!-- Nudge Modal -->
     <Teleport to="body">
-      <div 
-        v-if="showNudgeModal" 
-        class="fixed inset-0 z-[120] flex items-center justify-center p-6 bg-black/40 backdrop-blur-sm transition-all duration-300"
-        @click.self="showNudgeModal = false"
-      >
-        <div class="relative w-full max-w-sm bg-white rounded-2xl border-2 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] p-6 animate-in zoom-in-95 duration-200">
-           <button @click="showNudgeModal = false" class="absolute top-4 right-4 text-stone-400 hover:text-black transition-colors">
-              <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
+      <div v-if="showNudgeModal" class="fixed inset-0 z-[120] flex items-center justify-center p-6 bg-black/40 backdrop-blur-sm transition-all" @click.self="showNudgeModal = false">
+        <div class="relative w-full max-w-sm bg-white rounded-[40px] border border-stone-100 shadow-2xl p-10 animate-in slide-in-from-bottom-5 duration-300">
+           <button @click="showNudgeModal = false" class="absolute top-8 right-8 text-stone-300 hover:text-stone-900 transition-colors">
+              <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
            </button>
 
-           <h3 class="text-lg font-black uppercase tracking-widest text-black mb-1">Send a Nudge</h3>
-           <p class="text-[10px] font-bold text-stone-400 uppercase tracking-widest mb-6 italic">Remind them you're interested</p>
+           <h3 class="text-xl font-black uppercase tracking-tight text-stone-900 mb-2">Send a Nudge</h3>
+           <p class="text-[11px] font-bold text-stone-400 uppercase tracking-widest mb-8">Gentle reminder via priority SMS</p>
 
-           <div class="space-y-4">
+           <div class="space-y-6">
               <textarea 
                 v-model="nudgeMessage"
-                class="w-full p-4 bg-stone-50 border-2 border-stone-100 rounded-xl text-sm font-medium focus:border-black focus:ring-0 transition-colors resize-none h-32"
+                class="w-full p-6 bg-stone-50 border border-stone-100 rounded-[30px] text-sm font-bold text-stone-800 focus:border-rose-500 focus:ring-0 transition-all resize-none h-40"
                 placeholder="Type your nudge message..."
               ></textarea>
 
-              <button 
-                @click="handleNudge"
-                :disabled="nudging || !nudgeMessage.trim()"
-                class="w-full py-4 bg-black text-white font-black uppercase tracking-widest text-xs rounded-xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:shadow-none active:translate-x-1 active:translate-y-1 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <span v-if="nudging" class="animate-spin w-3 h-3 border-2 border-white/30 border-t-white rounded-full"></span>
-                <span>{{ nudging ? 'Sending...' : 'Send SMS Nudge' }}</span>
+              <button @click="handleNudge" :disabled="nudging || !nudgeMessage.trim()" class="w-full py-5 bg-black text-white font-black uppercase tracking-widest text-xs rounded-3xl shadow-xl hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2 disabled:opacity-50">
+                <span v-if="nudging" class="animate-spin w-4 h-4 border-2 border-white/30 border-t-white rounded-full"></span>
+                <span>{{ nudging ? 'Transmitting...' : 'Send Priority Nudge' }}</span>
               </button>
            </div>
         </div>
