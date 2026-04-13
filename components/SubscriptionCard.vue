@@ -27,7 +27,7 @@
                 <div class="space-y-1">
                    <span class="text-2xl block mb-2 grayscale group-hover:grayscale-0 transition-all">🔓</span>
                    <p class="text-[10px] font-bold uppercase tracking-widest text-stone-500 dark:text-stone-400">Pay As You Go</p>
-                   <p class="font-black text-xl text-black dark:text-white">GH₵ 15<span class="text-[10px] font-medium text-stone-400 ml-1 font-sans">/match</span></p>
+                   <p class="font-black text-xl text-black dark:text-white">GH₵ 15<span class="text-[10px] font-medium text-stone-400 ml-1 font-sans">per Match Unlock</span></p>
                </div>
             </div>
         </div>

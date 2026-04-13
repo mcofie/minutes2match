@@ -282,3 +282,18 @@ export async function notifyUserLogin(user: {
         ]
     })
 }
+export async function notifyMatchNudge(data: {
+    senderName: string
+    targetName: string
+    message: string
+}) {
+    await notifyDiscord({
+        title: '⚡ Match Nudge Sent',
+        color: DiscordColors.warning,
+        fields: [
+            { name: 'From', value: data.senderName, inline: true },
+            { name: 'To', value: data.targetName, inline: true },
+            { name: 'Message', value: data.message, inline: false },
+        ]
+    })
+}

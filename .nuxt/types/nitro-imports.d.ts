@@ -102,6 +102,7 @@ declare global {
   const notifyError: typeof import('../../server/utils/discord').notifyError
   const notifyEventBooking: typeof import('../../server/utils/discord').notifyEventBooking
   const notifyLobbyReminder: typeof import('../../server/utils/discord').notifyLobbyReminder
+  const notifyMatchNudge: typeof import('../../server/utils/discord').notifyMatchNudge
   const notifyMatchUnlocked: typeof import('../../server/utils/discord').notifyMatchUnlocked
   const notifyNewSignup: typeof import('../../server/utils/discord').notifyNewSignup
   const notifyPaymentInitiated: typeof import('../../server/utils/discord').notifyPaymentInitiated
@@ -220,7 +221,7 @@ export { parseMarkdown } from '/Users/maxwellcofie/WebstormProjects/minutes2matc
 export { stringifyMarkdown } from '/Users/maxwellcofie/WebstormProjects/minutes2match/node_modules/@nuxtjs/mdc/dist/runtime/stringify';
 export { getGeminiModel, auditProfileWithAI, extractPreferencesFromBio, generateMatchExplanation } from '/Users/maxwellcofie/WebstormProjects/minutes2match/server/utils/ai';
 export { getUserBalance, creditUser, debitUser } from '/Users/maxwellcofie/WebstormProjects/minutes2match/server/utils/credits';
-export { DiscordColors, notifyRedemption, notifyDiscord, notifyNewSignup, notifyPaymentInitiated, notifyPaymentSuccess, notifyMatchUnlocked, notifyEventBooking, notifyLobbyReminder, notifyError, notifyUserLogin } from '/Users/maxwellcofie/WebstormProjects/minutes2match/server/utils/discord';
+export { DiscordColors, notifyRedemption, notifyDiscord, notifyNewSignup, notifyPaymentInitiated, notifyPaymentSuccess, notifyMatchUnlocked, notifyEventBooking, notifyLobbyReminder, notifyError, notifyUserLogin, notifyMatchNudge } from '/Users/maxwellcofie/WebstormProjects/minutes2match/server/utils/discord';
 export { sendHubtelSMS } from '/Users/maxwellcofie/WebstormProjects/minutes2match/server/utils/hubtel';
 export { unlockMatch } from '/Users/maxwellcofie/WebstormProjects/minutes2match/server/utils/match';
 export { runTargetedMatching } from '/Users/maxwellcofie/WebstormProjects/minutes2match/server/utils/matchmaker';

@@ -27,15 +27,33 @@
     </div>
 
     <!-- Quality Assurance Banner -->
-    <div class="px-3 py-2.5 sm:p-4 bg-emerald-50 dark:bg-emerald-900/10 border-2 border-emerald-100 dark:border-emerald-900/30 rounded-xl flex items-start sm:items-center gap-3 animate-in fade-in slide-in-from-top-2 duration-700 shadow-sm">
-       <div class="w-6 h-6 sm:w-10 sm:h-10 bg-white dark:bg-stone-900 rounded-md sm:rounded-xl flex items-center justify-center text-sm sm:text-lg shadow-sm border border-emerald-100 dark:border-emerald-900/50 flex-shrink-0 mt-0.5 sm:mt-0">🛡️</div>
-       <div class="flex-1 min-w-0">
-          <p class="text-[8px] sm:text-[9px] text-emerald-700 dark:text-emerald-400 font-black uppercase tracking-widest leading-relaxed">
-             <span class="text-emerald-900 dark:text-emerald-300">Community Purity Protocol:</span> 
-             <span class="opacity-80 ml-1">We actively purge inactive accounts every 48 hours. Your matches are guaranteed high-quality.</span>
-          </p>
-       </div>
-    </div>
+    <Transition
+      enter-active-class="transition duration-300 ease-out"
+      enter-from-class="transform -translate-y-4 opacity-0"
+      enter-to-class="transform translate-y-0 opacity-100"
+      leave-active-class="transition duration-200 ease-in"
+      leave-from-class="transform translate-y-0 opacity-100"
+      leave-to-class="transform -translate-y-4 opacity-0"
+    >
+      <div v-if="showPurityProtocol" class="group relative px-3 py-2.5 sm:p-4 bg-emerald-50 dark:bg-emerald-900/10 border-2 border-emerald-100 dark:border-emerald-900/30 rounded-xl flex items-start sm:items-center gap-3 animate-in fade-in slide-in-from-top-2 duration-700 shadow-sm overflow-hidden">
+         <div class="w-6 h-6 sm:w-10 sm:h-10 bg-white dark:bg-stone-900 rounded-md sm:rounded-xl flex items-center justify-center text-sm sm:text-lg shadow-sm border border-emerald-100 dark:border-emerald-900/50 flex-shrink-0 mt-0.5 sm:mt-0">🛡️</div>
+         <div class="flex-1 min-w-0">
+            <p class="text-[8px] sm:text-[9px] text-emerald-700 dark:text-emerald-400 font-black uppercase tracking-widest leading-relaxed">
+               <span class="text-emerald-900 dark:text-emerald-300">Community Purity Protocol:</span> 
+               <span class="opacity-80 ml-1">We actively purge inactive accounts every 48 hours. Your matches are guaranteed high-quality.</span>
+            </p>
+         </div>
+         <button 
+           @click="showPurityProtocol = false" 
+           class="p-1 hover:bg-emerald-100 dark:hover:bg-emerald-800/50 rounded-lg transition-colors text-emerald-400 hover:text-emerald-600 flex-shrink-0"
+           title="Dismiss"
+         >
+           <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+           </svg>
+         </button>
+      </div>
+    </Transition>
 
     <!-- Skeleton Loaders -->
     <div v-if="loadingMatches" class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -43,17 +61,41 @@
     </div>
 
     <div v-else-if="matches.length === 0" class="space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-500">
-       <div class="py-12 text-center border-2 border-dashed border-stone-200 dark:border-stone-700 rounded-2xl bg-white dark:bg-stone-900">
-         <span class="text-2xl md:text-3xl lg:text-4xl block mb-4 grayscale opacity-50">✨</span>
-         <p class="font-bold text-stone-900 dark:text-stone-100 mb-1">Your connections are brewing</p>
-         <p class="text-sm text-stone-500 dark:text-stone-400">We'll SMS you when you get matched!</p>
+       <div class="py-12 text-center border-2 border-dashed border-stone-200 dark:border-stone-700 rounded-2xl bg-white dark:bg-stone-900 shadow-sm relative overflow-hidden group">
+         <!-- Decorative Background -->
+         <div class="absolute inset-0 opacity-[0.03] group-hover:opacity-[0.05] transition-opacity duration-700 pointer-events-none" style="background-image: radial-gradient(#000 1px, transparent 1px); background-size: 20px 20px;"></div>
+         
+         <span class="text-3xl md:text-4xl block mb-4 grayscale opacity-50 animate-bounce-subtle">🧠</span>
+         <p class="font-black text-stone-900 dark:text-stone-100 mb-1 flex items-center justify-center gap-2">
+           The Lab is <span class="text-rose-500 uppercase italic tracking-widest text-xs">Simulating...</span>
+         </p>
+         <p class="text-sm text-stone-500 dark:text-stone-400 font-medium px-8 leading-relaxed max-w-md mx-auto mb-6">
+           Matches are generated based on your psychometric profile. <br class="hidden sm:block"/>
+           <span class="text-black dark:text-white font-bold underline decoration-rose-500/30">You will be notified via SMS</span> when a connection is found.
+         </p>
+
+         <NuxtLink 
+           to="/how-it-works" 
+           class="inline-flex items-center gap-2 px-6 py-2.5 bg-black dark:bg-stone-800 text-white text-[10px] font-black uppercase tracking-[0.2em] rounded-full border-2 border-transparent hover:border-rose-500 transition-all shadow-lg active:scale-95"
+         >
+           <span>Learn the Protocol</span>
+           <span class="text-rose-500">→</span>
+         </NuxtLink>
        </div>
        
        <!-- Show Pricing Model in Empty State -->
-       <div class="px-2">
-          <div class="text-center mb-6">
-            <h3 class="text-xl font-bold font-serif text-black dark:text-white">Want more matches?</h3>
-            <p class="text-sm text-stone-500 dark:text-stone-400">Upgrade to Premium for priority matching.</p>
+       <div class="px-2 pt-4">
+          <div class="text-center mb-8">
+            <div class="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-stone-400 mb-3">
+              <span class="w-1 h-1 bg-stone-400 rounded-full"></span>
+              Match Protocol & Economics
+              <span class="w-1 h-1 bg-stone-400 rounded-full"></span>
+            </div>
+            <h3 class="text-2xl md:text-3xl font-bold font-serif text-black dark:text-white mb-2 leading-tight">Unlock Your Connections.</h3>
+            <p class="text-sm text-stone-500 dark:text-stone-400 font-medium max-w-lg mx-auto leading-relaxed">
+              Pricing applies only to <span class="text-black dark:text-white font-bold italic">active matches</span> found in your lab.
+              Memberships provide priority visibility in the matching queue.
+            </p>
           </div>
           <SubscriptionCard :subscription="subscription" @subscribe="handleSubscribe" />
        </div>
@@ -67,7 +109,7 @@
           :matchId="match.id"
           :age="getAge(match.matchedProfile?.birth_date)"
           :personaName="getPersonaData(match.matchedProfile?.dating_persona)?.name || 'Mystery'"
-          :personaEmoji="getPersonaData(match.matchedProfile?.dating_persona)?.emoji || '✨'"
+          :personaEmoji="getPersonaData(match.matchedProfile?.dating_persona)?.emoji || '🔮'"
           :personaColor="getPersonaData(match.matchedProfile?.dating_persona)?.color || '#1a1a2e'"
           :vibePreview="getVibePreview(match.vibeAnswers)"
           :vibeSummary="getVibeSummary(match.vibeAnswers)"
@@ -89,13 +131,19 @@
           :gender="match.matchedProfile?.gender"
           :hasSubscription="!!subscription"
           :isFreeUnlockEligible="profile && !profile.has_used_free_unlock"
-          :aiAnalysis="match.ai_analysis"
           :otherUserPaid="match.otherUserPaid"
+          :nudged="match.nudged"
+          :aiAnalysis="match.matchedProfile?.ai_analysis || match.ai_analysis"
+          :matchScore="match.match_score"
+          :matchReasons="match.match_reasons"
+          :intent="match.matchedProfile?.intent"
+          :occupation="match.matchedProfile?.occupation"
           :availability="profile?.availability"
           :matchedUserAvailability="match.matchedProfile?.availability"
           :creditBalance="creditBalance"
           @unlock="handleUnlockMatch(match)"
           @update-status="navigateToFeedback(match)"
+          @nudge="(msg) => handleNudgeMatch(match, msg)"
         />
       </div>
 
@@ -154,6 +202,7 @@
 </template>
 
 <script setup lang="ts">
+const showPurityProtocol = ref(true)
 import BlindProfileCard from '~/components/BlindProfileCard.vue'
 import SkeletonMatchCard from '~/components/skeleton/MatchCard.vue'
 import SubscriptionCard from '~/components/SubscriptionCard.vue'
@@ -412,6 +461,26 @@ onMounted(async () => {
         }
     }
 })
+const handleNudgeMatch = async (match: any, customMessage?: string) => {
+  try {
+    const res = await $fetch('/api/matches/nudge', {
+      method: 'POST',
+      body: { matchId: match.id, customMessage }
+    })
+    if ((res as any).success) {
+      toast.success('Nudge Sent! ⚡', "We've sent them an SMS alert.")
+      // Update local state to hide nudge button immediately
+      const matchIndex = matches.value.findIndex(m => m.id === match.id)
+      if (matchIndex !== -1) {
+        matches.value[matchIndex].nudged = true
+      }
+    } else {
+      toast.error('Nudge Failed', (res as any).message || 'Something went wrong.')
+    }
+  } catch (err) {
+    toast.error('Nudge Failed', 'Connection error.')
+  }
+}
 </script>
 
 <style scoped>

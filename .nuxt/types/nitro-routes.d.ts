@@ -126,6 +126,9 @@ declare module "nitropack/types" {
     '/api/debug-join': {
       'get': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/debug-join.get').default>>>>
     }
+    '/api/debug-match-data': {
+      'get': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/debug-match-data.get').default>>>>
+    }
     '/api/debug-schema': {
       'get': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/debug-schema.get').default>>>>
     }
@@ -162,6 +165,9 @@ declare module "nitropack/types" {
     '/api/lobby/connect': {
       'post': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/lobby/connect.post').default>>>>
     }
+    '/api/lobby/debug-db': {
+      'get': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/lobby/debug-db.get').default>>>>
+    }
     '/api/lobby/debug-gender': {
       'get': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/lobby/debug-gender.get').default>>>>
     }
@@ -181,6 +187,9 @@ declare module "nitropack/types" {
     }
     '/api/matches': {
       'get': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/matches.get').default>>>>
+    }
+    '/api/matches/nudge': {
+      'post': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/matches/nudge.post').default>>>>
     }
     '/api/me/notifications': {
       'get': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/me/notifications.get').default>>>>

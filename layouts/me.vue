@@ -79,7 +79,7 @@
                 </div>
              </div>
              <button @click="toggleAccountActive" class="w-full sm:w-auto px-6 py-2.5 bg-rose-500 text-white text-[10px] font-black uppercase tracking-widest rounded-lg hover:bg-rose-600 transition-all shadow-[4px_4px_0px_0px_rgba(0,0,0,0.3)] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] active:translate-x-0.5 active:translate-y-0.5 flex-shrink-0">
-                Go Live ✨
+                Go Live ⚡
              </button>
         </div>
 

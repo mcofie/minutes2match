@@ -15,10 +15,10 @@
         </option>
       </select>
       
-      <select v-model="filters.verified" class="form-select user-filter">
-        <option value="">All Status</option>
-        <option value="true">Verified</option>
-        <option value="false">Unverified</option>
+      <select v-model="filters.availability" class="form-select user-filter">
+        <option value="">Availability: All</option>
+        <option value="set">Availability: Set</option>
+        <option value="not_set">Availability: Not Set</option>
       </select>
       
       <input
@@ -55,6 +55,7 @@
             <th>Persona</th>
             <th>Location</th>
             <th>Status</th>
+            <th>Availability</th>
             <th>Joined</th>
             <th>Actions</th>
           </tr>
@@ -107,6 +108,13 @@
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="inline-block mr-1"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"></path></svg>
                 TG
               </span>
+            </td>
+            <td>
+               <span v-if="hasAvailability(user)" class="text-green-600 font-bold flex items-center gap-1 text-xs">
+                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                 Set
+               </span>
+               <span v-else class="text-stone-300 font-medium text-xs">Not Set</span>
             </td>
             <td>{{ formatDate(user.created_at) }}</td>
             <td>
@@ -705,6 +713,47 @@
                   </div>
                 </div>
 
+                <!-- Dating Availability Card -->
+                <div class="info-card info-card--full">
+                  <h4 class="info-card__title">
+                    <svg class="card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                       <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+                    </svg>
+                    Dating Availability
+                  </h4>
+                  <div v-if="hasAvailability(selectedUser)" class="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4">
+                    <div 
+                      v-for="day in ['weekdays', 'friday', 'saturday', 'sunday']" 
+                      :key="day" 
+                      class="p-3 bg-stone-50/50 rounded-2xl border border-stone-100 flex flex-col gap-2"
+                      :class="{ 'opacity-50 grayscale': !parseAvailability(selectedUser.availability)[day]?.length }"
+                    >
+                      <div class="flex items-center justify-between">
+                        <span class="text-[10px] font-black uppercase tracking-widest text-stone-600">{{ day }}</span>
+                        <span v-if="parseAvailability(selectedUser.availability)[day]?.length" class="text-[9px] px-1.5 py-0.5 bg-rose-100 text-rose-600 rounded-full font-bold">Active</span>
+                      </div>
+                      
+                      <div class="flex flex-wrap gap-1.5">
+                        <template v-if="parseAvailability(selectedUser.availability)[day]?.length">
+                          <span 
+                            v-for="slot in parseAvailability(selectedUser.availability)[day]" 
+                            :key="slot" 
+                            class="inline-flex items-center gap-1 px-2 py-1 bg-white border border-rose-100 text-rose-700 rounded-lg text-[10px] font-bold shadow-sm"
+                          >
+                            <span v-if="slot === 'morning'">🌅</span>
+                            <span v-else-if="slot === 'afternoon'">☀️</span>
+                            <span v-else-if="slot === 'evening'">🌆</span>
+                            <span v-else-if="slot === 'night'">🌙</span>
+                            {{ capitalize(slot) }}
+                          </span>
+                        </template>
+                        <span v-else class="text-[9px] text-stone-400 italic">No availability</span>
+                      </div>
+                    </div>
+                  </div>
+                  <p v-else class="bio-text--empty">No availability specified by user.</p>
+                </div>
+
                 <!-- Dealbreakers Card -->
                 <div class="info-card info-card--full">
                   <h4 class="info-card__title">
@@ -978,6 +1027,7 @@ const filters = reactive({
   gender: '',
   persona: '',
   verified: '',
+  availability: '',
   search: ''
 })
 
@@ -1047,6 +1097,12 @@ const fetchUsers = async () => {
   if (filters.verified) {
     query = query.eq('is_verified', filters.verified === 'true')
   }
+
+  if (filters.availability === 'set') {
+    query = query.not('availability', 'is', null)
+  } else if (filters.availability === 'not_set') {
+    query = query.is('availability', null)
+  }
   
   if (filters.search) {
     // Simple search on display_name or phone
@@ -1074,6 +1130,31 @@ const fetchUsers = async () => {
 const handlePageChange = (page: number) => {
   currentPage.value = page
   fetchUsers()
+}
+
+const hasAvailability = (user: any) => {
+  if (!user?.availability) return false
+  if (typeof user.availability === 'string') {
+    try {
+      const parsed = JSON.parse(user.availability)
+      return Object.values(parsed).some((slots: any) => slots?.length > 0)
+    } catch (e) {
+      return false
+    }
+  }
+  return Object.values(user.availability).some((slots: any) => slots?.length > 0)
+}
+
+const parseAvailability = (avail: any) => {
+  if (!avail) return {}
+  if (typeof avail === 'string') {
+    try {
+      return JSON.parse(avail)
+    } catch (e) {
+      return {}
+    }
+  }
+  return avail
 }
 
 // Watch filters to reset pagination

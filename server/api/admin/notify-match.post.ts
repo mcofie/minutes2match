@@ -9,7 +9,9 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 400, message: 'Missing user IDs' });
   }
 
-  const defaultMsg = "Great news! You've been matched on Minutes 2 Match! Log in to see who it is and unlock their profile. - M2Match";
+  const config = useRuntimeConfig();
+  const matchesLink = `${config.public.baseUrl}/matches`;
+  const defaultMsg = `Great news! You've been matched on Minutes 2 Match! Log in to see who it is and unlock their profile: ${matchesLink} - M2Match`;
   const msg = message || defaultMsg;
 
   const results = await Promise.all([

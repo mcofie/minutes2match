@@ -43,7 +43,7 @@
       <div class="max-w-6xl mx-auto px-4">
         <div class="flex gap-8 border-t border-black/10 dark:border-white/10">
           <NuxtLink 
-            to="/me"
+            to="/matches"
             class="py-4 text-xs font-bold tracking-widest uppercase transition-all whitespace-nowrap border-b-2 border-transparent text-stone-400 hover:text-black dark:hover:text-white hover:border-black dark:hover:border-white flex items-center gap-2"
           >
             ← Back to Matches
@@ -79,18 +79,36 @@
             <!-- Photo -->
             <div class="relative inline-block mb-4">
               <div 
-                class="w-32 h-32 rounded-full overflow-hidden border-2 border-black dark:border-stone-600 mx-auto"
-                :style="{ backgroundColor: match?.unlocked ? '#f5f5f4' : (personaData?.color || '#1a1a2e') }"
+                class="w-32 h-32 rounded-full overflow-hidden border-2 border-black dark:border-stone-600 mx-auto relative group-hover:scale-105 transition-transform"
+                :style="{ backgroundColor: (match?.unlocked || match?.currentUserPaid) ? '#f5f5f4' : (personaData?.color || '#1a1a2e') }"
               >
+                <!-- Photo: Unlocked or Paid -->
                 <img 
-                  v-if="match?.unlocked && matchProfile?.photo_url" 
+                  v-if="(match?.unlocked || match?.currentUserPaid) && matchProfile?.photo_url" 
                   :src="matchProfile.photo_url" 
                   :alt="matchProfile.display_name"
                   class="w-full h-full object-cover cursor-zoom-in hover:scale-110 transition-transform duration-500"
                   @click="showImageZoom = true"
                 />
-                <div v-else class="w-full h-full flex items-center justify-center text-5xl">
-                  {{ personaData?.emoji || '✨' }}
+                
+                <!-- Photo: Locked (Blurred Preview) -->
+                <template v-else>
+                  <img 
+                    v-if="matchProfile?.photo_url"
+                    :src="matchProfile.photo_url" 
+                    class="absolute inset-0 w-full h-full object-cover blur-[8px] scale-110 opacity-70" 
+                  />
+                  <!-- Fallback: Abstract Silhouette -->
+                  <div v-if="!matchProfile?.photo_url" class="absolute inset-0 flex items-center justify-center bg-stone-100">
+                    <svg class="w-1/2 h-1/2 text-stone-200" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                    </svg>
+                  </div>
+                </template>
+
+                <!-- Initial Fallback for unlocked but no photo -->
+                <div v-if="(match?.unlocked || match?.currentUserPaid) && !matchProfile?.photo_url" class="w-full h-full flex items-center justify-center text-5xl">
+                  {{ personaData?.emoji || '🔮' }}
                 </div>
               </div>
               
@@ -112,11 +130,11 @@
             </div>
 
             <h2 class="text-2xl font-serif font-black text-black dark:text-white mb-1 mt-2">
-              {{ match?.unlocked ? matchProfile?.display_name : (personaData?.name || 'Your Match') }}
+              {{ (match?.unlocked || match?.currentUserPaid) ? matchProfile?.display_name : (personaData?.name || 'Your Match') }}
             </h2>
             <p class="text-xs text-stone-500 dark:text-stone-400 mb-8 font-bold uppercase tracking-wide">
-              {{ match?.unlocked ? `${getAge(matchProfile?.birth_date)} years old` : 'Age hidden' }}
-              <span v-if="match?.unlocked && matchProfile?.location">• {{ matchProfile.location }}</span>
+              {{ (match?.unlocked || match?.currentUserPaid) ? `${getAge(matchProfile?.birth_date)} years old` : 'Age hidden' }}
+              <span v-if="(match?.unlocked || match?.currentUserPaid) && matchProfile?.location">• {{ matchProfile.location }}</span>
             </p>
 
             <!-- Actions -->
@@ -281,7 +299,7 @@
                            </div>
                         </div>
                      </div>
-                     <span class="text-2xl animate-pulse">✨</span>
+                     <span class="text-2xl animate-pulse">🤝</span>
                   </div>
                 </div>
                 <div class="p-4 bg-emerald-50 dark:bg-emerald-950/30 rounded-xl border-2 border-dashed border-emerald-200 dark:border-emerald-800 text-center">
@@ -378,26 +396,38 @@
            </div>
            
            <!-- Partial Unlock / Waiting State -->
-           <div v-else-if="match?.currentUserPaid" class="bg-amber-50 p-8 rounded-xl border-2 border-amber-200">
-             <div class="flex items-start gap-4">
-                <div class="w-12 h-12 bg-amber-100 rounded-lg flex items-center justify-center text-3xl flex-shrink-0 border border-amber-200">⏳</div>
-                <div>
-                   <h3 class="text-xl font-bold font-serif text-amber-900 mb-2">Waiting for Match</h3>
-                   <p class="text-amber-800 leading-relaxed text-sm">
-                      You've unlocked this profile, but we're waiting for them to unlock yours. We've sent them a notification!
-                   </p>
-                   <div class="mt-4 flex flex-col gap-2">
-                      <div class="flex justify-between text-xs font-bold uppercase tracking-widest text-amber-700">
-                         <span>Status</span>
-                         <span>Expires in {{ formatTimeRemaining(match.expires_at) }}</span>
+              <div v-else-if="match?.currentUserPaid" class="bg-amber-50 p-8 rounded-xl border-2 border-amber-200">
+                <div class="flex items-start gap-4">
+                   <div class="w-12 h-12 bg-amber-100 rounded-lg flex items-center justify-center text-3xl flex-shrink-0 border border-amber-200">⏳</div>
+                   <div class="flex-1 min-w-0">
+                      <div class="flex items-center justify-between mb-2">
+                         <h3 class="text-xl font-bold font-serif text-amber-900">Waiting for Match</h3>
+                         <button 
+                           v-if="!nudged"
+                           @click="showNudgeModal = true"
+                           :disabled="nudging"
+                           class="px-3 py-1.5 bg-amber-400 text-black text-[10px] font-black rounded-lg border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-0.5 hover:translate-y-0.5 transition-all flex items-center gap-1"
+                         >
+                            <span v-if="nudging" class="w-3 h-3 border-2 border-black/30 border-t-black rounded-full animate-spin"></span>
+                            <span>Nudge</span>
+                         </button>
+                         <span v-else class="px-3 py-1.5 bg-stone-100 text-stone-400 text-[10px] font-black rounded-lg border-2 border-stone-200 italic">Nudged</span>
                       </div>
-                      <div class="w-full h-2 bg-amber-200 rounded-full overflow-hidden">
-                         <div class="h-full bg-amber-500 w-1/2 animate-pulse"></div>
+                      <p class="text-amber-800 leading-relaxed text-sm">
+                         You've unlocked this profile, but we're waiting for them to unlock yours. We've sent them a notification!
+                      </p>
+                      <div class="mt-4 flex flex-col gap-2">
+                         <div class="flex justify-between text-xs font-bold uppercase tracking-widest text-amber-700">
+                            <span>Status</span>
+                            <span>Expires in {{ formatTimeRemaining(match.expires_at) }}</span>
+                         </div>
+                         <div class="w-full h-2 bg-amber-200 rounded-full overflow-hidden">
+                            <div class="h-full bg-amber-500 w-1/2 animate-pulse"></div>
+                         </div>
                       </div>
                    </div>
                 </div>
-             </div>
-           </div>
+              </div>
            
            <!-- Locked / Blind Details -->
            <div v-else class="bg-white p-6 md:p-8 rounded-xl border-2 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] opacity-70">
@@ -719,6 +749,48 @@
       </Transition>
     </Teleport>
 
+    <!-- Nudge Custom Message Modal -->
+    <Teleport to="body">
+       <div 
+         v-if="showNudgeModal" 
+         class="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-stone-900/60 backdrop-blur-md transition-all duration-300"
+         @click.self="showNudgeModal = false"
+       >
+         <div class="relative w-full max-w-sm bg-white rounded-3xl border-2 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] p-6 animate-in zoom-in duration-300">
+           <div class="flex items-center justify-between mb-4">
+             <h3 class="text-xl font-serif font-black italic">Customize Nudge</h3>
+             <button @click="showNudgeModal = false" class="text-stone-400 hover:text-black transition-colors">
+               <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+             </button>
+           </div>
+
+           <p class="text-xs text-stone-500 mb-4 leading-relaxed">
+             Personalize your message to encourage <strong>{{ (match?.unlocked || match?.currentUserPaid) ? matchProfile?.display_name : 'your match' }}</strong> to unlock your profile.
+           </p>
+
+           <div class="mb-4">
+             <textarea 
+               v-model="nudgeMessage" 
+               placeholder="Hey! Just unlocked our match. Hope you're having a great day!"
+               class="w-full h-24 p-4 rounded-2xl border-2 border-stone-100 focus:border-amber-400 focus:ring-0 text-sm font-medium resize-none transition-all placeholder:text-stone-300"
+               maxlength="120"
+             ></textarea>
+             <div class="flex justify-end mt-1">
+               <span class="text-[10px] font-bold" :class="nudgeMessage.length > 100 ? 'text-amber-600' : 'text-stone-300'">{{ nudgeMessage.length }}/120</span>
+             </div>
+           </div>
+
+           <button 
+             @click="handleNudge(nudgeMessage)"
+             :disabled="nudging || !nudgeMessage.trim()"
+             class="w-full py-3.5 bg-amber-400 text-black font-black uppercase tracking-widest text-xs rounded-xl border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:shadow-none active:translate-x-1 active:translate-y-1 transition-all flex items-center justify-center gap-2"
+           >
+             <span v-if="nudging" class="w-4 h-4 border-2 border-black/30 border-t-black rounded-full animate-spin"></span>
+             {{ nudging ? 'Sending...' : 'Send Nudge' }}
+           </button>
+         </div>
+       </div>
+    </Teleport>
   </main>
 </template>
 
@@ -746,6 +818,10 @@ const error = ref<string | null>(null)
 const match = ref<any>(null)
 const matchProfile = ref<any>(null)
 const unlocking = ref(false)
+const nudging = ref(false)
+const nudged = ref(false)
+const showNudgeModal = ref(false)
+const nudgeMessage = ref('')
 const copiedIndex = ref<number | null>(null)
 const showImageZoom = ref(false)
 
@@ -1020,6 +1096,28 @@ const submitReport = async () => {
   } finally {
     submittingReport.value = false
   }
+}
+
+const handleNudge = async (customMessage: string) => {
+   if (!match.value?.id) return
+   nudging.value = true
+   try {
+     const res = await $fetch('/api/matches/nudge', {
+       method: 'POST',
+       body: { matchId: match.value.id, customMessage }
+     })
+     if ((res as any).success) {
+       toast.success('Nudge Sent! ⚡', "We've sent them an SMS alert.")
+       nudged.value = true
+       showNudgeModal.value = false
+     } else {
+       toast.error('Nudge Failed', (res as any).message || 'Something went wrong.')
+     }
+   } catch (err) {
+     toast.error('Nudge Failed', 'Connection error.')
+   } finally {
+     nudging.value = false
+   }
 }
 
 const handleBlock = () => {

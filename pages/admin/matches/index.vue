@@ -1167,7 +1167,9 @@ const sendPaymentReminder = async (match: any) => {
       }
       
       // User needs to pay
-      return `Reminder: You've been matched on Minutes 2 Match! Pay GH₵${match.unlock_price} to unlock ${partnerName}'s profile and start connecting. 💕 - M2Match`
+      const config = useRuntimeConfig();
+      const matchesLink = `${config.public.baseUrl}/matches`;
+      return `Reminder: You've been matched on Minutes 2 Match! Pay GHS ${match.unlock_price} to unlock ${partnerName}'s profile and start connecting: ${matchesLink} - M2Match`
     }
     
     // Send personalized message to users who haven't paid

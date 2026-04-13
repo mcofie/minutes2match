@@ -38,7 +38,7 @@
       <!-- Going Indicator -->
       <div v-if="totalTicketsSold > 0" class="flex items-center gap-2 mb-4">
         <div class="flex -space-x-2">
-           <div class="w-6 h-6 rounded-full bg-orange-50 border-2 border-white flex items-center justify-center text-[10px] shadow-sm z-30">✨</div>
+           <div class="w-6 h-6 rounded-full bg-orange-50 border-2 border-white flex items-center justify-center text-[10px] shadow-sm z-30">🔥</div>
            <div class="w-6 h-6 rounded-full bg-emerald-50 border-2 border-white flex items-center justify-center text-[10px] shadow-sm z-20" v-if="totalTicketsSold > 1">🎭</div>
            <div class="w-6 h-6 rounded-full bg-blue-50 border-2 border-white flex items-center justify-center text-[10px] shadow-sm z-10" v-if="totalTicketsSold > 2">🎨</div>
         </div>

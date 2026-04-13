@@ -42,20 +42,11 @@ export default defineEventHandler(async (event) => {
     const now = new Date()
 
     // 1. Find all expired matches (past expires_at, still pending or partial)
+    // Using '*' to avoid 400 errors if 'amount_paid' columns are missing in some environments
     const { data: expiredMatches, error } = await supabase
         .from('matches')
         .select(`
-            id,
-            user_1_id,
-            user_2_id,
-            user_1_paid,
-            user_2_paid,
-            user_1_amount_paid,
-            user_2_amount_paid,
-            unlock_price,
-            status,
-            expires_at,
-            created_at,
+            *,
             user_1:profiles!matches_user_1_id_fkey(display_name, phone),
             user_2:profiles!matches_user_2_id_fkey(display_name, phone)
         `)
@@ -82,7 +73,7 @@ export default defineEventHandler(async (event) => {
     let creditedCount = 0
     let totalRefunded = 0
 
-    for (const match of expiredMatches) {
+    for (const match of (expiredMatches as any[])) {
         try {
             // Helper to extract profile from object or array
             const getProfile = (p: any): any => {
@@ -97,9 +88,10 @@ export default defineEventHandler(async (event) => {
             const user1Paid = match.user_1_paid
             const user2Paid = match.user_2_paid
             
-            // Get actual amounts paid
-            const user1AmountPaid = parseFloat(match.user_1_amount_paid as any) || 0
-            const user2AmountPaid = parseFloat(match.user_2_amount_paid as any) || 0
+            // Get actual amounts paid (handle potential missing columns gracefully)
+            const user1AmountPaid = parseFloat(match.user_1_amount_paid) || 0
+            const user2AmountPaid = parseFloat(match.user_2_amount_paid) || 0
+            const unlockPrice = parseFloat(match.unlock_price) || 15
 
             // Credit the paying user if only one person paid (partial_payment)
             // Only apply if they actually paid a positive amount (Free matches don't get refunds)

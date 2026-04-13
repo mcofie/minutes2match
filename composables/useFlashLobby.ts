@@ -10,6 +10,7 @@ export const useFlashLobby = () => {
   const loadingMore = ref(false)
   const currentPage = ref(1)
   const hasMore = ref(true)
+  const totalCount = ref(0)
   
   // Filtering state
   const activeFilters = ref({
@@ -79,6 +80,7 @@ export const useFlashLobby = () => {
           currentPage.value = 1
         }
         hasMore.value = response.hasMore
+        totalCount.value = response.totalCount || 0
       }
     } catch (err) {
       console.error('[useFlashLobby] Fetch participants failed:', err)
@@ -92,6 +94,14 @@ export const useFlashLobby = () => {
   watch(activeFilters, () => {
     fetchParticipants(false)
   }, { deep: true })
+
+  // Force refresh everything when a lobby session changes (e.g. starts or ends)
+  watch(() => activeLobby.value?.id, (newId, oldId) => {
+    if (newId !== oldId) {
+      console.log('[Lobby] Session transition detected:', oldId, '->', newId)
+      fetchParticipants()
+    }
+  })
 
   const isLive = computed(() => !!activeLobby.value)
   
@@ -124,20 +134,24 @@ export const useFlashLobby = () => {
     
     timer = setInterval(() => {
       currentTime.value = new Date()
+      // Every 30 seconds, do a background fetch of lobbies just in case realtime missed a pulse
+      if (currentTime.value.getSeconds() % 30 === 0) fetchLobbies()
     }, 1000)
 
     // Realtime subscription for instant Pause/Resume/AddTime feedback
     channel = supabase
-      .channel('public:flash_lobbies')
+      .channel('lobby-global-state')
       .on(
         'postgres_changes',
         { event: '*', schema: 'm2m', table: 'flash_lobbies' },
-        () => {
-           console.log('[Lobby] Realtime update detected')
+        (payload) => {
+           console.log('[Lobby] Realtime event:', payload.eventType)
            fetchLobbies() 
         }
       )
-      .subscribe()
+      .subscribe((status) => {
+         console.log('[Lobby] Subscription status:', status)
+      })
   })
 
   onUnmounted(() => {
@@ -155,6 +169,7 @@ export const useFlashLobby = () => {
     loading, 
     loadingMore, 
     hasMore, 
+    totalCount,
     activeFilters,
     fetchLobbies, 
     fetchParticipants 

@@ -1,17 +1,17 @@
 <template>
   <article 
-    class="group relative h-[200px] min-h-[200px] max-h-[200px] bg-white rounded-2xl overflow-hidden transition-all duration-500 border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:-translate-y-1 hover:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] flex"
+    class="group relative h-auto min-h-[220px] bg-white rounded-[40px] overflow-hidden transition-all duration-500 border border-stone-50 hover:shadow-2xl hover:-translate-y-2 flex flex-col sm:flex-row"
     :class="[isDisappearing ? 'opacity-0 scale-90 blur-md pointer-events-none' : 'opacity-100 scale-100 blur-0']"
   >
     <!-- Main Content Layout -->
     <div class="flex flex-1 items-stretch h-full overflow-hidden">
-      <!-- Photo Section (Left) -->
-      <div class="w-32 sm:w-36 flex-shrink-0 bg-stone-100 relative overflow-hidden group-hover:bg-stone-200 transition-colors h-full border-r-2 border-black">
+      <!-- Image Section (Left) -->
+      <div class="w-[120px] sm:w-[160px] flex-shrink-0 bg-stone-50 relative overflow-hidden h-full border-r border-stone-50">
         <!-- Gender Badge -->
         <div 
           v-if="gender"
-          class="absolute top-2.5 left-2.5 z-20 w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold bg-white/90 backdrop-blur-sm shadow-sm border border-stone-200"
-          :class="gender?.toLowerCase() === 'female' ? 'text-pink-600' : 'text-blue-600'"
+          class="absolute top-4 left-4 z-20 w-8 h-8 rounded-full flex items-center justify-center text-[10px] font-black bg-white ring-2 ring-black shadow-sm"
+          :class="gender?.toLowerCase() === 'female' ? 'text-rose-500' : 'text-blue-500'"
         >
           {{ gender?.toLowerCase() === 'female' ? '♀' : '♂' }}
         </div>
@@ -21,62 +21,73 @@
           :src="photoUrl" 
           :alt="displayName"
           class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-          width="144"
-          height="200"
+          width="160"
+          height="220"
           loading="lazy"
-          placeholder
         />
-        <div v-else class="flex flex-col items-center justify-center h-full opacity-20">
-           <svg class="w-8 h-8 text-stone-900" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zm0 2a7 7 0 0 0-7 7h14a7 7 0 0 0-7-7z"/></svg>
+        <div v-else class="flex flex-col items-center justify-center h-full opacity-10 bg-stone-100">
+           <svg class="w-10 h-10 text-stone-900" viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
         </div>
       </div>
 
       <!-- Content Section (Right) -->
-      <div class="flex flex-col flex-1 h-full p-3 min-w-0 bg-white relative">
-        <!-- Persistent Content Stack -->
-        <div class="flex-1 space-y-1.5 min-w-0">
-          <div class="flex items-start justify-between gap-2">
-            <div class="min-w-0">
-              <h3 class="text-lg font-serif font-black italic text-black truncate leading-tight flex items-center gap-2">
-                {{ displayName }}
-                <span v-if="isVerified" class="flex-shrink-0 w-3.5 h-3.5 rounded-full bg-blue-500 border border-black flex items-center justify-center shadow-[1px_1px_0px_0px_rgba(0,0,0,1)]">
-                  <svg class="w-2 h-2 text-white" viewBox="0 0 20 20" fill="currentColor">
-                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
-                  </svg>
-                </span>
-              </h3>
-              <div class="flex items-center gap-1.5 text-[10px] font-bold text-stone-500 uppercase tracking-tight">
-                <span>{{ age }} &middot; {{ location || 'Accra' }}</span>
-              </div>
-            </div>
-            <div class="text-base opacity-30 mt-1">💕</div>
-          </div>
-
-          <!-- Shared Interests Badge -->
-          <div class="inline-flex items-center gap-1 px-2 py-0.5 bg-emerald-50 border border-emerald-100/50 rounded-md">
-             <span class="text-[9px] font-black text-emerald-600 leading-tight">✨ {{ sharedInterests?.length || 0 }} shared interests</span>
-          </div>
-
-          <!-- Bio Snippet -->
-          <p class="text-[11px] text-stone-600 line-clamp-2 leading-tight font-medium">
-            "{{ bio || 'Enjoying life. Collecting moments.' }}"
-          </p>
+      <div class="flex-1 p-6 sm:p-8 flex flex-col justify-between relative bg-white">
+        <!-- Match Score Indicator (Top Right) -->
+        <div class="absolute top-6 right-6 w-12 h-12 rounded-full border-[3px] border-rose-100 flex items-center justify-center bg-rose-50 animate-pulse-subtle">
+           <span class="text-[12px] font-black text-[#ff003c]">{{ matchScore }}%</span>
         </div>
 
-        <!-- Footer Actions (Stays pinned to bottom) -->
-        <div class="flex items-end justify-between pt-2">
-          <div class="flex flex-col gap-0.5">
-            <span class="text-[7px] font-black text-stone-400 uppercase tracking-widest leading-none">Status</span>
-            <span class="text-[9px] font-black text-emerald-600 leading-none">Live Now</span>
+        <div>
+          <h3 class="text-3xl font-serif font-black italic text-stone-900 leading-tight flex items-center gap-1.5 mb-1">
+            {{ displayName }}
+            <span v-if="isVerified" class="inline-flex w-5 h-5 rounded-full bg-blue-500 items-center justify-center border-2 border-white shadow-sm">
+               <svg class="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20"><path d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"/></svg>
+            </span>
+          </h3>
+          
+          <div class="text-[13px] font-bold text-stone-700 flex items-center gap-2 mb-4">
+            <span>{{ age }} &middot; {{ location || 'Accra' }}</span>
+            <span v-if="occupation" class="text-stone-300">|</span>
+            <span v-if="occupation" class="text-stone-400 font-black uppercase tracking-tight">{{ occupation }}</span>
+          </div>
+
+          <!-- Secondary Info Badges -->
+          <div class="flex flex-wrap gap-2 mb-5">
+             <div v-if="intent" class="px-3 py-1.5 bg-rose-50 text-[#881337] border border-rose-100 rounded-xl text-[9px] font-black uppercase tracking-widest italic">
+                INTENTION: {{ formatIntent(intent) }}
+             </div>
+             
+             <div v-if="mood" class="px-3 py-1.5 bg-stone-50 text-stone-500 border border-stone-100 rounded-xl text-[9px] font-black uppercase tracking-widest">
+                {{ mood.replace('_', ' ') }}
+             </div>
+          </div>
+
+          <!-- Shared Interests Section -->
+          <div v-if="sharedInterests && sharedInterests.length > 0" class="pt-4 border-t border-stone-50">
+             <p class="text-[9px] font-bold text-stone-300 uppercase tracking-widest mb-3 italic">Mutual Ground</p>
+             <div class="flex flex-wrap gap-1.5">
+                <span v-for="interest in sharedInterests.slice(0, 3)" :key="interest" class="text-[10px] font-black text-stone-600 bg-stone-50 px-3 py-1 rounded-full border border-stone-100 lowercase">
+                   {{ interest }}
+                </span>
+                <span v-if="sharedInterests.length > 3" class="text-[9px] font-bold text-stone-300 self-center ml-1">+{{ sharedInterests.length - 3 }}</span>
+             </div>
+          </div>
+        </div>
+
+        <!-- Footer Actions -->
+        <div class="flex items-center justify-between pt-6 border-t border-stone-50 mt-4">
+          <div class="flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full" :class="isOnline ? 'bg-emerald-400 animate-pulse' : 'bg-stone-300'"></span>
+            <span class="text-[11px] font-black uppercase tracking-widest text-stone-400">{{ isOnline ? 'Live' : 'Active' }}</span>
           </div>
 
           <button 
             @click.stop="handleConnect"
             :disabled="isConnected || isDisappearing"
-            class="px-4 py-1.5 rounded-xl font-black uppercase tracking-widest text-[9px] transition-all border-2 border-black flex items-center justify-center min-w-[85px] shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:shadow-none active:translate-x-[1px] active:translate-y-[1px]"
-            :class="isConnected ? 'bg-indigo-600 text-white border-indigo-700' : 'bg-stone-900 text-white hover:bg-black'"
+            class="px-8 py-3 rounded-2xl font-black uppercase tracking-widest text-[11px] transition-all shadow-lg active:scale-95"
+            :class="isConnected ? 'bg-emerald-500 text-white shadow-emerald-100' : 'bg-[#ff003c] text-white shadow-rose-100 hover:bg-rose-600'"
           >
-            {{ isConnected ? 'Message' : 'Connect' }}
+            {{ isConnected ? 'Success!' : 'Connect' }}
           </button>
         </div>
       </div>
@@ -92,21 +103,26 @@ interface Props {
   photoUrl: string | null
   age: number
   gender: string
+  isOnline?: boolean
   interestedIn?: string
   mood?: string
+  intent?: string
   matchScore: number
   interests: string[]
   sharedInterests?: string[]
+  dealbreakers?: Record<string, any>
   isVerified?: boolean
   isDisappearing?: boolean
   bio?: string
   location?: string
+  occupation?: string
 }
 
 const props = defineProps<Props>()
 
 const emit = defineEmits<{
-  connect: [id: string]
+  connect: [id: string],
+  viewProfile: [id: string]
 }>()
 
 const isConnected = ref(false)
@@ -114,6 +130,25 @@ const isConnected = ref(false)
 const handleConnect = () => {
   isConnected.value = true
   emit('connect', props.id)
+}
+
+const formatIntent = (val: string) => {
+  if (val === 'serious') return 'Serious'
+  if (val === 'marriage') return 'Marriage'
+  if (val === 'casual') return 'Casual'
+  if (val === 'friendship') return 'Friendship'
+  return val
+}
+
+const formatDealbreaker = (key: string, val: any) => {
+   // Assuming dealbreakers are like { smoker: 'no', carrier: 'no' }
+   const labels: Record<string, string> = {
+      smoker: 'Smoker',
+      carrier: 'Genotype Carrier',
+      religion: 'Different Religion',
+      kids: 'Has Kids'
+   }
+   return labels[key] || key
 }
 </script>
 

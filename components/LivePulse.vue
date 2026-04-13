@@ -25,7 +25,7 @@ const currentMessage = ref('')
 
 const messages = [
   "Someone in East Legon just matched! 💕",
-  "New profile created in Cantonments ✨",
+  "New profile created in Cantonments 🔥",
   "Speed Dating (Feb 20) is 80% Full 🔥",
   "A user just unlocked a connection 🔓",
   "New Vibe Check completed in Osu 📝",

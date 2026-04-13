@@ -10,7 +10,7 @@ export default defineEventHandler(async (event) => {
   }
 
   const body = await readBody(event)
-  const { targetId, matchScore } = body
+  const { targetId, matchScore, reaction } = body
 
   if (!targetId) {
     throw createError({
@@ -45,7 +45,10 @@ export default defineEventHandler(async (event) => {
       unlock_price: 15, // Standard unlock fee for Flash Lobby connections
       match_score: matchScore || Math.floor(Math.random() * 15) + 80,
       created_by_label: 'flash_lobby',
-      match_reasons: ['Flash Lobby Connection ⚡', 'Mutual Instant Interest'],
+      match_reasons: [
+        'Flash Lobby Connection ⚡', 
+        reaction ? `Spark Sent: ${reaction}` : 'Mutual Instant Interest'
+      ],
       expires_at: new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString() // 48 hours to unlock
     })
     .select()

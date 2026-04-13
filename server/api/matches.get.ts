@@ -48,7 +48,8 @@ export default defineEventHandler(async (event) => {
             ...match,
             matchedProfile,
             vibeAnswers,
-            currentUserPaid: match.user_1_id === userId ? match.user_1_paid : match.user_2_paid
+            currentUserPaid: match.user_1_id === userId ? match.user_1_paid : match.user_2_paid,
+            nudged: match.user_1_id === userId ? !!match.user_1_contacted : !!match.user_2_contacted
         }
     }))
 

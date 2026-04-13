@@ -1,6 +1,10 @@
 @import "tailwindcss";
 @variant dark (&.dark);
 
+@theme {
+  --breakpoint-xs: 400px;
+}
+
 :root {
     /* Loops.so Design System */
 

@@ -1,77 +1,87 @@
 <template>
-  <main class="min-h-screen flex items-center justify-center bg-stone-50 p-6 relative overflow-hidden">
-    <!-- Subtle Background Pattern -->
-    <div class="absolute inset-0 opacity-[0.4] pointer-events-none" style="background-image: radial-gradient(#a8a29e 1px, transparent 1px); background-size: 24px 24px;"></div>
+  <main class="min-h-screen flex items-center justify-center bg-[#FFFCF8] p-6 relative overflow-hidden transition-colors duration-500">
+    <!-- Neo-Brutalist Background Elements -->
+    <div class="absolute inset-0 opacity-[0.03] pointer-events-none" style="background-image: radial-gradient(#000 1px, transparent 1px); background-size: 24px 24px;"></div>
+    <div class="absolute top-20 right-[10%] w-64 h-64 bg-emerald-100/30 rounded-full blur-3xl"></div>
+    <div class="absolute bottom-20 left-[10%] w-64 h-64 bg-rose-100/30 rounded-full blur-3xl"></div>
     
-    <!-- Card Container -->
+    <!-- Unified Card Container -->
     <div 
-      class="relative w-full max-w-md bg-white rounded-3xl shadow-xl shadow-stone-200/50 border border-stone-100 p-8 sm:p-10 text-center overflow-hidden transition-all duration-700 ease-out transform"
-      :class="loading ? 'scale-98 opacity-90' : 'scale-100 opacity-100 translate-y-0'"
+      class="relative w-full max-w-md bg-white border-2 border-black p-8 sm:p-10 text-center transition-all duration-700 ease-out shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] rounded-2xl"
+      :class="loading ? 'scale-95 opacity-50' : 'scale-100 opacity-100'"
     >
       
       <!-- Loading State -->
       <div v-if="loading" class="py-12 flex flex-col items-center justify-center min-h-[300px]">
-        <div class="w-12 h-12 rounded-full border-4 border-stone-100 border-t-stone-900 animate-spin mb-6"></div>
-        <p class="text-stone-500 font-medium animate-pulse">Verifying payment...</p>
+        <div class="w-16 h-16 rounded-full border-4 border-stone-100 border-t-black animate-spin mb-6"></div>
+        <p class="text-black font-black uppercase tracking-widest text-xs animate-pulse">Verifying Transaction</p>
       </div>
       
       <!-- Success State -->
       <div v-else-if="success" class="flex flex-col items-center animate-in fade-in zoom-in duration-500">
         <!-- Decoration Line -->
-        <div class="absolute top-0 inset-x-0 h-1.5 bg-gradient-to-r from-emerald-400 via-teal-500 to-emerald-400"></div>
+        <div class="absolute top-0 inset-x-0 h-2 bg-emerald-400 border-b-2 border-black rounded-t-xl"></div>
         
-        <!-- Animated Icon -->
+        <!-- Animated Icon Container -->
         <div class="relative w-24 h-24 mb-6 group">
-          <div class="absolute inset-0 bg-emerald-100 rounded-full animate-ping opacity-20 duration-1000"></div>
-          <div class="relative w-full h-full bg-emerald-50 rounded-full flex items-center justify-center ring-8 ring-emerald-50/50">
-            <svg class="w-10 h-10 text-emerald-600 drop-shadow-sm" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+          <div class="absolute inset-0 bg-emerald-400 rounded-full translate-x-1.5 translate-y-1.5 border-2 border-black"></div>
+          <div class="relative w-full h-full bg-white border-2 border-black rounded-full flex items-center justify-center">
+            <svg class="w-10 h-10 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="4">
               <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" class="animate-check" />
             </svg>
           </div>
         </div>
         
-        <h1 class="text-3xl font-serif font-black text-stone-900 mb-3 tracking-tight">Payment Successful</h1>
-        <p class="text-stone-500 leading-relaxed mb-8 text-[15px] max-w-xs mx-auto">{{ message }}</p>
+        <h1 class="text-3xl font-serif font-black text-black mb-3 tracking-tight italic">Payment Successful</h1>
+        <p class="text-stone-500 leading-relaxed mb-8 text-sm font-medium max-w-xs mx-auto">{{ message }}</p>
         
-        <!-- Receipt/Info Box -->
-        <div class="w-full bg-stone-50 rounded-xl p-4 mb-8 border border-stone-100 flex items-center justify-between text-sm shadow-inner shadow-stone-100/50">
-           <span class="text-stone-500 font-medium">Status</span>
-           <span class="text-emerald-600 font-bold flex items-center gap-1.5 bg-white px-2.5 py-1 rounded-md shadow-sm border border-emerald-100">
-             <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+        <!-- Status Info Box -->
+        <div class="w-full bg-stone-50 border-2 border-black rounded-xl p-5 mb-8 flex items-center justify-between shadow-[4px_4px_0px_0px_rgba(0,0,0,0.05)]">
+           <div class="flex flex-col items-start gap-1">
+             <span class="text-[10px] font-black uppercase tracking-widest text-stone-400">Transaction Status</span>
+             <span class="text-xs font-bold text-black">Order #{{ ($route.query.reference as string || '').slice(-6).toUpperCase() }}</span>
+           </div>
+           <span class="text-emerald-700 font-black text-[10px] uppercase tracking-widest flex items-center gap-2 bg-emerald-50 px-3 py-1.5 rounded-lg border-2 border-emerald-500 shadow-[2px_2px_0px_0px_rgba(16,185,129,0.1)]">
+             <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
              Confirmed
            </span>
         </div>
 
-        <UiButton 
-          variant="primary" 
-          size="lg" 
-          class="w-full justify-center !text-base !py-3.5 !rounded-xl shadow-lg shadow-stone-900/10 hover:shadow-stone-900/20 hover:-translate-y-0.5 transition-all duration-300" 
+        <button 
+          class="w-full py-4 bg-black text-white font-black uppercase tracking-widest text-xs rounded-xl border-2 border-black shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-1 hover:translate-y-1 transition-all flex items-center justify-center gap-2" 
           @click="goToDashboard"
         >
-          {{ paymentPurpose === 'spark_deck' ? 'Return to Spark Deck' : 'Continue to Dashboard' }}
-        </UiButton>
+          <span>{{ paymentPurpose === 'spark_deck' ? 'Return to Spark Deck' : 'Continue to Matches' }}</span>
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+        </button>
         
         <p v-if="success && paymentPurpose === 'spark_deck' && redirectCountdown > 0" class="mt-4 text-[10px] text-stone-400 font-bold uppercase tracking-widest">
-           Redirecting in {{ redirectCountdown }}s...
+           Auto-redirecting in {{ redirectCountdown }}s...
         </p>
       </div>
       
       <!-- Error State -->
       <div v-else class="flex flex-col items-center animate-in fade-in zoom-in duration-500">
-        <div class="absolute top-0 inset-x-0 h-1.5 bg-gradient-to-r from-red-400 via-rose-500 to-red-400"></div>
+        <div class="absolute top-0 inset-x-0 h-2 bg-rose-500 border-b-2 border-black rounded-t-xl"></div>
         
-        <div class="w-20 h-20 bg-red-50 rounded-full flex items-center justify-center mb-6 ring-8 ring-red-50/50">
-          <svg class="w-10 h-10 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-          </svg>
+        <div class="relative w-24 h-24 mb-6 group">
+          <div class="absolute inset-0 bg-rose-500 rounded-full translate-x-1.5 translate-y-1.5 border-2 border-black"></div>
+          <div class="relative w-full h-full bg-white border-2 border-black rounded-full flex items-center justify-center">
+            <svg class="w-10 h-10 text-rose-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="4">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </div>
         </div>
         
-        <h1 class="text-2xl font-serif font-black text-stone-900 mb-3">Payment Failed</h1>
-        <p class="text-stone-500 leading-relaxed mb-8 max-w-xs mx-auto text-sm">{{ message }}</p>
+        <h1 class="text-3xl font-serif font-black text-black mb-3 italic">Payment Failed</h1>
+        <p class="text-stone-500 font-medium leading-relaxed mb-8 max-w-xs mx-auto text-sm">{{ message }}</p>
         
-        <UiButton variant="outline" size="lg" class="w-full justify-center !rounded-xl" @click="goToDashboard">
+        <button 
+          @click="goToDashboard"
+          class="w-full py-4 bg-white text-black font-black uppercase tracking-widest text-xs rounded-xl border-2 border-black shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-1 hover:translate-y-1 transition-all"
+        >
           Return to Dashboard
-        </UiButton>
+        </button>
       </div>
       
     </div>
@@ -156,13 +166,13 @@ onMounted(async () => {
 })
 
 const goToDashboard = () => {
-  // Redirect to matches tab for match unlock payments
-  if (paymentPurpose.value === 'match_unlock') {
-    navigateTo('/me?tab=matches')
+  // Redirect to matches for match unlock and subscription payments
+  if (paymentPurpose.value === 'match_unlock' || paymentPurpose.value === 'subscription') {
+    navigateTo('/matches')
   } else if (paymentPurpose.value === 'spark_deck') {
     navigateTo('/spark-deck')
   } else {
-    navigateTo('/me')
+    navigateTo('/matches')
   }
 }
 </script>

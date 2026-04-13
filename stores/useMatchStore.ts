@@ -43,7 +43,8 @@ export const useMatchStore = defineStore('matches', () => {
                         matchedProfile: fullProfile,
                         vibeAnswers: fullProfile?.vibeAnswers || [],
                         currentUserPaid: isUser1 ? match.user_1_paid : match.user_2_paid,
-                        otherUserPaid: isUser1 ? match.user_2_paid : match.user_1_paid
+                        otherUserPaid: isUser1 ? match.user_2_paid : match.user_1_paid,
+                        nudged: isUser1 ? match.user_1_contacted : match.user_2_contacted
                     }
                 }).filter((m: any) => m.matchedProfile?.is_active !== false)
             } else {

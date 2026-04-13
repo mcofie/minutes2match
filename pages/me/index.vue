@@ -4,26 +4,23 @@
       <Title>Profile | Minutes 2 Match</Title>
     </Head>
     <!-- Header -->
-    <div class="flex items-center justify-between gap-2 md:gap-4 mb-5 md:mb-8 pt-2">
-       <h2 class="text-2xl font-bold tracking-tight dark:text-white leading-none">Profile Settings</h2>
-       <div class="flex items-center gap-1.5 md:gap-2 shrink-0">
-           <span class="inline-flex shrink-0 items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-stone-500 dark:text-stone-400 bg-stone-100 dark:bg-stone-900 border border-stone-200 dark:border-stone-800 px-2 sm:px-3 py-1.5 rounded-full shadow-sm" :title="personaData?.name || 'New Member'">
-             <span class="text-xs">{{ personaData?.emoji || '✨' }}</span>
-             <span class="hidden sm:inline">{{ personaData?.name || 'New Member' }}</span>
+    <div class="flex items-center justify-between gap-3 mb-6 md:mb-8 pt-2">
+       <h2 class="text-2xl font-bold tracking-tight dark:text-white leading-none">Profile</h2>
+       <!-- Badges Container -->
+       <div class="flex items-center gap-1.5 md:gap-2 shrink-0 max-w-[60%] sm:max-w-none">
+           <span class="inline-flex shrink-0 items-center gap-1.5 text-[9px] font-bold uppercase tracking-widest text-stone-500 dark:text-stone-400 bg-stone-100 dark:bg-stone-900 border border-stone-200 dark:border-stone-800 px-2 py-1.5 rounded-full shadow-sm">
+             <span class="text-xs">{{ personaData?.emoji || '🔮' }}</span>
+             <span class="hidden sm:inline">{{ personaData?.name || 'Vibing' }}</span>
            </span>
-           <span class="inline-flex shrink-0 items-center gap-1 text-[10px] font-bold uppercase tracking-widest text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-100 dark:border-emerald-900/30 px-2 sm:px-3 py-1.5 rounded-full shadow-sm" title="Your Trust Score">
+           <span class="inline-flex shrink-0 items-center gap-1 text-[9px] font-bold uppercase tracking-widest text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-100 dark:border-emerald-900/30 px-2 py-1.5 rounded-full shadow-sm" title="Your Trust Score">
              <span>🛡️</span> 
              <span>{{ trustScore || 60 }}%</span>
            </span>
-           <span @click="activeProfileSection = 'account'; fetchCreditData()" class="inline-flex shrink-0 items-center gap-1 text-[10px] font-bold uppercase tracking-widest text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-900/20 border border-green-100 dark:border-green-900/30 px-2 sm:px-3 py-1.5 rounded-full shadow-sm cursor-pointer hover:bg-green-100 dark:hover:bg-green-900/30 transition-colors" title="M2M Credit — tap to view wallet">
-             <span>💚</span> 
+           <span @click="activeProfileSection = 'account'; fetchCreditData()" class="inline-flex shrink-0 items-center gap-1 text-[9px] font-bold uppercase tracking-widest text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-900/20 border border-green-100 dark:border-green-900/30 px-2 py-1.5 rounded-full shadow-sm cursor-pointer hover:bg-green-100 dark:hover:bg-green-900/30 transition-colors" title="M2M Credit — tap to view wallet">
+             <span class="text-[10px]">💚</span> 
              <span>GHS {{ creditBalanceDashboard.toFixed(2) }}</span>
            </span>
-           <span v-if="passkeys.length > 0" class="hidden md:inline-flex shrink-0 items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-indigo-600 dark:indigo-400 bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-100 dark:border-indigo-900/30 px-3 py-1.5 rounded-full shadow-sm cursor-pointer" @click="activeProfileSection = 'security'" title="Biometric Login Enabled">
-             <span class="text-xs">🔑</span>
-             <span>Protected</span>
-           </span>
-           <button @click="showPreview = true" class="inline-flex shrink-0 items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-white bg-black hover:bg-rose-500 px-2.5 sm:px-4 py-1.5 rounded-full shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transition-all active:translate-x-0.5 active:translate-y-0.5" title="Preview Profile">
+           <button @click="showPreview = true" class="inline-flex shrink-0 items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-white bg-black hover:bg-rose-500 px-2.5 py-1.5 rounded-full shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transition-all active:translate-x-0.5 active:translate-y-0.5" title="Preview Profile">
              <span class="text-xs">👁️</span>
              <span class="hidden sm:inline">Preview</span>
            </button>
@@ -63,9 +60,9 @@
 
             <p class="text-[10px] font-medium text-stone-500 dark:text-stone-400">
                <span v-if="profileStrength < 100" class="flex flex-col gap-1">
-                  <span>✨ <span class="font-bold">Add matching info</span> for 2x more matches</span>
+                  <span>💡 <span class="font-bold">Add matching info</span> for 2x more matches</span>
                </span>
-               <span v-else class="text-emerald-500 font-bold">✨ You're unstoppable!</span>
+               <span v-else class="text-emerald-500 font-bold">🚀 You're unstoppable!</span>
             </p>
          </div>
 
@@ -195,7 +192,7 @@
                         <span v-if="badge.includes('photo')">📸</span>
                         <span v-else-if="badge.includes('phone')">📱</span>
                         <span v-else-if="badge.includes('premium')">👑</span>
-                        <span v-else>✨</span>
+                        <span v-else>🌟</span>
                      </div>
                   </template>
                   <div v-else class="w-10 h-10 rounded-full border-2 border-stone-100 bg-stone-50 flex items-center justify-center text-stone-300">?</div>
@@ -272,7 +269,7 @@
                   class="w-full p-4 rounded-xl border-2 border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-950 dark:text-white focus:border-black dark:focus:border-stone-500 outline-none transition-all font-medium resize-none leading-relaxed"
                 ></textarea>
                 <div class="mt-4 flex flex-wrap gap-2">
-                   <span class="px-3 py-1 bg-rose-50 dark:bg-rose-900/20 text-rose-600 dark:text-rose-400 text-[10px] font-bold uppercase rounded-full">✨ Bio helps you match 80% faster</span>
+                   <span class="px-3 py-1 bg-rose-50 dark:bg-rose-900/20 text-rose-600 dark:text-rose-400 text-[10px] font-bold uppercase rounded-full">🔥 Bio helps you match 80% faster</span>
                 </div>
              </div>
          </div>
@@ -951,7 +948,7 @@
               </span>
               <template v-else>
                  <span>Save Changes</span>
-                 <span class="group-hover:translate-x-1 transition-transform">✨</span>
+                 <span class="group-hover:translate-x-1 transition-transform">👉</span>
               </template>
             </button>
             <div v-if="saveSuccess" class="absolute -top-12 left-1/2 -translate-x-1/2 bg-emerald-500 text-white text-[10px] font-bold px-4 py-2 rounded-full shadow-lg border-2 border-black animate-in fade-in slide-in-from-bottom-2">
