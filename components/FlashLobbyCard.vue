@@ -91,7 +91,8 @@
           </button>
         </div>
       </div>
-    </article>
+    </div>
+  </article>
 </template>
 
 <script setup lang="ts">
