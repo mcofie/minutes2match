@@ -6,6 +6,8 @@ export default defineEventHandler(async (event) => {
     const { phone, code } = body
     console.log('🔍 Admin Login Request:', { phone, code })
 
+    const normalizedPhone = normalizeGhanaPhone(phone)
+
     // Get keys from runtime config
     const supabaseUrl = config.supabaseUrl || process.env.SUPABASE_URL
     const supabaseKey = config.supabaseServiceKey || process.env.SUPABASE_SERVICE_KEY
@@ -21,27 +23,21 @@ export default defineEventHandler(async (event) => {
         auth: { persistSession: false }
     })
 
-    // 1. Verify OTP or Developer Bypass
+    // 1. Verify OTP
     let isValid = false
-    if (code === '111111') {
-        isValid = true
-        console.log('✅ [Admin Login] Using bypass code')
-    } else {
-        // Check DB for valid OTP
-        const { data: otp, error } = await supabase
-            .from('otp_codes')
-            .select('*')
-            .eq('phone', phone)
-            .eq('code', code)
-            .eq('used', false)
-            .gt('expires_at', new Date().toISOString())
-            .maybeSingle()
+    const { data: otp } = await supabase
+        .from('otp_codes')
+        .select('*')
+        .eq('phone', normalizedPhone)
+        .eq('code', code)
+        .eq('used', false)
+        .gt('expires_at', new Date().toISOString())
+        .maybeSingle()
 
-        if (otp) {
-            isValid = true
-            // Mark as used
-            await supabase.from('otp_codes').update({ used: true }).eq('id', otp.id)
-        }
+    if (otp) {
+        isValid = true
+        // Mark as used
+        await supabase.from('otp_codes').update({ used: true }).eq('id', otp.id)
     }
 
     if (!isValid) {
@@ -52,7 +48,7 @@ export default defineEventHandler(async (event) => {
     const { data: profile } = await supabase
         .from('profiles')
         .select('id')
-        .eq('phone', phone)
+        .eq('phone', normalizedPhone)
         .single()
 
     if (!profile) {

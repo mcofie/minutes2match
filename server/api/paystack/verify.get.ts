@@ -8,6 +8,8 @@
 
 import { serverSupabaseServiceRole } from '#supabase/server'
 import type { M2MDatabase } from '~/types/database.types'
+import { fullyUnlockMatch } from '~/server/utils/match'
+import { notifyFlashLobbyResolved } from '~/server/utils/notifications'
 
 interface PaystackResponse {
     status: boolean
@@ -136,6 +138,55 @@ export default defineEventHandler(async (event) => {
                     .eq('status', 'pending')
 
             } else if (metadata.purpose === 'match_unlock' && metadata.matchId) {
+                if (metadata.superConnect || metadata.unlockBoth) {
+                    await fullyUnlockMatch(metadata.matchId, metadata.userId, response.data.amount / 100)
+                    await supabase
+                        .schema('m2m')
+                        .from('flash_lobby_intents')
+                        .update({ super_connect_paid: !!metadata.superConnect, status: 'converted_to_match' })
+                        .eq('match_id', metadata.matchId)
+
+                    const { data: match } = await supabase
+                        .schema('m2m')
+                        .from('matches')
+                        .select(`
+                            id,
+                            user_1_id,
+                            user_2_id,
+                            user_1:profiles!matches_user_1_id_fkey(display_name),
+                            user_2:profiles!matches_user_2_id_fkey(display_name)
+                        `)
+                        .eq('id', metadata.matchId)
+                        .maybeSingle()
+
+                    if (match) {
+                        await Promise.all([
+                            notifyFlashLobbyResolved(supabase as any, {
+                                userId: match.user_1_id,
+                                matchId: metadata.matchId,
+                                title: metadata.superConnect ? 'Super Connect unlocked your spark ⚡' : 'Flash Lobby spark unlocked ⚡',
+                                message: metadata.superConnect ? `${(match as any).user_2?.display_name || 'Your match'} can now see your full profile too.` : `${(match as any).user_2?.display_name || 'Your match'} is now fully unlocked with you.`,
+                                dedupeKey: `flash-lobby-payment:${metadata.matchId}:user1:${metadata.superConnect ? 'super' : 'unlock-both'}`
+                            }),
+                            notifyFlashLobbyResolved(supabase as any, {
+                                userId: match.user_2_id,
+                                matchId: metadata.matchId,
+                                title: metadata.superConnect ? 'Someone used Super Connect on you ⚡' : 'A Flash Lobby spark was unlocked ⚡',
+                                message: metadata.superConnect ? `${(match as any).user_1?.display_name || 'Someone'} covered the full unlock, so your match is open now.` : `${(match as any).user_1?.display_name || 'Someone'} unlocked your spark. Your match is open now.`,
+                                dedupeKey: `flash-lobby-payment:${metadata.matchId}:user2:${metadata.superConnect ? 'super' : 'unlock-both'}`
+                            })
+                        ])
+                    }
+
+                    return {
+                        status: 'success',
+                        reference: response.data.reference,
+                        amount: response.data.amount / 100,
+                        currency: response.data.currency,
+                        metadata: response.data.metadata
+                    }
+                }
+
                 const { data: match } = await supabase
                     .schema('m2m')
                     .from('matches')

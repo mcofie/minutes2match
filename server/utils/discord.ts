@@ -297,3 +297,130 @@ export async function notifyMatchNudge(data: {
         ]
     })
 }
+
+export async function notifyFlashLobbySparkSent(data: {
+    lobbyName: string
+    senderName: string
+    receiverName: string
+    message: string
+}) {
+    await notifyDiscord({
+        title: '⚡ Flash Lobby Spark Sent',
+        color: DiscordColors.match,
+        fields: [
+            { name: 'Lobby', value: data.lobbyName, inline: true },
+            { name: 'From', value: data.senderName, inline: true },
+            { name: 'To', value: data.receiverName, inline: true },
+            { name: 'Message', value: data.message.substring(0, 180), inline: false },
+        ]
+    })
+}
+
+export async function notifyFlashLobbyMutualMatch(data: {
+    lobbyName: string
+    user1Name: string
+    user2Name: string
+    matchId: string
+}) {
+    await notifyDiscord({
+        title: '💥 Flash Lobby Mutual Spark',
+        description: 'Two users sparked each other during the room and unlocked instantly.',
+        color: DiscordColors.match,
+        fields: [
+            { name: 'Lobby', value: data.lobbyName, inline: true },
+            { name: 'User 1', value: data.user1Name, inline: true },
+            { name: 'User 2', value: data.user2Name, inline: true },
+            { name: 'Match', value: data.matchId.substring(0, 8), inline: true },
+        ]
+    })
+}
+
+export async function notifyFlashLobbySuperConnectStarted(data: {
+    senderName: string
+    receiverName: string
+    lobbyName: string
+    matchId: string
+}) {
+    await notifyDiscord({
+        title: '⚡ Super Connect Started',
+        color: DiscordColors.payment,
+        fields: [
+            { name: 'Lobby', value: data.lobbyName, inline: true },
+            { name: 'From', value: data.senderName, inline: true },
+            { name: 'To', value: data.receiverName, inline: true },
+            { name: 'Match', value: data.matchId.substring(0, 8), inline: true },
+        ]
+    })
+}
+
+export async function notifyFlashLobbySuperConnectCompleted(data: {
+    senderName: string
+    receiverName: string
+    lobbyName: string
+    matchId: string
+}) {
+    await notifyDiscord({
+        title: '✨ Super Connect Completed',
+        description: 'A one-sided Flash Lobby spark was fully unlocked by the sender.',
+        color: DiscordColors.success,
+        fields: [
+            { name: 'Lobby', value: data.lobbyName, inline: true },
+            { name: 'From', value: data.senderName, inline: true },
+            { name: 'To', value: data.receiverName, inline: true },
+            { name: 'Match', value: data.matchId.substring(0, 8), inline: true },
+        ]
+    })
+}
+
+export async function notifySubscriptionActivated(data: {
+    userName: string
+    userEmail?: string
+    endDate?: string
+    isRenewal?: boolean
+}) {
+    await notifyDiscord({
+        title: data.isRenewal ? '💎 Subscription Renewed' : '💎 Subscription Activated',
+        color: DiscordColors.success,
+        fields: [
+            { name: 'User', value: data.userName, inline: true },
+            { name: 'Email', value: data.userEmail || 'Unknown', inline: true },
+            { name: 'Ends', value: data.endDate || 'Not set', inline: true },
+        ]
+    })
+}
+
+export async function notifyFlashLobbyLifecycle(data: {
+    action: 'created' | 'updated' | 'deleted' | 'paused' | 'resumed' | 'stopped' | 'broadcast'
+    lobbyName: string
+    startAt?: string
+    endAt?: string
+    announcement?: string
+}) {
+    const titleMap = {
+        created: '🗓️ Flash Lobby Created',
+        updated: '🛠️ Flash Lobby Updated',
+        deleted: '🗑️ Flash Lobby Deleted',
+        paused: '⏸️ Flash Lobby Paused',
+        resumed: '▶️ Flash Lobby Resumed',
+        stopped: '⛔ Flash Lobby Stopped',
+        broadcast: '📣 Flash Lobby Broadcast'
+    } as const
+
+    const fields: DiscordField[] = [
+        { name: 'Lobby', value: data.lobbyName, inline: true }
+    ]
+
+    if (data.startAt) fields.push({ name: 'Starts', value: data.startAt, inline: true })
+    if (data.endAt) fields.push({ name: 'Ends', value: data.endAt, inline: true })
+    if (data.announcement) fields.push({ name: 'Message', value: data.announcement.substring(0, 180), inline: false })
+
+    await notifyDiscord({
+        title: titleMap[data.action],
+        color: data.action === 'deleted' || data.action === 'stopped'
+            ? DiscordColors.warning
+            : data.action === 'broadcast'
+                ? DiscordColors.info
+                : DiscordColors.success,
+        fields
+    })
+}

@@ -1,12 +1,15 @@
 import { serverSupabaseServiceRole, serverSupabaseUser } from '#supabase/server'
+import { calculateFlashLobbyPreviewScore, processFlashLobbyLiveReminders } from '~/server/utils/flashLobby'
+import { canUsersSeeEachOther, normalizeGender, normalizeInterest } from '~/server/utils/flashLobbyRules'
 
 export default defineEventHandler(async (event) => {
-  // 0. Get filters from query
+  await processFlashLobbyLiveReminders()
+
   const queryParams = getQuery(event)
   const page = parseInt(queryParams.page as string) || 1
   const limit = parseInt(queryParams.limit as string) || 12
   const offset = (page - 1) * limit
-  
+
   const minAge = parseInt(queryParams.minAge as string)
   const maxAge = parseInt(queryParams.maxAge as string)
   const persona = queryParams.persona as string
@@ -15,172 +18,221 @@ export default defineEventHandler(async (event) => {
 
   const client = serverSupabaseServiceRole(event)
   const user = await serverSupabaseUser(event)
-  
+
   let currentUserInterests: string[] = []
   let excludedIds: string[] = [user?.id].filter(Boolean) as string[]
-  let userGender: string | null = null
-  let interestedIn: string | null = null
+  let userGender: 'male' | 'female' | null = null
+  let interestedIn: 'male' | 'female' | 'everyone' | null = null
+  let currentUserProfile: any = null
+  let currentUserAnswers: Array<{ question_key: string, answer: string }> = []
+
+  const shuffleParticipants = <T>(items: T[]) => {
+    const copy = [...items]
+    for (let i = copy.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1))
+      ;[copy[i], copy[j]] = [copy[j], copy[i]]
+    }
+    return copy
+  }
 
   if (user) {
     const { data: ownProfile } = await client
       .schema('m2m')
       .from('profiles')
-      .select('interests, gender, interested_in')
+      .select('id, gender, interested_in, intent, location, religion, genotype, birth_date, dating_persona, occupation, badges, dealbreakers, min_age, max_age, preferences_extracted, interests')
       .eq('id', user.id)
       .maybeSingle()
-    
+
     if (ownProfile) {
+      currentUserProfile = ownProfile
       currentUserInterests = ownProfile.interests || []
-      userGender = (ownProfile.gender || '').toLowerCase()
-      interestedIn = (ownProfile.interested_in || '').toLowerCase()
+      userGender = normalizeGender(ownProfile.gender)
+      interestedIn = normalizeInterest(ownProfile.interested_in)
     }
+
+    const { data: ownAnswers } = await client
+      .schema('m2m')
+      .from('vibe_answers')
+      .select('question_key, answer_value')
+      .eq('user_id', user.id)
+
+    currentUserAnswers = (ownAnswers || []).map((answer: any) => ({
+      question_key: answer.question_key,
+      answer: answer.answer_value
+    }))
 
     const { data: matches } = await client
       .schema('m2m')
       .from('matches')
       .select('user_1_id, user_2_id')
       .or(`user_1_id.eq.${user.id},user_2_id.eq.${user.id}`)
-    
+
     if (matches) {
-       matches.forEach((m: any) => {
-          if (m.user_1_id) excludedIds.push(m.user_1_id)
-          if (m.user_2_id) excludedIds.push(m.user_2_id)
-       })
+      matches.forEach((match: any) => {
+        if (match.user_1_id) excludedIds.push(match.user_1_id)
+        if (match.user_2_id) excludedIds.push(match.user_2_id)
+      })
+    }
+
+    const now = new Date().toISOString()
+    const { data: activeLobby } = await client
+      .schema('m2m')
+      .from('flash_lobbies')
+      .select('id')
+      .lte('start_at', now)
+      .gte('end_at', now)
+      .maybeSingle()
+
+    if (activeLobby?.id) {
+      const { data: sparkIntents } = await client
+        .schema('m2m')
+        .from('flash_lobby_intents')
+        .select('sender_id, receiver_id, status')
+        .eq('lobby_id', activeLobby.id)
+        .or(`sender_id.eq.${user.id},receiver_id.eq.${user.id}`)
+
+      ;(sparkIntents || []).forEach((intent: any) => {
+        const counterpartId = intent.sender_id === user.id ? intent.receiver_id : intent.sender_id
+        if (counterpartId) excludedIds.push(counterpartId)
+      })
     }
   }
 
-  // Final list of exclusions (unique)
   excludedIds = [...new Set(excludedIds)]
 
-  // Build Query
   let query = client
     .schema('m2m')
     .from('profiles')
-    .select('id, display_name, birth_date, dating_persona, photo_url, is_verified, about_me, interests, gender, interested_in, location, intent, dealbreakers', { count: 'exact' })
+    .select('id, display_name, birth_date, dating_persona, photo_url, is_verified, about_me, interests, gender, interested_in, location, intent, dealbreakers, occupation, religion, genotype, badges, min_age, max_age, preferences_extracted', { count: 'exact' })
     .eq('is_active', true)
     .not('display_name', 'is', null)
 
-  // Helper: map common terms to a binary target
-  const getGenderTargets = (pref: string) => {
-     if (['women', 'woman', 'female', 'females'].includes(pref)) return ['female', 'Female', 'women', 'Women', 'woman', 'Woman']
-     if (['men', 'man', 'male', 'males'].includes(pref)) return ['male', 'Male', 'men', 'Men', 'man', 'Man']
-     return [pref]
-  }
+  const explicitGenderFilter = normalizeInterest(genderFilter)
+  let normalizedFinalPref: 'male' | 'female' | 'everyone' | null = explicitGenderFilter
 
-  // 1. Gender Preference Enforcement
-  let finalPref = (genderFilter || '').toLowerCase()
-
-  // If the UI filter is set to "All" or empty, we strictly fall back to the Database preference
-  if (['', 'all', 'everyone', 'both'].includes(finalPref) && user) {
-    if (interestedIn && !['everyone', 'all', 'both'].includes(interestedIn.toLowerCase())) {
-        finalPref = interestedIn.toLowerCase()
-    } else if (userGender) {
-        // ONLY if they have NO preference set, we fallback based on gender
-        const ug = userGender.toLowerCase()
-        if (['male', 'men', 'man'].includes(ug)) finalPref = 'female'
-        else if (['female', 'women', 'woman'].includes(ug)) finalPref = 'male'
+  if ((!normalizedFinalPref || normalizedFinalPref === 'everyone') && user) {
+    if (interestedIn && interestedIn !== 'everyone') {
+      normalizedFinalPref = interestedIn
+    } else if (userGender === 'male') {
+      normalizedFinalPref = 'female'
+    } else if (userGender === 'female') {
+      normalizedFinalPref = 'male'
     }
   }
 
-  // Normalization maps 'women' to 'female' for internal logic
-  let normalizedFinalPref = finalPref
-  if (['women', 'woman'].includes(finalPref)) normalizedFinalPref = 'female'
-  if (['men', 'man'].includes(finalPref)) normalizedFinalPref = 'male'
-
-  // Strictly enforce the filter IF we've determined a preference or targeting
-  if (normalizedFinalPref && !['everyone', 'all', ''].includes(normalizedFinalPref)) {
-    const targets = getGenderTargets(normalizedFinalPref)
-    
-    // 1. Include only the intended gender variations safely
-    query = query.in('gender', targets)
+  if (normalizedFinalPref && normalizedFinalPref !== 'everyone') {
+    query = query.eq('gender', normalizedFinalPref)
   } else if (!user) {
-    // SECURITY/UX: If unauthenticated, show nothing or a very limited set
     return { participants: [], totalCount: 0, hasMore: false }
   }
 
-  // 2. Location Filter
   if (location && location !== 'All') {
     query = query.ilike('location', `%${location}%`)
   }
 
-  // 3. Age Range Filter 
   if (minAge) {
     const minDate = new Date()
     minDate.setFullYear(minDate.getFullYear() - minAge)
     query = query.lte('birth_date', minDate.toISOString().split('T')[0])
   }
+
   if (maxAge) {
     const maxDate = new Date()
     maxDate.setFullYear(maxDate.getFullYear() - maxAge)
     query = query.gte('birth_date', maxDate.toISOString().split('T')[0])
   }
 
-  // 3. Persona Filter
   if (persona && persona !== 'All') {
     query = query.eq('dating_persona', persona)
   }
 
-  // 4. Exclusions (Handled in-memory for safety against PostgREST tuple crashes)
-  // if (excludedIds.length > 0) {
-  //   query = query.not('id', 'in', excludedIds)
-  // }
-
-  const { data, count, error } = await query
-    .range(offset, offset + limit - 1)
+  const { data, count, error } = await query.range(offset, offset + limit - 1)
 
   if (error) {
     console.error('Lobby Participants error:', error)
     return { participants: [], totalCount: 0, hasMore: false }
   }
 
-  // 5. Final In-Memory Fail-Safe (Ensures we NEVER show the wrong gender)
   const rawParticipants = data || []
-  const filteredData = rawParticipants.filter((u: any) => {
-    // Exclude connected/matched users in-memory
-    if (excludedIds.includes(u.id)) return false;
+  const filteredData = rawParticipants.filter((candidate: any) => {
+    if (excludedIds.includes(candidate.id)) return false
 
-    // If we have a strict preference, enforce it here too
-    if (normalizedFinalPref && !['everyone', 'all', ''].includes(normalizedFinalPref)) {
-      const uGender = (u.gender || '').toLowerCase()
-      const targets = getGenderTargets(normalizedFinalPref).map(t => t.toLowerCase())
-      
-      // If we seek a specific gender, the user's gender MUST be in the acceptable targets list
-      if (!targets.includes(uGender)) {
-         return false
-      }
+    const visibility = canUsersSeeEachOther({
+      viewerGender: userGender,
+      viewerInterest: interestedIn,
+      candidateGender: candidate.gender,
+      candidateInterest: candidate.interested_in
+    })
+
+    if (normalizedFinalPref && normalizedFinalPref !== 'everyone') {
+      if (visibility.candidateGender !== normalizedFinalPref) return false
     }
+
+    if (!visibility.viewerCanSeeCandidate) return false
+
     return true
   })
 
-  const participants = filteredData.map((u: any) => ({
-    id: u.id,
-    displayName: u.display_name,
-    age: u.birth_date ? new Date().getFullYear() - new Date(u.birth_date).getFullYear() : 25,
-    gender: u.gender || 'Unknown',
-    mood: u.dating_persona || 'The Optimist',
-    photoUrl: u.photo_url,
-    isVerified: u.is_verified,
-    bio: u.about_me,
-    interests: u.interests || [],
-    sharedInterests: (u.interests || []).filter((i: string) => currentUserInterests.includes(i)),
-    intent: u.intent,
-    occupation: u.occupation,
-    dealbreakers: u.dealbreakers || {},
-    matchScore: Math.floor(Math.random() * 30) + 70 // High match for lobby demo
-  }))
+  const participantIds = filteredData.map((candidate: any) => candidate.id)
+  const { data: vibeAnswers } = participantIds.length
+    ? await client
+      .schema('m2m')
+      .from('vibe_answers')
+      .select('user_id, question_key, answer_value')
+      .in('user_id', participantIds)
+    : { data: [] as any[] }
 
-    const debugDump = {
-       userAuthId: user?.id || null,
-       ownProfileFound: !!userGender,
-       userGender,
-       interestedIn,
-       queryGenderFilter: genderFilter,
-       finalPref,
-       normalizedFinalPref,
-       rawCount: rawParticipants.length,
-       filteredCount: filteredData.length,
-       returnedCount: participants.length
-    }
+  const answersByUser = new Map<string, Array<{ question_key: string, answer: string }>>()
+  ;(vibeAnswers || []).forEach((answer: any) => {
+    const existing = answersByUser.get(answer.user_id) || []
+    existing.push({
+      question_key: answer.question_key,
+      answer: answer.answer_value
+    })
+    answersByUser.set(answer.user_id, existing)
+  })
+
+  const participants = shuffleParticipants(filteredData)
+    .map((candidate: any) => {
+      const matchScore = currentUserProfile
+        ? calculateFlashLobbyPreviewScore({
+          viewerProfile: currentUserProfile,
+          viewerAnswers: currentUserAnswers,
+          candidateProfile: candidate,
+          candidateAnswers: answersByUser.get(candidate.id) || []
+        })
+        : 0
+
+      return {
+        id: candidate.id,
+        displayName: candidate.display_name,
+        age: candidate.birth_date ? new Date().getFullYear() - new Date(candidate.birth_date).getFullYear() : 25,
+        gender: candidate.gender || 'Unknown',
+        mood: candidate.dating_persona || 'The Optimist',
+        photoUrl: candidate.photo_url,
+        isVerified: candidate.is_verified,
+        bio: candidate.about_me,
+        interests: candidate.interests || [],
+        sharedInterests: (candidate.interests || []).filter((interest: string) => currentUserInterests.includes(interest)),
+        intent: candidate.intent,
+        occupation: candidate.occupation,
+        dealbreakers: candidate.dealbreakers || {},
+        matchScore
+      }
+    })
+
+  const debugDump = {
+    userAuthId: user?.id || null,
+    ownProfileFound: !!userGender,
+    userGender,
+    interestedIn,
+    queryGenderFilter: genderFilter,
+    normalizedFinalPref,
+    rawCount: rawParticipants.length,
+    filteredCount: filteredData.length,
+    returnedCount: participants.length
+  }
+
   return {
     participants,
     totalCount: count || 0,

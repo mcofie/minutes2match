@@ -8,17 +8,17 @@
     ]">
       
       <!-- Top Section -->
-      <div class="p-6 md:p-8 flex flex-1 items-center md:items-start gap-4 md:gap-6 bg-white">
+      <div class="p-3 md:p-8 flex flex-1 items-center md:items-start gap-2.5 md:gap-6 bg-white min-w-0">
          <!-- Icon Box -->
-         <div class="w-20 h-20 md:w-24 md:h-24 rounded-[20px] md:rounded-[24px] bg-black flex items-center justify-center text-4xl md:text-5xl shrink-0 shadow-inner border border-stone-800">
+         <div class="w-12 h-12 md:w-24 md:h-24 rounded-[14px] md:rounded-[24px] bg-black flex items-center justify-center text-xl md:text-5xl shrink-0 shadow-inner border border-stone-800">
            {{ isLive ? '💥' : '⏳' }}
          </div>
-         <div class="flex flex-col justify-center">
-            <h2 class="font-sans font-black text-[32px] md:text-[40px] tracking-tight leading-none uppercase mb-2">
-              {{ isLive ? (activeLobby?.title || 'FLASH LOBBY') : (nextLobby?.title || 'PILOT') }}
+         <div class="flex flex-col justify-center min-w-0">
+            <h2 class="font-sans font-bold text-[18px] sm:text-[20px] md:text-[28px] tracking-tight leading-[1] uppercase mb-0.5 md:mb-2 break-words">
+              {{ compactTitle }}
             </h2>
-            <p class="text-[10px] md:text-[11px] font-bold uppercase tracking-[0.15em] md:tracking-[0.2em] leading-[1.4] text-stone-400">
-              {{ isLive ? 'Synchronous Matches Active Now' : 'Secure your spot for the next wave' }}
+            <p class="text-[8px] md:text-[11px] font-bold uppercase tracking-[0.1em] md:tracking-[0.2em] leading-[1.25] text-stone-400 max-w-[24ch] md:max-w-none">
+              {{ compactSubtitle }}
             </p>
          </div>
       </div>
@@ -31,11 +31,11 @@
       </div>
 
       <!-- Bottom Section -->
-      <div :class="['px-6 py-6 pb-7 md:p-8 md:w-[320px] flex flex-col items-center justify-center text-center shrink-0 border-t-[3px] border-dashed border-stone-200 md:border-none', isLive ? 'bg-indigo-700' : 'bg-[#F9F8F6]']">
-         <span class="text-[12px] md:text-[11px] font-bold uppercase tracking-[0.1em] md:tracking-[0.15em] text-stone-400 mb-1 md:mb-2">
+      <div :class="['px-3 py-3.5 md:p-8 md:w-[320px] flex flex-col items-center justify-center text-center shrink-0 border-t-[3px] border-dashed border-stone-200 md:border-none', isLive ? 'bg-indigo-700' : 'bg-[#F9F8F6]']">
+         <span class="text-[9px] md:text-[11px] font-bold uppercase tracking-[0.08em] md:tracking-[0.15em] text-stone-400 mb-1 md:mb-2">
            {{ isLive ? 'Lobby Closes In' : 'Starts In' }}
          </span>
-         <span class="text-[32px] md:text-[36px] font-mono font-black tabular-nums tracking-widest mb-6 md:mb-5 leading-none">
+         <span class="text-[22px] sm:text-[24px] md:text-[36px] font-mono font-black tabular-nums tracking-tight md:tracking-widest mb-3 md:mb-5 leading-none">
            {{ isLive ? formattedRemaining : countdownLabel }}
          </span>
 
@@ -43,18 +43,18 @@
            v-if="!isLive"
            @click.stop="toggleReminder"
            :disabled="isSettingReminder || reminderSet"
-           class="w-full py-4 rounded-[16px] font-black uppercase text-xs md:text-[11px] tracking-[0.1em] md:tracking-[0.15em] transition-all text-white bg-black hover:bg-stone-900 shadow-sm flex items-center justify-center gap-2 border-[3px] border-black"
+           class="w-full py-2.5 md:py-4 rounded-[12px] md:rounded-[16px] font-black uppercase text-[9px] md:text-[11px] tracking-[0.06em] md:tracking-[0.15em] transition-all text-white bg-black hover:bg-stone-900 shadow-sm flex items-center justify-center gap-2 border-[3px] border-black"
          >
            <div v-if="isSettingReminder" class="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin"></div>
            <template v-else>
-              <span v-if="reminderSet">✅ ADDED TO LIST</span>
+              <span v-if="reminderSet">✅ REMINDER SET</span>
               <span v-else>🔔 REMIND ME</span>
            </template>
          </button>
 
          <button 
            v-else
-           class="w-full py-4 rounded-[16px] bg-white text-indigo-600 font-black uppercase tracking-[0.1em] text-xs transition-all border-[3px] border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-1 hover:translate-y-1"
+           class="w-full py-2.5 md:py-4 rounded-[12px] md:rounded-[16px] bg-white text-indigo-600 font-black uppercase tracking-[0.06em] text-[9px] md:text-xs transition-all border-[3px] border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-1 hover:translate-y-1"
          >
            ENTER NOW 🚀
          </button>
@@ -73,6 +73,17 @@ const router = useRouter()
 const isSettingReminder = ref(false)
 const reminderSet = ref(false)
 
+const compactTitle = computed(() => {
+  const rawTitle = isLive.value ? (activeLobby.value?.title || 'Flash Lobby') : (nextLobby.value?.title || 'Flash Lobby')
+  return rawTitle.length > 26 ? 'Flash Lobby' : rawTitle
+})
+
+const compactSubtitle = computed(() => (
+  isLive.value
+    ? 'Live sparks and mutual unlocks are happening now'
+    : 'Secure your spot for the next wave of sparks'
+))
+
 const checkExisting = async () => {
    if (!nextLobby.value || isLive.value) return
    try {
@@ -84,6 +95,7 @@ const checkExisting = async () => {
 }
 
 watch(nextLobby, (newVal) => {
+   reminderSet.value = false
    if (newVal) checkExisting()
 }, { immediate: true })
 
@@ -105,18 +117,25 @@ const toggleReminder = async () => {
 }
 
 const formattedRemaining = computed(() => {
-   if (!remainingSeconds?.value) return '00:00'
-   const mins = Math.floor(remainingSeconds.value / 60)
-   const secs = remainingSeconds.value % 60
-   return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`
+   if (!remainingSeconds?.value) return '0m 00s'
+   const total = remainingSeconds.value
+   const days = Math.floor(total / 86400)
+   const hours = Math.floor((total % 86400) / 3600)
+   const mins = Math.floor((total % 3600) / 60)
+   const secs = total % 60
+   if (days > 0) return `${days}d ${hours}h`
+   if (hours > 0) return `${hours}h ${mins}m`
+   return `${mins}m ${secs.toString().padStart(2, '0')}s`
 })
 
 const countdownLabel = computed(() => {
-  if (!timeUntilNext.value || timeUntilNext.value < 0) return '00:00:00'
+  if (!timeUntilNext.value || timeUntilNext.value < 0) return '0h 00m'
   const diff = timeUntilNext.value
-  const h = Math.floor(diff / 3600000)
-  const m = Math.floor((diff % 3600000) / 60000)
-  const s = Math.floor((diff % 60000) / 1000)
-  return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`
+  const totalSeconds = Math.floor(diff / 1000)
+  const days = Math.floor(totalSeconds / 86400)
+  const hours = Math.floor((totalSeconds % 86400) / 3600)
+  const mins = Math.floor((totalSeconds % 3600) / 60)
+  if (days > 0) return `${days}d ${hours}h`
+  return `${hours}h ${mins.toString().padStart(2, '0')}m`
 })
 </script>

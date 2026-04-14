@@ -1,5 +1,6 @@
 <template>
   <article 
+    @click="emit('viewProfile', props.id)"
     class="group relative h-auto min-h-[200px] sm:h-[190px] bg-white border-2 border-black rounded-2xl overflow-hidden transition-all duration-300 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none flex"
     :class="[isDisappearing ? 'opacity-0 scale-90 blur-md pointer-events-none' : 'opacity-100 scale-100 blur-0']"
   >
@@ -34,11 +35,11 @@
       <div class="flex-1 p-4 sm:p-5 flex flex-col justify-between relative bg-white min-w-0">
         <!-- Match Score Ring -->
         <div class="absolute top-3 right-3 w-10 h-10 rounded-full border-2 border-black flex items-center justify-center bg-white shadow-[2px_2px_0_0_rgba(0,0,0,1)] z-10">
-           <span class="text-[11px] font-bold text-rose-500 leading-none">{{ Math.round(matchScore || 0) }}%</span>
+           <span class="text-[10px] font-bold text-rose-500 leading-none">{{ Math.round(matchScore || 0) }}%</span>
         </div>
 
         <div>
-          <h3 class="text-xl sm:text-2xl font-serif font-bold text-stone-900 leading-tight mb-1 truncate pr-12">
+          <h3 class="text-lg sm:text-xl font-bold tracking-tight text-stone-900 leading-tight mb-1 truncate pr-12">
             {{ displayName }}
           </h3>
           <div class="text-[10px] font-medium text-stone-500 uppercase tracking-widest flex items-center gap-1.5">
@@ -73,12 +74,11 @@
           </div>
 
           <button 
-            @click.stop="handleConnect"
-            :disabled="isConnected || isDisappearing"
-            class="px-5 py-2 rounded-xl text-[10px] sm:text-[11px] font-bold uppercase tracking-widest transition-all"
-            :class="isConnected ? 'bg-stone-100 text-stone-400 border border-stone-200 shadow-none' : 'bg-black text-white hover:bg-indigo-600 shadow-[2px_2px_0_0_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-0.5 hover:translate-y-0.5 disabled:opacity-50'"
+            @click.stop="emit('viewProfile', props.id)"
+            :disabled="isDisappearing"
+            class="px-5 py-2 rounded-xl text-[10px] sm:text-[11px] font-bold uppercase tracking-widest transition-all bg-black text-white hover:bg-indigo-600 shadow-[2px_2px_0_0_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-0.5 hover:translate-y-0.5 disabled:opacity-50"
           >
-            {{ isConnected ? 'Requested' : 'Connect ↗' }}
+            Send Spark ↗
           </button>
         </div>
       </div>
@@ -87,7 +87,6 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, nextTick, watch } from 'vue'
 interface Props {
   id: string
   displayName: string
@@ -112,35 +111,8 @@ interface Props {
 const props = defineProps<Props>()
 
 const emit = defineEmits<{
-  connect: [id: string],
   viewProfile: [id: string]
 }>()
-
-const isConnected = ref(false)
-
-const handleConnect = () => {
-  isConnected.value = true
-  emit('connect', props.id)
-}
-
-const formatIntent = (val: string) => {
-  if (val === 'serious') return 'Serious'
-  if (val === 'marriage') return 'Marriage'
-  if (val === 'casual') return 'Casual'
-  if (val === 'friendship') return 'Friendship'
-  return val
-}
-
-const formatDealbreaker = (key: string, val: any) => {
-   // Assuming dealbreakers are like { smoker: 'no', carrier: 'no' }
-   const labels: Record<string, string> = {
-      smoker: 'Smoker',
-      carrier: 'Genotype Carrier',
-      religion: 'Different Religion',
-      kids: 'Has Kids'
-   }
-   return labels[key] || key
-}
 </script>
 
 <style scoped>

@@ -2,6 +2,7 @@ import { ref, onMounted, onUnmounted, computed, watch } from 'vue'
 
 export const useFlashLobby = () => {
   const supabase = useSupabaseClient()
+  const { profile } = useDashboard()
   const activeLobby = ref<any>(null)
   const nextLobby = ref<any>(null)
   const lobbyUsers = ref<any[]>([])
@@ -22,6 +23,27 @@ export const useFlashLobby = () => {
   })
 
   let timer: any = null
+
+  const normalizeGender = (value: string | null | undefined): 'male' | 'female' | null => {
+    const normalized = String(value || '').trim().toLowerCase()
+    if (['male', 'man', 'men'].includes(normalized)) return 'male'
+    if (['female', 'woman', 'women'].includes(normalized)) return 'female'
+    return null
+  }
+
+  const normalizeInterest = (value: string | null | undefined): 'male' | 'female' | 'everyone' | null => {
+    const normalized = String(value || '').trim().toLowerCase()
+    if (['male', 'man', 'men'].includes(normalized)) return 'male'
+    if (['female', 'woman', 'women'].includes(normalized)) return 'female'
+    if (['everyone', 'all', 'both', 'any'].includes(normalized)) return 'everyone'
+    return null
+  }
+
+  const participantMatchesPreference = (participant: any) => {
+    const interestedIn = normalizeInterest(profile.value?.interested_in)
+    if (!interestedIn || interestedIn === 'everyone') return true
+    return normalizeGender(participant?.gender) === interestedIn
+  }
 
   const fetchLobbies = async () => {
     const now = new Date().toISOString()
@@ -72,11 +94,12 @@ export const useFlashLobby = () => {
       })
       
       if (response && response.participants) {
+        const safeParticipants = (response.participants || []).filter((participant: any) => participantMatchesPreference(participant))
         if (loadMore) {
-          lobbyUsers.value = [...lobbyUsers.value, ...response.participants]
+          lobbyUsers.value = [...lobbyUsers.value, ...safeParticipants]
           currentPage.value = pageToFetch
         } else {
-          lobbyUsers.value = response.participants
+          lobbyUsers.value = safeParticipants
           currentPage.value = 1
         }
         hasMore.value = response.hasMore
@@ -94,6 +117,10 @@ export const useFlashLobby = () => {
   watch(activeFilters, () => {
     fetchParticipants(false)
   }, { deep: true })
+
+  watch(() => profile.value?.interested_in, () => {
+    if (!loading.value) fetchParticipants(false)
+  })
 
   // Force refresh everything when a lobby session changes (e.g. starts or ends)
   watch(() => activeLobby.value?.id, (newId, oldId) => {

@@ -99,6 +99,7 @@ const loading = ref(true)
 const success = ref(false)
 const message = ref('')
 const paymentPurpose = ref<string | null>(null)
+const paymentMetadata = ref<Record<string, any> | null>(null)
 const redirectCountdown = ref(5)
 
 onMounted(async () => {
@@ -118,6 +119,7 @@ onMounted(async () => {
       if (result.status === 'success') {
         success.value = true
         paymentPurpose.value = result.metadata?.purpose || null
+        paymentMetadata.value = result.metadata || null
         
         // Trigger confetti celebration
         setTimeout(() => {
@@ -127,11 +129,14 @@ onMounted(async () => {
         if (result.metadata?.purpose === 'event_ticket') {
           message.value = 'Your event booking has been confirmed! We\'ve sent the details to your inbox.'
         } else if (result.metadata?.purpose === 'match_unlock') {
-           // Provide clearer feedback
-          if (result.status === 'success' || result.metadata?.paystack_response?.status === 'success') {
-             message.value = 'Match unlocked successfully! You can now view their full profile and start chatting.'
+          if (result.metadata?.superConnect) {
+            message.value = 'Super Connect activated. You covered both reveals, so the match is now fully open for both of you.'
+          } else if (result.metadata?.unlockBoth) {
+            message.value = 'Both sides are now unlocked. You can open the match and move straight into conversation.'
+          } else if (result.status === 'success' || result.metadata?.paystack_response?.status === 'success') {
+            message.value = 'Match unlocked successfully! You can now view their full profile and start chatting.'
           } else {
-             message.value = 'Payment received! Waiting for final confirmation.'
+            message.value = 'Payment received! Waiting for final confirmation.'
           }
         } else if (result.metadata?.purpose === 'subscription') {
            message.value = 'Welcome to the club! Your Premium Membership is now active.'
@@ -166,6 +171,14 @@ onMounted(async () => {
 })
 
 const goToDashboard = () => {
+  if (paymentPurpose.value === 'match_unlock') {
+    const matchId = paymentMetadata.value?.matchId as string | undefined
+    if (matchId) {
+      navigateTo(`/me/connection/${matchId}`)
+      return
+    }
+  }
+
   // Redirect to matches for match unlock and subscription payments
   if (paymentPurpose.value === 'match_unlock' || paymentPurpose.value === 'subscription') {
     navigateTo('/matches')

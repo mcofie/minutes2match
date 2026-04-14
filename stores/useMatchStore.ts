@@ -23,7 +23,6 @@ export const useMatchStore = defineStore('matches', () => {
                     user_2:profiles!matches_user_2_id_fkey(*)
                 `)
                 .or(`user_1_id.eq.${userId},user_2_id.eq.${userId}`)
-                .not('created_by_label', 'eq', 'flash_lobby')
                 .in('status', ['pending_payment', 'partial_payment', 'unlocked'])
                 .order('created_at', { ascending: false })
 

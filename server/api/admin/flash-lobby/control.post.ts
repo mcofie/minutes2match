@@ -1,4 +1,5 @@
 import { serverSupabaseServiceRole, serverSupabaseUser } from '#supabase/server'
+import { notifyFlashLobbyLifecycle } from '~/server/utils/discord'
 import type { M2MDatabase } from '~/types/database.types'
 
 export default defineEventHandler(async (event) => {
@@ -13,7 +14,7 @@ export default defineEventHandler(async (event) => {
 
     // 2. Process body
     const body = await readBody(event)
-    const { action, lobbyId, minutes } = body
+    const { action, lobbyId, minutes, amount, unit } = body
 
     if (!lobbyId) throw createError({ statusCode: 400, message: 'Missing lobbyId' })
 
@@ -40,7 +41,10 @@ export default defineEventHandler(async (event) => {
         update = { end_at: now.toISOString(), is_paused: false }
     } else if (action === 'addTime') {
         const end = new Date(lobby.end_at)
-        const newEnd = new Date(end.getTime() + (minutes || 5) * 60000)
+        const incrementAmount = Number.isFinite(Number(amount)) ? Number(amount) : Number(minutes || 5)
+        const incrementUnit = unit === 'days' ? 'days' : unit === 'hours' ? 'hours' : 'minutes'
+        const multiplier = incrementUnit === 'days' ? 1440 : incrementUnit === 'hours' ? 60 : 1
+        const newEnd = new Date(end.getTime() + incrementAmount * multiplier * 60000)
         update = { end_at: newEnd.toISOString() }
     } else if (action === 'broadcast') {
         update = { announcement: body.message, announcement_at: now.toISOString() }
@@ -52,6 +56,32 @@ export default defineEventHandler(async (event) => {
     if (updateError) {
         console.error('[Admin] Lobby control update error:', updateError)
         throw createError({ statusCode: 500, message: updateError.message })
+    }
+
+    const actionMap: Record<string, 'paused' | 'resumed' | 'stopped' | 'broadcast' | null> = {
+        pause: 'paused',
+        resume: 'resumed',
+        stop: 'stopped',
+        addTime: null,
+        broadcast: 'broadcast'
+    }
+
+    const lifecycleAction = actionMap[action]
+    if (lifecycleAction) {
+        await notifyFlashLobbyLifecycle({
+            action: lifecycleAction,
+            lobbyName: updatedLobby.title || lobby.title || 'Flash Lobby',
+            startAt: updatedLobby.start_at,
+            endAt: updatedLobby.end_at,
+            announcement: action === 'broadcast' ? body.message : undefined
+        })
+    } else if (action === 'addTime') {
+        await notifyFlashLobbyLifecycle({
+            action: 'updated',
+            lobbyName: updatedLobby.title || lobby.title || 'Flash Lobby',
+            startAt: updatedLobby.start_at,
+            endAt: updatedLobby.end_at
+        })
     }
 
     return { success: true, lobby: updatedLobby }

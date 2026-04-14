@@ -1,34 +1,82 @@
-import { serverSupabaseServiceRole, serverSupabaseUser } from '#supabase/server'
+import { serverSupabaseClient, serverSupabaseServiceRole, serverSupabaseUser } from '#supabase/server'
 import { sendSMS } from '~/server/utils/sms'
 import { notifyMatchNudge } from '~/server/utils/discord'
 
 export default defineEventHandler(async (event) => {
-  // 1. Verify Authentication
-  let user = await serverSupabaseUser(event)
+  const headers = getHeaders(event)
+  const query = getQuery(event)
+  const body = await readBody(event).catch(() => ({} as Record<string, any>))
   
-  // Fallback: Manually check Authorization header if cookie-based check failed
-  if (!user) {
-    const authHeader = getHeader(event, 'Authorization')
-    if (authHeader?.startsWith('Bearer ')) {
-      const token = authHeader.substring(7)
-      const supabaseAdmin = serverSupabaseServiceRole(event)
-      const { data } = await supabaseAdmin.auth.getUser(token)
-      user = data?.user
-      if (user) console.log('[Nudge Debug] User recovered via Auth Header')
+  console.log('[Nudge Debug] Request Headers:', Object.keys(headers))
+  console.log('[Nudge Debug] Request Query Keys:', Object.keys(query))
+
+  let userId: string | null = null
+  
+  // 1. Primary auth path: Nuxt Supabase user helper
+  try {
+    const user = await serverSupabaseUser(event)
+    if (user?.id) {
+      userId = user.id
+      console.log('[Nudge Debug] User resolved via serverSupabaseUser:', userId)
+    }
+  } catch (err: any) {
+    console.warn('[Nudge Debug] serverSupabaseUser failed:', err?.message || err)
+  }
+
+  // 2. Fallback: session lookup via server Supabase client
+  if (!userId) {
+    try {
+      const client = await serverSupabaseClient(event)
+      const { data: { session } } = await client.auth.getSession()
+      if (session?.user?.id) {
+        userId = session.user.id
+        console.log('[Nudge Debug] User resolved via serverSupabaseClient session:', userId)
+      }
+    } catch (err: any) {
+      console.warn('[Nudge Debug] serverSupabaseClient session lookup failed:', err?.message || err)
+    }
+  }
+
+  // 3. Fallback: verify explicit bearer token if the client sent one
+  if (!userId) {
+    const authHeader = headers.authorization || headers.Authorization
+    const bearer = typeof authHeader === 'string' && authHeader.startsWith('Bearer ')
+      ? authHeader.slice(7)
+      : null
+
+    if (bearer && bearer !== 'undefined') {
+      try {
+        const supabaseAdmin = serverSupabaseServiceRole(event)
+        const { data, error } = await supabaseAdmin.auth.getUser(bearer)
+        if (error) {
+          console.warn('[Nudge Debug] Bearer verification failed:', error.message)
+        } else if (data.user?.id) {
+          userId = data.user.id
+          console.log('[Nudge Debug] User resolved via bearer token:', userId)
+        }
+      } catch (err: any) {
+        console.warn('[Nudge Debug] Bearer verification threw:', err?.message || err)
+      }
+    }
+  }
+
+  // 4. Development-only fallback for local debugging
+  if (!userId && process.env.NODE_ENV !== 'production') {
+    const debugUserId = body.userId || query.userId
+    if (debugUserId && debugUserId !== 'undefined') {
+      userId = String(debugUserId)
+      console.warn('[Nudge Debug] USER RECOVERED VIA INSECURE DEBUG FALLBACK:', userId)
     }
   }
   
-  if (!user || !user.id || user.id === 'undefined') {
+  if (!userId || userId === 'undefined') {
+    console.error('[Nudge Debug] ALL AUTH RECOVERY STRATEGIES FAILED')
     throw createError({ 
        statusCode: 401, 
        message: 'Unauthorized: No valid user session found. Please try logging out and back in.' 
     })
   }
 
-  const userId = user.id
-  console.log(`[Nudge Debug] Authenticated User ID: ${userId}`)
-
-  const body = await readBody(event)
   const { matchId, customMessage } = body
 
   if (!matchId) {

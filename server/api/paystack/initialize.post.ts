@@ -6,8 +6,8 @@
  */
 
 import { createClient } from '@supabase/supabase-js'
-import { notifyPaymentInitiated } from '~/server/utils/discord'
-import { unlockMatch } from '~/server/utils/match'
+import { notifyPaymentInitiated, notifyFlashLobbySuperConnectCompleted, notifyMatchUnlocked } from '~/server/utils/discord'
+import { fullyUnlockMatch, unlockMatch } from '~/server/utils/match'
 
 interface InitializePaymentBody {
     email: string
@@ -23,6 +23,8 @@ interface InitializePaymentBody {
            phone: string
            address: string
         }
+        superConnect?: boolean
+        unlockBoth?: boolean
     }
 }
 
@@ -54,7 +56,7 @@ export default defineEventHandler(async (event) => {
         db: { schema: 'm2m' }
     })
 
-    // Check for "First Match Free" or "Active Subscription" eligibility
+    // Check for "Active Subscription", wallet credits, or "First Match Free" eligibility
     if (body.metadata?.purpose === 'match_unlock' && body.metadata.userId && body.metadata.matchId) {
         try {
             // Fetch user profile and subscription status
@@ -74,13 +76,51 @@ export default defineEventHandler(async (event) => {
 
             // 1. Check Subscription
             if (subscription) {
-                console.log(`[Paystack] User ${body.metadata.userId} has active subscription. Unlocking match ${body.metadata.matchId} immediately.`)
-                await unlockMatch(body.metadata.matchId, body.metadata.userId, 0) // No individual cost
+                console.log(`[Paystack] User ${body.metadata.userId} has active subscription. Resolving match ${body.metadata.matchId} immediately.`)
+                if (body.metadata.unlockBoth || body.metadata.superConnect) {
+                    await fullyUnlockMatch(body.metadata.matchId, body.metadata.userId, 0)
+
+                    const { data: match } = await supabase
+                        .from('matches')
+                        .select(`
+                            id,
+                            user_1_id,
+                            user_2_id,
+                            user_1:profiles!matches_user_1_id_fkey(display_name),
+                            user_2:profiles!matches_user_2_id_fkey(display_name)
+                        `)
+                        .eq('id', body.metadata.matchId)
+                        .maybeSingle()
+
+                    if (match) {
+                        await notifyMatchUnlocked({
+                            user1Name: (match as any).user_1?.display_name || 'User 1',
+                            user2Name: (match as any).user_2?.display_name || 'User 2',
+                            matchId: body.metadata.matchId,
+                            fullyUnlocked: true
+                        })
+
+                        if (body.metadata.superConnect) {
+                            await notifyFlashLobbySuperConnectCompleted({
+                                senderName: match.user_1_id === body.metadata.userId
+                                    ? ((match as any).user_1?.display_name || 'Someone')
+                                    : ((match as any).user_2?.display_name || 'Someone'),
+                                receiverName: match.user_1_id === body.metadata.userId
+                                    ? ((match as any).user_2?.display_name || 'Someone')
+                                    : ((match as any).user_1?.display_name || 'Someone'),
+                                lobbyName: 'Flash Lobby',
+                                matchId: body.metadata.matchId
+                            })
+                        }
+                    }
+                } else {
+                    await unlockMatch(body.metadata.matchId, body.metadata.userId, 0)
+                }
                 return {
                     status: true,
                     message: 'Match unlocked via subscription',
                     data: {
-                        authorization_url: `${config.public.baseUrl}/me?unlocked=true`, // Redirect back to profile
+                        authorization_url: `${config.public.baseUrl}/me/connection/${body.metadata.matchId}?unlocked=true`,
                         access_code: 'SUBSCRIPTION_UNLOCK',
                         reference: `SUB_UNLOCK_${Date.now()}`
                     },
@@ -88,62 +128,72 @@ export default defineEventHandler(async (event) => {
                 }
             }
 
-            // 2. Check M2M Credit Balance
-            const { getUserBalance, debitUser } = await import('~/server/utils/credits')
-            const creditBalance = await getUserBalance(body.metadata.userId)
+            if (!body.metadata.superConnect) {
+                // 2. Check M2M Credit Balance
+                const { getUserBalance, debitUser } = await import('~/server/utils/credits')
+                const creditBalance = await getUserBalance(body.metadata.userId)
 
-            if (creditBalance >= body.amount) {
-                console.log(`[Paystack] User ${body.metadata.userId} using M2M Credit (GHS ${creditBalance}). Unlocking match ${body.metadata.matchId} immediately.`)
+                if (creditBalance >= body.amount) {
+                    console.log(`[Paystack] User ${body.metadata.userId} using M2M Credit (GHS ${creditBalance}). Unlocking match ${body.metadata.matchId} immediately.`)
 
-                // Debit credits
-                const debitResult = await debitUser(
-                    body.metadata.userId,
-                    body.amount,
-                    'match_unlock_spend',
-                    body.metadata.matchId,
-                    `Match unlock via M2M Credit`
-                )
+                    // Debit credits
+                    const debitResult = await debitUser(
+                        body.metadata.userId,
+                        body.amount,
+                        'match_unlock_spend',
+                        body.metadata.matchId,
+                        `Match unlock via M2M Credit`
+                    )
 
-                if (debitResult.success) {
-                    await unlockMatch(body.metadata.matchId, body.metadata.userId, body.amount)
+                    if (debitResult.success) {
+                        if (body.metadata.unlockBoth) {
+                            await fullyUnlockMatch(body.metadata.matchId, body.metadata.userId, body.amount)
+                        } else {
+                            await unlockMatch(body.metadata.matchId, body.metadata.userId, body.amount)
+                        }
+                        return {
+                            status: true,
+                            message: `Match unlocked via M2M Credit. Remaining balance: GHS ${debitResult.newBalance}`,
+                            data: {
+                                authorization_url: `${config.public.baseUrl}/me/connection/${body.metadata.matchId}?unlocked=true`,
+                                access_code: 'CREDIT_UNLOCK',
+                                reference: `CREDIT_UNLOCK_${Date.now()}`
+                            },
+                            type: 'credit_unlock',
+                            creditBalance: debitResult.newBalance
+                        }
+                    }
+                    // If debit failed, fall through to normal payment
+                    console.warn('[Paystack] Credit debit failed, falling through to payment:', debitResult.error)
+                }
+
+                // 3. Check First Match Free
+                if (profile && !profile.has_used_free_unlock) {
+                    console.log(`[Paystack] User ${body.metadata.userId} using First Match Free. Unlocking match ${body.metadata.matchId} immediately.`)
+
+                    // Unlock match (amount = 0)
+                    if (body.metadata.unlockBoth) {
+                        await fullyUnlockMatch(body.metadata.matchId, body.metadata.userId, 0)
+                    } else {
+                        await unlockMatch(body.metadata.matchId, body.metadata.userId, 0)
+                    }
+
+                    // Mark free unlock as used
+                    await supabase
+                        .from('profiles')
+                        .update({ has_used_free_unlock: true })
+                        .eq('id', body.metadata.userId)
+
                     return {
                         status: true,
-                        message: `Match unlocked via M2M Credit. Remaining balance: GHS ${debitResult.newBalance}`,
+                        message: 'Match unlocked via free trial',
                         data: {
-                            authorization_url: `${config.public.baseUrl}/me?unlocked=true`,
-                            access_code: 'CREDIT_UNLOCK',
-                            reference: `CREDIT_UNLOCK_${Date.now()}`
+                            authorization_url: `${config.public.baseUrl}/me/connection/${body.metadata.matchId}?unlocked=true`,
+                            access_code: 'FREE_UNLOCK',
+                            reference: `FREE_UNLOCK_${Date.now()}`
                         },
-                        type: 'credit_unlock',
-                        creditBalance: debitResult.newBalance
+                        type: 'free_unlock'
                     }
-                }
-                // If debit failed, fall through to normal payment
-                console.warn('[Paystack] Credit debit failed, falling through to payment:', debitResult.error)
-            }
-
-            // 3. Check First Match Free
-            if (profile && !profile.has_used_free_unlock) {
-                console.log(`[Paystack] User ${body.metadata.userId} using First Match Free. Unlocking match ${body.metadata.matchId} immediately.`)
-
-                // Unlock match (amount = 0)
-                await unlockMatch(body.metadata.matchId, body.metadata.userId, 0)
-
-                // Mark free unlock as used
-                await supabase
-                    .from('profiles')
-                    .update({ has_used_free_unlock: true })
-                    .eq('id', body.metadata.userId)
-
-                return {
-                    status: true,
-                    message: 'Match unlocked via free trial',
-                    data: {
-                        authorization_url: `${config.public.baseUrl}/me?unlocked=true`, // Redirect back to profile
-                        access_code: 'FREE_UNLOCK',
-                        reference: `FREE_UNLOCK_${Date.now()}`
-                    },
-                    type: 'free_unlock'
                 }
             }
         } catch (error) {

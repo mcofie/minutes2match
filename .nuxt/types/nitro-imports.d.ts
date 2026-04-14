@@ -1,5 +1,6 @@
 declare global {
   const DiscordColors: typeof import('../../server/utils/discord').DiscordColors
+  const FLASH_LOBBY_RESPONSE_WINDOW_HOURS: typeof import('../../server/utils/flashLobby').FLASH_LOBBY_RESPONSE_WINDOW_HOURS
   const SENDER_ID: typeof import('../../server/utils/zend').SENDER_ID
   const ZEND_BASE_URL: typeof import('../../server/utils/zend').ZEND_BASE_URL
   const __buildAssetsURL: typeof import('../../node_modules/@nuxt/nitro-server/dist/runtime/utils/paths').buildAssetsURL
@@ -15,8 +16,12 @@ declare global {
   const cachedEventHandler: typeof import('../../node_modules/nitropack/dist/runtime/internal/cache').cachedEventHandler
   const cachedFunction: typeof import('../../node_modules/nitropack/dist/runtime/internal/cache').cachedFunction
   const calculateDeliveryDate: typeof import('../../server/utils/order').calculateDeliveryDate
+  const calculateFlashLobbyMatchScore: typeof import('../../server/utils/flashLobby').calculateFlashLobbyMatchScore
+  const calculateFlashLobbyPreviewScore: typeof import('../../server/utils/flashLobby').calculateFlashLobbyPreviewScore
   const calculatePersona: typeof import('../../server/utils/personas').calculatePersona
   const callNodeListener: typeof import('../../node_modules/h3').callNodeListener
+  const canPerformPostLobbyAction: typeof import('../../server/utils/flashLobbyRules').canPerformPostLobbyAction
+  const canUsersSeeEachOther: typeof import('../../server/utils/flashLobbyRules').canUsersSeeEachOther
   const checkRateLimit: typeof import('../../server/utils/rateLimiter').checkRateLimit
   const clearResponseHeaders: typeof import('../../node_modules/h3').clearResponseHeaders
   const clearSession: typeof import('../../node_modules/h3').clearSession
@@ -25,6 +30,8 @@ declare global {
   const createError: typeof import('../../node_modules/h3').createError
   const createEvent: typeof import('../../node_modules/h3').createEvent
   const createEventStream: typeof import('../../node_modules/h3').createEventStream
+  const createFlashLobbyMatch: typeof import('../../server/utils/flashLobby').createFlashLobbyMatch
+  const createInAppNotification: typeof import('../../server/utils/notifications').createInAppNotification
   const createRouter: typeof import('../../node_modules/h3').createRouter
   const creditUser: typeof import('../../server/utils/credits').creditUser
   const debitUser: typeof import('../../server/utils/credits').debitUser
@@ -49,18 +56,22 @@ declare global {
   const dynamicEventHandler: typeof import('../../node_modules/h3').dynamicEventHandler
   const enforceRateLimit: typeof import('../../server/utils/rateLimiter').enforceRateLimit
   const eventHandler: typeof import('../../node_modules/h3').eventHandler
+  const expireStaleFlashLobbyIntents: typeof import('../../server/utils/flashLobby').expireStaleFlashLobbyIntents
   const extractPreferencesFromBio: typeof import('../../server/utils/ai').extractPreferencesFromBio
   const fetchWithEvent: typeof import('../../node_modules/h3').fetchWithEvent
   const fromNodeMiddleware: typeof import('../../node_modules/h3').fromNodeMiddleware
   const fromPlainHandler: typeof import('../../node_modules/h3').fromPlainHandler
   const fromWebHandler: typeof import('../../node_modules/h3').fromWebHandler
+  const fullyUnlockMatch: typeof import('../../server/utils/match').fullyUnlockMatch
   const generateMatchExplanation: typeof import('../../server/utils/ai').generateMatchExplanation
+  const getActiveFlashLobby: typeof import('../../server/utils/flashLobby').getActiveFlashLobby
   const getClientIP: typeof import('../../server/utils/rateLimiter').getClientIP
   const getCookie: typeof import('../../node_modules/h3').getCookie
   const getGeminiModel: typeof import('../../server/utils/ai').getGeminiModel
   const getHeader: typeof import('../../node_modules/h3').getHeader
   const getHeaders: typeof import('../../node_modules/h3').getHeaders
   const getMethod: typeof import('../../node_modules/h3').getMethod
+  const getMostRecentFlashLobby: typeof import('../../server/utils/flashLobby').getMostRecentFlashLobby
   const getProxyRequestHeaders: typeof import('../../node_modules/h3').getProxyRequestHeaders
   const getQuery: typeof import('../../node_modules/h3').getQuery
   const getRequestFingerprint: typeof import('../../node_modules/h3').getRequestFingerprint
@@ -92,15 +103,27 @@ declare global {
   const isEventHandler: typeof import('../../node_modules/h3').isEventHandler
   const isMethod: typeof import('../../node_modules/h3').isMethod
   const isPreflightRequest: typeof import('../../node_modules/h3').isPreflightRequest
+  const isResolvedIntentStatus: typeof import('../../server/utils/flashLobbyRules').isResolvedIntentStatus
   const isSamePhone: typeof import('../../server/utils/phone').isSamePhone
   const isStream: typeof import('../../node_modules/h3').isStream
   const isWebResponse: typeof import('../../node_modules/h3').isWebResponse
   const lazyEventHandler: typeof import('../../node_modules/h3').lazyEventHandler
   const nitroPlugin: typeof import('../../node_modules/nitropack/dist/runtime/internal/plugin').nitroPlugin
+  const normalizeGender: typeof import('../../server/utils/flashLobbyRules').normalizeGender
   const normalizeGhanaPhone: typeof import('../../server/utils/phone').normalizeGhanaPhone
+  const normalizeInterest: typeof import('../../server/utils/flashLobbyRules').normalizeInterest
   const notifyDiscord: typeof import('../../server/utils/discord').notifyDiscord
   const notifyError: typeof import('../../server/utils/discord').notifyError
   const notifyEventBooking: typeof import('../../server/utils/discord').notifyEventBooking
+  const notifyFlashLobbyLifecycle: typeof import('../../server/utils/discord').notifyFlashLobbyLifecycle
+  const notifyFlashLobbyLive: typeof import('../../server/utils/notifications').notifyFlashLobbyLive
+  const notifyFlashLobbyMutualMatch: typeof import('../../server/utils/discord').notifyFlashLobbyMutualMatch
+  const notifyFlashLobbyMutualUnlocked: typeof import('../../server/utils/notifications').notifyFlashLobbyMutualUnlocked
+  const notifyFlashLobbyResolved: typeof import('../../server/utils/notifications').notifyFlashLobbyResolved
+  const notifyFlashLobbySparkReceived: typeof import('../../server/utils/notifications').notifyFlashLobbySparkReceived
+  const notifyFlashLobbySparkSent: typeof import('../../server/utils/discord').notifyFlashLobbySparkSent
+  const notifyFlashLobbySuperConnectCompleted: typeof import('../../server/utils/discord').notifyFlashLobbySuperConnectCompleted
+  const notifyFlashLobbySuperConnectStarted: typeof import('../../server/utils/discord').notifyFlashLobbySuperConnectStarted
   const notifyLobbyReminder: typeof import('../../server/utils/discord').notifyLobbyReminder
   const notifyMatchNudge: typeof import('../../server/utils/discord').notifyMatchNudge
   const notifyMatchUnlocked: typeof import('../../server/utils/discord').notifyMatchUnlocked
@@ -108,12 +131,14 @@ declare global {
   const notifyPaymentInitiated: typeof import('../../server/utils/discord').notifyPaymentInitiated
   const notifyPaymentSuccess: typeof import('../../server/utils/discord').notifyPaymentSuccess
   const notifyRedemption: typeof import('../../server/utils/discord').notifyRedemption
+  const notifySubscriptionActivated: typeof import('../../server/utils/discord').notifySubscriptionActivated
   const notifyUser: typeof import('../../server/utils/notify').notifyUser
   const notifyUserLogin: typeof import('../../server/utils/discord').notifyUserLogin
   const parseCookies: typeof import('../../node_modules/h3').parseCookies
   const parseMarkdown: typeof import('../../node_modules/@nuxtjs/mdc/dist/runtime/parser').parseMarkdown
   const parseTelegramInitData: typeof import('../../server/utils/telegram').parseTelegramInitData
   const personas: typeof import('../../server/utils/personas').personas
+  const processFlashLobbyLiveReminders: typeof import('../../server/utils/flashLobby').processFlashLobbyLiveReminders
   const promisifyNodeListener: typeof import('../../node_modules/h3').promisifyNodeListener
   const proxyRequest: typeof import('../../node_modules/h3').proxyRequest
   const queryCollection: typeof import('../../node_modules/@nuxt/content/dist/runtime/nitro').queryCollection
@@ -126,8 +151,10 @@ declare global {
   const readRawBody: typeof import('../../node_modules/h3').readRawBody
   const readValidatedBody: typeof import('../../node_modules/h3').readValidatedBody
   const removeResponseHeader: typeof import('../../node_modules/h3').removeResponseHeader
+  const resolveSparkOutcome: typeof import('../../server/utils/flashLobbyRules').resolveSparkOutcome
   const runTargetedMatching: typeof import('../../server/utils/matchmaker').runTargetedMatching
   const runTask: typeof import('../../node_modules/nitropack/dist/runtime/internal/task').runTask
+  const sanitizeSparkMessage: typeof import('../../server/utils/flashLobbyRules').sanitizeSparkMessage
   const sanitizeStatusCode: typeof import('../../node_modules/h3').sanitizeStatusCode
   const sanitizeStatusMessage: typeof import('../../node_modules/h3').sanitizeStatusMessage
   const sealSession: typeof import('../../node_modules/h3').sealSession
@@ -176,6 +203,7 @@ declare global {
   const useRuntimeConfig: typeof import('../../node_modules/nitropack/dist/runtime/internal/config').useRuntimeConfig
   const useSession: typeof import('../../node_modules/h3').useSession
   const useStorage: typeof import('../../node_modules/nitropack/dist/runtime/internal/storage').useStorage
+  const validateSparkMessage: typeof import('../../server/utils/flashLobbyRules').validateSparkMessage
   const verifyTelegramData: typeof import('../../server/utils/telegram').verifyTelegramData
   const verifyZendOTP: typeof import('../../server/utils/zend').verifyZendOTP
   const writeEarlyHints: typeof import('../../node_modules/h3').writeEarlyHints
@@ -185,6 +213,9 @@ declare global {
   // @ts-ignore
   export type { CreditResult } from '../../server/utils/credits'
   import('../../server/utils/credits')
+  // @ts-ignore
+  export type { FlashLobbyIntentStatus, FlashLobbyAction } from '../../server/utils/flashLobbyRules'
+  import('../../server/utils/flashLobbyRules')
   // @ts-ignore
   export type { HubtelSMSResponse } from '../../server/utils/hubtel'
   import('../../server/utils/hubtel')
@@ -221,10 +252,13 @@ export { parseMarkdown } from '/Users/maxwellcofie/WebstormProjects/minutes2matc
 export { stringifyMarkdown } from '/Users/maxwellcofie/WebstormProjects/minutes2match/node_modules/@nuxtjs/mdc/dist/runtime/stringify';
 export { getGeminiModel, auditProfileWithAI, extractPreferencesFromBio, generateMatchExplanation } from '/Users/maxwellcofie/WebstormProjects/minutes2match/server/utils/ai';
 export { getUserBalance, creditUser, debitUser } from '/Users/maxwellcofie/WebstormProjects/minutes2match/server/utils/credits';
-export { DiscordColors, notifyRedemption, notifyDiscord, notifyNewSignup, notifyPaymentInitiated, notifyPaymentSuccess, notifyMatchUnlocked, notifyEventBooking, notifyLobbyReminder, notifyError, notifyUserLogin, notifyMatchNudge } from '/Users/maxwellcofie/WebstormProjects/minutes2match/server/utils/discord';
+export { DiscordColors, notifyRedemption, notifyDiscord, notifyNewSignup, notifyPaymentInitiated, notifyPaymentSuccess, notifyMatchUnlocked, notifyEventBooking, notifyLobbyReminder, notifyError, notifyUserLogin, notifyMatchNudge, notifyFlashLobbySparkSent, notifyFlashLobbyMutualMatch, notifyFlashLobbySuperConnectStarted, notifyFlashLobbySuperConnectCompleted, notifySubscriptionActivated, notifyFlashLobbyLifecycle } from '/Users/maxwellcofie/WebstormProjects/minutes2match/server/utils/discord';
+export { FLASH_LOBBY_RESPONSE_WINDOW_HOURS, getActiveFlashLobby, getMostRecentFlashLobby, createFlashLobbyMatch, calculateFlashLobbyPreviewScore, calculateFlashLobbyMatchScore, expireStaleFlashLobbyIntents, processFlashLobbyLiveReminders } from '/Users/maxwellcofie/WebstormProjects/minutes2match/server/utils/flashLobby';
+export { normalizeGender, normalizeInterest, canUsersSeeEachOther, sanitizeSparkMessage, validateSparkMessage, isResolvedIntentStatus, resolveSparkOutcome, canPerformPostLobbyAction } from '/Users/maxwellcofie/WebstormProjects/minutes2match/server/utils/flashLobbyRules';
 export { sendHubtelSMS } from '/Users/maxwellcofie/WebstormProjects/minutes2match/server/utils/hubtel';
-export { unlockMatch } from '/Users/maxwellcofie/WebstormProjects/minutes2match/server/utils/match';
+export { unlockMatch, fullyUnlockMatch } from '/Users/maxwellcofie/WebstormProjects/minutes2match/server/utils/match';
 export { runTargetedMatching } from '/Users/maxwellcofie/WebstormProjects/minutes2match/server/utils/matchmaker';
+export { createInAppNotification, notifyFlashLobbySparkReceived, notifyFlashLobbyMutualUnlocked, notifyFlashLobbyResolved, notifyFlashLobbyLive } from '/Users/maxwellcofie/WebstormProjects/minutes2match/server/utils/notifications';
 export { notifyUser } from '/Users/maxwellcofie/WebstormProjects/minutes2match/server/utils/notify';
 export { handleSparkDeckOrder, calculateDeliveryDate } from '/Users/maxwellcofie/WebstormProjects/minutes2match/server/utils/order';
 export { usePasskeyUtils } from '/Users/maxwellcofie/WebstormProjects/minutes2match/server/utils/passkeys';

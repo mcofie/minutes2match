@@ -75,3 +75,54 @@ export const unlockMatch = async (matchId: string, userId: string, amount: numbe
         throw createError({ statusCode: 500, message: 'Failed to update match status' })
     }
 }
+
+export const fullyUnlockMatch = async (matchId: string, payingUserId: string, amount: number = 30): Promise<void> => {
+    const config = useRuntimeConfig()
+    const supabase = createClient(config.supabaseUrl, config.supabaseServiceKey, {
+        db: { schema: 'm2m' }
+    })
+
+    const { data: match, error: fetchError } = await supabase
+        .from('matches')
+        .select('*')
+        .eq('id', matchId)
+        .single()
+
+    if (fetchError || !match) {
+        throw createError({ statusCode: 404, message: 'Match not found' })
+    }
+
+    const isUser1 = match.user_1_id === payingUserId
+    const isUser2 = match.user_2_id === payingUserId
+
+    if (!isUser1 && !isUser2) {
+        throw createError({ statusCode: 403, message: 'User not part of match' })
+    }
+
+    const now = new Date().toISOString()
+    const updateData: Record<string, any> = {
+        status: 'unlocked',
+        unlocked_at: now,
+        user_1_paid: true,
+        user_2_paid: true,
+        user_1_paid_at: match.user_1_paid_at || now,
+        user_2_paid_at: match.user_2_paid_at || now
+    }
+
+    if (isUser1) {
+        updateData.user_1_amount_paid = amount
+        updateData.user_2_amount_paid = match.user_2_amount_paid || 0
+    } else {
+        updateData.user_2_amount_paid = amount
+        updateData.user_1_amount_paid = match.user_1_amount_paid || 0
+    }
+
+    const { error: updateError } = await supabase
+        .from('matches')
+        .update(updateData)
+        .eq('id', matchId)
+
+    if (updateError) {
+        throw createError({ statusCode: 500, message: 'Failed to fully unlock match' })
+    }
+}

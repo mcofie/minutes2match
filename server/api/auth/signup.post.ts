@@ -16,6 +16,8 @@ export default defineEventHandler(async (event) => {
 
     const {
         phone, // Full phone format expected: +233...
+        code,
+        otpId,
         displayName,
         gender,
         birthDate,
@@ -37,8 +39,14 @@ export default defineEventHandler(async (event) => {
         throw createError({ statusCode: 400, message: 'Phone is required' })
     }
 
+    if (!otpId || !code) {
+        throw createError({ statusCode: 400, message: 'Verification code is required' })
+    }
+
+    const normalizedPhone = normalizeGhanaPhone(phone)
+
     // Log received data for debugging
-    console.log('Signup received:', { phone, displayName, gender, birthDate, location, interestedIn, intent })
+    console.log('Signup received:', { phone: normalizedPhone, displayName, gender, birthDate, location, interestedIn, intent })
 
     // Validate required fields
     if (!gender || !['male', 'female'].includes(gender)) {
@@ -46,7 +54,7 @@ export default defineEventHandler(async (event) => {
     }
 
     // Create fake email for auth
-    const cleanPhone = phone.replace(/\D/g, '')
+    const cleanPhone = normalizedPhone.replace(/\D/g, '')
     const email = `${cleanPhone}@m2m.app`
     const password = `m2m_${cleanPhone}_${Math.random().toString(36).slice(2)}`
 
@@ -60,19 +68,45 @@ export default defineEventHandler(async (event) => {
     let userId: string
 
     try {
-        // 1. Try to get existing user by email (phone)
+        // 1. Verify OTP server-side before creating or mutating auth users
+        const { data: otpRecord, error: otpError } = await supabaseAdmin
+            .schema('m2m')
+            .from('otp_codes')
+            .select('id')
+            .eq('id', otpId)
+            .eq('phone', normalizedPhone)
+            .eq('code', code)
+            .eq('used', false)
+            .gt('expires_at', new Date().toISOString())
+            .single()
+
+        if (otpError || !otpRecord) {
+            throw createError({ statusCode: 401, message: 'Invalid or expired verification code' })
+        }
+
+        const { error: markOtpUsedError } = await supabaseAdmin
+            .schema('m2m')
+            .from('otp_codes')
+            .update({ used: true })
+            .eq('id', otpRecord.id)
+
+        if (markOtpUsedError) {
+            throw createError({ statusCode: 500, message: 'Failed to finalize verification' })
+        }
+
+        // 2. Try to get existing user by email (phone)
         // We can't easily "get" by email with admin api without listUsers, 
         // relying on profiles is safer if they exist, but let's try create first.
 
         // Attempt to create user with auto-confirm
-        const { data: newUser, error: createError } = await supabaseAdmin.auth.admin.createUser({
+        const { data: newUser, error: createUserError } = await supabaseAdmin.auth.admin.createUser({
             email,
             password,
             email_confirm: true, // AUTO-CONFIRM USER
-            user_metadata: { phone }
+            user_metadata: { phone: normalizedPhone }
         })
 
-        if (createError) {
+        if (createUserError) {
             // If user checks fail but it's just "already registered", handle update
             // But admin.createUser doesn't return convenient error codes always.
             // Let's check if we can find the user.
@@ -82,7 +116,7 @@ export default defineEventHandler(async (event) => {
                 .schema('m2m')
                 .from('profiles')
                 .select('id')
-                .eq('phone', phone)
+                .eq('phone', normalizedPhone)
                 .single()
 
             if (existingProfile) {
@@ -91,7 +125,7 @@ export default defineEventHandler(async (event) => {
                 await supabaseAdmin.auth.admin.updateUserById(userId, {
                     password,
                     email_confirm: true,
-                    user_metadata: { phone }
+                    user_metadata: { phone: normalizedPhone }
                 })
             } else {
                 // Auth user might exist but no profile? Rare but possible.
@@ -107,18 +141,18 @@ export default defineEventHandler(async (event) => {
                     await supabaseAdmin.auth.admin.updateUserById(userId, {
                         password,
                         email_confirm: true,
-                        user_metadata: { phone }
+                        user_metadata: { phone: normalizedPhone }
                     })
                 } else {
-                    console.error('Create User Error:', createError)
-                    throw createError
+                    console.error('Create User Error:', createUserError)
+                    throw createUserError
                 }
             }
         } else {
             userId = newUser.user.id
         }
 
-        // 2. Check for existing profile to preserve seeded data (like about_me)
+        // 3. Check for existing profile to preserve seeded data (like about_me)
         let existingAboutMe: string | null = null
         const { data: existingProfile } = await supabaseAdmin
             .schema('m2m')
@@ -131,13 +165,13 @@ export default defineEventHandler(async (event) => {
             existingAboutMe = existingProfile.about_me
         }
 
-        // 3. Create/Update Profile (Bypass RLS) - preserve seeded about_me
+        // 4. Create/Update Profile (Bypass RLS) - preserve seeded about_me
         const { error: profileError } = await supabaseAdmin
             .schema('m2m')
             .from('profiles')
             .upsert({
                 id: userId,
-                phone,
+                phone: normalizedPhone,
                 display_name: displayName,
                 gender,
                 birth_date: birthDate,
@@ -158,7 +192,7 @@ export default defineEventHandler(async (event) => {
         if (profileError) throw profileError
 
 
-        // 3. Save Vibe Answers
+        // 5. Save Vibe Answers
         if (vibeAnswers && Object.keys(vibeAnswers).length > 0) {
             const vibeEntries = Object.entries(vibeAnswers).map(([key, value]) => ({
                 user_id: userId,
@@ -173,7 +207,7 @@ export default defineEventHandler(async (event) => {
                 .upsert(vibeEntries, { onConflict: 'user_id,question_key' })
         }
 
-        // 4. Trigger Just-In-Time (JIT) Matching
+        // 6. Trigger Just-In-Time (JIT) Matching
         // Since the user is newly verified, we scan for high-quality matches immediately.
         try {
             const { runTargetedMatching } = await import('~/server/utils/matchmaker')
@@ -188,7 +222,7 @@ export default defineEventHandler(async (event) => {
         // Send Discord notification for new signup
         await notifyNewSignup({
             email,
-            phone,
+            phone: normalizedPhone,
             displayName
         })
 
@@ -201,7 +235,7 @@ export default defineEventHandler(async (event) => {
                 telegramOptions: {
                     reply_markup: {
                         inline_keyboard: [
-                            [{ text: '👤 Complete Profile', web_app: { url: useRuntimeConfig().public.baseUrl + '/profile' } }]
+                            [{ text: '👤 Complete Profile', web_app: { url: useRuntimeConfig().public.baseUrl + '/me' } }]
                         ]
                     }
                 }
@@ -211,7 +245,7 @@ export default defineEventHandler(async (event) => {
             console.error('[Signup] Failed to send welcome message:', notifyError)
         }
 
-        // Track referral if a code was provided
+        // 7. Track referral if a code was provided
         if (referralCode) {
             try {
                 // Find the referrer
@@ -258,6 +292,7 @@ export default defineEventHandler(async (event) => {
 
     } catch (error: any) {
         console.error('Signup Error:', error)
+        if (error.statusCode) throw error
         throw createError({
             statusCode: 500,
             message: error.message || 'Signup failed'

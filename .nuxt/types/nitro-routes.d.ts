@@ -18,6 +18,9 @@ declare module "nitropack/types" {
     '/api/admin/flash-lobby/control': {
       'post': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/admin/flash-lobby/control.post').default>>>>
     }
+    '/api/admin/flash-lobby/notify': {
+      'post': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/admin/flash-lobby/notify.post').default>>>>
+    }
     '/api/admin/notify-incomplete-profiles': {
       'post': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/admin/notify-incomplete-profiles.post').default>>>>
     }
@@ -102,6 +105,9 @@ declare module "nitropack/types" {
     '/api/cron/expire-matches': {
       'get': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/cron/expire-matches.get').default>>>>
     }
+    '/api/cron/flash-lobby-reminders': {
+      'get': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/cron/flash-lobby-reminders.get').default>>>>
+    }
     '/api/cron/match-expiration-reminder': {
       'get': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/cron/match-expiration-reminder.get').default>>>>
     }
@@ -162,6 +168,9 @@ declare module "nitropack/types" {
     '/api/franchise/vote': {
       'post': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/franchise/vote.post').default>>>>
     }
+    '/api/lobby/action': {
+      'post': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/lobby/action.post').default>>>>
+    }
     '/api/lobby/connect': {
       'post': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/lobby/connect.post').default>>>>
     }
@@ -184,6 +193,9 @@ declare module "nitropack/types" {
     '/api/lobby/remind': {
       'get': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/lobby/remind.get').default>>>>
       'post': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/lobby/remind.post').default>>>>
+    }
+    '/api/lobby/state': {
+      'get': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/lobby/state.get').default>>>>
     }
     '/api/matches': {
       'get': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/matches.get').default>>>>

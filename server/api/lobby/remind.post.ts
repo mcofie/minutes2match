@@ -61,9 +61,16 @@ export default defineEventHandler(async (event) => {
   const { error: insertError } = await service
     .schema('m2m')
     .from('flash_lobby_reminders')
-    .insert([{ user_id: userId, lobby_id: lobbyId }])
+    .upsert([{ user_id: userId, lobby_id: lobbyId }], {
+      onConflict: 'user_id,lobby_id',
+      ignoreDuplicates: true
+    })
 
   if (insertError) {
+     if (insertError.code === '23505') {
+        console.log('[LobbyRemind] Duplicate reminder ignored by database constraint.')
+        return { success: true, message: 'Already set', isNew: false }
+     }
      console.error('[LobbyRemind] Insert error:', insertError)
      throw createError({ statusCode: 500, statusMessage: insertError.message })
   }

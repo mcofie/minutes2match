@@ -17,8 +17,8 @@
             🔓
           </div>
         </div>
-        <h1 class="text-3xl font-serif font-black text-black mb-2">Unlock Profile</h1>
-        <p class="text-stone-500">Reveal their full details and start chatting</p>
+        <h1 class="text-3xl font-serif font-black text-black mb-2">{{ pageTitle }}</h1>
+        <p class="text-stone-500">{{ pageSubtitle }}</p>
       </div>
       
       <!-- Summary Card -->
@@ -26,24 +26,18 @@
         <div class="flex justify-between items-center mb-6 pb-6 border-b border-stone-100">
           <div>
             <p class="text-xs font-bold uppercase tracking-widest text-stone-400 mb-1">Item</p>
-            <p class="font-serif font-bold text-lg">Match Unlock</p>
+            <p class="font-serif font-bold text-lg">{{ orderLabel }}</p>
           </div>
           <div class="text-right">
              <p class="text-xs font-bold uppercase tracking-widest text-stone-400 mb-1">Price</p>
-             <p class="font-mono font-bold text-xl">{{ formatGHS(price) }}</p>
+             <p class="font-mono font-bold text-xl">{{ formatGHS(effectivePrice) }}</p>
           </div>
         </div>
         
         <div class="bg-stone-50 rounded-lg p-4 mb-2">
            <ul class="space-y-2 text-sm text-stone-600">
-             <li class="flex items-center gap-2">
-               <span class="text-emerald-500">✓</span> View full photos
-             </li>
-             <li class="flex items-center gap-2">
-               <span class="text-emerald-500">✓</span> See verified phone info
-             </li>
-             <li class="flex items-center gap-2">
-                <span class="text-emerald-500">✓</span> Unlock messaging
+             <li v-for="benefit in benefits" :key="benefit" class="flex items-center gap-2">
+               <span class="text-emerald-500">✓</span> {{ benefit }}
              </li>
            </ul>
         </div>
@@ -56,7 +50,7 @@
         class="w-full bg-black text-white py-4 rounded-xl font-bold uppercase tracking-widest shadow-[4px_4px_0px_0px_rgba(0,0,0,0.2)] hover:shadow-[6px_6px_0px_0px_rgba(244,63,94,1)] hover:bg-rose-500 hover:-translate-y-0.5 transition-all disabled:opacity-50 disabled:cursor-not-allowed border-2 border-black flex items-center justify-center gap-3"
       >
         <span v-if="processing" class="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
-        {{ processing ? 'Processing...' : `Pay ${formatGHS(price)}` }}
+        {{ processing ? 'Preparing checkout...' : ctaLabel }}
       </button>
       
       <!-- Secure Badge -->
@@ -83,11 +77,71 @@ const { initializePayment, formatGHS } = usePaystack()
 const user = useSupabaseUser()
 
 const matchId = computed(() => route.params.id as string)
+const isSuperConnect = computed(() => route.query.super_connect === '1')
+const unlockBoth = computed(() => route.query.unlock_both === '1')
 
 const price = ref(10) // Default price
 const processing = ref(false)
 const error = ref<string | null>(null)
 const userProfile = ref<any>(null)
+const hasActiveSubscription = ref(false)
+
+const effectivePrice = computed(() => hasActiveSubscription.value ? 0 : price.value)
+
+const pageTitle = computed(() => {
+  if (isSuperConnect.value) return 'Super Connect'
+  if (unlockBoth.value) return 'Unlock Both Sides'
+  return 'Unlock This Spark'
+})
+
+const pageSubtitle = computed(() => {
+  if (isSuperConnect.value) return 'Cover both reveals so this one-sided spark becomes a fully open match.'
+  if (unlockBoth.value) return 'Open the match for both of you and move straight into conversation.'
+  return 'Reveal the full profile, open the match, and keep the conversation moving.'
+})
+
+const orderLabel = computed(() => {
+  if (isSuperConnect.value) return 'Flash Lobby Super Connect'
+  if (unlockBoth.value) return 'Flash Lobby Double Unlock'
+  return 'Flash Lobby Unlock'
+})
+
+const benefits = computed(() => {
+  if (isSuperConnect.value) {
+    return [
+      ...(hasActiveSubscription.value ? ['Included with your active membership'] : []),
+      'Reveal both sides of the match at once',
+      'Open messaging without waiting for another payment',
+      'Turn your spark into a full introduction'
+    ]
+  }
+
+  if (unlockBoth.value) {
+    return [
+      ...(hasActiveSubscription.value ? ['Included with your active membership'] : []),
+      'Reveal both profiles immediately',
+      'Open the chat right away',
+      'Move this spark out of review and into a real match'
+    ]
+  }
+
+  return [
+    ...(hasActiveSubscription.value ? ['Included with your active membership'] : []),
+    'See their full profile and photos',
+    'Open the match and start chatting',
+    'Move from spark to real conversation'
+  ]
+})
+
+const ctaLabel = computed(() => {
+  if (processing.value) return 'Preparing checkout...'
+  if (hasActiveSubscription.value && isSuperConnect.value) return 'Use Subscription For Super Connect'
+  if (hasActiveSubscription.value && unlockBoth.value) return 'Use Subscription To Unlock Both'
+  if (hasActiveSubscription.value) return 'Use Subscription To Unlock'
+  if (isSuperConnect.value) return `Pay ${formatGHS(effectivePrice.value)} For Super Connect`
+  if (unlockBoth.value) return `Pay ${formatGHS(effectivePrice.value)} To Unlock Both`
+  return `Pay ${formatGHS(effectivePrice.value)} To Unlock`
+})
 
 // Load match data to get actual price and user profile
 onMounted(async () => {
@@ -107,6 +161,16 @@ onMounted(async () => {
      if (profileData) {
         userProfile.value = profileData
      }
+
+     const { data: activeSubscription } = await supabase
+       .from('subscriptions')
+       .select('id')
+       .eq('user_id', user.value.id)
+       .eq('status', 'active')
+       .gt('end_date', new Date().toISOString())
+       .maybeSingle()
+
+     hasActiveSubscription.value = !!activeSubscription
    
      // Fetch match data for price
      const { data, error: fetchError } = await supabase
@@ -146,11 +210,13 @@ const processPayment = async () => {
     // We pass userId in metadata so callback knows who paid
     const response = await initializePayment(
        paymentEmail,
-       price.value,
+       effectivePrice.value,
        'match_unlock',
        {
           matchId: matchId.value,
-          userId: user.value.id
+          userId: user.value.id,
+          superConnect: isSuperConnect.value,
+          unlockBoth: unlockBoth.value
        }
     )
     

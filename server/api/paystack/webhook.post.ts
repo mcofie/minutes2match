@@ -14,8 +14,10 @@
 
 import { createClient } from '@supabase/supabase-js'
 import crypto from 'crypto'
-import { notifyPaymentSuccess, notifyMatchUnlocked, notifyEventBooking } from '~/server/utils/discord'
+import { notifyPaymentSuccess, notifyMatchUnlocked, notifyEventBooking, notifyFlashLobbySuperConnectCompleted, notifySubscriptionActivated } from '~/server/utils/discord'
 import { notifyUser } from '~/server/utils/notify'
+import { fullyUnlockMatch } from '~/server/utils/match'
+import { notifyFlashLobbyResolved } from '~/server/utils/notifications'
 
 export default defineEventHandler(async (event) => {
     const config = useRuntimeConfig()
@@ -135,6 +137,11 @@ export default defineEventHandler(async (event) => {
             console.error('[Webhook] Error fetching payment record:', JSON.stringify(fetchError))
         }
 
+        if (existingPayment?.status === 'success') {
+            console.log('[Webhook] Payment already processed, skipping side effects for reference:', data.reference)
+            return { received: true, processed: true, duplicate: true }
+        }
+
         if (existingPayment) {
             console.log('[Webhook] Found existing payment record:', existingPayment.id, 'status:', existingPayment.status)
             // Record exists, update it
@@ -147,6 +154,7 @@ export default defineEventHandler(async (event) => {
 
             if (updateError) {
                 console.error('[Webhook] Failed to update payment:', updateError)
+                throw updateError
             } else {
                 console.log('[Webhook] Payment record updated to success, id:', existingPayment.id)
             }
@@ -170,6 +178,18 @@ export default defineEventHandler(async (event) => {
 
             if (insertError) {
                 console.error('[Webhook] Failed to create payment record:', insertError)
+                const { data: duplicatePayment } = await supabase
+                    .from('payments')
+                    .select('id, status')
+                    .eq('provider_ref', data.reference)
+                    .maybeSingle()
+
+                if (duplicatePayment?.status === 'success') {
+                    console.log('[Webhook] Payment creation raced with another successful handler, skipping side effects')
+                    return { received: true, processed: true, duplicate: true }
+                }
+
+                throw insertError
             } else {
                 console.log('[Webhook] Payment record CREATED with success status for reference:', data.reference)
             }
@@ -272,6 +292,73 @@ async function handleMatchUnlockPayment(supabase: any, data: any, metadata: any,
     console.log('[Webhook] Processing match unlock for match:', matchId, 'user:', payingUserId)
 
     try {
+        if (metadata.superConnect || metadata.unlockBoth) {
+            await fullyUnlockMatch(matchId, payingUserId, metadata.amount || (data.amount / 100))
+            await supabase
+                .from('flash_lobby_intents')
+                .update({
+                    super_connect_paid: !!metadata.superConnect,
+                    status: 'converted_to_match'
+                })
+                .eq('match_id', matchId)
+
+            const { data: match } = await supabase
+                .from('matches')
+                .select(`
+                    *,
+                    user_1:profiles!matches_user_1_id_fkey(id, phone, display_name),
+                    user_2:profiles!matches_user_2_id_fkey(id, phone, display_name)
+                `)
+                .eq('id', matchId)
+                .single()
+
+            if (match) {
+                await notifyMatchUnlocked({
+                    user1Name: match.user_1?.display_name || 'User 1',
+                    user2Name: match.user_2?.display_name || 'User 2',
+                    matchId,
+                    fullyUnlocked: true
+                })
+
+                await Promise.all([
+                    notifyUser(match.user_1_id, metadata.superConnect ? `⚡ Super Connect activated! Your match with ${match.user_2?.display_name} is fully unlocked.` : `⚡ Your Flash Lobby spark is now fully unlocked with ${match.user_2?.display_name}.`, { type: 'match', matchId }).catch(() => {}),
+                    notifyUser(match.user_2_id, metadata.superConnect ? `⚡ ${match.user_1?.display_name} used Super Connect. Your match is fully unlocked now.` : `⚡ ${match.user_1?.display_name} unlocked your Flash Lobby spark. You're both fully unlocked now.`, { type: 'match', matchId }).catch(() => {})
+                ])
+
+                await Promise.all([
+                    notifyFlashLobbyResolved(supabase as any, {
+                        userId: match.user_1_id,
+                        matchId,
+                        title: metadata.superConnect ? 'Super Connect unlocked your spark ⚡' : 'Flash Lobby spark unlocked ⚡',
+                        message: metadata.superConnect ? `${match.user_2?.display_name} can now see your full match too.` : `${match.user_2?.display_name} is now fully unlocked with you.`,
+                        dedupeKey: `flash-lobby-payment:${matchId}:user1:${metadata.superConnect ? 'super' : 'unlock-both'}`
+                    }),
+                    notifyFlashLobbyResolved(supabase as any, {
+                        userId: match.user_2_id,
+                        matchId,
+                        title: metadata.superConnect ? 'Someone used Super Connect on you ⚡' : 'A Flash Lobby spark was unlocked ⚡',
+                        message: metadata.superConnect ? `${match.user_1?.display_name} covered the full unlock, so your match is open now.` : `${match.user_1?.display_name} unlocked your spark. Your match is open now.`,
+                        dedupeKey: `flash-lobby-payment:${matchId}:user2:${metadata.superConnect ? 'super' : 'unlock-both'}`
+                    })
+                ])
+
+                if (metadata.superConnect) {
+                    await notifyFlashLobbySuperConnectCompleted({
+                        senderName: match.user_1_id === payingUserId
+                            ? (match.user_1?.display_name || 'Someone')
+                            : (match.user_2?.display_name || 'Someone'),
+                        receiverName: match.user_1_id === payingUserId
+                            ? (match.user_2?.display_name || 'Someone')
+                            : (match.user_1?.display_name || 'Someone'),
+                        lobbyName: 'Flash Lobby',
+                        matchId
+                    })
+                }
+            }
+
+            return
+        }
+
         // Use shared utility to unlock
         const paidAmount = metadata.amount || (data.amount / 100)
         await unlockMatch(matchId, payingUserId, paidAmount)
@@ -337,6 +424,14 @@ async function handleSubscriptionPayment(supabase: any, metadata: any) {
 
     // Upsert subscription
     // Check if exists first to extend? For now, we just create/update active sub
+    const { data: existingSub } = await supabase
+        .from('subscriptions')
+        .select('id')
+        .eq('user_id', metadata.userId)
+        .eq('status', 'active')
+        .gt('end_date', new Date().toISOString())
+        .maybeSingle()
+
     const { error } = await supabase
         .from('subscriptions')
         .insert({
@@ -351,6 +446,19 @@ async function handleSubscriptionPayment(supabase: any, metadata: any) {
         console.error('[Webhook] Failed to create subscription:', error)
     } else {
         console.log('[Webhook] Subscription activated for user:', metadata.userId)
+
+        const { data: profile } = await supabase
+            .from('profiles')
+            .select('display_name')
+            .eq('id', metadata.userId)
+            .maybeSingle()
+
+        await notifySubscriptionActivated({
+            userName: profile?.display_name || 'Unknown User',
+            userEmail: metadata.email,
+            endDate: endDate.toISOString(),
+            isRenewal: !!existingSub?.id
+        })
         
         // Send welcome message using our multi-channel notification utility
         // This will prioritize Telegram if available, falling back to SMS
@@ -364,7 +472,7 @@ async function handleSubscriptionPayment(supabase: any, metadata: any) {
                     reply_markup: {
                         inline_keyboard: [
                             [{ text: '🚀 View Matches', web_app: { url: useRuntimeConfig().public.baseUrl + '/matches' } }],
-                            [{ text: '👤 Update Profile', web_app: { url: useRuntimeConfig().public.baseUrl + '/profile' } }]
+                            [{ text: '👤 Update Profile', web_app: { url: useRuntimeConfig().public.baseUrl + '/me' } }]
                         ]
                     }
                 }

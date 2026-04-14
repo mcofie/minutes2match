@@ -6,7 +6,7 @@
         <h1 class="text-3xl font-extrabold text-stone-900 tracking-tight mb-1">
           Flash Lobby Manager
         </h1>
-        <p class="text-stone-500">Manage synchronous matching events and live participation.</p>
+        <p class="text-stone-500">Run live spark rooms, track conversion health, and guide the room in real time.</p>
       </div>
       <div v-if="activeCount > 0" class="flex items-center gap-3 px-4 py-2 bg-indigo-50 rounded-full border border-indigo-100 shadow-sm animate-in fade-in zoom-in duration-500">
         <span class="relative flex h-3 w-3">
@@ -18,6 +18,9 @@
     </header>
 
     <!-- Stats Overview -->
+    <div class="mb-3">
+      <p class="text-[10px] font-black uppercase tracking-[0.2em] text-stone-400">Flash Lobby Conversion Report</p>
+    </div>
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
       <div v-for="(stat, i) in liveStats" :key="i" class="stat-card group relative">
         <div v-if="i === 0 && activeCount > 0" class="absolute top-4 right-4 animate-in fade-in zoom-in duration-700">
@@ -33,6 +36,26 @@
             i === 1 ? 'bg-pink-50 text-pink-600 group-hover:bg-pink-100' :
             i === 2 ? 'bg-amber-50 text-amber-600 group-hover:bg-amber-100' :
             'bg-emerald-50 text-emerald-600 group-hover:bg-emerald-100'
+          ]">
+            <span class="text-xl">{{ stat.icon }}</span>
+          </div>
+        </div>
+        <div>
+          <span class="block text-3xl font-black text-stone-900 mb-1 tabular-nums">{{ stat.value }}</span>
+          <span class="text-xs font-bold text-stone-500 uppercase tracking-widest">{{ stat.label }}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+      <div v-for="(stat, i) in conversionStats" :key="stat.label" class="stat-card group relative">
+        <div class="flex justify-between items-start mb-4">
+          <div :class="[
+            'p-3 rounded-xl transition-colors',
+            i === 0 ? 'bg-rose-50 text-rose-600 group-hover:bg-rose-100' :
+            i === 1 ? 'bg-emerald-50 text-emerald-600 group-hover:bg-emerald-100' :
+            i === 2 ? 'bg-sky-50 text-sky-600 group-hover:bg-sky-100' :
+            'bg-violet-50 text-violet-600 group-hover:bg-violet-100'
           ]">
             <span class="text-xl">{{ stat.icon }}</span>
           </div>
@@ -73,15 +96,28 @@
               </div>
 
               <div class="space-y-1.5">
-                <label class="text-[10px] font-bold uppercase tracking-widest text-stone-400 ml-1">Cycle (Mins)</label>
-                <input v-model.number="form.duration" type="number" min="1" max="120" class="w-full px-4 py-3 bg-stone-50 border border-stone-200 rounded-xl font-medium focus:ring-4 ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all" />
+                <label class="text-[10px] font-bold uppercase tracking-widest text-stone-400 ml-1">Duration</label>
+                <div class="grid grid-cols-[1fr_120px] gap-3">
+                  <input v-model.number="form.duration" type="number" min="1" max="365" class="w-full px-4 py-3 bg-stone-50 border border-stone-200 rounded-xl font-medium focus:ring-4 ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all" />
+                  <select v-model="form.durationUnit" class="w-full px-4 py-3 bg-stone-50 border border-stone-200 rounded-xl font-medium focus:ring-4 ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all">
+                    <option value="minutes">Minutes</option>
+                    <option value="hours">Hours</option>
+                    <option value="days">Days</option>
+                  </select>
+                </div>
               </div>
             </div>
 
             <div class="flex flex-col md:flex-row justify-between items-center gap-4 pt-4 border-t border-stone-50">
               <div class="flex gap-2">
-                <button v-for="d in [15, 30, 60]" :key="d" @click="form.duration = d" class="px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all" :class="form.duration === d ? 'bg-stone-900 text-white shadow-sm' : 'bg-stone-100 text-stone-500 hover:bg-stone-200'">
-                  {{ d }}m
+                <button
+                  v-for="preset in durationPresets"
+                  :key="preset.label"
+                  @click="setDurationPreset(preset.value, preset.unit)"
+                  class="px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all"
+                  :class="form.duration === preset.value && form.durationUnit === preset.unit ? 'bg-stone-900 text-white shadow-sm' : 'bg-stone-100 text-stone-500 hover:bg-stone-200'"
+                >
+                  {{ preset.label }}
                 </button>
               </div>
               <button @click="handleTask" class="w-full md:w-auto px-10 py-3.5 bg-stone-900 text-white rounded-xl font-bold uppercase tracking-[0.2em] text-[11px] hover:bg-black transition-all active:scale-95 shadow-lg flex items-center justify-center gap-3">
@@ -129,19 +165,19 @@
                  </button>
 
                  <button 
-                  @click="addTime(lobby, 5)"
+                  @click="addTime(lobby, 1, 'hours')"
                   class="p-5 rounded-2xl border border-stone-100 bg-stone-50/50 flex flex-col items-center gap-3 hover:bg-stone-100 hover:border-stone-200 transition-all group"
                  >
-                    <span class="text-2xl transition-transform group-hover:scale-110">➕5</span>
-                    <span class="text-[10px] font-black uppercase tracking-widest text-stone-600">Add 5m</span>
+                    <span class="text-2xl transition-transform group-hover:scale-110">➕1h</span>
+                    <span class="text-[10px] font-black uppercase tracking-widest text-stone-600">Add 1 Hour</span>
                  </button>
 
                  <button 
-                  @click="addTime(lobby, 15)"
+                  @click="addTime(lobby, 1, 'days')"
                   class="p-5 rounded-2xl border border-stone-100 bg-stone-50/50 flex flex-col items-center gap-3 hover:bg-stone-100 hover:border-stone-200 transition-all group"
                  >
-                    <span class="text-2xl transition-transform group-hover:scale-110">➕15</span>
-                    <span class="text-[10px] font-black uppercase tracking-widest text-stone-600">Add 15m</span>
+                    <span class="text-2xl transition-transform group-hover:scale-110">➕1d</span>
+                    <span class="text-[10px] font-black uppercase tracking-widest text-stone-600">Add 1 Day</span>
                  </button>
 
                  <button 
@@ -191,7 +227,7 @@
                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
                Event Ledger
              </h2>
-             <span class="text-[10px] font-bold text-stone-400 uppercase tracking-widest">Historical Performance</span>
+             <span class="text-[10px] font-bold text-stone-400 uppercase tracking-widest">Durations, mutuals, and room history</span>
           </div>
           
           <div v-if="lobbies.length === 0" class="p-20 text-center text-stone-400 font-bold uppercase tracking-widest text-[10px]">
@@ -216,7 +252,7 @@
                     </p>
                     <span class="w-1 h-1 bg-stone-300 rounded-full"></span>
                     <p class="text-[10px] font-bold text-stone-500 uppercase tracking-widest">
-                      {{ getDuration(lobby) }} Mins
+                      {{ formatDurationMinutes(getDurationMinutes(lobby)) }}
                     </p>
                   </div>
                 </div>
@@ -224,8 +260,8 @@
               
               <div class="flex items-center gap-4">
                 <div class="text-right mr-4" v-if="getStatus(lobby) !== 'future'">
-                   <p class="text-lg font-black text-stone-900 tabular-nums leading-none">{{ Math.floor(Math.random() * 40) + 12 }}</p>
-                   <p class="text-[8px] font-black uppercase text-stone-400 tracking-widest mt-1">Matches</p>
+                   <p class="text-lg font-black text-stone-900 tabular-nums leading-none">{{ getLobbyMetric(lobby.id, 'mutualSparks') }}</p>
+                   <p class="text-[8px] font-black uppercase text-stone-400 tracking-widest mt-1">Mutuals</p>
                 </div>
                 
                 <div class="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -271,28 +307,20 @@
                         <p class="text-[9px] font-bold text-indigo-500 uppercase tracking-widest">Active Now</p>
                      </div>
                   </div>
-                  <div class="text-right">
-                     <p class="text-sm font-black text-stone-900 leading-none">{{ user.connections }}</p>
-                     <p class="text-[8px] font-bold uppercase text-stone-400 tracking-widest mt-1">Pings</p>
-                  </div>
                 </div>
               </div>
 
               <!-- Detailed Stats -->
               <div class="grid grid-cols-2 gap-3 pt-6 border-t border-stone-100">
                  <div class="p-4 bg-stone-50 rounded-xl border border-stone-100 hover:border-indigo-100 transition-colors group/stat">
-                    <p class="text-xl font-black leading-none mb-1.5 tabular-nums text-stone-900">84%</p>
-                    <p class="text-[9px] font-bold uppercase tracking-widest text-stone-400 group-hover/stat:text-indigo-600 transition-colors">Activity</p>
+                    <p class="text-xl font-black leading-none mb-1.5 tabular-nums text-stone-900">{{ presenceCount }}</p>
+                    <p class="text-[9px] font-bold uppercase tracking-widest text-stone-400 group-hover/stat:text-indigo-600 transition-colors">Live Now</p>
                  </div>
                  <div class="p-4 bg-stone-50 rounded-xl border border-stone-100 hover:border-indigo-100 transition-colors group/stat">
-                    <p class="text-xl font-black leading-none mb-1.5 tabular-nums text-stone-900">3.2k</p>
-                    <p class="text-[9px] font-bold uppercase tracking-widest text-stone-400 group-hover/stat:text-indigo-600 transition-colors">Signals</p>
+                    <p class="text-xl font-black leading-none mb-1.5 tabular-nums text-stone-900">{{ activeCount }}</p>
+                    <p class="text-[9px] font-bold uppercase tracking-widest text-stone-400 group-hover/stat:text-indigo-600 transition-colors">Live Rooms</p>
                  </div>
               </div>
-
-              <button class="w-full py-3.5 bg-stone-900 text-white rounded-xl font-bold uppercase tracking-[0.2em] text-[10px] hover:bg-black transition-all shadow-md">
-                 Export Logs
-              </button>
            </div>
         </section>
 
@@ -324,14 +352,6 @@
            </div>
         </section>
 
-        <!-- Traffic Insights -->
-        <section class="bg-white rounded-2xl border border-stone-200 p-6 shadow-sm">
-           <h3 class="text-xs font-bold uppercase tracking-widest text-stone-400 mb-6">Traffic Distribution</h3>
-           <div class="h-32 flex items-end justify-between gap-1.5 overflow-hidden">
-              <div v-for="i in 16" :key="i" class="flex-1 bg-stone-100 rounded-t-sm transition-all duration-700 hover:bg-indigo-500" :style="{ height: (Math.random() * 80 + 20) + '%' }"></div>
-           </div>
-           <p class="text-[9px] font-bold text-stone-400 uppercase tracking-widest mt-4 text-center">Peak activity tracking enabled</p>
-        </section>
       </div>
     </div>
   </div>
@@ -358,29 +378,69 @@ interface FlashLobby {
 const supabase = useSupabaseClient()
 const lobbies = ref<FlashLobby[]>([])
 const editingId = ref<string | null>(null)
+const lobbyMetrics = ref<Record<string, { sparksSent: number, mutualSparks: number, unlockRate: number, superConnectRate: number }>>({})
 
 // Performance stats
 const totalProfiles = ref(0)
 const matchesToday = ref(0)
-const interactionsCount = ref(1204) // Placeholder for logs/clicks for now
 const presenceCount = ref(0)
 
 const form = ref({
   title: 'Friday Night Concourse',
   startTime: '',
-  duration: 15
+  duration: 2,
+  durationUnit: 'hours' as 'minutes' | 'hours' | 'days'
 })
 
+const durationPresets = [
+  { label: '30m', value: 30, unit: 'minutes' as const },
+  { label: '2h', value: 2, unit: 'hours' as const },
+  { label: '6h', value: 6, unit: 'hours' as const },
+  { label: '1d', value: 1, unit: 'days' as const }
+]
+
 const activeCount = computed(() => lobbies.value.filter(l => isCurrent(l)).length)
+const liveLobbyIds = computed(() => lobbies.value.filter(l => isCurrent(l)).map(l => l.id))
+const liveSparkCount = computed(() => liveLobbyIds.value.reduce((sum, lobbyId) => {
+  const metric = lobbyMetrics.value[lobbyId]
+  return sum + (metric?.sparksSent || 0)
+}, 0))
+
+const conversionOverview = computed(() => {
+  const metrics = Object.values(lobbyMetrics.value)
+  const sparksSent = metrics.reduce((sum, metric) => sum + metric.sparksSent, 0)
+  const mutualSparks = metrics.reduce((sum, metric) => sum + metric.mutualSparks, 0)
+  const unlockRate = sparksSent > 0
+    ? ((metrics.reduce((sum, metric) => sum + (metric.unlockRate * metric.sparksSent), 0)) / sparksSent)
+    : 0
+  const superConnectRate = sparksSent > 0
+    ? ((metrics.reduce((sum, metric) => sum + (metric.superConnectRate * metric.sparksSent), 0)) / sparksSent)
+    : 0
+
+  return {
+    sparksSent,
+    mutualSparks,
+    unlockRate,
+    superConnectRate
+  }
+})
 
 const liveStats = computed(() => [
-  { icon: '👥', value: presenceCount.value || totalProfiles.value, label: 'Current Users' },
+  { icon: '👥', value: presenceCount.value, label: 'Live Now' },
   { icon: '✨', value: matchesToday.value, label: 'Matches Today' },
-  { icon: '💥', value: interactionsCount.value, label: 'Interactions' },
-  { icon: '💍', value: totalProfiles.value > 0 ? ((matchesToday.value / totalProfiles.value) * 100).toFixed(1) + '%' : '0%', label: 'Match Ratio' }
+  { icon: '⚡', value: liveSparkCount.value, label: 'Live Sparks' },
+  { icon: '🛋️', value: activeCount.value, label: 'Open Rooms' }
+])
+
+const conversionStats = computed(() => [
+  { icon: '⚡', value: conversionOverview.value.sparksSent, label: 'Sparks Sent' },
+  { icon: '💥', value: conversionOverview.value.mutualSparks, label: 'Mutual Sparks' },
+  { icon: '🔓', value: `${conversionOverview.value.unlockRate.toFixed(1)}%`, label: 'Unlock Rate' },
+  { icon: '🚀', value: `${conversionOverview.value.superConnectRate.toFixed(1)}%`, label: 'Super Connect Rate' }
 ])
 
 const liveUsers = ref<any[]>([])
+const livePresenceIds = ref<Set<string>>(new Set())
 const reminders = ref<any[]>([])
 const currentTime = ref(new Date())
 let timer: any = null
@@ -408,6 +468,72 @@ const fetchLobbies = async () => {
   
   // Also fetch real data for the stats
   await fetchRealStats()
+  await fetchLobbyMetrics()
+}
+
+const fetchLobbyMetrics = async () => {
+  const lobbyIds = lobbies.value.map(lobby => lobby.id)
+  if (!lobbyIds.length) {
+    lobbyMetrics.value = {}
+    return
+  }
+
+  const { data: intents } = await (supabase.schema('m2m').from('flash_lobby_intents') as any)
+    .select('id, lobby_id, status, is_super_connect, super_connect_paid, match_id')
+    .in('lobby_id', lobbyIds)
+
+  const metrics: Record<string, { sparksSent: number, mutualSparks: number, unlockRate: number, superConnectRate: number }> = {}
+
+  lobbyIds.forEach((lobbyId) => {
+    const lobbyIntents = (intents || []).filter((intent: any) => intent.lobby_id === lobbyId)
+    const sparksSent = lobbyIntents.length
+    const mutualSparks = new Set(
+      lobbyIntents
+        .filter((intent: any) => intent.status === 'mutual' && intent.match_id)
+        .map((intent: any) => intent.match_id)
+    ).size
+    const converted = new Set(
+      lobbyIntents
+        .filter((intent: any) => ['mutual', 'converted_to_match'].includes(intent.status) && intent.match_id)
+        .map((intent: any) => intent.match_id)
+    ).size
+    const superConnects = lobbyIntents.filter((intent: any) => intent.is_super_connect || intent.super_connect_paid).length
+
+    metrics[lobbyId] = {
+      sparksSent,
+      mutualSparks,
+      unlockRate: sparksSent > 0 ? (converted / sparksSent) * 100 : 0,
+      superConnectRate: sparksSent > 0 ? (superConnects / sparksSent) * 100 : 0
+    }
+  })
+
+  lobbyMetrics.value = metrics
+}
+
+const fetchLiveUsers = async () => {
+  const ids = Array.from(livePresenceIds.value)
+  presenceCount.value = ids.length
+
+  if (!ids.length) {
+    liveUsers.value = []
+    return
+  }
+
+  try {
+    const { data: participants } = await supabase
+      .schema('m2m')
+      .from('profiles')
+      .select('id, display_name, photo_url')
+      .in('id', ids)
+
+    const orderedUsers = ids
+      .map((id) => (participants || []).find((participant: any) => participant.id === id))
+      .filter(Boolean)
+
+    liveUsers.value = orderedUsers
+  } catch (err) {
+    console.error('[Admin] Failed to fetch live users:', err)
+  }
 }
 
 const fetchRealStats = async () => {
@@ -424,36 +550,40 @@ const fetchRealStats = async () => {
       .gte('created_at', today.toISOString())
     matchesToday.value = mCount || 0
     
-    // 3. Live Presence (if channel is set up)
-    // For now we simulate with a subset of active profiles to see them in the UI
-    const { data: participants } = await supabase.schema('m2m').from('profiles')
-      .select('id, display_name, photo_url')
-      .not('photo_url', 'is', null)
-      .limit(5)
-    
-    if (participants && participants.length > 0) {
-      liveUsers.value = (participants as any[]).map(u => ({
-        ...u,
-        connections: Math.floor(Math.random() * 20),
-        joined: Math.floor(Math.random() * 300)
-      }))
-    } else {
-      // Fallback for demo
-      liveUsers.value = [
-        { id: '1', display_name: 'Ama Serwaa', connections: 12, joined: 45, photo_url: 'https://i.pravatar.cc/300?u=1' },
-        { id: '2', display_name: 'Kofi Mensah', connections: 8, joined: 120, photo_url: 'https://i.pravatar.cc/300?u=2' }
-      ]
-    }
+    await fetchLiveUsers()
   } catch (err) {
     console.error('Failed to fetch real stats:', err)
   }
+}
+
+const setupPresence = () => {
+  if (presenceChannel) {
+    supabase.removeChannel(presenceChannel)
+  }
+
+  presenceChannel = supabase.channel('lobby-presence', { config: { presence: { key: 'admin-monitor' } } })
+  presenceChannel
+    .on('presence', { event: 'sync' }, async () => {
+      const state = presenceChannel.presenceState()
+      const ids = new Set<string>()
+      Object.keys(state).forEach((key) => {
+        if (key !== 'admin-monitor') ids.add(key)
+      })
+      livePresenceIds.value = ids
+      await fetchLiveUsers()
+    })
+    .subscribe((status: string) => {
+      if (status === 'SUBSCRIBED') {
+        presenceChannel.track({ role: 'admin-monitor', online_at: new Date().toISOString() })
+      }
+    })
 }
 
 const handleTask = async () => {
   if (!form.value.startTime) return
   
   const start = new Date(form.value.startTime)
-  const end = new Date(start.getTime() + form.value.duration * 60000)
+  const end = new Date(start.getTime() + durationToMinutes() * 60000)
   
   const payload = {
     title: form.value.title,
@@ -462,16 +592,31 @@ const handleTask = async () => {
   }
 
   if (editingId.value) {
-    const { error } = await (supabase.schema('m2m').from('flash_lobbies') as any)
+    const { data: updatedLobby, error } = await (supabase.schema('m2m').from('flash_lobbies') as any)
       .update(payload)
       .eq('id', editingId.value)
+      .select('title, start_at, end_at')
+      .single()
     
     if (error) alert('Update failed: ' + error.message)
-    else cancelEdit()
+    else {
+      await $fetch('/api/admin/flash-lobby/notify', {
+        method: 'POST',
+        body: { action: 'updated', lobby: updatedLobby }
+      }).catch(() => {})
+      cancelEdit()
+    }
   } else {
-    const { error } = await (supabase.schema('m2m').from('flash_lobbies') as any).insert(payload)
+    const { data: createdLobby, error } = await (supabase.schema('m2m').from('flash_lobbies') as any)
+      .insert(payload)
+      .select('title, start_at, end_at')
+      .single()
     if (error) alert('Scheduling failed: ' + error.message)
     else {
+      await $fetch('/api/admin/flash-lobby/notify', {
+        method: 'POST',
+        body: { action: 'created', lobby: createdLobby }
+      }).catch(() => {})
       resetForm()
       fetchLobbies()
     }
@@ -479,11 +624,13 @@ const handleTask = async () => {
 }
 
 const startEdit = (lobby: FlashLobby) => {
+  const parsed = durationFromMinutes(getDurationMinutes(lobby))
   editingId.value = lobby.id
   form.value = {
     title: lobby.title,
     startTime: new Date(lobby.start_at).toISOString().slice(0, 16),
-    duration: getDuration(lobby)
+    duration: parsed.value,
+    durationUnit: parsed.unit
   }
   window.scrollTo({ top: 0, behavior: 'smooth' })
 }
@@ -498,13 +645,28 @@ const resetForm = () => {
   form.value = {
     title: 'Friday Night Concourse',
     startTime: '',
-    duration: 15
+    duration: 2,
+    durationUnit: 'hours'
   }
 }
 
 const deleteLobby = async (id: string) => {
   if (!confirm('Are you sure you want to delete this lobby?')) return
+  const lobby = lobbies.value.find((item: any) => item.id === id)
   await (supabase.schema('m2m').from('flash_lobbies') as any).delete().eq('id', id)
+  if (lobby) {
+    await $fetch('/api/admin/flash-lobby/notify', {
+      method: 'POST',
+      body: {
+        action: 'deleted',
+        lobby: {
+          title: lobby.title,
+          start_at: lobby.start_at,
+          end_at: lobby.end_at
+        }
+      }
+    }).catch(() => {})
+  }
   fetchLobbies()
 }
 
@@ -545,8 +707,8 @@ const stopLobby = async (lobby: FlashLobby) => {
    await runControl('stop', lobby.id)
 }
 
-const addTime = async (lobby: FlashLobby, minutes: number) => {
-   await runControl('addTime', lobby.id, minutes)
+const addTime = async (lobby: FlashLobby, amount: number, unit: 'minutes' | 'hours' | 'days') => {
+   await runControl('addTime', lobby.id, { amount, unit })
 }
 
 const getRemainingFormatted = (lobby: FlashLobby) => {
@@ -555,17 +717,21 @@ const getRemainingFormatted = (lobby: FlashLobby) => {
       const end = new Date(lobby.end_at).getTime()
       const paused = new Date(lobby.paused_at).getTime()
       const diff = Math.max(0, Math.floor((end - paused) / 1000))
-      return formatSeconds(diff)
+      return formatDurationSeconds(diff)
    }
    const end = new Date(lobby.end_at).getTime()
    const diff = Math.max(0, Math.floor((end - now.getTime()) / 1000))
-   return formatSeconds(diff)
+   return formatDurationSeconds(diff)
 }
 
-const formatSeconds = (totalSeconds: number) => {
-   const mins = Math.floor(totalSeconds / 60)
+const formatDurationSeconds = (totalSeconds: number) => {
+   const days = Math.floor(totalSeconds / 86400)
+   const hours = Math.floor((totalSeconds % 86400) / 3600)
+   const mins = Math.floor((totalSeconds % 3600) / 60)
+   if (days > 0) return `${days}d ${hours}h`
+   if (hours > 0) return `${hours}h ${mins}m`
    const secs = totalSeconds % 60
-   return `${mins}:${secs.toString().padStart(2, '0')}`
+   return `${mins}m ${secs.toString().padStart(2, '0')}s`
 }
 
 const getStatus = (lobby: any) => {
@@ -579,22 +745,60 @@ const getStatus = (lobby: any) => {
 
 const isCurrent = (lobby: any) => getStatus(lobby) === 'live'
 
-const getDuration = (lobby: FlashLobby) => {
+const getDurationMinutes = (lobby: FlashLobby) => {
   const start = new Date(lobby.start_at)
   const end = new Date(lobby.end_at)
   return Math.round((end.getTime() - start.getTime()) / 60000)
+}
+
+const formatDurationMinutes = (minutes: number) => {
+  if (minutes >= 1440) {
+    const days = Math.floor(minutes / 1440)
+    const hours = Math.round((minutes % 1440) / 60)
+    return hours ? `${days} Day${days === 1 ? '' : 's'} ${hours}h` : `${days} Day${days === 1 ? '' : 's'}`
+  }
+  if (minutes >= 60) {
+    const hours = Math.floor(minutes / 60)
+    const rem = minutes % 60
+    return rem ? `${hours}h ${rem}m` : `${hours} Hour${hours === 1 ? '' : 's'}`
+  }
+  return `${minutes} Min${minutes === 1 ? '' : 's'}`
+}
+
+const durationToMinutes = () => {
+  if (form.value.durationUnit === 'days') return form.value.duration * 1440
+  if (form.value.durationUnit === 'hours') return form.value.duration * 60
+  return form.value.duration
+}
+
+const durationFromMinutes = (minutes: number) => {
+  if (minutes % 1440 === 0) return { value: minutes / 1440, unit: 'days' as const }
+  if (minutes % 60 === 0) return { value: minutes / 60, unit: 'hours' as const }
+  return { value: minutes, unit: 'minutes' as const }
+}
+
+const setDurationPreset = (value: number, unit: 'minutes' | 'hours' | 'days') => {
+  form.value.duration = value
+  form.value.durationUnit = unit
+}
+
+const getLobbyMetric = (lobbyId: string, field: 'sparksSent' | 'mutualSparks' | 'unlockRate' | 'superConnectRate') => {
+  const metric = lobbyMetrics.value[lobbyId]
+  if (!metric) return field.includes('Rate') ? '0.0%' : 0
+  if (field.includes('Rate')) return `${metric[field].toFixed(1)}%`
+  return metric[field]
 }
 
 const formatDate = (dateStr: string) => {
   return new Date(dateStr).toLocaleString('en-GB', { day: 'numeric', month: 'short', weekday: 'short', hour: '2-digit', minute: '2-digit' })
 }
 
-// Presence Logic (Demonstrative)
 let presenceChannel: any = null
 
 onMounted(async () => {
   await fetchLobbies()
   await fetchReminders()
+  setupPresence()
   
   timer = setInterval(() => {
     currentTime.value = new Date()
@@ -604,7 +808,7 @@ onMounted(async () => {
   channel = supabase
     .channel('admin:flash_lobbies')
     .on('postgres_changes', { event: '*', schema: 'm2m', table: 'flash_lobbies' }, () => {
-       fetchLobbies()
+      fetchLobbies()
     })
     .subscribe()
 })

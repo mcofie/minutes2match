@@ -816,16 +816,7 @@ const handleVerifyOtp = async () => {
   if (fallbackInterval) clearInterval(fallbackInterval)
 
   try {
-    const { verifyOTP } = useZend()
-    const fullPhone = '+233' + form.phone.replace(/\D/g, '').replace(/^0+/, '')
-    const result = await verifyOTP(fullPhone, otpCode.value, otpId.value)
-    
-    if (!result.valid) {
-      otpError.value = result.error || 'Invalid code'
-      return
-    }
-
-    await createUserProfile()
+    await createUserProfile(otpCode.value, otpId.value)
     
     const { calculatePersona } = usePersona()
     assignedPersona.value = calculatePersona(vibeAnswers)
@@ -942,7 +933,7 @@ const updateUserProfile = async (explicitUserId?: string) => {
   }
 }
 
-const createUserProfile = async () => {
+const createUserProfile = async (verificationCode: string, verificationOtpId: string) => {
   if (isCreatingProfile.value) return
   isCreatingProfile.value = true
   
@@ -965,6 +956,8 @@ const createUserProfile = async () => {
         religion: form.religion || null,
         heightCm: form.height,
         occupation: form.occupation || null,
+        code: verificationCode,
+        otpId: verificationOtpId,
         vibeAnswers,
         vibeDimensions,
         telegramId: (isTMA.value && tgUser.value) ? tgUser.value.id.toString() : undefined,

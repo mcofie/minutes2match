@@ -20,6 +20,8 @@ export default defineEventHandler(async (event) => {
         })
     }
 
+    const normalizedPhone = normalizeGhanaPhone(phone)
+
     // Create admin client with service role key
     const supabaseAdmin = createClient(
         config.supabaseUrl || process.env.SUPABASE_URL || '',
@@ -28,49 +30,43 @@ export default defineEventHandler(async (event) => {
     )
 
     try {
-        // 1. Verify OTP via Supabase (or dev bypass)
-        if (code === '111111') {
-            console.log('[Login] Dev bypass code used')
-        } else {
-            // Verify against Supabase m2m.otp_codes table
-            const query = supabaseAdmin
-                .schema('m2m')
-                .from('otp_codes')
-                .select('*')
-                .eq('code', code)
-                .eq('used', false)
-                .gt('expires_at', new Date().toISOString())
+        // 1. Verify OTP via Supabase and bind it to the phone number being used
+        const query = supabaseAdmin
+            .schema('m2m')
+            .from('otp_codes')
+            .select('*')
+            .eq('phone', normalizedPhone)
+            .eq('code', code)
+            .eq('used', false)
+            .gt('expires_at', new Date().toISOString())
 
-            if (otpId) {
-                query.eq('id', otpId)
-            } else {
-                query.eq('phone', phone)
-            }
-
-            const { data: otpData, error: otpError } = await query.single()
-
-            if (otpError || !otpData) {
-                console.error('[Login] OTP verification failed:', otpError?.message)
-                throw createError({
-                    statusCode: 401,
-                    statusMessage: 'Invalid or expired code'
-                })
-            }
-
-            // Mark OTP as used
-            await supabaseAdmin
-                .schema('m2m')
-                .from('otp_codes')
-                .update({ used: true })
-                .eq('id', otpData.id)
+        if (otpId) {
+            query.eq('id', otpId)
         }
+
+        const { data: otpData, error: otpError } = await query.single()
+
+        if (otpError || !otpData) {
+            console.error('[Login] OTP verification failed:', otpError?.message)
+            throw createError({
+                statusCode: 401,
+                statusMessage: 'Invalid or expired code'
+            })
+        }
+
+        // Mark OTP as used
+        await supabaseAdmin
+            .schema('m2m')
+            .from('otp_codes')
+            .update({ used: true })
+            .eq('id', otpData.id)
 
         // 3. Find profile by phone (fetch key fields to check vibe check completion)
         const { data: profile, error: profileError } = await supabaseAdmin
             .schema('m2m')
             .from('profiles')
             .select('id, phone, display_name, gender, intent, interested_in')
-            .eq('phone', phone)
+            .eq('phone', normalizedPhone)
             .single()
 
         if (profileError || !profile) {
@@ -131,7 +127,7 @@ export default defineEventHandler(async (event) => {
         try {
             const { notifyUserLogin } = await import('~/server/utils/discord')
             await notifyUserLogin({
-                phone: phone,
+                phone: normalizedPhone,
                 displayName: profile.display_name,
                 isNewUser: !hasCompletedVibeCheck
             })

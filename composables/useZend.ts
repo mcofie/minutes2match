@@ -55,12 +55,6 @@ export const useZend = () => {
      * Verify OTP via ZendOTP (server-side)
      */
     const verifyOTP = async (_phone: string, code: string, otpId?: string) => {
-        // Development bypass
-        if (code === '111111') {
-            console.log('✅ [DEV] Using bypass code 111111')
-            return { valid: true }
-        }
-
         if (!otpId) {
             console.error('❌ No OTP ID provided for verification')
             return { valid: false, error: 'No OTP ID. Please request a new code.' }

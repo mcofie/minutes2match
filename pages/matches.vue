@@ -143,7 +143,7 @@
           :creditBalance="creditBalance"
           @unlock="handleUnlockMatch(match)"
           @update-status="navigateToFeedback(match)"
-          @nudge="(msg) => handleNudgeMatch(match, msg)"
+          @nudge="(payload) => handleNudgeMatch(match, payload)"
         />
       </div>
 
@@ -461,13 +461,30 @@ onMounted(async () => {
         }
     }
 })
-const handleNudgeMatch = async (match: any, customMessage?: string) => {
+const handleNudgeMatch = async (
+  match: any,
+  payload?: string | { message?: string; onSuccess?: () => void; onError?: () => void }
+) => {
+  const customMessage = typeof payload === 'string' ? payload : payload?.message
   try {
-    const { data: { session } } = await supabase.auth.getSession()
+    let { data: { session } } = await supabase.auth.getSession()
+    
+    // If session is stale, force a refresh before hitting the API
+    if (!session) {
+      console.warn('[Nudge Debug] No session found, attempting refresh...')
+      const { data } = await supabase.auth.refreshSession()
+      session = data.session
+    }
+
+    console.log('[Nudge Debug] Proceeding with token:', session?.access_token?.substring(0, 10) + '...')
     
     const res = await $fetch('/api/matches/nudge', {
       method: 'POST',
-      body: { matchId: match.id, customMessage },
+      body: { 
+        matchId: match.id, 
+        customMessage,
+        userId: profile.value?.id // Debug fallback for dev environments
+      },
       headers: {
         Authorization: `Bearer ${session?.access_token}`
       }
@@ -479,11 +496,14 @@ const handleNudgeMatch = async (match: any, customMessage?: string) => {
       if (matchIndex !== -1) {
         matches.value[matchIndex].nudged = true
       }
+      payload && typeof payload !== 'string' && payload.onSuccess?.()
     } else {
       toast.error('Nudge Failed', (res as any).message || 'Something went wrong.')
+      payload && typeof payload !== 'string' && payload.onError?.()
     }
   } catch (err) {
     toast.error('Nudge Failed', 'Connection error.')
+    payload && typeof payload !== 'string' && payload.onError?.()
   }
 }
 </script>
