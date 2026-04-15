@@ -94,76 +94,27 @@
             </div>
 
             <!-- Bottom Card (Inferno) -->
-            <div class="absolute w-48 sm:w-64 md:w-72 h-[300px] sm:h-[360px] md:h-[400px] bg-[#F43F5E] border-2 border-black rounded-[1.5rem] sm:rounded-[2.5rem] shadow-2xl transition-all duration-1000 origin-center z-10 -translate-x-12 sm:-translate-x-24 -translate-y-8 sm:-translate-y-16 -rotate-[20deg] sm:-rotate-[28deg] group-hover:-translate-x-20 sm:group-hover:-translate-x-40 group-hover:-translate-y-12 sm:group-hover:-translate-y-24 group-hover:-rotate-[25deg] sm:group-hover:-rotate-[35deg] animate-levitate-slow overflow-hidden">
-               <div class="absolute inset-0 opacity-10" style="background-image: url('https://www.transparenttextures.com/patterns/linen.png');"></div>
+            <div class="absolute w-48 sm:w-64 md:w-72 h-[300px] sm:h-[360px] md:h-[400px] bg-white border-2 border-black rounded-[1.5rem] sm:rounded-[2.5rem] shadow-2xl transition-all duration-1000 origin-center z-10 -translate-x-12 sm:-translate-x-24 -translate-y-8 sm:-translate-y-16 -rotate-[20deg] sm:-rotate-[28deg] group-hover:-translate-x-20 sm:group-hover:-translate-x-40 group-hover:-translate-y-12 sm:group-hover:-translate-y-24 group-hover:-rotate-[25deg] sm:group-hover:-rotate-[35deg] animate-levitate-slow overflow-hidden">
+               <NuxtImg src="/spark-deck/cards/39.png" alt="The Inferno card" class="w-full h-full object-cover" />
                <div class="absolute inset-0 bg-gradient-to-tr from-white/0 via-white/5 to-white/0 -translate-x-full group-hover:animate-shimmer"></div>
-               
-               <!-- Card Content -->
-               <div class="absolute top-4 sm:top-8 left-4 sm:left-8 text-white/50 text-xl sm:text-3xl font-serif italic">3</div>
-               <div class="absolute top-4 sm:top-8 right-4 sm:right-8 text-white/20 text-[8px] sm:text-[10px] font-bold uppercase tracking-widest">M2M SPARK</div>
-               
-               <div class="absolute inset-0 flex items-center justify-center opacity-20">
-                  <span class="text-7xl sm:text-9xl grayscale brightness-200">💥</span>
-               </div>
-               
-               <div class="absolute bottom-6 sm:bottom-10 inset-x-0 flex flex-col items-center">
-                  <div class="px-3 py-1 bg-white/10 rounded-full backdrop-blur-sm border border-white/10 mb-2">
-                     <div class="text-[7px] sm:text-[9px] font-bold text-white uppercase tracking-[0.3em]">The Inferno</div>
-                  </div>
-                  <div class="text-[6px] sm:text-[8px] font-mono text-white/30 uppercase tracking-[0.4em]">High Stakes</div>
-               </div>
             </div>
 
             <!-- Middle Card (Fire) -->
-            <div class="absolute w-48 sm:w-64 md:w-72 h-[300px] sm:h-[360px] md:h-[400px] bg-[#44403C] border-2 border-black rounded-[1.5rem] sm:rounded-[2.5rem] shadow-2xl transition-all duration-1000 origin-center z-20 -translate-y-10 sm:-translate-y-20 rotate-[1deg] sm:rotate-[2deg] group-hover:-translate-y-20 sm:group-hover:-translate-y-40 group-hover:rotate-[3deg] sm:group-hover:rotate-[5deg] animate-levitate overflow-hidden">
-               <div class="absolute inset-0 opacity-10" style="background-image: url('https://www.transparenttextures.com/patterns/linen.png');"></div>
+            <div class="absolute w-48 sm:w-64 md:w-72 h-[300px] sm:h-[360px] md:h-[400px] bg-white border-2 border-black rounded-[1.5rem] sm:rounded-[2.5rem] shadow-2xl transition-all duration-1000 origin-center z-20 -translate-y-10 sm:-translate-y-20 rotate-[1deg] sm:rotate-[2deg] group-hover:-translate-y-20 sm:group-hover:-translate-y-40 group-hover:rotate-[3deg] sm:group-hover:rotate-[5deg] animate-levitate overflow-hidden">
+               <NuxtImg src="/spark-deck/cards/20.png" alt="The Fire card" class="w-full h-full object-cover" />
                <div class="absolute inset-0 bg-gradient-to-tr from-white/0 via-white/5 to-white/0 -translate-x-full group-hover:animate-shimmer" style="animation-delay: 0.2s;"></div>
-               
-               <!-- Card Content -->
-               <div class="absolute top-4 sm:top-8 left-4 sm:left-8 text-white/40 text-xl sm:text-3xl font-serif italic">2</div>
-               <div class="absolute top-4 sm:top-8 right-4 sm:right-8 text-white/10 text-[8px] sm:text-[10px] font-bold uppercase tracking-widest">M2M SPARK</div>
-               
-               <div class="absolute inset-0 flex items-center justify-center opacity-10">
-                  <span class="text-7xl sm:text-9xl grayscale brightness-200">🔥</span>
-               </div>
-
-               <div class="absolute bottom-6 sm:bottom-10 inset-x-0 flex flex-col items-center">
-                  <div class="text-white/20 text-lg sm:text-2xl font-serif mb-1">The Fire</div>
-                  <div class="w-8 h-px bg-white/10"></div>
-               </div>
             </div>
 
             <!-- Top Card (Spark) -->
-            <div class="absolute w-48 sm:w-64 md:w-72 h-[300px] sm:h-[360px] md:h-[400px] bg-[#F5F5F4] border-2 border-black rounded-[1.5rem] sm:rounded-[2.5rem] shadow-2xl transition-all duration-1000 origin-center z-30 translate-x-14 sm:translate-x-28 -translate-y-4 sm:-translate-y-10 rotate-[15deg] sm:rotate-[24deg] group-hover:translate-x-24 sm:group-hover:translate-x-48 group-hover:-translate-y-8 sm:group-hover:-translate-y-16 group-hover:rotate-[18deg] sm:group-hover:rotate-[32deg] animate-levitate-fast overflow-hidden">
-               <div class="absolute inset-0 opacity-10" style="background-image: url('https://www.transparenttextures.com/patterns/linen.png');"></div>
+            <div class="absolute w-48 sm:w-64 md:w-72 h-[300px] sm:h-[360px] md:h-[400px] bg-white border-2 border-black rounded-[1.5rem] sm:rounded-[2.5rem] shadow-2xl transition-all duration-1000 origin-center z-30 translate-x-14 sm:translate-x-28 -translate-y-4 sm:-translate-y-10 rotate-[15deg] sm:rotate-[24deg] group-hover:translate-x-24 sm:group-hover:translate-x-48 group-hover:-translate-y-8 sm:group-hover:-translate-y-16 group-hover:rotate-[18deg] sm:group-hover:rotate-[32deg] animate-levitate-fast overflow-hidden">
+               <NuxtImg src="/spark-deck/cards/1.png" alt="The Spark card" class="w-full h-full object-cover" />
                <div class="absolute inset-0 bg-gradient-to-tr from-black/0 via-black/5 to-black/0 -translate-x-full group-hover:animate-shimmer" style="animation-delay: 0.4s;"></div>
-               
-               <!-- Card Content -->
-               <div class="absolute top-4 sm:top-8 left-4 sm:left-8 text-black/30 text-xl sm:text-3xl font-serif italic">1</div>
-               <div class="absolute top-4 sm:top-8 right-4 sm:right-8 text-black/10 text-[8px] sm:text-[10px] font-bold uppercase tracking-widest">M2M SPARK</div>
-               
-               <div class="absolute inset-0 flex items-center justify-center opacity-[0.05]">
-                  <span class="text-7xl sm:text-9xl">✨</span>
-               </div>
-
-               <div class="absolute bottom-4 sm:bottom-8 left-4 sm:left-8 flex flex-col items-start">
-                  <div class="text-[8px] sm:text-[10px] font-bold text-black/40 uppercase tracking-[0.2em]">Level 01</div>
-                  <div class="text-[7px] sm:text-[9px] font-medium text-black/20 uppercase tracking-[0.1em]">The Spark</div>
-               </div>
             </div>
 
             <!-- The Tuck Box -->
-            <div class="absolute w-44 sm:w-56 md:w-64 h-[310px] sm:h-[370px] md:h-[410px] bg-black border-2 border-stone-800 rounded-xl sm:rounded-2xl shadow-[20px_20px_60px_rgba(0,0,0,0.5)] md:shadow-[30px_30px_80px_rgba(0,0,0,0.6)] z-40 transition-all duration-500 hover:scale-[1.05] flex flex-col items-center justify-center p-6 sm:p-10 text-center group/box">
-               <div class="absolute inset-x-0 top-0 h-1 sm:h-1.5 bg-gradient-to-r from-transparent via-rose-500/50 to-transparent"></div>
+            <div class="absolute w-44 sm:w-56 md:w-64 h-[310px] sm:h-[370px] md:h-[410px] bg-white border-2 border-black rounded-xl sm:rounded-2xl shadow-[20px_20px_60px_rgba(0,0,0,0.5)] md:shadow-[30px_30px_80px_rgba(0,0,0,0.6)] z-40 transition-all duration-500 hover:scale-[1.05] overflow-hidden group/box">
+               <NuxtImg src="/spark-deck/cards/64.png" alt="The HOW's card" class="w-full h-full object-cover" />
                <div class="absolute inset-0 bg-gradient-to-tr from-white/0 via-white/10 to-white/0 -translate-x-full group-hover:animate-shimmer-fast pointer-events-none"></div>
-               <div class="text-[7px] sm:text-[9px] font-bold tracking-[0.4em] sm:tracking-[0.5em] uppercase text-rose-500 mb-4 sm:mb-8 group-hover/box:tracking-[0.6em] transition-all duration-700">Explore • Reflect • Spark</div>
-               <div class="text-xl sm:text-3xl font-serif text-white leading-tight mb-1 sm:mb-2 tracking-tighter group-hover/box:scale-110 transition-transform duration-700">THE<br/>M2M<br/>SPARK<br/>DECK</div>
-               <div class="mt-6 sm:mt-10 border-t border-white/10 pt-4 sm:pt-6 w-full">
-                  <div class="text-[7px] sm:text-[8px] font-bold text-stone-500 uppercase tracking-widest leading-relaxed">54 Cards to Ignite Connection</div>
-               </div>
-               <div class="absolute bottom-6 sm:bottom-8 flex justify-center gap-1 sm:gap-1.5">
-                  <div v-for="i in 3" :key="i" class="w-1 sm:w-1.5 h-1 sm:h-1.5 rounded-full transition-all duration-500" :class="i === 3 ? 'bg-rose-500 scale-125' : 'bg-stone-800'"></div>
-               </div>
             </div>
 
           </div>
@@ -320,7 +271,7 @@
             <p v-scroll-animate="{ delay: 100 }" class="text-stone-500 font-medium text-sm md:text-base">Flip any card to reveal its prompt.</p>
           </div>
 
-          <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-8 md:gap-12 lg:gap-8 max-w-6xl mx-auto">
+          <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-12 lg:gap-8 max-w-6xl mx-auto">
              <div v-for="(card, i) in previewCards" :key="i" 
                 v-scroll-animate="{ animation: 'fade-up', delay: i * 150 }"
                 class="relative group aspect-[2.5/3.5] perspective-1000 max-w-[280px] mx-auto w-full transition-all duration-500 hover:scale-105"
@@ -334,23 +285,10 @@
                  <div class="relative w-full h-full transition-all duration-700 preserve-3d group-hover:rotate-y-180 cursor-help">
                  
                  <!-- BACK FACE -->
-                 <div class="absolute inset-0 w-full h-full border-2 border-black dark:border-stone-700 rounded-[2rem] p-8 flex flex-col items-center justify-center backface-hidden shadow-[8px_8px_0px_0px]"
+                 <div class="absolute inset-0 w-full h-full border-2 border-black dark:border-stone-700 rounded-[2rem] backface-hidden shadow-[8px_8px_0px_0px]"
                     :class="card.bgBack"
                     :style="{ boxShadow: `8px 8px 0px 0px ${card.shadow}` }">
-                    <div class="absolute inset-0 opacity-10 pointer-events-none" style="background-image: url('https://www.transparenttextures.com/patterns/linen.png');"></div>
-                    
-                    <div class="relative z-10 flex flex-col items-center">
-                       <div class="w-16 h-16 bg-black/5 dark:bg-white/10 border-2 border-current rounded-full flex items-center justify-center mb-6 backdrop-blur-sm" :class="card.textBack">
-                          <span class="text-2xl filter drop-shadow-md group-hover:scale-125 transition-all duration-700">{{ card.icon }}</span>
-                       </div>
-                       <div class="text-[10px] font-bold tracking-[0.4em] uppercase mb-1" :class="card.textBack">Level {{ card.level }}</div>
-                       <div class="text-[8px] font-bold uppercase tracking-widest opacity-60" :class="card.textBack">{{ card.name }}</div>
-                    </div>
-
-                    <div class="absolute top-6 left-6 w-3 h-3 border-t-2 border-l-2 rounded-tl-sm opacity-30" :class="card.borderBack"></div>
-                    <div class="absolute top-6 right-6 w-3 h-3 border-t-2 border-r-2 rounded-tr-sm opacity-30" :class="card.borderBack"></div>
-                    <div class="absolute bottom-6 left-6 w-3 h-3 border-b-2 border-l-2 rounded-bl-sm opacity-30" :class="card.borderBack"></div>
-                    <div class="absolute bottom-6 right-6 w-3 h-3 border-b-2 border-r-2 rounded-br-sm opacity-30" :class="card.borderBack"></div>
+                    <NuxtImg :src="card.image" :alt="card.name" class="w-full h-full object-cover rounded-[calc(2rem-2px)]" />
                  </div>
 
                  <!-- FRONT FACE -->
@@ -762,10 +700,12 @@ const stackStyles = computed(() => ({
 }))
 
 const previewCards = [
-  { level: '1', name: 'The Spark', question: "What's the most 'mainstream' thing you secretly love?", icon: '✨', shadow: 'rgba(0,0,0,1)', bgBack: 'bg-[#F5F5F4] dark:bg-stone-800', text: 'text-stone-900 dark:text-stone-100', textBack: 'text-stone-900', borderBack: 'border-stone-950/20' },
-  { level: '2', name: 'The Fire', question: "What is your 'Love Language' and do you think it's easy for others to speak it?", icon: '🔥', shadow: 'rgba(0,0,0,1)', bgBack: 'bg-[#44403C] dark:bg-stone-700', text: 'text-stone-800 dark:text-stone-100', textBack: 'text-stone-50', borderBack: 'border-white/20' },
-  { level: '3', name: 'The Inferno', question: "Do you believe in 'Right Person, Wrong Time'?", icon: '💥', shadow: 'rgba(244,63,94,1)', bgBack: 'bg-[#F43F5E]', text: 'text-rose-500', textBack: 'text-white', borderBack: 'border-white/40' },
-  { level: 'W', name: 'The Wildcard', question: "Ask the other person any question, and they must answer truthfully.", icon: '🃏', shadow: 'rgba(0,0,0,1)', bgBack: 'bg-black', text: 'text-stone-950 dark:text-stone-400', textBack: 'text-rose-500', borderBack: 'border-rose-500/30' }
+  { level: '1', name: 'The Spark', image: '/spark-deck/cards/1.png', question: "What's the most 'mainstream' thing you secretly love?", shadow: 'rgba(0,0,0,1)', bgBack: 'bg-white', text: 'text-stone-900 dark:text-stone-100' },
+  { level: '2', name: 'The Fire', image: '/spark-deck/cards/20.png', question: "What is your 'Love Language' and do you think it's easy for others to speak it?", shadow: 'rgba(0,0,0,1)', bgBack: 'bg-white', text: 'text-stone-800 dark:text-stone-100' },
+  { level: '3', name: 'The Inferno', image: '/spark-deck/cards/39.png', question: "Do you believe in 'Right Person, Wrong Time'?", shadow: 'rgba(244,63,94,1)', bgBack: 'bg-white', text: 'text-rose-500' },
+  { level: 'W', name: 'The Wildcard', image: '/spark-deck/cards/58.png', question: "Ask the other person any question, and they must answer truthfully.", shadow: 'rgba(0,0,0,1)', bgBack: 'bg-white', text: 'text-stone-950 dark:text-stone-400' },
+  { level: 'D', name: 'The Divider', image: '/spark-deck/cards/60.png', question: 'Use this card to reset the energy, switch lanes, or break the flow on purpose.', shadow: 'rgba(0,0,0,1)', bgBack: 'bg-white', text: 'text-stone-900 dark:text-stone-100' },
+  { level: 'H', name: "The HOW's", image: '/spark-deck/cards/64.png', question: 'A practical card for moving from what someone says into how they actually show up.', shadow: 'rgba(0,0,0,1)', bgBack: 'bg-white', text: 'text-stone-900 dark:text-stone-100' }
 ]
 
 const scenarios = [

@@ -260,7 +260,7 @@ async function handleEventTicketPayment(supabase: any, metadata: any) {
         // Fetch event and user details for Discord notification
         const { data: eventData } = await supabase
             .from('events')
-            .select('name')
+            .select('title')
             .eq('id', metadata.eventId)
             .single()
 
@@ -272,10 +272,18 @@ async function handleEventTicketPayment(supabase: any, metadata: any) {
 
         // Send Discord notification
         await notifyEventBooking({
-            eventName: eventData?.name || 'Unknown Event',
+            eventName: eventData?.title || 'Unknown Event',
             userName: userData?.display_name || 'Unknown User',
             ticketCount: 1
         })
+
+        if (metadata.userId && metadata.eventId) {
+            await notifyUser(
+                metadata.userId,
+                `🎟️ Your spot for ${eventData?.title || 'your event'} is confirmed. Open Minutes 2 Match to view your ticket and event details.`,
+                { type: 'event', smsPriority: 'high' }
+            ).catch(() => {})
+        }
     }
 
     // Note: Ticket count increment is handled by database trigger

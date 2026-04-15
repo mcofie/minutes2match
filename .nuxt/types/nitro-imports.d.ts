@@ -58,7 +58,9 @@ declare global {
   const eventHandler: typeof import('../../node_modules/h3').eventHandler
   const expireStaleFlashLobbyIntents: typeof import('../../server/utils/flashLobby').expireStaleFlashLobbyIntents
   const extractPreferencesFromBio: typeof import('../../server/utils/ai').extractPreferencesFromBio
+  const fetchEventBookingContext: typeof import('../../server/utils/events').fetchEventBookingContext
   const fetchWithEvent: typeof import('../../node_modules/h3').fetchWithEvent
+  const formatPaymentEmail: typeof import('../../server/utils/events').formatPaymentEmail
   const fromNodeMiddleware: typeof import('../../node_modules/h3').fromNodeMiddleware
   const fromPlainHandler: typeof import('../../node_modules/h3').fromPlainHandler
   const fromWebHandler: typeof import('../../node_modules/h3').fromWebHandler
@@ -67,6 +69,9 @@ declare global {
   const getActiveFlashLobby: typeof import('../../server/utils/flashLobby').getActiveFlashLobby
   const getClientIP: typeof import('../../server/utils/rateLimiter').getClientIP
   const getCookie: typeof import('../../node_modules/h3').getCookie
+  const getEventAvailabilitySnapshot: typeof import('../../server/utils/events').getEventAvailabilitySnapshot
+  const getEventBucketByGender: typeof import('../../server/utils/events').getEventBucketByGender
+  const getEventTicketPrice: typeof import('../../server/utils/events').getEventTicketPrice
   const getGeminiModel: typeof import('../../server/utils/ai').getGeminiModel
   const getHeader: typeof import('../../node_modules/h3').getHeader
   const getHeaders: typeof import('../../node_modules/h3').getHeaders
@@ -151,6 +156,7 @@ declare global {
   const readRawBody: typeof import('../../node_modules/h3').readRawBody
   const readValidatedBody: typeof import('../../node_modules/h3').readValidatedBody
   const removeResponseHeader: typeof import('../../node_modules/h3').removeResponseHeader
+  const resolveEventUserId: typeof import('../../server/utils/events').resolveEventUserId
   const resolveSparkOutcome: typeof import('../../server/utils/flashLobbyRules').resolveSparkOutcome
   const runTargetedMatching: typeof import('../../server/utils/matchmaker').runTargetedMatching
   const runTask: typeof import('../../node_modules/nitropack/dist/runtime/internal/task').runTask
@@ -253,6 +259,7 @@ export { stringifyMarkdown } from '/Users/maxwellcofie/WebstormProjects/minutes2
 export { getGeminiModel, auditProfileWithAI, extractPreferencesFromBio, generateMatchExplanation } from '/Users/maxwellcofie/WebstormProjects/minutes2match/server/utils/ai';
 export { getUserBalance, creditUser, debitUser } from '/Users/maxwellcofie/WebstormProjects/minutes2match/server/utils/credits';
 export { DiscordColors, notifyRedemption, notifyDiscord, notifyNewSignup, notifyPaymentInitiated, notifyPaymentSuccess, notifyMatchUnlocked, notifyEventBooking, notifyLobbyReminder, notifyError, notifyUserLogin, notifyMatchNudge, notifyFlashLobbySparkSent, notifyFlashLobbyMutualMatch, notifyFlashLobbySuperConnectStarted, notifyFlashLobbySuperConnectCompleted, notifySubscriptionActivated, notifyFlashLobbyLifecycle } from '/Users/maxwellcofie/WebstormProjects/minutes2match/server/utils/discord';
+export { getEventBucketByGender, getEventTicketPrice, formatPaymentEmail, resolveEventUserId, fetchEventBookingContext, getEventAvailabilitySnapshot } from '/Users/maxwellcofie/WebstormProjects/minutes2match/server/utils/events';
 export { FLASH_LOBBY_RESPONSE_WINDOW_HOURS, getActiveFlashLobby, getMostRecentFlashLobby, createFlashLobbyMatch, calculateFlashLobbyPreviewScore, calculateFlashLobbyMatchScore, expireStaleFlashLobbyIntents, processFlashLobbyLiveReminders } from '/Users/maxwellcofie/WebstormProjects/minutes2match/server/utils/flashLobby';
 export { normalizeGender, normalizeInterest, canUsersSeeEachOther, sanitizeSparkMessage, validateSparkMessage, isResolvedIntentStatus, resolveSparkOutcome, canPerformPostLobbyAction } from '/Users/maxwellcofie/WebstormProjects/minutes2match/server/utils/flashLobbyRules';
 export { sendHubtelSMS } from '/Users/maxwellcofie/WebstormProjects/minutes2match/server/utils/hubtel';

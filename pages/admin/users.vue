@@ -1308,7 +1308,7 @@ const fetchUserActivity = async (userId: string) => {
     const rawBookings = bookings as any[] || []
     if (rawBookings.length) {
       userActivity.events = rawBookings
-      userActivity.eventsAttended = rawBookings.filter(b => b.status === 'confirmed').length
+      userActivity.eventsAttended = rawBookings.filter(b => b.status === 'checked_in').length
     }
 
     // Fetch payments

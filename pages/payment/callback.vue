@@ -51,7 +51,7 @@
           class="w-full py-4 bg-black text-white font-black uppercase tracking-widest text-xs rounded-xl border-2 border-black shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-1 hover:translate-y-1 transition-all flex items-center justify-center gap-2" 
           @click="goToDashboard"
         >
-          <span>{{ paymentPurpose === 'spark_deck' ? 'Return to Spark Deck' : 'Continue to Matches' }}</span>
+          <span>{{ primaryButtonLabel }}</span>
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
         </button>
         
@@ -89,7 +89,6 @@
 </template>
 
 <script setup lang="ts">
-import UiButton from '~/components/ui/Button.vue'
 import { useConfetti } from '~/composables/useConfetti'
 
 const { burst } = useConfetti()
@@ -101,6 +100,12 @@ const message = ref('')
 const paymentPurpose = ref<string | null>(null)
 const paymentMetadata = ref<Record<string, any> | null>(null)
 const redirectCountdown = ref(5)
+
+const primaryButtonLabel = computed(() => {
+  if (paymentPurpose.value === 'event_ticket') return 'Open My Ticket'
+  if (paymentPurpose.value === 'spark_deck') return 'Return to Spark Deck'
+  return 'Continue to Matches'
+})
 
 onMounted(async () => {
   const reference = route.query.reference as string
@@ -177,6 +182,16 @@ const goToDashboard = () => {
       navigateTo(`/me/connection/${matchId}`)
       return
     }
+  }
+
+  if (paymentPurpose.value === 'event_ticket') {
+    const eventId = paymentMetadata.value?.eventId as string | undefined
+    if (eventId) {
+      navigateTo(`/me/tickets/${eventId}`)
+      return
+    }
+    navigateTo('/events')
+    return
   }
 
   // Redirect to matches for match unlock and subscription payments

@@ -217,23 +217,32 @@ export type M2MSchema = {
                 id: string
                 event_id: string | null
                 user_id: string | null
-                status: 'pending' | 'confirmed' | 'waitlisted' | 'cancelled'
+                status: 'pending' | 'confirmed' | 'checked_in' | 'waitlisted' | 'cancelled'
                 payment_id: string | null
                 created_at: string
+                updated_at?: string | null
+                checked_in_at?: string | null
+                checked_in_by?: string | null
             }
             Insert: {
                 id?: string
                 event_id?: string | null
                 user_id?: string | null
-                status?: 'pending' | 'confirmed' | 'waitlisted' | 'cancelled'
+                status?: 'pending' | 'confirmed' | 'checked_in' | 'waitlisted' | 'cancelled'
                 payment_id?: string | null
                 created_at?: string
+                updated_at?: string | null
+                checked_in_at?: string | null
+                checked_in_by?: string | null
             }
             Update: {
                 event_id?: string | null
                 user_id?: string | null
-                status?: 'pending' | 'confirmed' | 'waitlisted' | 'cancelled'
+                status?: 'pending' | 'confirmed' | 'checked_in' | 'waitlisted' | 'cancelled'
                 payment_id?: string | null
+                updated_at?: string | null
+                checked_in_at?: string | null
+                checked_in_by?: string | null
             }
             Relationships: []
         }

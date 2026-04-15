@@ -15,6 +15,9 @@ declare module "nitropack/types" {
     '/api/admin/credits': {
       'get': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/admin/credits/index.get').default>>>>
     }
+    '/api/admin/events/check-in': {
+      'post': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/admin/events/check-in.post').default>>>>
+    }
     '/api/admin/flash-lobby/control': {
       'post': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/admin/flash-lobby/control.post').default>>>>
     }
@@ -140,6 +143,9 @@ declare module "nitropack/types" {
     }
     '/api/enrich_matches': {
       'post': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/enrich_matches.post').default>>>>
+    }
+    '/api/events/book': {
+      'post': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/events/book.post').default>>>>
     }
     '/api/franchise/auth': {
       'get': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/franchise/auth.get').default>>>>

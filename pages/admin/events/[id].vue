@@ -55,6 +55,7 @@
               <th>Phone</th>
               <th>Status</th>
               <th>Booked At</th>
+              <th>Checked In</th>
               <th class="text-right">Actions</th>
             </tr>
           </thead>
@@ -71,19 +72,21 @@
               <td>{{ capitalize(booking.profile?.gender || '-') }}</td>
               <td class="font-mono text-xs">{{ booking.profile?.phone || '-' }}</td>
               <td>
-                <span class="badge" :class="booking.status === 'paid' ? 'badge--green' : 'badge--yellow'">
+                <span class="badge" :class="getBookingStatusClass(booking.status)">
                   {{ booking.status }}
                 </span>
               </td>
               <td class="text-sm">{{ formatTime(booking.created_at) }}</td>
+              <td class="text-sm">{{ booking.checked_in_at ? formatTime(booking.checked_in_at) : '—' }}</td>
               <td class="text-right">
                 <button 
-                  v-if="booking.status === 'paid'" 
+                  v-if="booking.status === 'confirmed'" 
                   class="btn-secondary py-1 px-3 text-xs"
                   @click="checkIn(booking)"
                 >
                   Check In
                 </button>
+                <span v-else-if="booking.status === 'checked_in'" class="text-xs font-bold uppercase tracking-widest text-emerald-600">Done</span>
               </td>
             </tr>
           </tbody>
@@ -135,10 +138,17 @@ const fetchEventDetails = async () => {
   loading.value = false
 }
 
-const checkIn = (booking: any) => {
-  // Placeholder for check-in logic
-  if (confirm(`Check in ${booking.profile?.display_name}?`)) {
-     alert(`Checked in ${booking.profile?.display_name}`)
+const checkIn = async (booking: any) => {
+  if (!confirm(`Check in ${booking.profile?.display_name}?`)) return
+
+  try {
+    await $fetch('/api/admin/events/check-in', {
+      method: 'POST',
+      body: { bookingId: booking.id }
+    })
+    await fetchEventDetails()
+  } catch (error: any) {
+    alert(error?.data?.statusMessage || error?.message || 'Check-in failed')
   }
 }
 
@@ -167,6 +177,16 @@ const getStatusClass = (status: string) => {
     case 'sold_out': return 'badge--red'
     case 'completed': return 'badge--blue'
     default: return 'badge--gray'
+  }
+}
+
+const getBookingStatusClass = (status: string) => {
+  switch (status) {
+    case 'confirmed': return 'badge--green'
+    case 'checked_in': return 'badge--blue'
+    case 'waitlisted': return 'badge--gray'
+    case 'cancelled': return 'badge--red'
+    default: return 'badge--yellow'
   }
 }
 

@@ -19,6 +19,7 @@
       <EventCard
         v-for="event in events"
         :key="event.id"
+        :eventId="event.id"
         v-bind="event"
         :title="event.title"
         :eventDate="event.event_date"
@@ -32,6 +33,7 @@
         :ticketPriceFemale="event.ticket_price_female"
         :userGender="profile?.gender || 'male'"
         :booked="hasBookedEvent(event.id)"
+        :bookingStatus="getBookingStatus(event.id)"
         :loading="loadingBookings"
         @book="handleBookEvent(event)"
       />
@@ -104,7 +106,7 @@ const { isTMA, setMainButton, hideMainButton, hapticFeedback } = useTelegram()
 
 const events = useState<any[]>('events_data', () => [])
 const loadingEvents = useState<boolean>('events_loading', () => true)
-const userBookings = useState<Set<string>>('user_bookings', () => new Set())
+const userBookings = useState<Record<string, string>>('user_bookings', () => ({}))
 const loadingBookings = useState<boolean>('bookings_loading', () => true)
 const showBookingModal = ref(false)
 const selectedEvent = ref<any>(null)
@@ -157,19 +159,32 @@ const fetchUserBookings = async (userId: string) => {
       .from('event_bookings')
       .select('event_id, status')
       .eq('user_id', userId)
-      .in('status', ['confirmed', 'pending'])
+      .in('status', ['confirmed', 'pending', 'waitlisted', 'checked_in'])
     
-    userBookings.value = new Set((data || []).map((b: any) => b.event_id))
+    userBookings.value = Object.fromEntries((data || []).map((b: any) => [b.event_id, b.status]))
   } finally {
     loadingBookings.value = false
   }
 }
 
-const hasBookedEvent = (eventId: string) => userBookings.value.has(eventId)
+const hasBookedEvent = (eventId: string) => !!userBookings.value[eventId]
+const getBookingStatus = (eventId: string) => userBookings.value[eventId] || null
 
 const handleBookEvent = (event: any) => {
-  if (hasBookedEvent(event.id)) {
-    toast.info('Already booked', 'You have already booked this event!')
+  const status = getBookingStatus(event.id)
+  if (status === 'confirmed' || status === 'checked_in') {
+    toast.info('Already booked', 'Your ticket is already secured for this event.')
+    hapticFeedback('light')
+    navigateTo(`/me/tickets/${event.id}`)
+    return
+  }
+  if (status === 'waitlisted') {
+    toast.info('On the waitlist', 'You are already on the waitlist for this session.')
+    hapticFeedback('light')
+    return
+  }
+  if (status === 'pending') {
+    toast.info('Booking in progress', 'Your event booking is already pending payment confirmation.')
     hapticFeedback('light')
     return
   }
@@ -208,21 +223,33 @@ const processEventPayment = async () => {
     if (!selectedEvent.value || !profile.value || !userId || userId === 'undefined') return
     processing.value = true
     try {
-        const { data: existingBooking } = await supabase.from('event_bookings').select('id, status').eq('event_id', selectedEvent.value.id).eq('user_id', userId).maybeSingle()
-        if (existingBooking) {
-            showBookingModal.value = false
-            toast.info('Booking exists', 'You already have a booking status: ' + existingBooking.status)
-            return
+        const result = await $fetch<any>('/api/events/book', {
+          method: 'POST',
+          body: { eventId: selectedEvent.value.id, userId }
+        })
+
+        if (result.waitlisted) {
+          userBookings.value = {
+            ...userBookings.value,
+            [selectedEvent.value.id]: 'waitlisted'
+          }
+          showBookingModal.value = false
+          toast.success('Waitlist joined', result.message || 'You have been added to the waitlist.')
+          navigateTo(`/events/${selectedEvent.value.id}`)
+          return
         }
-        const { initializePayment } = usePaystack()
-        const price = profile.value.gender === 'female' ? selectedEvent.value.ticket_price_female : selectedEvent.value.ticket_price_male
-        const paymentData = await initializePayment(
-            profile.value.phone ? `${profile.value.phone.replace(/\+/g, '')}@m2match.com` : 'user@m2match.com',
-            price, 'event_ticket', { userId, eventId: selectedEvent.value.id }
-        )
-        await supabase.from('event_bookings').insert({ event_id: selectedEvent.value.id, user_id: userId, status: 'pending' } as any)
-        userBookings.value.add(selectedEvent.value.id)
-        window.location.href = paymentData.authorization_url
+
+        if (result.alreadyBooked) {
+          showBookingModal.value = false
+          navigateTo(result.redirectTo || `/me/tickets/${selectedEvent.value.id}`)
+          return
+        }
+
+        userBookings.value = {
+          ...userBookings.value,
+          [selectedEvent.value.id]: 'pending'
+        }
+        window.location.href = result.authorization_url
     } catch (error) {
         console.error('Payment error:', error)
         toast.error('Payment failed', 'Please try again.')

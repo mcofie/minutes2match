@@ -97,9 +97,9 @@ export default defineEventHandler(async (event): Promise<AnalyticsData> => {
 
         // Events
         supabase.from('events').select('*', { count: 'exact', head: true }),
-        supabase.from('events').select('*', { count: 'exact', head: true }).gte('date', now.toISOString()),
+        supabase.from('events').select('*', { count: 'exact', head: true }).gte('event_date', now.toISOString()),
         supabase.from('event_bookings').select('*', { count: 'exact', head: true }),
-        supabase.from('event_bookings').select('*', { count: 'exact', head: true }).eq('status', 'confirmed')
+        supabase.from('event_bookings').select('*', { count: 'exact', head: true }).in('status', ['confirmed', 'checked_in'])
     ])
 
     // Calculate payment stats
