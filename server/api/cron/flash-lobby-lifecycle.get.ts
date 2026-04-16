@@ -10,7 +10,7 @@ export default defineEventHandler(async (event) => {
 
   const result = await processFlashLobbyLifecycle()
   return {
-    ok: true,
+    success: true,
     ...result
   }
 })

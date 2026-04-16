@@ -1,9 +1,9 @@
 import { serverSupabaseServiceRole, serverSupabaseUser } from '#supabase/server'
-import { calculateFlashLobbyPreviewScore, processFlashLobbyLiveReminders } from '~/server/utils/flashLobby'
+import { calculateFlashLobbyPreviewScore, getActiveFlashLobby, getFlashLobbyModerationMap, getFlashLobbyModerationState, processFlashLobbyLifecycle } from '~/server/utils/flashLobby'
 import { canUsersSeeEachOther, normalizeGender, normalizeInterest } from '~/server/utils/flashLobbyRules'
 
 export default defineEventHandler(async (event) => {
-  await processFlashLobbyLiveReminders()
+  await processFlashLobbyLifecycle()
 
   const queryParams = getQuery(event)
   const page = parseInt(queryParams.page as string) || 1
@@ -36,6 +36,25 @@ export default defineEventHandler(async (event) => {
   }
 
   if (user) {
+    const activeLobby = await getActiveFlashLobby()
+    if (activeLobby?.id) {
+      const moderationState = await getFlashLobbyModerationState({
+        lobbyId: activeLobby.id,
+        userId: user.id
+      })
+
+      if (moderationState.removed || moderationState.blocked) {
+        return {
+          participants: [],
+          totalCount: 0,
+          hasMore: false,
+          page,
+          limit,
+          blocked: true
+        }
+      }
+    }
+
     const { data: ownProfile } = await client
       .schema('m2m')
       .from('profiles')
@@ -73,15 +92,6 @@ export default defineEventHandler(async (event) => {
         if (match.user_2_id) excludedIds.push(match.user_2_id)
       })
     }
-
-    const now = new Date().toISOString()
-    const { data: activeLobby } = await client
-      .schema('m2m')
-      .from('flash_lobbies')
-      .select('id')
-      .lte('start_at', now)
-      .gte('end_at', now)
-      .maybeSingle()
 
     if (activeLobby?.id) {
       const { data: sparkIntents } = await client
@@ -154,8 +164,20 @@ export default defineEventHandler(async (event) => {
   }
 
   const rawParticipants = data || []
+  const activeLobby = user ? await getActiveFlashLobby() : null
+  const moderationMap = activeLobby?.id
+    ? await getFlashLobbyModerationMap({
+      lobbyId: activeLobby.id,
+      userIds: rawParticipants.map((participant: any) => participant.id)
+    })
+    : new Map<string, Set<string>>()
+
   const filteredData = rawParticipants.filter((candidate: any) => {
     if (excludedIds.includes(candidate.id)) return false
+    const moderationActions = moderationMap.get(candidate.id)
+    if (moderationActions?.has('hide_profile') || moderationActions?.has('removed') || moderationActions?.has('block_rejoin')) {
+      return false
+    }
 
     const visibility = canUsersSeeEachOther({
       viewerGender: userGender,

@@ -1,9 +1,6 @@
 <template>
   <div class="min-h-screen bg-[#FFFCF8] dark:bg-stone-950 font-sans text-black dark:text-stone-200">
-    <Head>
-      <Title>Pricing - Minutes 2 Match</Title>
-      <Meta name="description" content="Simple, transparent pricing. No hidden fees. Just real connections." />
-    </Head>
+
 
     <!-- Navigation -->
     <nav class="fixed top-0 inset-x-0 z-50 bg-[#FFFCF8] dark:bg-stone-950/90 dark:backdrop-blur-md border-b border-black dark:border-stone-800 transition-colors duration-300">
@@ -341,6 +338,21 @@ const supabase = useSupabaseClient()
 
 const config = useRuntimeConfig()
 const mobileMenuOpen = ref(false)
+
+useSeoMeta({
+  title: 'Pricing | Minutes 2 Match',
+  ogTitle: 'Transparent Pricing | Minutes 2 Match',
+  description: 'Invest in connection. Simple, transparent pricing for match unlocks and curated events in Accra. No hidden fees, just real dates.',
+  ogDescription: 'Invest in connection. Simple, transparent pricing for match unlocks and curated events in Accra. No hidden fees, just real dates.',
+  ogImage: '/og-image.png',
+  twitterCard: 'summary_large_image',
+})
+
+useHead({
+  link: [
+    { rel: 'canonical', href: 'https://minutes2match.com/pricing' }
+  ]
+})
 
 const prices = reactive({
    match: 15,

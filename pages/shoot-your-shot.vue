@@ -1,14 +1,6 @@
 <template>
   <div class="min-h-screen bg-[#FFFCF8] dark:bg-stone-950 text-black dark:text-stone-50 font-sans">
-    <Head>
-      <Title>Shoot Your Shot | Minutes 2 Match</Title>
-      <Meta name="description" content="Interested in someone? Shoot your shot on Minutes 2 Match." />
-      <Meta property="og:title" content="Shoot Your Shot 🎯" />
-      <Meta property="og:description" content="Interested in someone? Send them a mystery SMS with 3 clues on Minutes 2 Match." />
-      <Meta property="og:image" content="https://minutes2match.com/og-shot.png" />
-      <Meta property="og:type" content="website" />
-      <Meta name="twitter:card" content="summary_large_image" />
-    </Head>
+
 
     <!-- Navigation -->
     <nav class="fixed top-0 inset-x-0 z-50 bg-[#FFFCF8] dark:bg-stone-950/90 dark:backdrop-blur-md border-b border-black dark:border-stone-800 transition-colors duration-300">
@@ -314,6 +306,21 @@
 
 <script setup lang="ts">
 const mobileMenuOpen = ref(false)
+
+useSeoMeta({
+  title: 'Shoot Your Shot | Minutes 2 Match',
+  ogTitle: 'Shoot Your Shot 🎯 | Seconds to Connection',
+  description: 'Got someone on your mind? Send a mystery SMS with 3 clues and let them reveal it\'s you. Bold moves only on Minutes 2 Match.',
+  ogDescription: 'Got someone on your mind? Send a mystery SMS with 3 clues and let them reveal it\'s you. Bold moves only on Minutes 2 Match.',
+  ogImage: '/og-shot.png',
+  twitterCard: 'summary_large_image',
+})
+
+useHead({
+  link: [
+    { rel: 'canonical', href: 'https://minutes2match.com/shoot-your-shot' }
+  ]
+})
 const { availableQuestions, selectedHints, isSelected, toggleQuestion, updateAnswer, reshuffleQuestions, isComplete, formattedHints } = useShotHints()
 
 const { isSupported: contactPickerSupported, pickContact: selectContact } = useContactPicker()

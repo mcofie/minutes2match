@@ -1,5 +1,5 @@
 import { serverSupabaseClient, serverSupabaseServiceRole, serverSupabaseUser } from '#supabase/server'
-import { calculateFlashLobbyMatchScore, createFlashLobbyMatch, expireStaleFlashLobbyIntents, processFlashLobbyLiveReminders } from '~/server/utils/flashLobby'
+import { calculateFlashLobbyMatchScore, createFlashLobbyMatch, processFlashLobbyLifecycle } from '~/server/utils/flashLobby'
 import { notifyFlashLobbyMutualMatch, notifyFlashLobbySparkSent } from '~/server/utils/discord'
 import { notifyFlashLobbyMutualUnlocked, notifyFlashLobbySparkReceived } from '~/server/utils/notifications'
 import { sanitizeSparkMessage, validateSparkMessage, isResolvedIntentStatus, resolveSparkOutcome, canUsersSeeEachOther } from '~/server/utils/flashLobbyRules'
@@ -72,8 +72,7 @@ export default defineEventHandler(async (event) => {
 
   const client = serverSupabaseServiceRole(event)
   const now = new Date().toISOString()
-  await processFlashLobbyLiveReminders()
-  await expireStaleFlashLobbyIntents()
+  await processFlashLobbyLifecycle()
 
   const { data: activeLobby } = await client
     .schema('m2m')

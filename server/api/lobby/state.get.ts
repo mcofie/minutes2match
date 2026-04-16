@@ -1,5 +1,5 @@
 import { serverSupabaseClient, serverSupabaseServiceRole, serverSupabaseUser } from '#supabase/server'
-import { expireStaleFlashLobbyIntents, processFlashLobbyLiveReminders } from '~/server/utils/flashLobby'
+import { processFlashLobbyLifecycle } from '~/server/utils/flashLobby'
 
 export default defineEventHandler(async (event) => {
   const headers = getHeaders(event)
@@ -55,8 +55,7 @@ export default defineEventHandler(async (event) => {
 
   const client = serverSupabaseServiceRole(event)
   const now = new Date().toISOString()
-  await processFlashLobbyLiveReminders()
-  await expireStaleFlashLobbyIntents()
+  await processFlashLobbyLifecycle()
 
   const { data: activeLobby } = await client
     .schema('m2m')

@@ -1,9 +1,7 @@
 <template>
   <main class="min-h-screen bg-[#FFFCF8] dark:bg-stone-950 flex flex-col font-sans text-stone-900 dark:text-stone-100 relative overflow-hidden transition-colors duration-300">
     <!-- Fonts -->
-    <Head>
-      <Title>Vibe Check | Minutes 2 Match</Title>
-    </Head>
+
 
     <!-- Dot Pattern Background -->
     <div class="absolute inset-0 opacity-[0.03] dark:opacity-[0.1] pointer-events-none" style="background-image: radial-gradient(#000 1px, transparent 1px); background-size: 24px 24px;"></div>
@@ -421,10 +419,18 @@ const { personas } = usePersona()
 const isMounted = ref(false)
 const isTMA = computed(() => isMounted.value && isTMARaw.value)
 
+useSeoMeta({
+  title: 'Vibe Check | Minutes 2 Match',
+  ogTitle: 'What is your dating persona? 🧬',
+  description: 'Take our 90-second intentionality assessment to discover your dating persona and find 90%+ compatible matches in Accra.',
+  ogDescription: 'Take our 90-second intentionality assessment to discover your dating persona and find 90%+ compatible matches in Accra.',
+  ogImage: '/og-vibe.png',
+  twitterCard: 'summary_large_image',
+})
+
 useHead({
-  title: 'Vibe Check',
-  meta: [
-    { name: 'description', content: 'Take our 90-second personality assessment to discover your dating persona and find compatible matches.' }
+  link: [
+    { rel: 'canonical', href: 'https://minutes2match.com/vibe-check' }
   ]
 })
 

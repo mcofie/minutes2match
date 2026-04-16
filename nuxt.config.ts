@@ -78,26 +78,29 @@ export default defineNuxtConfig({
     },
     app: {
         head: {
-            title: 'Minutes 2 Match',
+            title: 'Minutes 2 Match | Real Connections via Protocol & Events',
             titleTemplate: '%s | Minutes 2 Match',
             meta: [
                 { charset: 'utf-8' },
                 { name: 'viewport', content: 'width=device-width, initial-scale=1' },
-                { name: 'description', content: 'Find your perfect match through curated speed dating events. Science-backed compatibility matching for meaningful connections.' },
+                { name: 'description', content: 'Experience the M2M Protocol. We use psychometrics and curated events in Accra to build connections that actually last. Skip the swipe, engineering the click.' },
                 { name: 'theme-color', content: '#FFFCF8' },
-                // Apple Mobile Config - PWA Module handles standard manifest, but keeping apple specific meta is good
                 { name: 'apple-mobile-web-app-capable', content: 'yes' },
                 { name: 'apple-mobile-web-app-status-bar-style', content: 'black-translucent' },
                 { name: 'apple-mobile-web-app-title', content: 'M2M' },
                 { name: 'mobile-web-app-capable', content: 'yes' },
                 { name: 'application-name', content: 'Minutes 2 Match' },
                 { name: 'msapplication-TileColor', content: '#000000' },
-                { property: 'og:title', content: 'Minutes 2 Match' },
-                { property: 'og:description', content: 'Find your perfect match through curated speed dating events.' },
-                { property: 'og:type', content: 'website' },
+                // Open Graph / Facebook
                 { property: 'og:site_name', content: 'Minutes 2 Match' },
+                { property: 'og:type', content: 'website' },
+                { property: 'og:title', content: 'Minutes 2 Match | Real Connections via Protocol & Events' },
+                { property: 'og:description', content: 'Experience the M2M Protocol. Psychometric matching + real world events in Accra.' },
                 { property: 'og:image', content: '/og-image.png' },
+                // Twitter
                 { name: 'twitter:card', content: 'summary_large_image' },
+                { name: 'twitter:title', content: 'Minutes 2 Match | Real Connections' },
+                { name: 'twitter:description', content: 'Ditch the infinite swipe. Engineering real chemistry through science and curated events.' },
                 { name: 'twitter:image', content: '/og-image.png' },
             ],
             link: [

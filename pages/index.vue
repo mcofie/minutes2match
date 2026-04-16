@@ -1,9 +1,7 @@
 <template>
   <div class="min-h-screen bg-white dark:bg-stone-950 text-black dark:text-stone-50 font-sans selection:bg-rose-200 selection:text-rose-900 overflow-x-hidden transition-colors duration-300">
     <!-- Fonts -->
-    <Head>
-      <Title>Minutes 2 Match - Real Connections</Title>
-    </Head>
+
 
     <!-- Navigation -->
     <nav class="fixed top-0 inset-x-0 z-50 bg-[#FFFCF8] dark:bg-stone-950/90 dark:backdrop-blur-md border-b border-black dark:border-stone-800 transition-colors duration-300">
@@ -574,11 +572,16 @@ import LivePulse from '~/components/LivePulse.vue'
 // ... existing script content ...
 import { ref, onMounted, type Ref } from 'vue'
 
-useHead({
-  title: 'Minutes 2 Match - Real Connections',
-  meta: [
-    { name: 'description', content: 'We engineer the click. Psychometric matching + real world events.' }
-  ]
+useSeoMeta({
+  title: 'Minutes 2 Match | Real Connections via Protocol & Events',
+  ogTitle: 'Minutes 2 Match | Real Connections ⚡️',
+  description: 'Experience the M2M Protocol. We use psychometrics and curated events in Accra to build connections that actually last. Skip the swipe, engineering the click.',
+  ogDescription: 'Experience the M2M Protocol. Psychometric matching + real world events in Accra. Skip the swipe, engineering the click.',
+  ogImage: '/og-image.png',
+  twitterCard: 'summary_large_image',
+  twitterTitle: 'Minutes 2 Match | Real Connections',
+  twitterDescription: 'Ditch the swipe. Engineering real chemistry through science and curated events.',
+  twitterImage: '/og-image.png',
 })
 
 const config = useRuntimeConfig()

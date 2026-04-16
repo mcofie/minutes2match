@@ -12,7 +12,7 @@
             <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
             <span class="relative inline-flex rounded-full h-2 w-2 bg-indigo-600"></span>
           </span>
-          <p class="text-[9px] font-bold tracking-widest text-indigo-600 uppercase">Live Pulse • {{ onlinePresenceIds.size }} Currently On Page</p>
+          <p class="text-[9px] font-bold tracking-widest text-indigo-600 uppercase">Live Pulse • {{ onlinePresenceIds.size }} In Room Now</p>
         </div>
       </div>
 
@@ -177,6 +177,20 @@
           <p class="text-[10px] font-bold uppercase tracking-[0.2em] text-stone-400 mb-3">After The Room</p>
           <h3 class="text-2xl md:text-[28px] font-bold tracking-tight text-black mb-3">The lobby wrapped, but your sparks are still live.</h3>
           <p class="text-sm text-stone-500 max-w-2xl">Review the people who shot their shot, unlock the ones you want to meet, and upgrade one-sided sparks with Super Connect when you want to cover both reveals.</p>
+          <div class="mt-5 flex flex-wrap gap-2">
+            <span class="px-3 py-1 rounded-full border border-stone-200 bg-stone-50 text-[10px] font-bold uppercase tracking-widest text-stone-500">
+              {{ sparkState.received.length }} received
+            </span>
+            <span class="px-3 py-1 rounded-full border border-stone-200 bg-stone-50 text-[10px] font-bold uppercase tracking-widest text-stone-500">
+              {{ sparkState.sent.length }} sent
+            </span>
+            <span class="px-3 py-1 rounded-full border border-emerald-200 bg-emerald-50 text-[10px] font-bold uppercase tracking-widest text-emerald-700">
+              {{ sparkState.mutual.length }} mutual
+            </span>
+            <span v-if="sparkState.expiredCount" class="px-3 py-1 rounded-full border border-stone-200 bg-stone-50 text-[10px] font-bold uppercase tracking-widest text-stone-500">
+              {{ sparkState.expiredCount }} expired
+            </span>
+          </div>
           <p v-if="sparkState.expiredCount" class="mt-4 text-[10px] font-bold uppercase tracking-widest text-stone-400">
             {{ sparkState.expiredCount }} older spark{{ sparkState.expiredCount === 1 ? '' : 's' }} expired after the response window.
           </p>
@@ -200,6 +214,12 @@
                   <h5 class="text-sm font-bold">{{ spark.sender.displayName }}</h5>
                   <p class="text-[10px] font-bold uppercase tracking-widest text-stone-400">{{ spark.sender.location || 'Accra' }}</p>
                 </div>
+              </div>
+              <div class="flex items-center justify-between gap-3">
+                <span class="inline-flex items-center rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-amber-700">
+                  Ready for review
+                </span>
+                <span class="text-[10px] font-bold uppercase tracking-widest text-stone-400">{{ formatSparkTime(spark.createdAt) }}</span>
               </div>
               <div class="rounded-2xl bg-stone-50 border border-stone-200 p-4">
                 <p class="text-[10px] font-bold uppercase tracking-widest text-stone-400 mb-2">Why they sparked you</p>
@@ -233,6 +253,12 @@
                   <h5 class="text-sm font-bold">{{ spark.target.displayName }}</h5>
                   <p class="text-[10px] font-bold uppercase tracking-widest text-stone-400">Waiting for their after-hours decision</p>
                 </div>
+              </div>
+              <div class="flex items-center justify-between gap-3">
+                <span class="inline-flex items-center rounded-full border border-stone-200 bg-stone-50 px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-stone-500">
+                  {{ spark.isSuperConnect ? 'Super Connect pending' : 'Awaiting their decision' }}
+                </span>
+                <span class="text-[10px] font-bold uppercase tracking-widest text-stone-400">{{ formatSparkTime(spark.createdAt) }}</span>
               </div>
               <div class="rounded-2xl bg-stone-50 border border-stone-200 p-4">
                 <p class="text-[10px] font-bold uppercase tracking-widest text-stone-400 mb-2">Your message</p>
@@ -378,7 +404,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, onMounted, watch } from 'vue'
+import { computed, ref, onMounted, onUnmounted, watch } from 'vue'
 import FlashLobbyCard from '~/components/FlashLobbyCard.vue'
 
 definePageMeta({ layout: 'me', middleware: ['auth'] })
@@ -541,17 +567,85 @@ const handleSparkAction = async (intentId: string, action: 'unlock' | 'super_con
 }
 
 const setupPresence = () => {
-  if (!profile.value?.id) return
-  const presenceChannel = supabase.channel('lobby-presence', { config: { presence: { key: profile.value.id } } })
-  presenceChannel.on('presence', { event: 'sync' }, () => {
-    const state = presenceChannel.presenceState()
-    const ids = new Set<string>()
-    Object.keys(state).forEach(key => ids.add(key))
-    onlinePresenceIds.value = ids
-  }).subscribe(async (status) => {
-    if (status === 'SUBSCRIBED') {
-      await presenceChannel.track({ id: profile.value.id, name: profile.value.display_name, online_at: new Date().toISOString() })
+  fetchAttendance()
+  startLobbyHeartbeat()
+}
+
+let attendanceInterval: ReturnType<typeof setInterval> | null = null
+let heartbeatInterval: ReturnType<typeof setInterval> | null = null
+
+const fetchAttendance = async () => {
+  if (!isLive.value || !activeLobby.value?.id) {
+    onlinePresenceIds.value = new Set()
+    return
+  }
+
+  try {
+    const response = await $fetch<any>('/api/lobby/attendance', {
+      params: { lobbyId: activeLobby.value.id }
+    })
+    onlinePresenceIds.value = new Set(response?.ids || [])
+  } catch (err) {
+    console.error('[Lobby] Failed to fetch attendance:', err)
+  }
+}
+
+const sendLobbyHeartbeat = async (action: 'heartbeat' | 'leave' = 'heartbeat') => {
+  if (!profile.value?.id || !activeLobby.value?.id) return
+  try {
+    await $fetch('/api/lobby/session', {
+      method: 'POST',
+      body: { action, lobbyId: activeLobby.value.id }
+    })
+  } catch (err) {
+    console.error(`[Lobby] Session ${action} failed:`, err)
+  }
+}
+
+const stopLobbyHeartbeat = async (lobbyId?: string | null) => {
+  if (heartbeatInterval) {
+    clearInterval(heartbeatInterval)
+    heartbeatInterval = null
+  }
+  if (attendanceInterval) {
+    clearInterval(attendanceInterval)
+    attendanceInterval = null
+  }
+  if (lobbyId || activeLobby.value?.id) {
+    try {
+      await $fetch('/api/lobby/session', {
+        method: 'POST',
+        body: { action: 'leave', lobbyId: lobbyId || activeLobby.value?.id }
+      })
+    } catch (err) {
+      console.error('[Lobby] Session leave failed:', err)
     }
+  }
+}
+
+const startLobbyHeartbeat = async () => {
+  if (!profile.value?.id || !isLive.value || !activeLobby.value?.id) return
+  await sendLobbyHeartbeat('heartbeat')
+  await fetchAttendance()
+
+  if (heartbeatInterval) clearInterval(heartbeatInterval)
+  heartbeatInterval = setInterval(() => {
+    sendLobbyHeartbeat('heartbeat')
+  }, 20000)
+
+  if (attendanceInterval) clearInterval(attendanceInterval)
+  attendanceInterval = setInterval(() => {
+    fetchAttendance()
+  }, 15000)
+}
+
+const formatSparkTime = (value?: string | null) => {
+  if (!value) return 'Just now'
+  return new Date(value).toLocaleString('en-GB', {
+    day: 'numeric',
+    month: 'short',
+    hour: '2-digit',
+    minute: '2-digit'
   })
 }
 
@@ -592,11 +686,35 @@ watch(isLive, () => {
   fetchSparkState()
 })
 
+watch(() => activeLobby.value?.id, async (nextId, prevId) => {
+  if (prevId && prevId !== nextId) {
+    await stopLobbyHeartbeat(prevId)
+  }
+  if (nextId && isLive.value) {
+    await startLobbyHeartbeat()
+  } else {
+    onlinePresenceIds.value = new Set()
+  }
+})
+
 onMounted(async () => {
   await initDashboard()
   await fetchSparkState()
   checkAdmin()
   setupPresence()
+  window.addEventListener('beforeunload', handleBeforeUnload)
+})
+
+const handleBeforeUnload = () => {
+  if (!activeLobby.value?.id) return
+  navigator.sendBeacon('/api/lobby/session', new Blob([
+    JSON.stringify({ action: 'leave', lobbyId: activeLobby.value.id })
+  ], { type: 'application/json' }))
+}
+
+onUnmounted(() => {
+  window.removeEventListener('beforeunload', handleBeforeUnload)
+  stopLobbyHeartbeat()
 })
 </script>
 

@@ -1,9 +1,11 @@
 import { createClient } from '@supabase/supabase-js'
 import { calculateCompatibility } from '~/utils/compatibility'
 import { normalizeGender, normalizeInterest } from '~/server/utils/flashLobbyRules'
-import { notifyFlashLobbyLive } from '~/server/utils/notifications'
+import { createInAppNotification, notifyFlashLobbyLive } from '~/server/utils/notifications'
+import { notifyUser } from '~/server/utils/notify'
 
 export const FLASH_LOBBY_RESPONSE_WINDOW_HOURS = 72
+export const FLASH_LOBBY_ACTIVE_SESSION_WINDOW_SECONDS = 90
 
 function getServiceClient() {
     const config = useRuntimeConfig()
@@ -11,6 +13,185 @@ function getServiceClient() {
         db: { schema: 'm2m' },
         auth: { persistSession: false }
     })
+}
+
+export async function touchFlashLobbySession(options: { lobbyId: string, userId: string }) {
+    const supabase = getServiceClient()
+    const now = new Date().toISOString()
+
+    const { error } = await supabase
+        .from('flash_lobby_sessions')
+        .upsert({
+            lobby_id: options.lobbyId,
+            user_id: options.userId,
+            status: 'active',
+            joined_at: now,
+            last_seen_at: now,
+            left_at: null
+        }, {
+            onConflict: 'lobby_id,user_id'
+        })
+
+    if (error) {
+        console.error('[FlashLobby] Failed to touch lobby session:', error)
+        return false
+    }
+
+    return true
+}
+
+export async function leaveFlashLobbySession(options: { lobbyId: string, userId: string }) {
+    const supabase = getServiceClient()
+    const now = new Date().toISOString()
+
+    const { error } = await supabase
+        .from('flash_lobby_sessions')
+        .update({
+            status: 'left',
+            left_at: now,
+            last_seen_at: now
+        })
+        .eq('lobby_id', options.lobbyId)
+        .eq('user_id', options.userId)
+
+    if (error) {
+        console.error('[FlashLobby] Failed to leave lobby session:', error)
+        return false
+    }
+
+    return true
+}
+
+export async function cleanupInactiveFlashLobbySessions() {
+    const supabase = getServiceClient()
+    const cutoff = new Date(Date.now() - FLASH_LOBBY_ACTIVE_SESSION_WINDOW_SECONDS * 1000).toISOString()
+    const now = new Date().toISOString()
+
+    const { data: staleSessions } = await supabase
+        .from('flash_lobby_sessions')
+        .select('id')
+        .eq('status', 'active')
+        .lt('last_seen_at', cutoff)
+
+    if (!staleSessions?.length) return 0
+
+    const { error } = await supabase
+        .from('flash_lobby_sessions')
+        .update({
+            status: 'left',
+            left_at: now
+        })
+        .in('id', staleSessions.map((session) => session.id))
+
+    if (error) {
+        console.error('[FlashLobby] Failed to clean up inactive sessions:', error)
+        return 0
+    }
+
+    return staleSessions.length
+}
+
+export async function getLiveFlashLobbyAttendance(lobbyIds?: string[]) {
+    const supabase = getServiceClient()
+    const cutoff = new Date(Date.now() - FLASH_LOBBY_ACTIVE_SESSION_WINDOW_SECONDS * 1000).toISOString()
+    const now = new Date().toISOString()
+
+    let query = supabase
+        .from('flash_lobby_sessions')
+        .select('id, lobby_id, user_id, joined_at, last_seen_at')
+        .eq('status', 'active')
+        .gte('last_seen_at', cutoff)
+
+    if (lobbyIds?.length) {
+        query = query.in('lobby_id', lobbyIds)
+    } else {
+        const { data: liveLobbies } = await supabase
+            .from('flash_lobbies')
+            .select('id')
+            .lte('start_at', now)
+            .gte('end_at', now)
+
+        const activeLobbyIds = (liveLobbies || []).map((lobby) => lobby.id)
+        if (!activeLobbyIds.length) {
+            return { sessions: [], users: [], count: 0 }
+        }
+
+        query = query.in('lobby_id', activeLobbyIds)
+    }
+
+    const { data: sessions, error } = await query.order('last_seen_at', { ascending: false })
+
+    if (error || !sessions?.length) {
+        if (error) console.error('[FlashLobby] Failed to fetch live attendance:', error)
+        return { sessions: [], users: [], count: 0 }
+    }
+
+    const userIds = Array.from(new Set(sessions.map((session) => session.user_id).filter(Boolean)))
+    const { data: profiles } = await supabase
+        .from('profiles')
+        .select('id, display_name, photo_url, location')
+        .in('id', userIds)
+
+    const profileById = new Map((profiles || []).map((profile) => [profile.id, profile]))
+    const users = sessions.map((session) => ({
+        id: session.user_id,
+        lobbyId: session.lobby_id,
+        joinedAt: session.joined_at,
+        lastSeenAt: session.last_seen_at,
+        display_name: profileById.get(session.user_id)?.display_name || 'Unknown',
+        photo_url: profileById.get(session.user_id)?.photo_url || null,
+        location: profileById.get(session.user_id)?.location || null
+    }))
+
+    return {
+        sessions,
+        users,
+        count: sessions.length
+    }
+}
+
+export async function getFlashLobbyModerationMap(options: { lobbyId: string, userIds?: string[] }) {
+    const supabase = getServiceClient()
+    let query = supabase
+        .from('flash_lobby_moderation_actions')
+        .select('user_id, action')
+        .eq('lobby_id', options.lobbyId)
+        .eq('active', true)
+
+    if (options.userIds?.length) {
+        query = query.in('user_id', options.userIds)
+    }
+
+    const { data, error } = await query
+
+    if (error) {
+        console.error('[FlashLobby] Failed to fetch moderation actions:', error)
+        return new Map<string, Set<string>>()
+    }
+
+    const moderationMap = new Map<string, Set<string>>()
+    ;(data || []).forEach((entry: any) => {
+        const existing = moderationMap.get(entry.user_id) || new Set<string>()
+        existing.add(entry.action)
+        moderationMap.set(entry.user_id, existing)
+    })
+
+    return moderationMap
+}
+
+export async function getFlashLobbyModerationState(options: { lobbyId: string, userId: string }) {
+    const moderationMap = await getFlashLobbyModerationMap({
+        lobbyId: options.lobbyId,
+        userIds: [options.userId]
+    })
+
+    const actions = moderationMap.get(options.userId) || new Set<string>()
+    return {
+        actions,
+        removed: actions.has('removed'),
+        hidden: actions.has('hide_profile'),
+        blocked: actions.has('block_rejoin')
+    }
 }
 
 export async function getActiveFlashLobby() {
@@ -337,4 +518,99 @@ export async function processFlashLobbyLiveReminders() {
     }
 
     return processed
+}
+
+export async function processFlashLobbyPostLobbyQueue() {
+    const supabase = getServiceClient()
+    const now = new Date().toISOString()
+
+    const { data: endedLobbies } = await supabase
+        .from('flash_lobbies')
+        .select('id, title, end_at')
+        .lt('end_at', now)
+        .is('post_lobby_processed_at', null)
+        .order('end_at', { ascending: true })
+        .limit(20)
+
+    if (!endedLobbies?.length) return 0
+
+    let processed = 0
+
+    for (const lobby of endedLobbies) {
+        const { data: intents } = await supabase
+            .from('flash_lobby_intents')
+            .select('id, sender_id, receiver_id, status, is_super_connect')
+            .eq('lobby_id', lobby.id)
+
+        const pendingIntents = (intents || []).filter((intent) => intent.status === 'pending')
+        const receivers = Array.from(new Set(pendingIntents.map((intent) => intent.receiver_id).filter(Boolean)))
+        const senders = Array.from(new Set(pendingIntents.map((intent) => intent.sender_id).filter(Boolean)))
+
+        for (const receiverId of receivers) {
+            const receiverPending = pendingIntents.filter((intent) => intent.receiver_id === receiverId)
+            await createInAppNotification(supabase as any, {
+                userId: receiverId,
+                type: 'flash_lobby_review',
+                title: 'Your Flash Lobby sparks are ready',
+                message: `${receiverPending.length} spark${receiverPending.length === 1 ? '' : 's'} from ${lobby.title || 'the Flash Lobby'} moved into after-hours review.`,
+                data: { lobby_id: lobby.id, scope: 'received' },
+                dedupeKey: `flash-lobby-review:received:${lobby.id}:${receiverId}`
+            })
+
+            await notifyUser(
+                receiverId,
+                `📨 Your Flash Lobby sparks from ${lobby.title || 'the room'} are ready to review in Minutes 2 Match.`,
+                { type: 'generic', smsPriority: 'normal' }
+            ).catch((error) => {
+                console.error('[FlashLobby] Failed to send post-lobby receiver notification:', error)
+            })
+        }
+
+        for (const senderId of senders) {
+            const senderPending = pendingIntents.filter((intent) => intent.sender_id === senderId)
+            await createInAppNotification(supabase as any, {
+                userId: senderId,
+                type: 'flash_lobby_review',
+                title: 'Your sparks are in after-hours review',
+                message: `${senderPending.length} spark${senderPending.length === 1 ? '' : 's'} from ${lobby.title || 'the Flash Lobby'} are now waiting on their decisions.`,
+                data: { lobby_id: lobby.id, scope: 'sent' },
+                dedupeKey: `flash-lobby-review:sent:${lobby.id}:${senderId}`
+            })
+        }
+
+        await supabase
+            .from('flash_lobby_sessions')
+            .update({
+                status: 'left',
+                left_at: lobby.end_at,
+                last_seen_at: lobby.end_at
+            })
+            .eq('lobby_id', lobby.id)
+            .eq('status', 'active')
+
+        await supabase
+            .from('flash_lobbies')
+            .update({ post_lobby_processed_at: now })
+            .eq('id', lobby.id)
+
+        processed++
+    }
+
+    return processed
+}
+
+export async function processFlashLobbyLifecycle() {
+    const [remindersProcessed, expiredIntents, inactiveSessions, postLobbyProcessed] = await Promise.all([
+        processFlashLobbyLiveReminders(),
+        expireStaleFlashLobbyIntents(),
+        cleanupInactiveFlashLobbySessions(),
+        processFlashLobbyPostLobbyQueue()
+    ])
+
+    return {
+        remindersProcessed,
+        expiredIntents,
+        inactiveSessions,
+        postLobbyProcessed
+    }
 }

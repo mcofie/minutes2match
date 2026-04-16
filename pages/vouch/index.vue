@@ -1,14 +1,6 @@
 <template>
   <div class="min-h-screen bg-[#FFFCF8] dark:bg-stone-950 text-black dark:text-stone-50 font-sans">
-    <Head>
-      <Title>Vouch for Two Friends | Minutes 2 Match</Title>
-      <Meta name="description" content="Know two people who'd be perfect together? Vouch for them on Minutes 2 Match." />
-      <Meta property="og:title" content="Vouch for Two Friends 🤝" />
-      <Meta property="og:description" content="Know two people who'd be perfect? Set them up on Minutes 2 Match — it's free!" />
-      <Meta property="og:image" content="https://minutes2match.com/og-vouch.png" />
-      <Meta property="og:type" content="website" />
-      <Meta name="twitter:card" content="summary_large_image" />
-    </Head>
+
 
     <!-- Navigation -->
     <nav class="fixed top-0 inset-x-0 z-50 bg-[#FFFCF8] dark:bg-stone-950/90 dark:backdrop-blur-md border-b border-black dark:border-stone-800 transition-colors duration-300">
@@ -284,6 +276,22 @@
 
 <script setup lang="ts">
 const mobileMenuOpen = ref(false)
+
+useSeoMeta({
+  title: 'Vouch for Two Friends | Minutes 2 Match',
+  ogTitle: 'Vouch for Two Friends 🤝 | Minutes 2 Match',
+  description: 'Know two people who\'d be perfect together? Vouch for them on Minutes 2 Match and we\'ll set up a mystery meeting. Completely free.',
+  ogDescription: 'Know two people who\'d be perfect together? Vouch for them on Minutes 2 Match and we\'ll set up a mystery meeting. Completely free.',
+  ogImage: '/og-vouch.png',
+  ogType: 'website',
+  twitterCard: 'summary_large_image',
+})
+
+useHead({
+  link: [
+    { rel: 'canonical', href: 'https://minutes2match.com/vouch' }
+  ]
+})
 const submitted = ref(false)
 const submitting = ref(false)
 const error = ref('')

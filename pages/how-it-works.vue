@@ -1,8 +1,6 @@
 <template>
   <div class="min-h-screen bg-[#FFFCF8] dark:bg-stone-950 text-stone-900 dark:text-stone-50 font-sans selection:bg-rose-200 selection:text-rose-900 transition-colors duration-300">
-    <Head>
-      <Title>The M2M Protocol | How it Works</Title>
-    </Head>
+
 
     <!-- Navigation -->
     <nav class="fixed top-0 inset-x-0 z-50 bg-[#FFFCF8]/80 backdrop-blur-md dark:bg-stone-950/80 border-b border-black/5 dark:border-stone-800">
@@ -154,6 +152,21 @@
 
 <script setup lang="ts">
 const activeMode = ref('digital')
+
+useSeoMeta({
+  title: 'The M2M Protocol | How it Works',
+  ogTitle: 'The M2M Protocol | Minutes 2 Match',
+  description: 'Dating apps are a lottery. M2M is a laboratory. Discover how we use psychometrics and intentionality to build connections that actually last in Accra.',
+  ogDescription: 'Dating apps are a lottery. M2M is a laboratory. Discover how we use psychometrics and intentionality to build connections that actually last in Accra.',
+  ogType: 'website',
+  twitterCard: 'summary_large_image',
+})
+
+useHead({
+  link: [
+    { rel: 'canonical', href: 'https://minutes2match.com/how-it-works' }
+  ]
+})
 
 const digitalSteps = [
   {

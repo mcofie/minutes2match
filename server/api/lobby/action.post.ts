@@ -1,5 +1,5 @@
 import { serverSupabaseClient, serverSupabaseServiceRole, serverSupabaseUser } from '#supabase/server'
-import { calculateFlashLobbyMatchScore, createFlashLobbyMatch, expireStaleFlashLobbyIntents } from '~/server/utils/flashLobby'
+import { calculateFlashLobbyMatchScore, createFlashLobbyMatch, processFlashLobbyLifecycle } from '~/server/utils/flashLobby'
 import { notifyFlashLobbySuperConnectStarted } from '~/server/utils/discord'
 import { createInAppNotification } from '~/server/utils/notifications'
 import { canPerformPostLobbyAction } from '~/server/utils/flashLobbyRules'
@@ -62,7 +62,7 @@ export default defineEventHandler(async (event) => {
   }
 
   const client = serverSupabaseServiceRole(event)
-  await expireStaleFlashLobbyIntents()
+  await processFlashLobbyLifecycle()
   const { data: intent, error } = await client
     .schema('m2m')
     .from('flash_lobby_intents')

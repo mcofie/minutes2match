@@ -67,6 +67,29 @@
       </div>
     </div>
 
+    <div class="mb-3">
+      <p class="text-[10px] font-black uppercase tracking-[0.2em] text-stone-400">Operator Insights</p>
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+      <div v-for="(stat, i) in operatorInsightStats" :key="stat.label" class="stat-card group relative">
+        <div class="flex justify-between items-start mb-4">
+          <div :class="[
+            'p-3 rounded-xl transition-colors',
+            i === 0 ? 'bg-cyan-50 text-cyan-600 group-hover:bg-cyan-100' :
+            i === 1 ? 'bg-orange-50 text-orange-600 group-hover:bg-orange-100' :
+            i === 2 ? 'bg-amber-50 text-amber-600 group-hover:bg-amber-100' :
+            'bg-slate-100 text-slate-700 group-hover:bg-slate-200'
+          ]">
+            <span class="text-xl">{{ stat.icon }}</span>
+          </div>
+        </div>
+        <div>
+          <span class="block text-3xl font-black text-stone-900 mb-1 tabular-nums">{{ stat.value }}</span>
+          <span class="text-xs font-bold text-stone-500 uppercase tracking-widest">{{ stat.label }}</span>
+        </div>
+      </div>
+    </div>
+
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
       <!-- Main Content (2/3) -->
       <div class="lg:col-span-2 space-y-8">
@@ -296,16 +319,42 @@
 
            <div v-else class="space-y-6">
               <!-- Live Users Feed -->
-              <div class="space-y-4 max-h-[400px] overflow-y-auto no-scrollbar">
-                <div v-for="user in liveUsers" :key="user.id" class="flex items-center justify-between group">
-                  <div class="flex items-center gap-3">
-                     <div class="w-10 h-10 rounded-full bg-stone-100 border border-stone-200 overflow-hidden group-hover:border-indigo-300 transition-colors">
+              <div class="space-y-4 max-h-[420px] overflow-y-auto no-scrollbar">
+                <div v-for="user in liveUsers" :key="user.id" class="rounded-2xl border border-stone-100 bg-stone-50/70 p-3 transition-all hover:border-indigo-100 hover:bg-white">
+                  <div class="flex items-start justify-between gap-3">
+                    <div class="flex items-center gap-3 min-w-0">
+                      <div class="w-10 h-10 rounded-full bg-stone-100 border border-stone-200 overflow-hidden">
                         <NuxtImg :src="user.photo_url || '/ama_profile.png'" class="w-full h-full object-cover" />
-                     </div>
-                     <div>
-                        <p class="text-xs font-bold text-stone-900 leading-tight mb-0.5">{{ user.display_name }}</p>
-                        <p class="text-[9px] font-bold text-indigo-500 uppercase tracking-widest">Active Now</p>
-                     </div>
+                      </div>
+                      <div class="min-w-0">
+                        <p class="text-xs font-bold text-stone-900 leading-tight mb-0.5 truncate">{{ user.display_name }}</p>
+                        <p class="text-[9px] font-bold text-indigo-500 uppercase tracking-widest">{{ userSessionLabel(user) }}</p>
+                      </div>
+                    </div>
+                    <span class="shrink-0 rounded-full border border-emerald-200 bg-emerald-50 px-2 py-1 text-[8px] font-black uppercase tracking-[0.18em] text-emerald-700">
+                      Live
+                    </span>
+                  </div>
+
+                  <div class="mt-3 grid grid-cols-3 gap-2">
+                    <button
+                      @click="moderateLiveUser(user, 'remove_user')"
+                      class="rounded-xl border border-amber-200 bg-amber-50 px-2 py-2 text-[9px] font-black uppercase tracking-widest text-amber-700 transition hover:bg-amber-100"
+                    >
+                      Remove
+                    </button>
+                    <button
+                      @click="moderateLiveUser(user, 'hide_profile')"
+                      class="rounded-xl border border-sky-200 bg-sky-50 px-2 py-2 text-[9px] font-black uppercase tracking-widest text-sky-700 transition hover:bg-sky-100"
+                    >
+                      Hide
+                    </button>
+                    <button
+                      @click="moderateLiveUser(user, 'block_rejoin')"
+                      class="rounded-xl border border-rose-200 bg-rose-50 px-2 py-2 text-[9px] font-black uppercase tracking-widest text-rose-700 transition hover:bg-rose-100"
+                    >
+                      Block
+                    </button>
                   </div>
                 </div>
               </div>
@@ -439,12 +488,38 @@ const conversionStats = computed(() => [
   { icon: '🚀', value: `${conversionOverview.value.superConnectRate.toFixed(1)}%`, label: 'Super Connect Rate' }
 ])
 
+const moderationSummary = ref({
+  removed: 0,
+  hidden: 0,
+  blocked: 0
+})
+
+const operatorInsights = ref({
+  totalJoins: 0,
+  uniqueAttendees: 0,
+  avgMinutesInRoom: 0,
+  pendingReviewCount: 0,
+  postLobbyUnlocks: 0,
+  postLobbyMutuals: 0,
+  superConnectConversions: 0,
+  postLobbyConversionRate: 0,
+  unlockedRate: 0,
+  pendingIntents7d: 0
+})
+
+const operatorInsightStats = computed(() => [
+  { icon: '🫶', value: operatorInsights.value.uniqueAttendees, label: 'Unique Attendees' },
+  { icon: '⏱️', value: `${operatorInsights.value.avgMinutesInRoom}m`, label: 'Avg Time In Room' },
+  { icon: '🗂️', value: operatorInsights.value.pendingReviewCount, label: 'Awaiting Review' },
+  { icon: '🛡️', value: moderationSummary.value.removed + moderationSummary.value.hidden + moderationSummary.value.blocked, label: 'Active Moderation' }
+])
+
 const liveUsers = ref<any[]>([])
-const livePresenceIds = ref<Set<string>>(new Set())
 const reminders = ref<any[]>([])
 const currentTime = ref(new Date())
 let timer: any = null
 let channel: any = null
+let attendanceInterval: ReturnType<typeof setInterval> | null = null
 
 const fetchReminders = async () => {
   const { data } = await (supabase.schema('m2m').from('flash_lobby_reminders') as any)
@@ -469,6 +544,7 @@ const fetchLobbies = async () => {
   // Also fetch real data for the stats
   await fetchRealStats()
   await fetchLobbyMetrics()
+  await fetchOperatorInsights()
 }
 
 const fetchLobbyMetrics = async () => {
@@ -511,28 +587,39 @@ const fetchLobbyMetrics = async () => {
 }
 
 const fetchLiveUsers = async () => {
-  const ids = Array.from(livePresenceIds.value)
-  presenceCount.value = ids.length
-
-  if (!ids.length) {
-    liveUsers.value = []
-    return
-  }
-
   try {
-    const { data: participants } = await supabase
-      .schema('m2m')
-      .from('profiles')
-      .select('id, display_name, photo_url')
-      .in('id', ids)
-
-    const orderedUsers = ids
-      .map((id) => (participants || []).find((participant: any) => participant.id === id))
-      .filter(Boolean)
-
-    liveUsers.value = orderedUsers
+    const response = await $fetch<any>('/api/lobby/attendance')
+    presenceCount.value = response?.count || 0
+    liveUsers.value = response?.users || []
   } catch (err) {
     console.error('[Admin] Failed to fetch live users:', err)
+    presenceCount.value = 0
+    liveUsers.value = []
+  }
+}
+
+const fetchOperatorInsights = async () => {
+  try {
+    const response = await $fetch<any>('/api/admin/flash-lobby/insights')
+    operatorInsights.value = {
+      totalJoins: response?.totalJoins || 0,
+      uniqueAttendees: response?.uniqueAttendees || 0,
+      avgMinutesInRoom: response?.avgMinutesInRoom || 0,
+      pendingReviewCount: response?.pendingReviewCount || 0,
+      postLobbyUnlocks: response?.postLobbyUnlocks || 0,
+      postLobbyMutuals: response?.postLobbyMutuals || 0,
+      superConnectConversions: response?.superConnectConversions || 0,
+      postLobbyConversionRate: response?.postLobbyConversionRate || 0,
+      unlockedRate: response?.unlockedRate || 0,
+      pendingIntents7d: response?.pendingIntents7d || 0
+    }
+    moderationSummary.value = {
+      removed: response?.moderationBreakdown?.removed || 0,
+      hidden: response?.moderationBreakdown?.hidden || 0,
+      blocked: response?.moderationBreakdown?.blocked || 0
+    }
+  } catch (err) {
+    console.error('[Admin] Failed to fetch flash lobby insights:', err)
   }
 }
 
@@ -556,27 +643,12 @@ const fetchRealStats = async () => {
   }
 }
 
-const setupPresence = () => {
-  if (presenceChannel) {
-    supabase.removeChannel(presenceChannel)
-  }
-
-  presenceChannel = supabase.channel('lobby-presence', { config: { presence: { key: 'admin-monitor' } } })
-  presenceChannel
-    .on('presence', { event: 'sync' }, async () => {
-      const state = presenceChannel.presenceState()
-      const ids = new Set<string>()
-      Object.keys(state).forEach((key) => {
-        if (key !== 'admin-monitor') ids.add(key)
-      })
-      livePresenceIds.value = ids
-      await fetchLiveUsers()
-    })
-    .subscribe((status: string) => {
-      if (status === 'SUBSCRIBED') {
-        presenceChannel.track({ role: 'admin-monitor', online_at: new Date().toISOString() })
-      }
-    })
+const setupAttendance = async () => {
+  await fetchLiveUsers()
+  if (attendanceInterval) clearInterval(attendanceInterval)
+  attendanceInterval = setInterval(() => {
+    fetchLiveUsers()
+  }, 15000)
 }
 
 const handleTask = async () => {
@@ -711,6 +783,42 @@ const addTime = async (lobby: FlashLobby, amount: number, unit: 'minutes' | 'hou
    await runControl('addTime', lobby.id, { amount, unit })
 }
 
+const moderateLiveUser = async (
+  user: { id: string, display_name?: string, lobby_id?: string },
+  action: 'remove_user' | 'hide_profile' | 'block_rejoin'
+) => {
+  const lobbyId = user?.lobby_id || liveLobbyIds.value[0]
+  if (!lobbyId) {
+    alert('No active lobby found for this user.')
+    return
+  }
+
+  const label = user?.display_name || 'this user'
+  const confirmation = action === 'remove_user'
+    ? `Remove ${label} from the active lobby?`
+    : action === 'hide_profile'
+      ? `Hide ${label} from the current lobby feed?`
+      : `Block ${label} from rejoining this lobby?`
+
+  if (!confirm(confirmation)) return
+
+  try {
+    await $fetch('/api/admin/flash-lobby/moderation', {
+      method: 'POST',
+      body: {
+        lobbyId,
+        targetUserId: user.id,
+        action
+      }
+    })
+    await fetchLiveUsers()
+    await fetchOperatorInsights()
+  } catch (err: any) {
+    console.error('[Admin] Moderation failed:', err)
+    alert(err?.data?.statusMessage || err?.data?.message || err?.message || 'Moderation failed')
+  }
+}
+
 const getRemainingFormatted = (lobby: FlashLobby) => {
    const now = currentTime.value
    if (lobby.is_paused && lobby.paused_at) {
@@ -793,12 +901,19 @@ const formatDate = (dateStr: string) => {
   return new Date(dateStr).toLocaleString('en-GB', { day: 'numeric', month: 'short', weekday: 'short', hour: '2-digit', minute: '2-digit' })
 }
 
-let presenceChannel: any = null
+const userSessionLabel = (user: { joined_at?: string, last_seen_at?: string }) => {
+  const joinedAt = user?.joined_at ? new Date(user.joined_at).getTime() : null
+  if (!joinedAt || Number.isNaN(joinedAt)) return 'Active Now'
+  const minutes = Math.max(0, Math.round((Date.now() - joinedAt) / 60000))
+  if (minutes < 1) return 'Just Joined'
+  if (minutes === 1) return '1 Min In Room'
+  return `${minutes} Mins In Room`
+}
 
 onMounted(async () => {
   await fetchLobbies()
   await fetchReminders()
-  setupPresence()
+  setupAttendance()
   
   timer = setInterval(() => {
     currentTime.value = new Date()
@@ -816,7 +931,7 @@ onMounted(async () => {
 onUnmounted(() => {
   if (timer) clearInterval(timer)
   if (channel) supabase.removeChannel(channel)
-  if (presenceChannel) supabase.removeChannel(presenceChannel)
+  if (attendanceInterval) clearInterval(attendanceInterval)
 })
 </script>
 
