@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
-import { calculateCompatibility } from '~/composables/useCompatibility' // Use the unified engine
+import { calculateCompatibility } from '~/utils/compatibility'
 import { notifyDiscord, DiscordColors } from './discord'
 
 /**
@@ -81,6 +81,8 @@ export async function runTargetedMatching(userId: string, minScore = 75) {
         candidateQuery = candidateQuery.eq('gender', opposite)
     }
 
+    candidateQuery = candidateQuery.or(`interested_in.eq.everyone,interested_in.eq.${targetUser.gender},interested_in.is.null`)
+
     const { data: candidates, error: candidateError } = await candidateQuery
 
     if (candidateError || !candidates || candidates.length === 0) {
@@ -126,13 +128,14 @@ export async function runTargetedMatching(userId: string, minScore = 75) {
         const candAnswers = answersMap.get(candidate.id) || []
         const match = calculateCompatibility(targetUser as any, targetFmtAnswers, candidate as any, candAnswers)
 
-        if (match.score >= minScore && match.warnings.length === 0) {
+        if (match.score >= minScore && match.eligibility.eligible) {
             results.push({
                 user1: targetUser,
                 user2: candidate,
                 score: match.score,
                 reasons: match.strengths,
-                warnings: match.warnings
+                warnings: match.warnings,
+                confidence: match.confidence
             })
         }
     }
@@ -181,6 +184,7 @@ export async function runTargetedMatching(userId: string, minScore = 75) {
         fields: [
             { name: 'Match', value: `**${targetUser.display_name}** ↔ **${bestMatch.user2.display_name}**`, inline: true },
             { name: 'Score', value: `**${bestMatch.score}%**`, inline: true },
+            { name: 'Confidence', value: `**${bestMatch.confidence || 0}%**`, inline: true },
             { name: 'Strengths', value: bestMatch.reasons.join(', ') || 'General Balance', inline: false }
         ],
         footer: `M2M JIT Matchmaker • Triggered Mode`

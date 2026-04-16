@@ -31,7 +31,7 @@ export { setInterval } from '#app/compat/interval';
 export { definePageMeta } from '../node_modules/nuxt/dist/pages/runtime/composables';
 export { defineLazyHydrationComponent } from '#app/composables/lazy-hydration';
 export { badges, useBadges, Badge } from '../composables/useBadges';
-export { calculateCompatibility, calculateAge, checkAgeViolation, isCompatibleProfession, getCompatibilityTier, useCompatibility, VibeAnswer, UserProfile, CompatibilityResult } from '../composables/useCompatibility';
+export { useCompatibility } from '../composables/useCompatibility';
 export { useConfetti } from '../composables/useConfetti';
 export { useContactPicker } from '../composables/useContactPicker';
 export { useDashboard } from '../composables/useDashboard';
@@ -48,6 +48,7 @@ export { getRandomQuestions, useShotHints, ShotQuestion } from '../composables/u
 export { useTelegram } from '../composables/useTelegram';
 export { useToast, Toast } from '../composables/useToast';
 export { useZend } from '../composables/useZend';
+export { calculateAge, checkAgeViolation, isCompatibleProfession, calculateCompatibility, getCompatibilityTier, VibeAnswer, UserProfile, CompatibilitySignalCategory, CompatibilitySignal, CompatibilityResult } from '../utils/compatibility';
 export { downloadCSV } from '../utils/downloadCsv';
 export { useSupabaseClient } from '../node_modules/@nuxtjs/supabase/dist/runtime/composables/useSupabaseClient';
 export { useSupabaseCookieRedirect } from '../node_modules/@nuxtjs/supabase/dist/runtime/composables/useSupabaseCookieRedirect';

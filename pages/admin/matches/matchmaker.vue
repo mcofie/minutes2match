@@ -223,6 +223,21 @@
               </span>
             </div>
 
+            <div class="mt-2 flex flex-wrap items-center gap-1.5">
+              <span class="text-[10px] bg-blue-50 text-blue-700 px-1.5 py-0.5 rounded border border-blue-100 font-semibold">
+                Confidence {{ match.confidence ?? 0 }}%
+              </span>
+              <span
+                class="text-[10px] px-1.5 py-0.5 rounded border font-semibold"
+                :class="match.warnings.length ? 'bg-amber-50 text-amber-700 border-amber-100' : 'bg-emerald-50 text-emerald-700 border-emerald-100'"
+              >
+                {{ match.warnings.length ? 'Review needed' : 'Eligible' }}
+              </span>
+              <span v-if="match.missingData?.length" class="text-[10px] bg-stone-50 text-stone-600 px-1.5 py-0.5 rounded border border-stone-200 font-semibold">
+                {{ match.missingData.length }} data gap{{ match.missingData.length > 1 ? 's' : '' }}
+              </span>
+            </div>
+
             <!-- Warnings -->
             <div v-if="match.warnings.length" class="auto-match-card__warnings mt-1">
               <span v-for="warn in match.warnings.slice(0,1)" :key="warn" class="text-[10px] bg-red-50 text-red-600 px-1.5 py-0.5 rounded border border-red-100 font-bold">
@@ -409,6 +424,20 @@
 
                <!-- Match Analysis -->
               <div v-if="matchData.reasons.length || matchData.warnings.length" class="mb-3 p-3 bg-gray-50 rounded-lg border border-gray-100">
+                <div class="flex flex-wrap gap-1 mb-2">
+                  <span class="inline-block bg-blue-50 border border-blue-100 text-blue-700 text-[10px] px-2 py-0.5 rounded font-bold shadow-sm">
+                    Confidence {{ matchData.confidence || 0 }}%
+                  </span>
+                  <span
+                    class="inline-block text-[10px] px-2 py-0.5 rounded font-bold shadow-sm border"
+                    :class="matchData.eligibility?.eligible ? 'bg-emerald-50 border-emerald-100 text-emerald-700' : 'bg-red-50 border-red-100 text-red-700'"
+                  >
+                    {{ matchData.eligibility?.eligible ? 'Eligible to create' : 'Blocked' }}
+                  </span>
+                  <span v-if="matchData.missingData?.length" class="inline-block bg-stone-50 border border-stone-200 text-stone-600 text-[10px] px-2 py-0.5 rounded font-bold shadow-sm">
+                    Missing {{ matchData.missingData.length }} signal{{ matchData.missingData.length > 1 ? 's' : '' }}
+                  </span>
+                </div>
                 <div class="flex flex-wrap gap-1 mb-1">
                   <span v-for="reason in matchData.reasons" :key="reason" class="inline-block bg-white border border-green-100 text-green-700 text-[10px] px-2 py-0.5 rounded font-bold mr-1 shadow-sm">
                     {{ reason }}
@@ -417,6 +446,11 @@
                 <div v-if="matchData.warnings.length" class="flex flex-wrap gap-1 mt-2 pt-2 border-t border-gray-200">
                   <span v-for="warn in matchData.warnings" :key="warn" class="inline-block bg-white border border-red-100 text-red-600 text-[10px] px-2 py-0.5 rounded font-bold mr-1 shadow-sm">
                     ! {{ warn }}
+                  </span>
+                </div>
+                <div v-if="matchData.eligibility?.hardBlockers?.length" class="flex flex-wrap gap-1 mt-2 pt-2 border-t border-gray-200">
+                  <span v-for="blocker in matchData.eligibility.hardBlockers" :key="blocker" class="inline-block bg-red-100 border border-red-200 text-red-700 text-[10px] px-2 py-0.5 rounded font-bold mr-1 shadow-sm">
+                    Blocker: {{ blocker }}
                   </span>
                 </div>
               </div>
@@ -647,7 +681,24 @@ onMounted(() => {
   fetchUsers()
   fetchExistingMatches()
   fetchVibeAnswers()
+  fetchMatchmakerSettings()
 })
+
+const fetchMatchmakerSettings = async () => {
+  const { data } = await supabase
+    .from('settings')
+    .select('key, value')
+    .in('key', ['default_match_unlock_fee', 'auto_match_min_score'])
+
+  data?.forEach((item: any) => {
+    if (item.key === 'default_match_unlock_fee') {
+      unlockPrice.value = Number(item.value?.amount ?? 15)
+    }
+    if (item.key === 'auto_match_min_score') {
+      autoConfig.minScore = Number(item.value?.score ?? 75)
+    }
+  })
+}
 
 const fetchUsers = async () => {
   const { data } = await supabase
@@ -728,8 +779,34 @@ const getPersonaIcon = (id: string) => {
 }
 
 // === COMPATIBILITY LOGIC ===
+const EMPTY_BREAKDOWN = {
+  vibeMatch: 0,
+  goalsMatch: 0,
+  lifestyleMatch: 0,
+  maturityMatch: 0,
+  interestMatch: 0
+}
+
+const EMPTY_ELIGIBILITY = {
+  eligible: false,
+  hardBlockers: [],
+  softRisks: [],
+  watchouts: [],
+  differences: []
+}
+
+const EMPTY_MATCH_RESULT = {
+  score: 0,
+  reasons: [],
+  warnings: [],
+  confidence: 0,
+  breakdown: EMPTY_BREAKDOWN,
+  eligibility: EMPTY_ELIGIBILITY,
+  missingData: []
+}
+
 const computeFullMatch = (u1: any, u2: any) => {
-  if (!u1 || !u2) return { score: 0, reasons: [], warnings: [] }
+  if (!u1 || !u2) return EMPTY_MATCH_RESULT
   const ans1 = userVibeAnswers.value.get(u1.id) || []
   const ans2 = userVibeAnswers.value.get(u2.id) || []
   
@@ -760,7 +837,10 @@ const computeFullMatch = (u1: any, u2: any) => {
     score: result.score,
     reasons: result.strengths,
     warnings: result.warnings,
-    breakdown: result.breakdown
+    breakdown: result.breakdown || EMPTY_BREAKDOWN,
+    confidence: result.confidence,
+    eligibility: result.eligibility,
+    missingData: result.missingData
   }
 }
 
@@ -770,7 +850,7 @@ const calculateMatchScore = (u1: any, u2: any) => {
 
 // For manual mode (one-sided calculation)
 const calculateMatchDetails = (candidate: any) => {
-  if (!user1.value) return { score: 0, reasons: [], warnings: [] }
+  if (!user1.value) return EMPTY_MATCH_RESULT
   return calculateMatchScore(user1.value, candidate)
 }
 
@@ -811,13 +891,15 @@ const generateAutoMatches = async () => {
       
       const result = calculateMatchScore(u1, u2)
       
-      if (result.score >= autoConfig.minScore) {
+      if (result.score >= autoConfig.minScore && result.eligibility?.eligible) {
         potentialMatches.push({
           user1: u1,
           user2: u2,
           score: result.score,
           reasons: result.reasons,
-          warnings: result.warnings
+          warnings: result.warnings,
+          confidence: result.confidence,
+          missingData: result.missingData
         })
         usedPairs.add(pairKey)
       }
@@ -969,7 +1051,7 @@ const paginationCandidates = computed(() => {
 
 // === MANAGE MATCH STATUS ===
 const matchData = computed(() => {
-  if (!user1.value || !user2.value) return { score: 0, reasons: [], warnings: [], breakdown: null }
+  if (!user1.value || !user2.value) return EMPTY_MATCH_RESULT
   return calculateMatchScore(user1.value, user2.value)
 })
 

@@ -220,6 +220,89 @@
           </div>
         </section>
 
+        <section class="bg-white rounded-2xl border border-stone-200 p-6 shadow-sm">
+          <div class="flex items-center justify-between mb-6">
+            <h2 class="text-sm font-bold text-stone-900 uppercase tracking-widest">User Funnel</h2>
+            <span class="text-[10px] font-bold uppercase tracking-widest text-stone-400">Signup to unlock</span>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div v-for="step in funnelSteps" :key="step.label" class="rounded-xl border border-stone-100 bg-stone-50/50 p-4">
+              <div class="text-[10px] font-bold uppercase tracking-widest text-stone-400">{{ step.label }}</div>
+              <div class="mt-2 text-3xl font-black text-stone-900">{{ step.value }}</div>
+              <div class="mt-1 text-xs font-bold text-stone-500">{{ step.rate }}% of total users</div>
+              <div class="mt-3 h-2 bg-stone-100 rounded-full overflow-hidden">
+                <div class="h-full rounded-full bg-gradient-to-r from-stone-800 to-stone-500" :style="{ width: `${step.rate}%` }"></div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="grid grid-cols-1 md:grid-cols-2 gap-6 pb-6">
+          <div class="bg-white rounded-2xl border border-stone-200 p-6 shadow-sm">
+            <div class="flex items-center justify-between mb-6">
+              <h2 class="text-sm font-bold text-stone-900 uppercase tracking-widest">Revenue Mix</h2>
+              <span class="text-[10px] font-bold uppercase tracking-widest text-stone-400">Successful payments</span>
+            </div>
+            <div class="space-y-4">
+              <div v-for="item in revenueMix" :key="item.label" class="flex items-center gap-3">
+                <div class="w-28 text-xs font-bold text-stone-500 uppercase tracking-tight truncate">{{ item.label }}</div>
+                <div class="flex-1 h-2 bg-stone-100 rounded-full overflow-hidden">
+                  <div class="h-full rounded-full" :class="item.barClass" :style="{ width: `${item.percent}%` }"></div>
+                </div>
+                <div class="text-xs font-black text-stone-900 w-20 text-right">{{ formatCurrency(item.amount) }}</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-white rounded-2xl border border-stone-200 p-6 shadow-sm">
+            <div class="flex items-center justify-between mb-6">
+              <h2 class="text-sm font-bold text-stone-900 uppercase tracking-widest">Match Quality</h2>
+              <NuxtLink to="/admin/matches/scoring-logic" class="text-[10px] font-bold uppercase tracking-widest text-blue-600">Open Engine</NuxtLink>
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+              <div class="rounded-xl border border-stone-100 p-4 bg-stone-50/50">
+                <div class="text-[10px] font-bold uppercase tracking-widest text-stone-400">Avg Confidence</div>
+                <div class="mt-2 text-3xl font-black text-stone-900">{{ matchQuality.averageConfidence }}%</div>
+              </div>
+              <div class="rounded-xl border border-stone-100 p-4 bg-stone-50/50">
+                <div class="text-[10px] font-bold uppercase tracking-widest text-stone-400">Best Score Band</div>
+                <div class="mt-2 text-3xl font-black text-stone-900">{{ matchQuality.bestBand }}</div>
+                <div class="text-xs font-bold text-emerald-600 mt-1">{{ matchQuality.bestBandPositiveRate }}% positive</div>
+              </div>
+            </div>
+            <div class="mt-4 rounded-xl border border-stone-100 p-4 bg-stone-50/50">
+              <div class="text-[10px] font-bold uppercase tracking-widest text-stone-400">Top Warning Signal</div>
+              <div class="mt-2 text-sm font-bold text-stone-900">{{ matchQuality.topWarning }}</div>
+            </div>
+          </div>
+        </section>
+
+        <section class="bg-white rounded-2xl border border-stone-200 p-6 shadow-sm">
+          <div class="flex items-center justify-between mb-6">
+            <h2 class="text-sm font-bold text-stone-900 uppercase tracking-widest">Operational Health</h2>
+            <span class="text-[10px] font-bold uppercase tracking-widest text-stone-400">Last 24h / open alerts</span>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div class="rounded-xl border border-stone-100 p-4 bg-stone-50/50">
+              <div class="text-[10px] font-bold uppercase tracking-widest text-stone-400">Failed SMS (24h)</div>
+              <div class="mt-2 text-3xl font-black text-red-600">{{ stats.smsFailed24h }}</div>
+            </div>
+            <div class="rounded-xl border border-stone-100 p-4 bg-stone-50/50">
+              <div class="text-[10px] font-bold uppercase tracking-widest text-stone-400">Pending SMS (24h)</div>
+              <div class="mt-2 text-3xl font-black text-amber-600">{{ stats.smsPending24h }}</div>
+            </div>
+            <div class="rounded-xl border border-stone-100 p-4 bg-stone-50/50">
+              <div class="text-[10px] font-bold uppercase tracking-widest text-stone-400">Open Payment Alerts</div>
+              <div class="mt-2 text-3xl font-black text-stone-900">{{ stats.unresolvedPaymentAlerts }}</div>
+            </div>
+            <div class="rounded-xl border border-stone-100 p-4 bg-stone-50/50">
+              <div class="text-[10px] font-bold uppercase tracking-widest text-stone-400">Webhook Errors (7d)</div>
+              <div class="mt-2 text-3xl font-black text-purple-600">{{ stats.webhookErrors7d }}</div>
+              <div class="text-xs font-bold text-stone-500 mt-1">{{ stats.paymentFailedAlerts7d }} payment failures</div>
+            </div>
+          </div>
+        </section>
+
         <!-- Product Clusters -->
         <section class="grid grid-cols-1 gap-6 pb-6">
           <div class="bg-white rounded-2xl border border-stone-200 p-6 shadow-sm">
@@ -483,6 +566,9 @@ const loading = ref(true)
 const stats = reactive({
   totalUsers: 0,
   verifiedUsers: 0,
+  completeProfiles: 0,
+  matchedUsers: 0,
+  unlockedUsers: 0,
   newUsersThisWeek: 0,
   totalMatches: 0,
   unlockedMatches: 0,
@@ -491,8 +577,17 @@ const stats = reactive({
   totalRevenue: 0,
   eventRevenue: 0,
   matchRevenue: 0,
+  subscriptionRevenue: 0,
+  sparkDeckRevenue: 0,
+  shotRevenue: 0,
+  walletTopupRevenue: 0,
   totalPayments: 0,
   avgUnlockPrice: 0,
+  smsFailed24h: 0,
+  smsPending24h: 0,
+  unresolvedPaymentAlerts: 0,
+  webhookErrors7d: 0,
+  paymentFailedAlerts7d: 0,
   maleUsers: 0,
   femaleUsers: 0,
   unspecifiedGender: 0,
@@ -502,6 +597,12 @@ const stats = reactive({
 })
 const recentActivity = ref<any[]>([])
 const waitingUsers = ref<any[]>([])
+const matchQuality = reactive({
+  averageConfidence: 0,
+  bestBand: '—',
+  bestBandPositiveRate: 0,
+  topWarning: 'No warnings yet'
+})
 
 // Incomplete profiles state
 interface IncompleteProfile {
@@ -594,6 +695,30 @@ const matchSuccessRate = computed(() => {
   return Math.round((stats.unlockedMatches / stats.totalMatches) * 100)
 })
 
+const pctOfTotalUsers = (value: number) => {
+  if (!stats.totalUsers) return 0
+  return Math.round((value / stats.totalUsers) * 100)
+}
+
+const funnelSteps = computed(() => [
+  { label: 'Verified', value: stats.verifiedUsers, rate: pctOfTotalUsers(stats.verifiedUsers) },
+  { label: 'Profile Complete', value: stats.completeProfiles, rate: pctOfTotalUsers(stats.completeProfiles) },
+  { label: 'Matched Users', value: stats.matchedUsers, rate: pctOfTotalUsers(stats.matchedUsers) },
+  { label: 'Unlocked Users', value: stats.unlockedUsers, rate: pctOfTotalUsers(stats.unlockedUsers) }
+])
+
+const revenueMix = computed(() => {
+  const total = stats.totalRevenue || 1
+  return [
+    { label: 'Match Unlocks', amount: stats.matchRevenue, percent: Math.round((stats.matchRevenue / total) * 100), barClass: 'bg-rose-500' },
+    { label: 'Subscriptions', amount: stats.subscriptionRevenue, percent: Math.round((stats.subscriptionRevenue / total) * 100), barClass: 'bg-emerald-500' },
+    { label: 'Events', amount: stats.eventRevenue, percent: Math.round((stats.eventRevenue / total) * 100), barClass: 'bg-blue-500' },
+    { label: 'Spark Deck', amount: stats.sparkDeckRevenue, percent: Math.round((stats.sparkDeckRevenue / total) * 100), barClass: 'bg-amber-500' },
+    { label: 'Shoot Your Shot', amount: stats.shotRevenue, percent: Math.round((stats.shotRevenue / total) * 100), barClass: 'bg-purple-500' },
+    { label: 'Wallet Topups', amount: stats.walletTopupRevenue, percent: Math.round((stats.walletTopupRevenue / total) * 100), barClass: 'bg-stone-500' }
+  ].filter(item => item.amount > 0)
+})
+
 const personaDistribution = computed(() => {
   const counts: Record<string, number> = {}
   stats.personaData.forEach(p => {
@@ -625,13 +750,16 @@ const fetchStats = async () => {
   const { data: profileStats } = await supabase
     .schema('m2m')
     .from('profiles')
-    .select('gender, birth_date, is_verified, intent, dating_persona')
+    .select('display_name, gender, birth_date, is_verified, intent, dating_persona, location, interested_in')
   
   if (profileStats) {
     stats.maleUsers = profileStats.filter((p: any) => p.gender === 'male').length
     stats.femaleUsers = profileStats.filter((p: any) => p.gender === 'female').length
     stats.unspecifiedGender = profileStats.filter((p: any) => !p.gender).length
     stats.verifiedUsers = profileStats.filter((p: any) => p.is_verified).length
+    stats.completeProfiles = profileStats.filter((p: any) =>
+      p.display_name && p.gender && p.birth_date && p.intent && p.location && p.interested_in
+    ).length
     stats.ageData = profileStats.map((p: any) => p.birth_date).filter(Boolean) as string[]
     stats.intentData = profileStats.map((p: any) => p.intent).filter(Boolean) as string[]
     stats.personaData = profileStats.map((p: any) => p.dating_persona).filter(Boolean) as string[]
@@ -648,7 +776,7 @@ const fetchStats = async () => {
   stats.newUsersThisWeek = newUsers || 0
 
   // Match stats
-  const { data: rawMatches } = await supabase.schema('m2m').from('matches').select('status, unlock_price')
+  const { data: rawMatches } = await supabase.schema('m2m').from('matches').select('status, unlock_price, user_1_id, user_2_id')
   
   const matches = rawMatches as any[] || []
   if (matches.length) {
@@ -659,6 +787,19 @@ const fetchStats = async () => {
     
     const totalPrice = matches.reduce((sum, m) => sum + parseFloat(m.unlock_price || 0), 0)
     stats.avgUnlockPrice = matches.length ? totalPrice / matches.length : 0
+
+    const matchedUsers = new Set<string>()
+    const unlockedUsers = new Set<string>()
+    matches.forEach((m: any) => {
+      if (m.user_1_id) matchedUsers.add(m.user_1_id)
+      if (m.user_2_id) matchedUsers.add(m.user_2_id)
+      if (m.status === 'unlocked') {
+        if (m.user_1_id) unlockedUsers.add(m.user_1_id)
+        if (m.user_2_id) unlockedUsers.add(m.user_2_id)
+      }
+    })
+    stats.matchedUsers = matchedUsers.size
+    stats.unlockedUsers = unlockedUsers.size
   }
 
   // Revenue
@@ -674,6 +815,51 @@ const fetchStats = async () => {
     stats.totalRevenue = payments.reduce((sum, p) => sum + parseFloat(p.amount), 0)
     stats.eventRevenue = payments.filter(p => p.purpose === 'event_ticket').reduce((sum, p) => sum + parseFloat(p.amount), 0)
     stats.matchRevenue = payments.filter(p => p.purpose === 'match_unlock').reduce((sum, p) => sum + parseFloat(p.amount), 0)
+    stats.subscriptionRevenue = payments.filter(p => ['premium_sub', 'subscription'].includes(p.purpose)).reduce((sum, p) => sum + parseFloat(p.amount), 0)
+    stats.sparkDeckRevenue = payments.filter(p => p.purpose === 'spark_deck').reduce((sum, p) => sum + parseFloat(p.amount), 0)
+    stats.shotRevenue = payments.filter(p => p.purpose === 'shoot_your_shot').reduce((sum, p) => sum + parseFloat(p.amount), 0)
+    stats.walletTopupRevenue = payments.filter(p => p.purpose === 'wallet_topup').reduce((sum, p) => sum + parseFloat(p.amount), 0)
+  }
+
+  const dayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
+  const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
+
+  const [
+    { count: failedSms24h },
+    { count: pendingSms24h },
+    { count: unresolvedAlerts },
+    { count: webhookAlerts7d },
+    { count: paymentFailedAlerts7d }
+  ] = await Promise.all([
+    supabase.schema('m2m').from('sms_history').select('*', { count: 'exact', head: true }).eq('status', 'failed').gte('created_at', dayAgo),
+    supabase.schema('m2m').from('sms_history').select('*', { count: 'exact', head: true }).eq('status', 'pending').gte('created_at', dayAgo),
+    supabase.schema('m2m').from('payment_alerts').select('*', { count: 'exact', head: true }).eq('resolved', false),
+    supabase.schema('m2m').from('payment_alerts').select('*', { count: 'exact', head: true }).eq('alert_type', 'webhook_error').gte('created_at', weekAgo),
+    supabase.schema('m2m').from('payment_alerts').select('*', { count: 'exact', head: true }).eq('alert_type', 'payment_failed').gte('created_at', weekAgo)
+  ])
+
+  stats.smsFailed24h = failedSms24h || 0
+  stats.smsPending24h = pendingSms24h || 0
+  stats.unresolvedPaymentAlerts = unresolvedAlerts || 0
+  stats.webhookErrors7d = webhookAlerts7d || 0
+  stats.paymentFailedAlerts7d = paymentFailedAlerts7d || 0
+}
+
+const fetchMatchQuality = async () => {
+  try {
+    const data = await $fetch('/api/admin/matches/evaluation') as any
+    matchQuality.averageConfidence = data?.overview?.averageConfidence || 0
+    const bestBucket = [...(data?.buckets || [])]
+      .filter((bucket: any) => bucket.total >= 3)
+      .sort((a: any, b: any) => {
+        if (b.positiveRate !== a.positiveRate) return b.positiveRate - a.positiveRate
+        return b.unlockRate - a.unlockRate
+      })[0]
+    matchQuality.bestBand = bestBucket?.label || '—'
+    matchQuality.bestBandPositiveRate = bestBucket?.positiveRate || 0
+    matchQuality.topWarning = data?.topWarnings?.[0]?.warning || 'No warnings yet'
+  } catch (error) {
+    console.error('Failed to fetch match quality:', error)
   }
 }
 
@@ -889,6 +1075,7 @@ const sendMissingDetailsReminders = async () => {
 onMounted(async () => {
   await Promise.all([
     fetchStats(),
+    fetchMatchQuality(),
     fetchRecentActivity(),
     fetchWaitingUsers(),
     fetchIncompleteProfiles(),

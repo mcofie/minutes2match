@@ -156,6 +156,7 @@ declare global {
   const readRawBody: typeof import('../../node_modules/h3').readRawBody
   const readValidatedBody: typeof import('../../node_modules/h3').readValidatedBody
   const removeResponseHeader: typeof import('../../node_modules/h3').removeResponseHeader
+  const requireAdminAccess: typeof import('../../server/utils/admin').requireAdminAccess
   const resolveEventUserId: typeof import('../../server/utils/events').resolveEventUserId
   const resolveSparkOutcome: typeof import('../../server/utils/flashLobbyRules').resolveSparkOutcome
   const runTargetedMatching: typeof import('../../server/utils/matchmaker').runTargetedMatching
@@ -256,6 +257,7 @@ export { useImage } from '/Users/maxwellcofie/WebstormProjects/minutes2match/nod
 export { queryCollection, queryCollectionSearchSections, queryCollectionNavigation, queryCollectionItemSurroundings } from '/Users/maxwellcofie/WebstormProjects/minutes2match/node_modules/@nuxt/content/dist/runtime/nitro';
 export { parseMarkdown } from '/Users/maxwellcofie/WebstormProjects/minutes2match/node_modules/@nuxtjs/mdc/dist/runtime/parser';
 export { stringifyMarkdown } from '/Users/maxwellcofie/WebstormProjects/minutes2match/node_modules/@nuxtjs/mdc/dist/runtime/stringify';
+export { requireAdminAccess } from '/Users/maxwellcofie/WebstormProjects/minutes2match/server/utils/admin';
 export { getGeminiModel, auditProfileWithAI, extractPreferencesFromBio, generateMatchExplanation } from '/Users/maxwellcofie/WebstormProjects/minutes2match/server/utils/ai';
 export { getUserBalance, creditUser, debitUser } from '/Users/maxwellcofie/WebstormProjects/minutes2match/server/utils/credits';
 export { DiscordColors, notifyRedemption, notifyDiscord, notifyNewSignup, notifyPaymentInitiated, notifyPaymentSuccess, notifyMatchUnlocked, notifyEventBooking, notifyLobbyReminder, notifyError, notifyUserLogin, notifyMatchNudge, notifyFlashLobbySparkSent, notifyFlashLobbyMutualMatch, notifyFlashLobbySuperConnectStarted, notifyFlashLobbySuperConnectCompleted, notifySubscriptionActivated, notifyFlashLobbyLifecycle } from '/Users/maxwellcofie/WebstormProjects/minutes2match/server/utils/discord';

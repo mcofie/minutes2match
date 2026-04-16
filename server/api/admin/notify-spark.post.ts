@@ -1,6 +1,8 @@
 import { notifyDiscord, DiscordColors } from '~/server/utils/discord'
+import { requireAdminAccess } from '~/server/utils/admin'
 
 export default defineEventHandler(async (event) => {
+  await requireAdminAccess(event)
   const body = await readBody(event)
   const { action, poll } = body
 

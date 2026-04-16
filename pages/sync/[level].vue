@@ -354,15 +354,29 @@ const fetchPoll = async () => {
      }
   }
 
-  // WILDCARD - Dynamic Random Select
+  // WILDCARD - Dynamic Random Select within the same targeting rules admins configure
   if (level === 'wildcard') {
-     const { data: wildcards } = await supabase.schema('m2m').from('poll_questions')
+     const { data: exactWildcards } = await supabase.schema('m2m').from('poll_questions')
         .select('*')
         .eq('level_id', 'wildcard')
         .eq('is_active', true)
-        
-     if (wildcards && wildcards.length > 0) {
-        pollData.value = wildcards[Math.floor(Math.random() * wildcards.length)]
+        .ilike('country', userCountry)
+        .eq('season', userSeason)
+
+     if (exactWildcards && exactWildcards.length > 0) {
+        pollData.value = exactWildcards[Math.floor(Math.random() * exactWildcards.length)]
+        return
+     }
+
+     const { data: fallbackWildcards } = await supabase.schema('m2m').from('poll_questions')
+        .select('*')
+        .eq('level_id', 'wildcard')
+        .eq('is_active', true)
+        .eq('country', 'Global')
+        .eq('season', 'Standard')
+
+     if (fallbackWildcards && fallbackWildcards.length > 0) {
+        pollData.value = fallbackWildcards[Math.floor(Math.random() * fallbackWildcards.length)]
         return
      }
   }

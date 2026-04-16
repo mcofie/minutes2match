@@ -82,6 +82,19 @@
         
         <div class="flex flex-col gap-5">
           <div class="form-group">
+            <label class="form-label">Auto Match Min Score (%)</label>
+            <input
+              type="number"
+              v-model.number="settings.auto_match_min_score"
+              min="0"
+              max="100"
+              step="1"
+              class="form-input"
+            />
+            <p class="text-xs text-muted mt-1">Minimum score required for cron-based auto matches</p>
+          </div>
+
+          <div class="form-group">
             <label class="form-label">Match Expiry (Days)</label>
             <input
               type="number"
@@ -151,6 +164,7 @@ const settings = reactive({
    subscription_price_monthly: 50,
    default_male_ticket_price: 100,
    default_female_ticket_price: 80,
+   auto_match_min_score: 75,
    match_expiry_days: 7,
    platform_name: 'Minutes to Match',
    shoot_your_shot_fee: 15,
@@ -180,6 +194,9 @@ onMounted(() => {
             break
           case 'match_expiry_days':
             settings.match_expiry_days = value?.days || 7
+            break
+          case 'auto_match_min_score':
+            settings.auto_match_min_score = value?.score || 75
             break
           case 'platform_name':
             settings.platform_name = value?.name || 'Minutes to Match'
@@ -221,6 +238,11 @@ const saveSettings = async () => {
       {
         key: 'event_ticket_prices',
         value: { male: settings.default_male_ticket_price, female: settings.default_female_ticket_price },
+        updated_at: new Date().toISOString()
+      },
+      {
+        key: 'auto_match_min_score',
+        value: { score: settings.auto_match_min_score },
         updated_at: new Date().toISOString()
       },
       {

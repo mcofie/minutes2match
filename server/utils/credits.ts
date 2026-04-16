@@ -12,6 +12,13 @@ export interface CreditResult {
     error?: string
 }
 
+interface CreditRpcRow {
+    success: boolean
+    new_balance: number | string
+    transaction_id?: string | null
+    error?: string | null
+}
+
 function getSupabase() {
     const config = useRuntimeConfig()
     return createClient(config.supabaseUrl, config.supabaseServiceKey, {
@@ -84,49 +91,32 @@ export async function creditUser(
         return { success: false, newBalance: 0, error: 'Amount must be positive' }
     }
 
-    const supabase = getSupabase()
-
     try {
-        await ensureCreditRecord(userId)
+        const supabase = getSupabase()
+        const { data, error } = await (supabase as any).rpc('apply_credit_transaction', {
+            p_user_id: userId,
+            p_amount: amount,
+            p_type: 'credit',
+            p_reason: reason,
+            p_reference_id: referenceId || null,
+            p_description: description || `Credit: ${reason}`
+        })
 
-        // Fetch current balance
-        const { data: current } = await supabase
-            .from('user_credits')
-            .select('balance')
-            .eq('user_id', userId)
-            .single()
-
-        const currentBalance = current ? parseFloat(current.balance) : 0
-        const newBalance = Math.round((currentBalance + amount) * 100) / 100
-
-        // Update balance
-        const { error: updateError } = await supabase
-            .from('user_credits')
-            .update({ balance: newBalance })
-            .eq('user_id', userId)
-
-        if (updateError) {
-            console.error('[Credits] Balance update failed:', updateError)
-            return { success: false, newBalance: currentBalance, error: updateError.message }
+        if (error) {
+            console.error('[Credits] Credit RPC failed:', error)
+            const currentBalance = await getUserBalance(userId)
+            return { success: false, newBalance: currentBalance, error: error.message }
         }
 
-        // Record transaction
-        const { data: txn, error: txnError } = await supabase
-            .from('credit_transactions')
-            .insert({
-                user_id: userId,
-                amount,
-                type: 'credit',
-                reason,
-                reference_id: referenceId || null,
-                description: description || `Credit: ${reason}`,
-                balance_after: newBalance
-            })
-            .select('id')
-            .single()
+        const row = (Array.isArray(data) ? data[0] : data) as CreditRpcRow | undefined
+        const newBalance = Number(row?.new_balance || 0)
 
-        if (txnError) {
-            console.error('[Credits] Transaction log failed:', txnError)
+        if (!row?.success) {
+            return {
+                success: false,
+                newBalance,
+                error: row?.error || 'Credit transaction failed'
+            }
         }
 
         console.log(`[Credits] ✅ Credited ${userId}: +GHS ${amount} → GHS ${newBalance} (${reason})`)
@@ -134,7 +124,7 @@ export async function creditUser(
         return {
             success: true,
             newBalance,
-            transactionId: txn?.id
+            transactionId: row?.transaction_id || undefined
         }
 
     } catch (err: any) {
@@ -162,58 +152,32 @@ export async function debitUser(
         return { success: false, newBalance: 0, error: 'Amount must be positive' }
     }
 
-    const supabase = getSupabase()
-
     try {
-        await ensureCreditRecord(userId)
+        const supabase = getSupabase()
+        const { data, error } = await (supabase as any).rpc('apply_credit_transaction', {
+            p_user_id: userId,
+            p_amount: amount,
+            p_type: 'debit',
+            p_reason: reason,
+            p_reference_id: referenceId || null,
+            p_description: description || `Debit: ${reason}`
+        })
 
-        // Fetch current balance
-        const { data: current } = await supabase
-            .from('user_credits')
-            .select('balance')
-            .eq('user_id', userId)
-            .single()
+        if (error) {
+            console.error('[Credits] Debit RPC failed:', error)
+            const currentBalance = await getUserBalance(userId)
+            return { success: false, newBalance: currentBalance, error: error.message }
+        }
 
-        const currentBalance = current ? parseFloat(current.balance) : 0
+        const row = (Array.isArray(data) ? data[0] : data) as CreditRpcRow | undefined
+        const newBalance = Number(row?.new_balance || 0)
 
-        if (currentBalance < amount) {
+        if (!row?.success) {
             return {
                 success: false,
-                newBalance: currentBalance,
-                error: `Insufficient balance. Have GHS ${currentBalance}, need GHS ${amount}`
+                newBalance,
+                error: row?.error || 'Credit debit failed'
             }
-        }
-
-        const newBalance = Math.round((currentBalance - amount) * 100) / 100
-
-        // Update balance
-        const { error: updateError } = await supabase
-            .from('user_credits')
-            .update({ balance: newBalance })
-            .eq('user_id', userId)
-
-        if (updateError) {
-            console.error('[Credits] Balance debit failed:', updateError)
-            return { success: false, newBalance: currentBalance, error: updateError.message }
-        }
-
-        // Record transaction
-        const { data: txn, error: txnError } = await supabase
-            .from('credit_transactions')
-            .insert({
-                user_id: userId,
-                amount,
-                type: 'debit',
-                reason,
-                reference_id: referenceId || null,
-                description: description || `Debit: ${reason}`,
-                balance_after: newBalance
-            })
-            .select('id')
-            .single()
-
-        if (txnError) {
-            console.error('[Credits] Transaction log failed:', txnError)
         }
 
         console.log(`[Credits] 💸 Debited ${userId}: -GHS ${amount} → GHS ${newBalance} (${reason})`)
@@ -221,7 +185,7 @@ export async function debitUser(
         return {
             success: true,
             newBalance,
-            transactionId: txn?.id
+            transactionId: row?.transaction_id || undefined
         }
 
     } catch (err: any) {

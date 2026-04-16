@@ -33,6 +33,124 @@
       </div>
     </div>
 
+    <section class="bg-white rounded-2xl border border-stone-200 shadow-sm p-6 mb-8">
+      <div class="flex items-center justify-between gap-4 mb-6">
+        <div>
+          <h2 class="text-lg font-bold text-stone-900">Live Evaluation Snapshot</h2>
+          <p class="text-sm text-stone-500">Recent match performance, score bands, and data quality signals.</p>
+        </div>
+        <button @click="fetchEvaluation" class="bg-stone-900 text-white px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-widest">
+          Refresh
+        </button>
+      </div>
+
+      <div v-if="loadingEvaluation" class="text-sm text-stone-400 py-6">Loading evaluation metrics...</div>
+
+      <div v-else class="space-y-6">
+        <div class="grid grid-cols-2 lg:grid-cols-5 gap-4">
+          <div class="stat-card">
+            <div class="text-[10px] font-black uppercase tracking-widest text-stone-400">Matches Analyzed</div>
+            <div class="mt-2 text-3xl font-black text-stone-900">{{ evaluation.overview.matchesAnalyzed }}</div>
+          </div>
+          <div class="stat-card">
+            <div class="text-[10px] font-black uppercase tracking-widest text-stone-400">Average Score</div>
+            <div class="mt-2 text-3xl font-black text-stone-900">{{ evaluation.overview.averageScore }}%</div>
+          </div>
+          <div class="stat-card">
+            <div class="text-[10px] font-black uppercase tracking-widest text-stone-400">Unlock Rate</div>
+            <div class="mt-2 text-3xl font-black text-emerald-600">{{ evaluation.overview.unlockRate }}%</div>
+          </div>
+          <div class="stat-card">
+            <div class="text-[10px] font-black uppercase tracking-widest text-stone-400">Positive Outcome</div>
+            <div class="mt-2 text-3xl font-black text-blue-600">{{ evaluation.overview.positiveOutcomeRate }}%</div>
+          </div>
+          <div class="stat-card">
+            <div class="text-[10px] font-black uppercase tracking-widest text-stone-400">Avg Confidence</div>
+            <div class="mt-2 text-3xl font-black text-purple-600">{{ evaluation.overview.averageConfidence }}%</div>
+          </div>
+        </div>
+
+        <div class="rounded-2xl border border-stone-100 p-5">
+          <div class="flex items-center justify-between gap-3 mb-4">
+            <h3 class="text-xs font-black uppercase tracking-widest text-stone-400">Calibration Guidance</h3>
+            <span class="text-[10px] font-black uppercase tracking-widest text-stone-300">Evidence-led tuning</span>
+          </div>
+          <div v-if="!evaluation.recommendations.length" class="text-sm text-stone-400">
+            Not enough outcome data yet to generate recommendations.
+          </div>
+          <div v-else class="grid grid-cols-1 lg:grid-cols-2 gap-3">
+            <div
+              v-for="item in evaluation.recommendations"
+              :key="item.title"
+              class="rounded-xl border p-4"
+              :class="{
+                'border-red-100 bg-red-50/40': item.priority === 'high',
+                'border-amber-100 bg-amber-50/40': item.priority === 'medium',
+                'border-stone-100 bg-stone-50/40': item.priority === 'low'
+              }"
+            >
+              <div class="flex items-center justify-between gap-3 mb-2">
+                <div class="font-bold text-stone-900 text-sm">{{ item.title }}</div>
+                <span
+                  class="px-2 py-1 rounded-full text-[10px] font-black uppercase tracking-widest"
+                  :class="{
+                    'bg-red-100 text-red-700': item.priority === 'high',
+                    'bg-amber-100 text-amber-700': item.priority === 'medium',
+                    'bg-stone-100 text-stone-600': item.priority === 'low'
+                  }"
+                >
+                  {{ item.priority }}
+                </span>
+              </div>
+              <p class="text-sm text-stone-600 leading-relaxed">{{ item.detail }}</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div class="rounded-2xl border border-stone-100 p-5">
+            <h3 class="text-xs font-black uppercase tracking-widest text-stone-400 mb-4">Score Band Performance</h3>
+            <div class="space-y-3">
+              <div v-for="bucket in evaluation.buckets" :key="bucket.label" class="rounded-xl border border-stone-100 p-4">
+                <div class="flex items-center justify-between mb-2">
+                  <span class="font-bold text-stone-900">{{ bucket.label }}</span>
+                  <span class="text-xs text-stone-500">{{ bucket.total }} matches</span>
+                </div>
+                <div class="grid grid-cols-2 gap-3 text-xs font-bold">
+                  <div class="text-emerald-600">Unlock: {{ bucket.unlockRate }}%</div>
+                  <div class="text-blue-600">Positive: {{ bucket.positiveRate }}%</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="space-y-6">
+            <div class="rounded-2xl border border-stone-100 p-5">
+              <h3 class="text-xs font-black uppercase tracking-widest text-stone-400 mb-4">Top Warning Signals</h3>
+              <div v-if="!evaluation.topWarnings.length" class="text-sm text-stone-400">No warnings in recent matches.</div>
+              <div v-else class="space-y-2">
+                <div v-for="item in evaluation.topWarnings" :key="item.warning" class="flex items-center justify-between gap-3 text-sm">
+                  <span class="text-stone-700">{{ item.warning }}</span>
+                  <span class="px-2 py-1 rounded-full bg-rose-50 text-rose-600 text-xs font-black">{{ item.count }}</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="rounded-2xl border border-stone-100 p-5">
+              <h3 class="text-xs font-black uppercase tracking-widest text-stone-400 mb-4">Missing Data Drag</h3>
+              <div v-if="!Object.keys(evaluation.missingDataCounts).length" class="text-sm text-stone-400">Recent matches have full supporting data.</div>
+              <div v-else class="space-y-2">
+                <div v-for="(count, label) in evaluation.missingDataCounts" :key="label" class="flex items-center justify-between gap-3 text-sm">
+                  <span class="text-stone-700 capitalize">{{ label }}</span>
+                  <span class="px-2 py-1 rounded-full bg-stone-100 text-stone-700 text-xs font-black">{{ count }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
       <!-- Main Rules Area (2/3) -->
       <div class="lg:col-span-2 space-y-8">
@@ -157,9 +275,9 @@
             <div class="mt-8 pt-6 border-t border-stone-800">
                <div class="p-4 bg-stone-800/50 rounded-xl border border-stone-700/50">
                   <p class="text-[10px] font-bold text-stone-400 text-center leading-relaxed">
-                    Base Potential Weight: 100 Points<br/>
+                    Ranking Score: 100 Points<br/>
                     AI Synergy Bonus: +10 Points<br/>
-                    Penalty Max: -100%+ (Absolute Zero)
+                    Confidence Layer: 30-100%
                   </p>
                </div>
             </div>
@@ -170,9 +288,25 @@
 </template>
 
 <script setup lang="ts">
+import { onMounted, ref } from 'vue'
 definePageMeta({
   layout: 'admin',
   middleware: ['admin']
+})
+
+const loadingEvaluation = ref(true)
+const evaluation = ref({
+  overview: {
+    matchesAnalyzed: 0,
+    averageScore: 0,
+    unlockRate: 0,
+    positiveOutcomeRate: 0,
+    averageConfidence: 0
+  },
+  buckets: [] as Array<{ label: string, total: number, unlockRate: number, positiveRate: number }>,
+  topWarnings: [] as Array<{ warning: string, count: number }>,
+  missingDataCounts: {} as Record<string, number>,
+  recommendations: [] as Array<{ title: string, detail: string, priority: 'high' | 'medium' | 'low' }>
 })
 
 const tiers = [
@@ -224,11 +358,11 @@ const weights = [
     category: 'Maturity',
     icon: '⏳',
     max: 10,
-    description: 'Cultural age dynamic preferences.',
+    description: 'Age range compatibility and life-stage proximity.',
     bullets: [
-      'Male Older Dynamic: 8pts',
-      'Ideal Gap (1-5y): +2pts',
-      'Male Younger: -20pt penalty'
+      '0-3 years apart: strongest fit',
+      '4-10 years apart: still healthy',
+      'Outside preferred age ranges becomes an eligibility blocker'
     ]
   },
   {
@@ -271,14 +405,29 @@ const penalties = [
   {
     category: 'Preference Gaps',
     icon: '📏',
-    malus: '15-30',
-    description: 'Deviation from user parameters.',
+    malus: '8-20',
+    description: 'Preference misses are now separated into blockers vs softer risks.',
     bullets: [
-      'Outside Age Range: -30pts',
-      'Age Gap > 10yrs: -15pts'
+      'Outside preferred age range: hard block',
+      'Large age gap: soft risk',
+      'Intent mismatch: ranking penalty, not absolute zero'
     ]
   }
 ]
+
+const fetchEvaluation = async () => {
+  loadingEvaluation.value = true
+  try {
+    const data = await $fetch('/api/admin/matches/evaluation')
+    evaluation.value = data as any
+  } catch (error) {
+    console.error('Failed to fetch evaluation metrics:', error)
+  } finally {
+    loadingEvaluation.value = false
+  }
+}
+
+onMounted(fetchEvaluation)
 </script>
 
 <style scoped>

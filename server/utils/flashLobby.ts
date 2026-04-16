@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
-import { calculateCompatibility } from '~/composables/useCompatibility'
+import { calculateCompatibility } from '~/utils/compatibility'
 import { normalizeGender, normalizeInterest } from '~/server/utils/flashLobbyRules'
 import { notifyFlashLobbyLive } from '~/server/utils/notifications'
 

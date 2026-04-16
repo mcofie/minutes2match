@@ -772,7 +772,7 @@
                   <ul class="space-y-2.5 text-[13px] text-stone-600 dark:text-stone-400 font-medium leading-relaxed">
                      <li class="flex items-start gap-2.5">
                         <span class="w-5 h-5 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center text-[10px] shrink-0 mt-0.5">💚</span>
-                        <span>Match expires and you paid? <strong class="text-stone-900 dark:text-stone-200">Full GHS 15 credit refund</strong> to your card</span>
+                        <span>Match expires and you paid? <strong class="text-stone-900 dark:text-stone-200">Your full unlock amount returns as M2M wallet credit</strong></span>
                      </li>
                      <li class="flex items-start gap-2.5">
                         <span class="w-5 h-5 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center text-[10px] shrink-0 mt-0.5">⚡</span>

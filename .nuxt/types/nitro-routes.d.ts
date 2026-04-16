@@ -24,6 +24,9 @@ declare module "nitropack/types" {
     '/api/admin/flash-lobby/notify': {
       'post': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/admin/flash-lobby/notify.post').default>>>>
     }
+    '/api/admin/matches/evaluation': {
+      'get': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/admin/matches/evaluation.get').default>>>>
+    }
     '/api/admin/notify-incomplete-profiles': {
       'post': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/admin/notify-incomplete-profiles.post').default>>>>
     }
@@ -50,6 +53,18 @@ declare module "nitropack/types" {
     }
     '/api/admin/shots/resend-sms': {
       'post': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/admin/shots/resend-sms.post').default>>>>
+    }
+    '/api/admin/spark-deck/data': {
+      'get': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/admin/spark-deck/data.get').default>>>>
+    }
+    '/api/admin/spark-deck/delete': {
+      'post': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/admin/spark-deck/delete.post').default>>>>
+    }
+    '/api/admin/spark-deck/save': {
+      'post': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/admin/spark-deck/save.post').default>>>>
+    }
+    '/api/admin/spark-deck/toggle': {
+      'post': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/admin/spark-deck/toggle.post').default>>>>
     }
     '/api/admin/users/:id': {
       'delete': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/admin/users/[id].delete').default>>>>

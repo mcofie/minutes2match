@@ -5,11 +5,11 @@ declare global {
   const acceptHMRUpdate: typeof import('../../node_modules/@pinia/nuxt/dist/runtime/composables').acceptHMRUpdate
   const addRouteMiddleware: typeof import('../../node_modules/nuxt/dist/app/composables/router').addRouteMiddleware
   const badges: typeof import('../../composables/useBadges').badges
-  const calculateAge: typeof import('../../composables/useCompatibility').calculateAge
-  const calculateCompatibility: typeof import('../../composables/useCompatibility').calculateCompatibility
+  const calculateAge: typeof import('../../utils/compatibility').calculateAge
+  const calculateCompatibility: typeof import('../../utils/compatibility').calculateCompatibility
   const callOnce: typeof import('../../node_modules/nuxt/dist/app/composables/once').callOnce
   const cancelIdleCallback: typeof import('../../node_modules/nuxt/dist/app/compat/idle-callback').cancelIdleCallback
-  const checkAgeViolation: typeof import('../../composables/useCompatibility').checkAgeViolation
+  const checkAgeViolation: typeof import('../../utils/compatibility').checkAgeViolation
   const clearError: typeof import('../../node_modules/nuxt/dist/app/composables/error').clearError
   const clearNuxtData: typeof import('../../node_modules/nuxt/dist/app/composables/asyncData').clearNuxtData
   const clearNuxtState: typeof import('../../node_modules/nuxt/dist/app/composables/state').clearNuxtState
@@ -33,7 +33,7 @@ declare global {
   const effect: typeof import('vue').effect
   const effectScope: typeof import('vue').effectScope
   const getAppManifest: typeof import('../../node_modules/nuxt/dist/app/composables/manifest').getAppManifest
-  const getCompatibilityTier: typeof import('../../composables/useCompatibility').getCompatibilityTier
+  const getCompatibilityTier: typeof import('../../utils/compatibility').getCompatibilityTier
   const getCurrentInstance: typeof import('vue').getCurrentInstance
   const getCurrentScope: typeof import('vue').getCurrentScope
   const getRandomQuestions: typeof import('../../composables/useShotHints').getRandomQuestions
@@ -42,7 +42,7 @@ declare global {
   const hasInjectionContext: typeof import('vue').hasInjectionContext
   const inject: typeof import('vue').inject
   const injectHead: typeof import('../../node_modules/nuxt/dist/app/composables/head').injectHead
-  const isCompatibleProfession: typeof import('../../composables/useCompatibility').isCompatibleProfession
+  const isCompatibleProfession: typeof import('../../utils/compatibility').isCompatibleProfession
   const isNuxtError: typeof import('../../node_modules/nuxt/dist/app/composables/error').isNuxtError
   const isPrerendered: typeof import('../../node_modules/nuxt/dist/app/composables/payload').isPrerendered
   const isProxy: typeof import('vue').isProxy
@@ -237,9 +237,6 @@ declare global {
   export type { Badge } from '../../composables/useBadges'
   import('../../composables/useBadges')
   // @ts-ignore
-  export type { VibeAnswer, UserProfile, CompatibilityResult } from '../../composables/useCompatibility'
-  import('../../composables/useCompatibility')
-  // @ts-ignore
   export type { ValidationRule, FieldConfig, FieldState } from '../../composables/useFormValidation'
   import('../../composables/useFormValidation')
   // @ts-ignore
@@ -257,6 +254,9 @@ declare global {
   // @ts-ignore
   export type { Toast } from '../../composables/useToast'
   import('../../composables/useToast')
+  // @ts-ignore
+  export type { VibeAnswer, UserProfile, CompatibilitySignalCategory, CompatibilitySignal, CompatibilityResult } from '../../utils/compatibility'
+  import('../../utils/compatibility')
 }
 // for vue template auto import
 import { UnwrapRef } from 'vue'
@@ -266,11 +266,11 @@ declare module 'vue' {
     readonly acceptHMRUpdate: UnwrapRef<typeof import('../../node_modules/@pinia/nuxt/dist/runtime/composables')['acceptHMRUpdate']>
     readonly addRouteMiddleware: UnwrapRef<typeof import('../../node_modules/nuxt/dist/app/composables/router')['addRouteMiddleware']>
     readonly badges: UnwrapRef<typeof import('../../composables/useBadges')['badges']>
-    readonly calculateAge: UnwrapRef<typeof import('../../composables/useCompatibility')['calculateAge']>
-    readonly calculateCompatibility: UnwrapRef<typeof import('../../composables/useCompatibility')['calculateCompatibility']>
+    readonly calculateAge: UnwrapRef<typeof import('../../utils/compatibility')['calculateAge']>
+    readonly calculateCompatibility: UnwrapRef<typeof import('../../utils/compatibility')['calculateCompatibility']>
     readonly callOnce: UnwrapRef<typeof import('../../node_modules/nuxt/dist/app/composables/once')['callOnce']>
     readonly cancelIdleCallback: UnwrapRef<typeof import('../../node_modules/nuxt/dist/app/compat/idle-callback')['cancelIdleCallback']>
-    readonly checkAgeViolation: UnwrapRef<typeof import('../../composables/useCompatibility')['checkAgeViolation']>
+    readonly checkAgeViolation: UnwrapRef<typeof import('../../utils/compatibility')['checkAgeViolation']>
     readonly clearError: UnwrapRef<typeof import('../../node_modules/nuxt/dist/app/composables/error')['clearError']>
     readonly clearNuxtData: UnwrapRef<typeof import('../../node_modules/nuxt/dist/app/composables/asyncData')['clearNuxtData']>
     readonly clearNuxtState: UnwrapRef<typeof import('../../node_modules/nuxt/dist/app/composables/state')['clearNuxtState']>
@@ -294,7 +294,7 @@ declare module 'vue' {
     readonly effect: UnwrapRef<typeof import('vue')['effect']>
     readonly effectScope: UnwrapRef<typeof import('vue')['effectScope']>
     readonly getAppManifest: UnwrapRef<typeof import('../../node_modules/nuxt/dist/app/composables/manifest')['getAppManifest']>
-    readonly getCompatibilityTier: UnwrapRef<typeof import('../../composables/useCompatibility')['getCompatibilityTier']>
+    readonly getCompatibilityTier: UnwrapRef<typeof import('../../utils/compatibility')['getCompatibilityTier']>
     readonly getCurrentInstance: UnwrapRef<typeof import('vue')['getCurrentInstance']>
     readonly getCurrentScope: UnwrapRef<typeof import('vue')['getCurrentScope']>
     readonly getRandomQuestions: UnwrapRef<typeof import('../../composables/useShotHints')['getRandomQuestions']>
@@ -303,7 +303,7 @@ declare module 'vue' {
     readonly hasInjectionContext: UnwrapRef<typeof import('vue')['hasInjectionContext']>
     readonly inject: UnwrapRef<typeof import('vue')['inject']>
     readonly injectHead: UnwrapRef<typeof import('../../node_modules/nuxt/dist/app/composables/head')['injectHead']>
-    readonly isCompatibleProfession: UnwrapRef<typeof import('../../composables/useCompatibility')['isCompatibleProfession']>
+    readonly isCompatibleProfession: UnwrapRef<typeof import('../../utils/compatibility')['isCompatibleProfession']>
     readonly isNuxtError: UnwrapRef<typeof import('../../node_modules/nuxt/dist/app/composables/error')['isNuxtError']>
     readonly isPrerendered: UnwrapRef<typeof import('../../node_modules/nuxt/dist/app/composables/payload')['isPrerendered']>
     readonly isProxy: UnwrapRef<typeof import('vue')['isProxy']>

@@ -14,8 +14,6 @@ import { creditUser } from '~/server/utils/credits'
 import { notifyUser } from '~/server/utils/notify'
 import { notifyDiscord, DiscordColors } from '~/server/utils/discord'
 
-const CREDIT_ELIGIBLE_PRICE = 15 // Only GHS 15 tier gets credits
-
 export default defineEventHandler(async (event) => {
     const config = useRuntimeConfig()
 
@@ -91,7 +89,7 @@ export default defineEventHandler(async (event) => {
             // Get actual amounts paid (handle potential missing columns gracefully)
             const user1AmountPaid = parseFloat(match.user_1_amount_paid) || 0
             const user2AmountPaid = parseFloat(match.user_2_amount_paid) || 0
-            const unlockPrice = parseFloat(match.unlock_price) || 15
+            let refundCreditedAt: string | null = null
 
             // Credit the paying user if only one person paid (partial_payment)
             // Only apply if they actually paid a positive amount (Free matches don't get refunds)
@@ -123,6 +121,7 @@ export default defineEventHandler(async (event) => {
                     if (creditResult.success) {
                         creditedCount++
                         totalRefunded += refundAmount
+                        refundCreditedAt = new Date().toISOString()
                         console.log(`[Cron:ExpireMatches] ✅ Credited ${payingUserName || payingUserId}: GHS ${refundAmount} → Balance: GHS ${creditResult.newBalance}`)
 
                         // Notify the paying user about their credit
@@ -143,7 +142,10 @@ export default defineEventHandler(async (event) => {
             // 2. Set match status to 'expired'
             const { error: updateError } = await supabase
                 .from('matches')
-                .update({ status: 'expired' })
+                .update({
+                    status: 'expired',
+                    ...(refundCreditedAt ? { refund_credited_at: refundCreditedAt } : {})
+                })
                 .eq('id', match.id)
 
             if (updateError) {

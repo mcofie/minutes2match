@@ -7,7 +7,8 @@
     "dev": "nuxt dev",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
-    "test:flash-lobby": "node --test tests/flash-lobby-rules.test.mjs"
+    "test:flash-lobby": "node --test tests/flash-lobby-rules.test.mjs",
+    "test:matching": "node --test tests/compatibility.test.mjs"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",

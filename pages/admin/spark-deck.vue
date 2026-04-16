@@ -20,14 +20,6 @@
       Loading polls...
     </div>
 
-    <!-- Empty State -->
-    <div v-else-if="polls.length === 0" class="text-center py-20 bg-white rounded-3xl border border-stone-100 shadow-sm">
-      <div class="text-4xl mb-4">🎴</div>
-      <h3 class="text-xl font-bold text-stone-900 mb-2">No polls found</h3>
-      <p class="text-stone-500 mb-6">Create your first poll to sync physical Spark decks.</p>
-      <button @click="openCreateModal" class="text-black font-semibold hover:underline">Create Poll</button>
-    </div>
-
     <!-- Content -->
     <div v-else class="space-y-10">
       
@@ -50,6 +42,68 @@
             {{ polls.reduce((acc, p) => acc + (p.option_a_count || 0) + (p.option_b_count || 0), 0).toLocaleString() }}
           </span>
         </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div class="bg-white p-5 rounded-3xl border border-stone-200 shadow-sm">
+          <span class="text-stone-400 text-[10px] font-black uppercase tracking-widest">Deck Orders</span>
+          <div class="mt-2 text-3xl font-black text-stone-900">{{ orderSummary.total }}</div>
+        </div>
+        <div class="bg-emerald-50 p-5 rounded-3xl border border-emerald-100 shadow-sm">
+          <span class="text-emerald-600/70 text-[10px] font-black uppercase tracking-widest">Paid Orders</span>
+          <div class="mt-2 text-3xl font-black text-emerald-600">{{ orderSummary.success }}</div>
+        </div>
+        <div class="bg-amber-50 p-5 rounded-3xl border border-amber-100 shadow-sm">
+          <span class="text-amber-700/70 text-[10px] font-black uppercase tracking-widest">Pending Orders</span>
+          <div class="mt-2 text-3xl font-black text-amber-600">{{ orderSummary.pending }}</div>
+        </div>
+        <div class="bg-black p-5 rounded-3xl border border-black shadow-sm">
+          <span class="text-stone-400 text-[10px] font-black uppercase tracking-widest">Deck Revenue</span>
+          <div class="mt-2 text-3xl font-black text-white">GH₵ {{ orderSummary.revenue.toFixed(2) }}</div>
+        </div>
+      </div>
+
+      <section class="bg-white rounded-3xl border border-stone-200 shadow-sm overflow-hidden">
+        <div class="px-6 py-5 border-b border-stone-100 flex items-start justify-between gap-4">
+          <div>
+            <h2 class="text-lg font-bold text-stone-900">Recent Spark Deck Orders</h2>
+            <p class="text-sm text-stone-500 mt-1">Recent purchases waiting for fulfillment or confirmation.</p>
+          </div>
+          <span class="text-[10px] font-black uppercase tracking-widest text-stone-400">{{ orders.length }} recent</span>
+        </div>
+
+        <div v-if="orders.length === 0" class="px-6 py-12 text-center text-stone-400">
+          No Spark Deck orders yet.
+        </div>
+
+        <div v-else class="divide-y divide-stone-100">
+          <div v-for="order in orders" :key="order.id" class="px-6 py-4 flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+            <div class="min-w-0">
+              <div class="flex items-center gap-2 flex-wrap">
+                <span class="text-sm font-bold text-stone-900">{{ order.shipping_name || 'Unknown recipient' }}</span>
+                <span class="px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-widest border"
+                  :class="order.status === 'success' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : order.status === 'pending' ? 'bg-amber-50 text-amber-700 border-amber-200' : 'bg-rose-50 text-rose-700 border-rose-200'">
+                  {{ order.status }}
+                </span>
+              </div>
+              <p class="text-sm text-stone-600 mt-1">{{ order.shipping_phone || 'No phone on file' }}</p>
+              <p class="text-sm text-stone-500 mt-1">{{ order.shipping_address || 'No delivery address captured' }}</p>
+            </div>
+
+            <div class="md:text-right shrink-0">
+              <div class="text-sm font-black text-stone-900">GH₵ {{ Number(order.amount || 0).toFixed(2) }}</div>
+              <div class="text-[11px] font-bold uppercase tracking-widest text-stone-400 mt-1">{{ formatDate(order.created_at) }}</div>
+              <div class="text-[11px] font-mono text-stone-400 mt-1">{{ order.provider_ref }}</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <div v-if="polls.length === 0" class="text-center py-20 bg-white rounded-3xl border border-stone-100 shadow-sm">
+        <div class="text-4xl mb-4">🎴</div>
+        <h3 class="text-xl font-bold text-stone-900 mb-2">No polls found</h3>
+        <p class="text-stone-500 mb-6">Create your first poll to sync physical Spark decks.</p>
+        <button @click="openCreateModal" class="text-black font-semibold hover:underline">Create Poll</button>
       </div>
 
       <section v-for="level in ['spark', 'fire', 'inferno', 'wildcard']" :key="level">
@@ -248,6 +302,10 @@
                       <p class="text-xs text-stone-400 mt-1">Leave blank to use the default Tech-Noir playlist for this level.</p>
                     </div>
 
+                    <p v-if="form.level_id === 'wildcard'" class="text-xs text-stone-400">
+                      Wildcards now follow the same country and season targeting rules as the main deck.
+                    </p>
+
                     <label class="flex items-center gap-3 cursor-pointer select-none mt-4 py-2" :class="{'pt-4 border-t border-stone-100': form.level_id === 'wildcard'}">
                        <input type="checkbox" v-model="form.is_active" class="w-5 h-5 rounded text-black focus:ring-black border-stone-300" />
                        <span v-if="form.level_id === 'wildcard'" class="font-medium text-stone-900">Include in Active Wildcard Pool</span>
@@ -279,6 +337,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
+import { useToast } from '~/composables/useToast'
 
 useHead({ title: 'Spark Deck Manager' })
 
@@ -288,11 +347,33 @@ definePageMeta({
 })
 
 const supabase = useSupabaseClient()
+const toast = useToast()
 const loading = ref(true)
 const saving = ref(false)
 const polls = ref<any[]>([])
+const orders = ref<any[]>([])
 const showModal = ref(false)
 const isEditing = ref(false)
+const orderSummary = ref({
+  total: 0,
+  revenue: 0,
+  pending: 0,
+  success: 0,
+  failed: 0
+})
+
+type SparkDeckDashboardResponse = {
+  success: boolean
+  polls: any[]
+  orders: any[]
+  orderSummary: {
+    total: number
+    revenue: number
+    pending: number
+    success: number
+    failed: number
+  }
+}
 
 const form = ref({
   id: '',
@@ -306,13 +387,19 @@ const form = ref({
   is_active: false
 })
 
-const fetchPolls = async () => {
+const fetchDashboard = async () => {
   loading.value = true
-  const { data, error } = await supabase.schema('m2m').from('poll_questions').select('*').order('created_at', { ascending: false })
-  if (!error && data) {
-    polls.value = data
+  try {
+    const response = await $fetch<SparkDeckDashboardResponse>('/api/admin/spark-deck/data')
+    polls.value = response.polls || []
+    orders.value = response.orders || []
+    orderSummary.value = response.orderSummary || orderSummary.value
+  } catch (error: any) {
+    console.error('Failed to fetch Spark Deck dashboard:', error)
+    toast.error('Load Failed', error?.data?.statusMessage || error?.message || 'Could not load Spark Deck manager data.')
+  } finally {
+    loading.value = false
   }
-  loading.value = false
 }
 
 const groupedPolls = computed(() => {
@@ -323,7 +410,7 @@ const groupedPolls = computed(() => {
   return groups
 })
 
-onMounted(fetchPolls)
+onMounted(fetchDashboard)
 
 const getPercentage = (count1: number, count2: number) => {
   const safeCount1 = count1 || 0
@@ -368,62 +455,36 @@ const closeModal = () => showModal.value = false
 const savePoll = async () => {
   saving.value = true
   try {
-     const payload = {
-        level_id: form.value.level_id,
-        season: form.value.season || 'Standard',
-        country: form.value.country || 'Global',
-        question: form.value.question,
-        option_a_label: form.value.option_a_label,
-        option_b_label: form.value.option_b_label,
-        spotify_uri: form.value.spotify_uri || null,
-        is_active: form.value.is_active
-     }
+     await $fetch('/api/admin/spark-deck/save', {
+       method: 'POST',
+       body: { ...form.value }
+     })
 
-     if (form.value.is_active) {
-         // Auto-disable others in the same level/country/season logically
-         await supabase.schema('m2m').from('poll_questions').update({ is_active: false } as any)
-            .eq('level_id', form.value.level_id)
-            .eq('country', form.value.country || 'Global')
-            .eq('season', form.value.season || 'Standard')
-     }
-
-     if (isEditing.value && form.value.id) {
-         await supabase.schema('m2m').from('poll_questions').update(payload as any).eq('id', form.value.id)
-     } else {
-         await supabase.schema('m2m').from('poll_questions').insert(payload as any)
-         
-         // Notify Discord of new content!
-         await $fetch('/api/admin/notify-spark', {
-            method: 'POST',
-            body: { action: 'created', poll: form.value }
-         }).catch(() => {})
-     }
-     
-     await fetchPolls()
+     await fetchDashboard()
      closeModal()
+     toast.success(isEditing.value ? 'Poll Updated' : 'Poll Created', isEditing.value ? 'Spark Deck poll updated successfully.' : 'New Spark Deck poll created successfully.')
   } catch (err) {
      console.error('Failed saving', err)
+     const error = err as any
+     toast.error('Save Failed', error?.data?.statusMessage || error?.message || 'Could not save this poll.')
+  } finally {
+     saving.value = false
   }
-  saving.value = false
 }
 
 const toggleActive = async (poll: any) => {
-   const newStatus = !poll.is_active
-   if (newStatus) {
-      // Turn off other active polls for this exact segment
-      await supabase.schema('m2m').from('poll_questions').update({ is_active: false } as any)
-         .eq('level_id', poll.level_id)
-         .eq('country', poll.country || 'Global')
-         .eq('season', poll.season || 'Standard')
-         
-      // Notify Discord that a new poll went Live
-      await $fetch('/api/admin/notify-spark', {
-         method: 'POST',
-         body: { action: 'live', poll }
-      }).catch(() => {})
+   try {
+      const newStatus = !poll.is_active
+      await $fetch('/api/admin/spark-deck/toggle', {
+        method: 'POST',
+        body: { pollId: poll.id }
+      })
+      await fetchDashboard()
+      toast.info('Status Updated', `${poll.question} is now ${newStatus ? 'live' : 'inactive'}.`)
+   } catch (err: any) {
+      console.error('Failed to toggle poll:', err)
+      toast.error('Update Failed', err?.data?.statusMessage || err?.message || 'Could not update this poll.')
    }
-   await supabase.schema('m2m').from('poll_questions').update({ is_active: newStatus } as any).eq('id', poll.id)
-   await fetchPolls()
 }
 
 const triggerConfetti = async (poll: any) => {
@@ -444,13 +505,33 @@ const triggerConfetti = async (poll: any) => {
         }).catch(() => {})
         
         setTimeout(() => { supabase.removeChannel(channel) }, 1000)
+        toast.success('Confetti Sent', 'Live players on this poll just got the blast.')
      }
    })
 }
 
 const confirmDelete = async (poll: any) => {
   if (!confirm(`Are you sure you want to completely delete this poll?`)) return
-  await supabase.schema('m2m').from('poll_questions').delete().eq('id', poll.id)
-  await fetchPolls()
+  try {
+    await $fetch('/api/admin/spark-deck/delete', {
+      method: 'POST',
+      body: { pollId: poll.id }
+    })
+    await fetchDashboard()
+    toast.success('Poll Deleted', 'Spark Deck poll removed successfully.')
+  } catch (err: any) {
+    console.error('Failed to delete poll:', err)
+    toast.error('Delete Failed', err?.data?.statusMessage || err?.message || 'Could not delete this poll.')
+  }
+}
+
+const formatDate = (value: string) => {
+  if (!value) return 'Unknown time'
+  return new Date(value).toLocaleString('en-GB', {
+    day: 'numeric',
+    month: 'short',
+    hour: '2-digit',
+    minute: '2-digit'
+  })
 }
 </script>
