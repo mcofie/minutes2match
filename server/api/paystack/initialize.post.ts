@@ -255,6 +255,24 @@ export default defineEventHandler(async (event) => {
             }
         }
 
+        // Fallback: resolve userId from phone number embedded in synthetic email (e.g. 233XXXXXXXXX@m2match.com)
+        if (!targetUserId && body.email?.includes('@m2match.com')) {
+            const phonePart = body.email.split('@')[0]?.replace(/\D/g, '')
+            if (phonePart && phonePart.length >= 10) {
+                const { data: profileByPhone } = await supabase
+                    .from('profiles')
+                    .select('id')
+                    .eq('phone', `+${phonePart}`)
+                    .maybeSingle()
+                if (profileByPhone?.id) {
+                    targetUserId = profileByPhone.id
+                    console.log('[Paystack] Resolved userId from phone in email:', targetUserId)
+                    if (!body.metadata) body.metadata = { purpose: 'match_unlock' }
+                    body.metadata.userId = targetUserId
+                }
+            }
+        }
+
         const { error: insertError } = await supabase
             .from('payments')
             .insert({

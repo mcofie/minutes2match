@@ -649,6 +649,27 @@ const fetchPayments = async () => {
     
     if (error) throw error
 
+    // Resolve missing user profiles from payment metadata
+    const orphanPayments = (data || []).filter((p: any) => !p.user && p.metadata?.userId)
+    if (orphanPayments.length > 0) {
+      const orphanUserIds = [...new Set(orphanPayments.map((p: any) => p.metadata.userId))]
+      const { data: resolvedProfiles } = await supabase
+        .from('profiles')
+        .select('id, display_name, phone')
+        .in('id', orphanUserIds)
+      
+      const profileMap = new Map((resolvedProfiles || []).map((p: any) => [p.id, p]))
+      
+      for (const payment of data || []) {
+        if (!payment.user && payment.metadata?.userId) {
+          const resolved = profileMap.get(payment.metadata.userId)
+          if (resolved) {
+            payment.user = resolved
+          }
+        }
+      }
+    }
+
     payments.value = data || []
     totalPayments.value = count || 0
   } catch (e) {

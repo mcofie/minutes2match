@@ -1,6 +1,5 @@
 import { serverSupabaseClient, serverSupabaseServiceRole, serverSupabaseUser } from '#supabase/server'
 import { calculateFlashLobbyMatchScore, createFlashLobbyMatch, processFlashLobbyLifecycle } from '~/server/utils/flashLobby'
-import { notifyFlashLobbySuperConnectStarted } from '~/server/utils/discord'
 import { createInAppNotification } from '~/server/utils/notifications'
 import { canPerformPostLobbyAction } from '~/server/utils/flashLobbyRules'
 
@@ -111,29 +110,88 @@ export default defineEventHandler(async (event) => {
       targetId: intent.receiver_id
     })
 
-    const match = await createFlashLobbyMatch({
-      initiatorId: intent.sender_id,
-      targetId: intent.receiver_id,
-      lobbyId: intent.lobby_id,
-      matchScore,
-      unlockPrice: 15,
-      status: 'pending_payment',
-      reasons: [
-        'Flash Lobby Spark ⚡',
-        `${senderProfile?.display_name || 'Someone'}: ${intent.message}`
-      ]
-    })
-
-    await client
+    // Check if the receiver has an active subscription
+    const { data: subscription } = await client
       .schema('m2m')
-      .from('flash_lobby_intents')
-      .update({
-        status: 'converted_to_match',
-        match_id: match.id
-      })
-      .eq('id', intent.id)
+      .from('subscriptions')
+      .select('status, end_date')
+      .eq('user_id', userId)
+      .eq('status', 'active')
+      .gt('end_date', new Date().toISOString())
+      .maybeSingle()
 
-    return { success: true, matchId: match.id, redirectTo: `/payment/match/${match.id}?unlock_both=1` }
+    const isSubscribed = !!subscription
+
+    if (isSubscribed) {
+      // Subscriber: Fully unlock match for free
+      const match = await createFlashLobbyMatch({
+        initiatorId: intent.sender_id,
+        targetId: intent.receiver_id,
+        lobbyId: intent.lobby_id,
+        matchScore,
+        unlockPrice: 0,
+        status: 'unlocked',
+        fullyUnlocked: true,
+        reasons: [
+          'Flash Lobby Spark ⚡ (Subscriber)',
+          `${senderProfile?.display_name || 'Someone'}: ${intent.message}`
+        ]
+      })
+
+      await client
+        .schema('m2m')
+        .from('flash_lobby_intents')
+        .update({
+          status: 'mutual',
+          match_id: match.id,
+          mutual_at: new Date().toISOString()
+        })
+        .eq('id', intent.id)
+
+      // Notify both users that the match is fully unlocked
+      const { notifyFlashLobbyMutualUnlocked } = await import('~/server/utils/notifications')
+      await notifyFlashLobbyMutualUnlocked(client as any, {
+        userIds: [intent.sender_id, intent.receiver_id],
+        userNames: [senderProfile?.display_name || 'Someone', receiverProfile?.display_name || 'Someone'],
+        matchId: match.id
+      })
+
+      // Discord notification
+      const { notifyMatchUnlocked } = await import('~/server/utils/discord')
+      await notifyMatchUnlocked({
+        user1Name: senderProfile?.display_name || 'Someone',
+        user2Name: receiverProfile?.display_name || 'Someone',
+        matchId: match.id,
+        fullyUnlocked: true
+      })
+
+      return { success: true, mutual: true, matchId: match.id }
+    } else {
+      // Non-subscriber: Create pending_payment match at GHS 15
+      const match = await createFlashLobbyMatch({
+        initiatorId: intent.sender_id,
+        targetId: intent.receiver_id,
+        lobbyId: intent.lobby_id,
+        matchScore,
+        unlockPrice: 15,
+        status: 'pending_payment',
+        reasons: [
+          'Flash Lobby Spark ⚡',
+          `${senderProfile?.display_name || 'Someone'}: ${intent.message}`
+        ]
+      })
+
+      await client
+        .schema('m2m')
+        .from('flash_lobby_intents')
+        .update({
+          status: 'converted_to_match',
+          match_id: match.id
+        })
+        .eq('id', intent.id)
+
+      return { success: true, matchId: match.id, redirectTo: `/payment/match/${match.id}?unlock_both=1` }
+    }
   }
 
   if (action === 'super_connect') {
@@ -142,37 +200,99 @@ export default defineEventHandler(async (event) => {
       targetId: intent.receiver_id
     })
 
-    const match = await createFlashLobbyMatch({
-      initiatorId: intent.sender_id,
-      targetId: intent.receiver_id,
-      lobbyId: intent.lobby_id,
-      matchScore,
-      unlockPrice: 30,
-      status: 'pending_payment',
-      reasons: [
-        'Flash Lobby Super Connect ⚡',
-        `${senderProfile?.display_name || 'Someone'}: ${intent.message}`
-      ]
-    })
-
-    await client
+    // Check if the sender has an active subscription
+    const { data: subscription } = await client
       .schema('m2m')
-      .from('flash_lobby_intents')
-      .update({
-        is_super_connect: true,
-        status: 'converted_to_match',
-        match_id: match.id
+      .from('subscriptions')
+      .select('status, end_date')
+      .eq('user_id', userId)
+      .eq('status', 'active')
+      .gt('end_date', new Date().toISOString())
+      .maybeSingle()
+
+    const isSubscribed = !!subscription
+
+    if (isSubscribed) {
+      // Subscriber: Fully unlock match for free
+      const match = await createFlashLobbyMatch({
+        initiatorId: intent.sender_id,
+        targetId: intent.receiver_id,
+        lobbyId: intent.lobby_id,
+        matchScore,
+        unlockPrice: 0,
+        status: 'unlocked',
+        fullyUnlocked: true,
+        reasons: [
+          'Flash Lobby Super Connect ⚡ (Subscriber)',
+          `${senderProfile?.display_name || 'Someone'}: ${intent.message}`
+        ]
       })
-      .eq('id', intent.id)
 
-    await notifyFlashLobbySuperConnectStarted({
-      senderName: senderProfile?.display_name || 'Someone',
-      receiverName: receiverProfile?.display_name || 'Someone',
-      lobbyName: intent.lobby?.title || 'Flash Lobby',
-      matchId: match.id
-    })
+      await client
+        .schema('m2m')
+        .from('flash_lobby_intents')
+        .update({
+          is_super_connect: true,
+          status: 'mutual',
+          match_id: match.id,
+          mutual_at: new Date().toISOString()
+        })
+        .eq('id', intent.id)
 
-    return { success: true, matchId: match.id, redirectTo: `/payment/match/${match.id}?super_connect=1` }
+      // Notify both users that the match is fully unlocked
+      const { notifyFlashLobbyMutualUnlocked } = await import('~/server/utils/notifications')
+      await notifyFlashLobbyMutualUnlocked(client as any, {
+        userIds: [intent.sender_id, intent.receiver_id],
+        userNames: [senderProfile?.display_name || 'Someone', receiverProfile?.display_name || 'Someone'],
+        matchId: match.id
+      })
+
+      // Discord: Super Connect completed (fully unlocked via subscription)
+      const { notifyFlashLobbySuperConnectCompleted } = await import('~/server/utils/discord')
+      await notifyFlashLobbySuperConnectCompleted({
+        senderName: senderProfile?.display_name || 'Someone',
+        receiverName: receiverProfile?.display_name || 'Someone',
+        lobbyName: intent.lobby?.title || 'Flash Lobby',
+        matchId: match.id
+      })
+
+      return { success: true, mutual: true, matchId: match.id }
+    } else {
+      // Non-subscriber: Create pending_payment match at GHS 25
+      const match = await createFlashLobbyMatch({
+        initiatorId: intent.sender_id,
+        targetId: intent.receiver_id,
+        lobbyId: intent.lobby_id,
+        matchScore,
+        unlockPrice: 25,
+        status: 'pending_payment',
+        reasons: [
+          'Flash Lobby Super Connect ⚡',
+          `${senderProfile?.display_name || 'Someone'}: ${intent.message}`
+        ]
+      })
+
+      await client
+        .schema('m2m')
+        .from('flash_lobby_intents')
+        .update({
+          is_super_connect: true,
+          status: 'converted_to_match',
+          match_id: match.id
+        })
+        .eq('id', intent.id)
+
+      // Discord: Super Connect initiated (pending payment)
+      const { notifyFlashLobbySuperConnectStarted } = await import('~/server/utils/discord')
+      await notifyFlashLobbySuperConnectStarted({
+        senderName: senderProfile?.display_name || 'Someone',
+        receiverName: receiverProfile?.display_name || 'Someone',
+        lobbyName: intent.lobby?.title || 'Flash Lobby',
+        matchId: match.id
+      })
+
+      return { success: true, matchId: match.id, redirectTo: `/payment/match/${match.id}?super_connect=1` }
+    }
   }
 
   if (action === 'decline') {
