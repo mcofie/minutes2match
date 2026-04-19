@@ -34,6 +34,7 @@ export default defineEventHandler(async (event) => {
 
     try {
         // Verify against Supabase m2m.otp_codes table
+        // Use maybeSingle to gracefully handle 0 or 1 result (no throw on 0)
         const { data: otpData, error: otpError } = await supabaseAdmin
             .schema('m2m')
             .from('otp_codes')
@@ -42,7 +43,7 @@ export default defineEventHandler(async (event) => {
             .eq('code', code)
             .eq('used', false)
             .gt('expires_at', new Date().toISOString())
-            .single()
+            .maybeSingle()
 
         if (otpError || !otpData) {
             console.error(`[OTP] Verification failed for ${otpId}:`, otpError?.message)
@@ -52,12 +53,12 @@ export default defineEventHandler(async (event) => {
             }
         }
 
-        // Mark OTP as used
+        // Mark ALL OTPs for this phone as used (cleanup)
         await supabaseAdmin
             .schema('m2m')
             .from('otp_codes')
             .update({ used: true })
-            .eq('id', otpId)
+            .eq('phone', otpData.phone)
 
         console.log(`[OTP] Verified successfully for ${otpId}`)
         return {

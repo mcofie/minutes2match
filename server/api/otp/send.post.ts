@@ -55,27 +55,37 @@ export default defineEventHandler(async (event) => {
     const message = `Your Minutes 2 Match verification code is: ${code}. Expires in 5 minutes.`
 
     try {
-        // Upsert the OTP (replaces existing one for this phone since phone is UNIQUE)
-        const { data: record, error: upsertError } = await supabaseAdmin
+        // Clean up old expired/used codes for this phone (housekeeping)
+        await supabaseAdmin
             .schema('m2m')
             .from('otp_codes')
-            .upsert({
+            .delete()
+            .eq('phone', normalizedPhone)
+            .or(`used.eq.true,expires_at.lt.${new Date().toISOString()}`)
+
+        // Insert a NEW OTP row (don't upsert/overwrite!)
+        // This allows multiple valid codes to coexist briefly,
+        // so if auto-failover sends a backup code, the original remains valid too.
+        const { data: record, error: insertError } = await supabaseAdmin
+            .schema('m2m')
+            .from('otp_codes')
+            .insert({
                 phone: normalizedPhone,
                 code,
                 expires_at: expiresAt.toISOString(),
                 used: false
-            }, { onConflict: 'phone' })
+            })
             .select('id')
             .single()
 
-        if (upsertError) {
+        if (insertError) {
             console.error('[OTP] Failed to store OTP in Supabase:', {
-                message: upsertError.message,
-                details: upsertError.details,
-                hint: upsertError.hint,
-                code: upsertError.code
+                message: insertError.message,
+                details: insertError.details,
+                hint: insertError.hint,
+                code: insertError.code
             })
-            throw new Error(`Failed to store verification code: ${upsertError.message}`)
+            throw new Error(`Failed to store verification code: ${insertError.message}`)
         }
 
         otpRecord = record

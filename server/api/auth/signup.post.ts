@@ -68,27 +68,49 @@ export default defineEventHandler(async (event) => {
     let userId: string
 
     try {
-        // 1. Verify OTP server-side before creating or mutating auth users
-        const { data: otpRecord, error: otpError } = await supabaseAdmin
+        // 1. Verify OTP: Accept ANY valid, unused, unexpired code for this phone.
+        // This handles the race condition where auto-failover sends a backup code,
+        // but the user enters the code from the first SMS.
+        let otpQuery = supabaseAdmin
             .schema('m2m')
             .from('otp_codes')
             .select('id')
-            .eq('id', otpId)
             .eq('phone', normalizedPhone)
             .eq('code', code)
             .eq('used', false)
             .gt('expires_at', new Date().toISOString())
-            .single()
 
-        if (otpError || !otpRecord) {
+        if (otpId) {
+            otpQuery = otpQuery.eq('id', otpId)
+        }
+
+        const { data: otpRecord, error: otpError } = await otpQuery.maybeSingle()
+
+        // If not found by otpId, try without otpId constraint (fallback code scenario)
+        let validOtp = otpRecord
+        if (!validOtp && otpId) {
+            const { data: fallbackOtp } = await supabaseAdmin
+                .schema('m2m')
+                .from('otp_codes')
+                .select('id')
+                .eq('phone', normalizedPhone)
+                .eq('code', code)
+                .eq('used', false)
+                .gt('expires_at', new Date().toISOString())
+                .maybeSingle()
+            validOtp = fallbackOtp
+        }
+
+        if (!validOtp) {
             throw createError({ statusCode: 401, message: 'Invalid or expired verification code' })
         }
 
+        // Mark ALL OTP codes for this phone as used (cleanup)
         const { error: markOtpUsedError } = await supabaseAdmin
             .schema('m2m')
             .from('otp_codes')
             .update({ used: true })
-            .eq('id', otpRecord.id)
+            .eq('phone', normalizedPhone)
 
         if (markOtpUsedError) {
             throw createError({ statusCode: 500, message: 'Failed to finalize verification' })

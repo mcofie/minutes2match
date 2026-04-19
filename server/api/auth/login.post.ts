@@ -30,7 +30,9 @@ export default defineEventHandler(async (event) => {
     )
 
     try {
-        // 1. Verify OTP via Supabase and bind it to the phone number being used
+        // 1. Verify OTP: Accept ANY valid, unused, unexpired code for this phone.
+        // This handles the race condition where auto-failover sends a backup code,
+        // but the user enters the code from the first SMS.
         const query = supabaseAdmin
             .schema('m2m')
             .from('otp_codes')
@@ -44,22 +46,37 @@ export default defineEventHandler(async (event) => {
             query.eq('id', otpId)
         }
 
-        const { data: otpData, error: otpError } = await query.single()
+        const { data: otpData, error: otpError } = await query.maybeSingle()
 
-        if (otpError || !otpData) {
-            console.error('[Login] OTP verification failed:', otpError?.message)
+        // If not found by otpId, try without otpId constraint (fallback code scenario)
+        let validOtp = otpData
+        if (!validOtp && otpId) {
+            const { data: fallbackOtp } = await supabaseAdmin
+                .schema('m2m')
+                .from('otp_codes')
+                .select('*')
+                .eq('phone', normalizedPhone)
+                .eq('code', code)
+                .eq('used', false)
+                .gt('expires_at', new Date().toISOString())
+                .maybeSingle()
+            validOtp = fallbackOtp
+        }
+
+        if (!validOtp) {
+            console.error('[Login] OTP verification failed:', otpError?.message || 'No matching code')
             throw createError({
                 statusCode: 401,
                 statusMessage: 'Invalid or expired code'
             })
         }
 
-        // Mark OTP as used
+        // Mark ALL OTP codes for this phone as used (cleanup)
         await supabaseAdmin
             .schema('m2m')
             .from('otp_codes')
             .update({ used: true })
-            .eq('id', otpData.id)
+            .eq('phone', normalizedPhone)
 
         // 3. Find profile by phone (fetch key fields to check vibe check completion)
         const { data: profile, error: profileError } = await supabaseAdmin

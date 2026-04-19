@@ -787,7 +787,7 @@ const handleSendOtp = async () => {
 
     // Autonomous UI Failover Strategy
     fallbackTriggered.value = false
-    fallbackTimer.value = 45
+    fallbackTimer.value = 60
     if (fallbackInterval) clearInterval(fallbackInterval)
     
     fallbackInterval = setInterval(() => {
@@ -799,7 +799,7 @@ const handleSendOtp = async () => {
         if (currentStep.value === 10 && otpSent.value && !verifyingOtp.value && !isCreatingProfile.value) {
           fallbackTriggered.value = true
           toast.info('Network Warning', 'Network seems slow. Sending a backup verification code now...')
-          console.log('[Vibe Check Auto-Failover] Firing Zend backup after 45s delay')
+          console.log('[Vibe Check Auto-Failover] Firing Zend backup after 60s delay')
           // Silently trigger the backup SMS
           sendOTP(fullPhone.value, 'zend')
         }

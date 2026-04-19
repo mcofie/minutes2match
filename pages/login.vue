@@ -435,7 +435,7 @@ const sendOtp = async (provider?: 'hubtel' | 'zend') => {
     // Autonomous UI Failover Strategy (45s visual countdown)
     if (!provider) { // Only start countdown on primary attempt
       fallbackTriggered.value = false
-      fallbackTimer.value = 45
+      fallbackTimer.value = 60
       if (fallbackInterval) clearInterval(fallbackInterval)
       
       fallbackInterval = setInterval(() => {
@@ -446,7 +446,7 @@ const sendOtp = async (provider?: 'hubtel' | 'zend') => {
           if (otpSent.value && !verifying.value && !isLoggingIn.value) {
             fallbackTriggered.value = true
             toast.info('Network Warning', 'Network seems slow. Sending a backup verification code now...')
-            console.log('[Login Auto-Failover] Firing Zend backup after 45s delay')
+            console.log('[Login Auto-Failover] Firing Zend backup after 60s delay')
             // Silently trigger the backup SMS
             sendOtp('zend')
           }
