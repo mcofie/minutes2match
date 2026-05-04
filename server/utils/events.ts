@@ -63,9 +63,13 @@ export async function resolveEventUserId(event: H3Event, body?: Record<string, a
   }
 
   if (!userId && process.env.NODE_ENV !== 'production') {
+    const headers = getHeaders(event)
+    const headerUserId = headers['x-user-id'] || headers['X-User-Id']
+    const queryUserId = getQuery(event).userId
     const debugUserId = body?.userId
-    if (debugUserId && debugUserId !== 'undefined') {
-      userId = String(debugUserId)
+    const fallbackUserId = headerUserId || queryUserId || debugUserId
+    if (fallbackUserId && fallbackUserId !== 'undefined') {
+      userId = String(fallbackUserId)
       console.warn('[Events] USER RECOVERED VIA INSECURE DEBUG FALLBACK:', userId)
     }
   }
@@ -141,5 +145,161 @@ export async function getEventAvailabilitySnapshot(client: EventClient, options:
     femaleReserved,
     maleWaitlisted,
     femaleWaitlisted
+  }
+}
+
+export async function processEventBookingLifecycle(client: EventClient, options: {
+  eventId?: string | null
+} = {}) {
+  const rpcArgs = {
+    p_event_id: options.eventId || null
+  }
+
+  const { data: cleaned, error: cleanupError } = await client.rpc('cleanup_stale_pending_event_bookings', rpcArgs)
+  if (cleanupError) {
+    throw createError({ statusCode: 500, statusMessage: cleanupError.message })
+  }
+
+  const { data: promoted, error: promoteError } = await client.rpc('promote_event_waitlist', rpcArgs)
+  if (promoteError) {
+    throw createError({ statusCode: 500, statusMessage: promoteError.message })
+  }
+
+  return {
+    cleaned: cleaned || [],
+    promoted: promoted || []
+  }
+}
+
+export async function fetchVisibleEventsForUser(client: EventClient, userId?: string | null) {
+  const { data: allEvents, error: eventsError } = await client
+    .schema('m2m')
+    .from('events')
+    .select('*')
+    .in('status', ['open', 'waitlist'])
+    .gte('event_date', new Date().toISOString())
+    .order('event_date', { ascending: true })
+
+  if (eventsError) {
+    throw createError({ statusCode: 500, statusMessage: eventsError.message })
+  }
+
+  const events = allEvents || []
+  if (!userId) {
+    return {
+      events: events.filter((event: any) => event.is_public === true),
+      bookings: {}
+    }
+  }
+
+  const [{ data: qualifications, error: qualificationsError }, { data: bookings, error: bookingsError }] = await Promise.all([
+    client
+      .schema('m2m')
+      .from('event_qualifications')
+      .select('event_id, status')
+      .eq('user_id', userId)
+      .in('status', ['qualified', 'invited']),
+    client
+      .schema('m2m')
+      .from('event_bookings')
+      .select('event_id, status')
+      .eq('user_id', userId)
+      .in('status', ['confirmed', 'pending', 'waitlisted', 'checked_in'])
+  ])
+
+  if (qualificationsError) {
+    throw createError({ statusCode: 500, statusMessage: qualificationsError.message })
+  }
+
+  if (bookingsError) {
+    throw createError({ statusCode: 500, statusMessage: bookingsError.message })
+  }
+
+  const qualifiedEventIds = new Set((qualifications || []).map((row: any) => row.event_id))
+  const bookingMap = Object.fromEntries((bookings || []).map((row: any) => [row.event_id, row.status]))
+
+  return {
+    events: events.filter((event: any) => event.is_public === true || qualifiedEventIds.has(event.id) || Boolean(bookingMap[event.id])),
+    bookings: bookingMap
+  }
+}
+
+export async function fetchVisibleEventDetail(client: EventClient, options: {
+  eventId: string
+  userId?: string | null
+}) {
+  const userId = options.userId || null
+
+  const [{ data: eventData, error: eventError }, { data: bookingData, error: bookingError }, { data: qualificationData, error: qualificationError }] = await Promise.all([
+    client.schema('m2m').from('events').select('*').eq('id', options.eventId).maybeSingle(),
+    userId
+      ? client.schema('m2m').from('event_bookings').select('*').eq('event_id', options.eventId).eq('user_id', userId).maybeSingle()
+      : Promise.resolve({ data: null, error: null }),
+    userId
+      ? client.schema('m2m').from('event_qualifications').select('*').eq('event_id', options.eventId).eq('user_id', userId).maybeSingle()
+      : Promise.resolve({ data: null, error: null })
+  ])
+
+  if (eventError) {
+    throw createError({ statusCode: 500, statusMessage: eventError.message })
+  }
+
+  if (bookingError) {
+    throw createError({ statusCode: 500, statusMessage: bookingError.message })
+  }
+
+  if (qualificationError) {
+    throw createError({ statusCode: 500, statusMessage: qualificationError.message })
+  }
+
+  if (!eventData) {
+    throw createError({ statusCode: 404, statusMessage: 'Event not found' })
+  }
+
+  const canView = eventData.is_public === true
+    || Boolean(bookingData)
+    || Boolean(qualificationData && ['qualified', 'invited'].includes(String(qualificationData.status || '')))
+
+  if (!canView) {
+    throw createError({ statusCode: 404, statusMessage: 'Event not found' })
+  }
+
+  let waitlistMeta: { position: number; bucket: string | null } | null = null
+  if (userId && bookingData?.status === 'waitlisted') {
+    const { data: profileData } = await client
+      .schema('m2m')
+      .from('profiles')
+      .select('gender')
+      .eq('id', userId)
+      .maybeSingle()
+
+    const bucket = getEventBucketByGender(profileData?.gender)
+    if (bucket) {
+      const { data: waitlistedBookings } = await client
+        .schema('m2m')
+        .from('event_bookings')
+        .select(`
+          id,
+          created_at,
+          user:profiles!event_bookings_user_id_fkey(gender)
+        `)
+        .eq('event_id', options.eventId)
+        .eq('status', 'waitlisted')
+        .order('created_at', { ascending: true })
+
+      const queue = (waitlistedBookings || []).filter((row: any) => getEventBucketByGender(row.user?.gender) === bucket)
+      const index = queue.findIndex((row: any) => row.id === bookingData.id)
+      waitlistMeta = {
+        position: index >= 0 ? index + 1 : queue.length + 1,
+        bucket
+      }
+    }
+  }
+
+  return {
+    event: eventData,
+    booking: bookingData,
+    qualification: qualificationData,
+    waitlistMeta
   }
 }

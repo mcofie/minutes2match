@@ -33,6 +33,7 @@ export const ReferralCard: typeof import("../components/ReferralCard.vue").defau
 export const SubscriptionCard: typeof import("../components/SubscriptionCard.vue").default
 export const UserActivityTimeline: typeof import("../components/UserActivityTimeline.vue").default
 export const VibeCard: typeof import("../components/VibeCard.vue").default
+export const EventsReleaseBookingDialog: typeof import("../components/events/ReleaseBookingDialog.vue").default
 export const SkeletonEventCard: typeof import("../components/skeleton/EventCard.vue").default
 export const SkeletonFlashLobbyCard: typeof import("../components/skeleton/FlashLobbyCard.vue").default
 export const SkeletonMatchCard: typeof import("../components/skeleton/MatchCard.vue").default
@@ -126,6 +127,7 @@ export const LazyReferralCard: LazyComponent<typeof import("../components/Referr
 export const LazySubscriptionCard: LazyComponent<typeof import("../components/SubscriptionCard.vue").default>
 export const LazyUserActivityTimeline: LazyComponent<typeof import("../components/UserActivityTimeline.vue").default>
 export const LazyVibeCard: LazyComponent<typeof import("../components/VibeCard.vue").default>
+export const LazyEventsReleaseBookingDialog: LazyComponent<typeof import("../components/events/ReleaseBookingDialog.vue").default>
 export const LazySkeletonEventCard: LazyComponent<typeof import("../components/skeleton/EventCard.vue").default>
 export const LazySkeletonFlashLobbyCard: LazyComponent<typeof import("../components/skeleton/FlashLobbyCard.vue").default>
 export const LazySkeletonMatchCard: LazyComponent<typeof import("../components/skeleton/MatchCard.vue").default>

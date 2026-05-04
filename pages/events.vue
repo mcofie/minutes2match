@@ -101,7 +101,7 @@ definePageMeta({
 
 const supabase = useSupabaseClient<M2MDatabase>() as any
 const toast = useToast()
-const { profile } = useDashboard()
+const { profile, currentUserId } = useDashboard()
 const { isTMA, setMainButton, hideMainButton, hapticFeedback } = useTelegram()
 
 const events = useState<any[]>('events_data', () => [])
@@ -112,38 +112,25 @@ const showBookingModal = ref(false)
 const selectedEvent = ref<any>(null)
 const processing = ref(false)
 
+const getEventAuthHeaders = async () => {
+  const { data: { session } } = await supabase.auth.getSession()
+  const token = session?.access_token
+  const headers: Record<string, string> = {}
+  if (token) headers.Authorization = `Bearer ${token}`
+  if (currentUserId.value && currentUserId.value !== 'undefined') headers['x-user-id'] = currentUserId.value
+  return Object.keys(headers).length ? headers : undefined
+}
+
 const fetchEvents = async (userId?: string) => {
   loadingEvents.value = true
   try {
-    const { data: allEvents } = await supabase
-      .from('events')
-      .select('*')
-      .in('status', ['open', 'waitlist'])
-      .gte('event_date', new Date().toISOString())
-      .order('event_date', { ascending: true })
-    
-    if (!allEvents) {
-      events.value = []
-      return
-    }
-
-    if (!userId || userId === 'undefined') {
-      events.value = allEvents.filter((e: any) => e.is_public === true)
-      return
-    }
-
-    const { data: qualifications } = await supabase
-      .from('event_qualifications')
-      .select('event_id')
-      .eq('user_id', userId)
-      .in('status', ['qualified', 'invited'])
-    
-    const qualifiedEventIds = new Set((qualifications || []).map((q: any) => q.event_id))
-
-    events.value = allEvents.filter((event: any) => {
-      if (event.is_public === true) return true
-      return qualifiedEventIds.has(event.id)
+    const result = await $fetch<{ events: any[]; bookings?: Record<string, string> }>('/api/events/list', {
+      headers: await getEventAuthHeaders()
     })
+    events.value = result.events || []
+    if (userId && userId !== 'undefined' && result.bookings) {
+      userBookings.value = result.bookings
+    }
   } catch (error) {
     console.error('Error fetching events:', error)
   } finally {
@@ -155,13 +142,10 @@ const fetchUserBookings = async (userId: string) => {
   if (!userId || userId === 'undefined') return
   loadingBookings.value = true
   try {
-    const { data } = await supabase
-      .from('event_bookings')
-      .select('event_id, status')
-      .eq('user_id', userId)
-      .in('status', ['confirmed', 'pending', 'waitlisted', 'checked_in'])
-    
-    userBookings.value = Object.fromEntries((data || []).map((b: any) => [b.event_id, b.status]))
+    const result = await $fetch<{ events: any[]; bookings?: Record<string, string> }>('/api/events/list', {
+      headers: await getEventAuthHeaders()
+    })
+    userBookings.value = result.bookings || {}
   } finally {
     loadingBookings.value = false
   }
@@ -235,6 +219,7 @@ const processEventPayment = async () => {
           }
           showBookingModal.value = false
           toast.success('Waitlist joined', result.message || 'You have been added to the waitlist.')
+          await fetchEvents(userId)
           navigateTo(`/events/${selectedEvent.value.id}`)
           return
         }
@@ -260,7 +245,7 @@ const processEventPayment = async () => {
 }
 
 onMounted(async () => {
-    const { initDashboard, currentUserId } = useDashboard()
+    const { initDashboard } = useDashboard()
     let success = await initDashboard()
     
     if (success && currentUserId.value) {
@@ -286,6 +271,13 @@ onMounted(async () => {
             fetchEvents()
             loadingBookings.value = false
         }
+    }
+})
+
+watch(currentUserId, (userId) => {
+    if (userId && userId !== 'undefined') {
+        fetchEvents(userId)
+        fetchUserBookings(userId)
     }
 })
 </script>

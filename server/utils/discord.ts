@@ -229,6 +229,23 @@ export async function notifyEventBooking(booking: {
     })
 }
 
+export async function notifyEventBookingReleased(data: {
+    eventName: string
+    userName: string
+    statusBeforeRelease: string
+}) {
+    await notifyDiscord({
+        title: '🪑 Event Spot Released',
+        description: 'A user let us know they can no longer attend. Their spot can now move through the queue.',
+        color: DiscordColors.warning,
+        fields: [
+            { name: 'Event', value: data.eventName, inline: true },
+            { name: 'User', value: data.userName, inline: true },
+            { name: 'Previous Status', value: data.statusBeforeRelease, inline: true },
+        ]
+    })
+}
+
 export async function notifyLobbyReminder(data: {
     lobbyName: string
     userName: string

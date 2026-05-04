@@ -660,7 +660,7 @@ const fetchPayments = async () => {
       
       const profileMap = new Map((resolvedProfiles || []).map((p: any) => [p.id, p]))
       
-      for (const payment of data || []) {
+      for (const payment of (data || []) as any[]) {
         if (!payment.user && payment.metadata?.userId) {
           const resolved = profileMap.get(payment.metadata.userId)
           if (resolved) {

@@ -61,6 +61,8 @@ declare global {
   const expireStaleFlashLobbyIntents: typeof import('../../server/utils/flashLobby').expireStaleFlashLobbyIntents
   const extractPreferencesFromBio: typeof import('../../server/utils/ai').extractPreferencesFromBio
   const fetchEventBookingContext: typeof import('../../server/utils/events').fetchEventBookingContext
+  const fetchVisibleEventDetail: typeof import('../../server/utils/events').fetchVisibleEventDetail
+  const fetchVisibleEventsForUser: typeof import('../../server/utils/events').fetchVisibleEventsForUser
   const fetchWithEvent: typeof import('../../node_modules/h3').fetchWithEvent
   const formatPaymentEmail: typeof import('../../server/utils/events').formatPaymentEmail
   const fromNodeMiddleware: typeof import('../../node_modules/h3').fromNodeMiddleware
@@ -126,6 +128,8 @@ declare global {
   const notifyDiscord: typeof import('../../server/utils/discord').notifyDiscord
   const notifyError: typeof import('../../server/utils/discord').notifyError
   const notifyEventBooking: typeof import('../../server/utils/discord').notifyEventBooking
+  const notifyEventBookingReleased: typeof import('../../server/utils/discord').notifyEventBookingReleased
+  const notifyEventWaitlistPromoted: typeof import('../../server/utils/notifications').notifyEventWaitlistPromoted
   const notifyFlashLobbyLifecycle: typeof import('../../server/utils/discord').notifyFlashLobbyLifecycle
   const notifyFlashLobbyLive: typeof import('../../server/utils/notifications').notifyFlashLobbyLive
   const notifyFlashLobbyMutualMatch: typeof import('../../server/utils/discord').notifyFlashLobbyMutualMatch
@@ -149,6 +153,7 @@ declare global {
   const parseMarkdown: typeof import('../../node_modules/@nuxtjs/mdc/dist/runtime/parser').parseMarkdown
   const parseTelegramInitData: typeof import('../../server/utils/telegram').parseTelegramInitData
   const personas: typeof import('../../server/utils/personas').personas
+  const processEventBookingLifecycle: typeof import('../../server/utils/events').processEventBookingLifecycle
   const processFlashLobbyLifecycle: typeof import('../../server/utils/flashLobby').processFlashLobbyLifecycle
   const processFlashLobbyLiveReminders: typeof import('../../server/utils/flashLobby').processFlashLobbyLiveReminders
   const processFlashLobbyPostLobbyQueue: typeof import('../../server/utils/flashLobby').processFlashLobbyPostLobbyQueue
@@ -269,14 +274,14 @@ export { stringifyMarkdown } from '/Users/maxwellcofie/WebstormProjects/minutes2
 export { requireAdminAccess } from '/Users/maxwellcofie/WebstormProjects/minutes2match/server/utils/admin';
 export { getGeminiModel, auditProfileWithAI, extractPreferencesFromBio, generateMatchExplanation } from '/Users/maxwellcofie/WebstormProjects/minutes2match/server/utils/ai';
 export { getUserBalance, creditUser, debitUser } from '/Users/maxwellcofie/WebstormProjects/minutes2match/server/utils/credits';
-export { DiscordColors, notifyRedemption, notifyDiscord, notifyNewSignup, notifyPaymentInitiated, notifyPaymentSuccess, notifyMatchUnlocked, notifyEventBooking, notifyLobbyReminder, notifyError, notifyUserLogin, notifyMatchNudge, notifyFlashLobbySparkSent, notifyFlashLobbyMutualMatch, notifyFlashLobbySuperConnectStarted, notifyFlashLobbySuperConnectCompleted, notifySubscriptionActivated, notifyFlashLobbyLifecycle } from '/Users/maxwellcofie/WebstormProjects/minutes2match/server/utils/discord';
-export { getEventBucketByGender, getEventTicketPrice, formatPaymentEmail, resolveEventUserId, fetchEventBookingContext, getEventAvailabilitySnapshot } from '/Users/maxwellcofie/WebstormProjects/minutes2match/server/utils/events';
+export { DiscordColors, notifyRedemption, notifyDiscord, notifyNewSignup, notifyPaymentInitiated, notifyPaymentSuccess, notifyMatchUnlocked, notifyEventBooking, notifyEventBookingReleased, notifyLobbyReminder, notifyError, notifyUserLogin, notifyMatchNudge, notifyFlashLobbySparkSent, notifyFlashLobbyMutualMatch, notifyFlashLobbySuperConnectStarted, notifyFlashLobbySuperConnectCompleted, notifySubscriptionActivated, notifyFlashLobbyLifecycle } from '/Users/maxwellcofie/WebstormProjects/minutes2match/server/utils/discord';
+export { getEventBucketByGender, getEventTicketPrice, formatPaymentEmail, resolveEventUserId, fetchEventBookingContext, getEventAvailabilitySnapshot, processEventBookingLifecycle, fetchVisibleEventsForUser, fetchVisibleEventDetail } from '/Users/maxwellcofie/WebstormProjects/minutes2match/server/utils/events';
 export { FLASH_LOBBY_RESPONSE_WINDOW_HOURS, FLASH_LOBBY_ACTIVE_SESSION_WINDOW_SECONDS, touchFlashLobbySession, leaveFlashLobbySession, cleanupInactiveFlashLobbySessions, getLiveFlashLobbyAttendance, getFlashLobbyModerationMap, getFlashLobbyModerationState, getActiveFlashLobby, getMostRecentFlashLobby, createFlashLobbyMatch, calculateFlashLobbyPreviewScore, calculateFlashLobbyMatchScore, expireStaleFlashLobbyIntents, processFlashLobbyLiveReminders, processFlashLobbyPostLobbyQueue, processFlashLobbyLifecycle } from '/Users/maxwellcofie/WebstormProjects/minutes2match/server/utils/flashLobby';
 export { normalizeGender, normalizeInterest, canUsersSeeEachOther, sanitizeSparkMessage, validateSparkMessage, isResolvedIntentStatus, resolveSparkOutcome, canPerformPostLobbyAction } from '/Users/maxwellcofie/WebstormProjects/minutes2match/server/utils/flashLobbyRules';
 export { sendHubtelSMS } from '/Users/maxwellcofie/WebstormProjects/minutes2match/server/utils/hubtel';
 export { unlockMatch, fullyUnlockMatch } from '/Users/maxwellcofie/WebstormProjects/minutes2match/server/utils/match';
 export { runTargetedMatching } from '/Users/maxwellcofie/WebstormProjects/minutes2match/server/utils/matchmaker';
-export { createInAppNotification, notifyFlashLobbySparkReceived, notifyFlashLobbyMutualUnlocked, notifyFlashLobbyResolved, notifyFlashLobbyLive } from '/Users/maxwellcofie/WebstormProjects/minutes2match/server/utils/notifications';
+export { createInAppNotification, notifyFlashLobbySparkReceived, notifyFlashLobbyMutualUnlocked, notifyFlashLobbyResolved, notifyFlashLobbyLive, notifyEventWaitlistPromoted } from '/Users/maxwellcofie/WebstormProjects/minutes2match/server/utils/notifications';
 export { notifyUser } from '/Users/maxwellcofie/WebstormProjects/minutes2match/server/utils/notify';
 export { handleSparkDeckOrder, calculateDeliveryDate } from '/Users/maxwellcofie/WebstormProjects/minutes2match/server/utils/order';
 export { usePasskeyUtils } from '/Users/maxwellcofie/WebstormProjects/minutes2match/server/utils/passkeys';

@@ -155,3 +155,30 @@ export async function notifyFlashLobbyLive(client: NotificationClient, options: 
         console.error('[FlashLobby] Failed to send live reminder notification:', error)
     }
 }
+
+export async function notifyEventWaitlistPromoted(client: NotificationClient, options: {
+    userId: string
+    eventId: string
+    eventTitle: string
+}) {
+    const dedupeKey = `event-waitlist-promoted:${options.eventId}:${options.userId}`
+
+    await createInAppNotification(client, {
+        userId: options.userId,
+        type: 'event_waitlist',
+        title: 'A spot just opened for you',
+        message: `${options.eventTitle} has room for you now. Complete your ticket payment soon or the spot may roll to the next person.`,
+        data: { event_id: options.eventId, route: `/events/${options.eventId}` },
+        dedupeKey
+    })
+
+    try {
+        await notifyUser(
+            options.userId,
+            `🎟️ A spot just opened for ${options.eventTitle}. Open Minutes 2 Match and complete your ticket payment soon to lock it in.`,
+            { type: 'event', smsPriority: 'high' }
+        )
+    } catch (error) {
+        console.error('[Events] Failed to send waitlist promotion notification:', error)
+    }
+}

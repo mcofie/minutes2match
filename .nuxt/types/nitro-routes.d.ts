@@ -126,6 +126,9 @@ declare module "nitropack/types" {
     '/api/cron/engagement-nudge': {
       'get': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/cron/engagement-nudge.get').default>>>>
     }
+    '/api/cron/event-bookings-lifecycle': {
+      'get': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/cron/event-bookings-lifecycle.get').default>>>>
+    }
     '/api/cron/expire-matches': {
       'get': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/cron/expire-matches.get').default>>>>
     }
@@ -168,8 +171,17 @@ declare module "nitropack/types" {
     '/api/enrich_matches': {
       'post': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/enrich_matches.post').default>>>>
     }
+    '/api/events/:id': {
+      'get': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/events/[id].get').default>>>>
+    }
     '/api/events/book': {
       'post': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/events/book.post').default>>>>
+    }
+    '/api/events/list': {
+      'get': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/events/list.get').default>>>>
+    }
+    '/api/events/release': {
+      'post': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/events/release.post').default>>>>
     }
     '/api/franchise/auth': {
       'get': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/franchise/auth.get').default>>>>

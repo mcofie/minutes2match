@@ -221,12 +221,41 @@
               </span>
             </div>
           </div>
+
+          <div class="px-6 py-4 border-b border-gray-100 bg-white">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
+              <div class="rounded-xl border border-stone-200 bg-stone-50 px-4 py-3">
+                <p class="text-[10px] uppercase tracking-widest text-stone-400 font-bold">Remaining Male</p>
+                <p class="text-lg font-bold text-stone-900">{{ remainingMaleSlots }}</p>
+              </div>
+              <div class="rounded-xl border border-stone-200 bg-stone-50 px-4 py-3">
+                <p class="text-[10px] uppercase tracking-widest text-stone-400 font-bold">Remaining Female</p>
+                <p class="text-lg font-bold text-stone-900">{{ remainingFemaleSlots }}</p>
+              </div>
+              <div class="rounded-xl border border-stone-200 bg-stone-50 px-4 py-3">
+                <p class="text-[10px] uppercase tracking-widest text-stone-400 font-bold">Invites Sent</p>
+                <p class="text-lg font-bold text-stone-900">{{ notifiedQualifiedCount }}</p>
+              </div>
+              <div class="rounded-xl border border-stone-200 bg-stone-50 px-4 py-3">
+                <p class="text-[10px] uppercase tracking-widest text-stone-400 font-bold">Selected</p>
+                <p class="text-lg font-bold text-stone-900">{{ selectedAvailableUserIds.length }}</p>
+              </div>
+            </div>
+
+            <div class="mt-3 flex flex-wrap gap-2">
+              <button class="quick-chip" :class="{ 'quick-chip--active': availabilityMode === 'all' }" @click="availabilityMode = 'all'">All Available</button>
+              <button class="quick-chip" :class="{ 'quick-chip--active': availabilityMode === 'male' }" @click="availabilityMode = 'male'">Fill Male Slots</button>
+              <button class="quick-chip" :class="{ 'quick-chip--active': availabilityMode === 'female' }" @click="availabilityMode = 'female'">Fill Female Slots</button>
+              <button class="quick-chip" :class="{ 'quick-chip--active': availabilityMode === 'balanced' }" @click="availabilityMode = 'balanced'">Balanced Picks</button>
+              <button class="quick-chip" @click="prefillNeededGender" :disabled="!neededGenderFilter">Use Needed Gender</button>
+            </div>
+          </div>
           
           <div class="modal__content grid grid-cols-1 md:grid-cols-2 gap-6 h-[55vh]">
             <!-- Available Users -->
             <div class="flex flex-col h-full">
               <!-- Filters Row -->
-              <div class="grid grid-cols-3 gap-2 mb-3">
+              <div class="grid grid-cols-2 md:grid-cols-4 gap-2 mb-3">
                 <input
                   type="text"
                   v-model="userSearch"
@@ -242,31 +271,54 @@
                   <option value="">All Personas</option>
                   <option v-for="(p, key) in personas" :key="key" :value="key">{{ p.emoji }} {{ p.name }}</option>
                 </select>
+                <select v-model="availableSort" class="form-select text-sm">
+                  <option value="recommended">Recommended</option>
+                  <option value="name">Name</option>
+                  <option value="gender">Gender</option>
+                  <option value="persona">Persona</option>
+                </select>
               </div>
               
               <div class="flex justify-between items-center mb-2">
-                <h4 class="form-label mb-0">Available ({{ filteredAvailableUsers.length }})</h4>
-                <button 
-                  v-if="filteredAvailableUsers.length > 0"
-                  class="text-xs text-blue-600 font-medium hover:underline"
-                  @click="addAllFiltered"
-                >
-                  + Add All ({{ Math.min(filteredAvailableUsers.length, 50) }})
-                </button>
+                <h4 class="form-label mb-0">Available ({{ visibleAvailableUsers.length }} of {{ filteredAvailableUsers.length }})</h4>
+                <div class="flex items-center gap-3">
+                  <button 
+                    v-if="visibleAvailableUsers.length > 0"
+                    class="text-xs text-stone-500 font-medium hover:underline"
+                    @click="toggleSelectAllVisible"
+                  >
+                    {{ allVisibleSelected ? 'Clear Visible' : `Select Visible (${visibleAvailableUsers.length})` }}
+                  </button>
+                  <button 
+                    v-if="visibleAvailableUsers.length > 0"
+                    class="text-xs text-blue-600 font-medium hover:underline disabled:text-stone-300 disabled:no-underline"
+                    @click="addSelectedUsers"
+                    :disabled="selectedAvailableUserIds.length === 0"
+                  >
+                    + Add Selected ({{ selectedAvailableUserIds.length }})
+                  </button>
+                </div>
               </div>
               
               <div class="border border-gray-100 rounded-lg flex-1 overflow-y-auto bg-gray-50">
                 <div v-if="loadingUsers" class="text-center py-8 text-muted text-xs">Loading...</div>
-                <div v-else-if="filteredAvailableUsers.length === 0" class="text-center py-8 text-muted text-xs">
+                <div v-else-if="visibleAvailableUsers.length === 0" class="text-center py-8 text-muted text-xs">
                   No users match filters
                 </div>
                 <div
                   v-else
-                  v-for="user in filteredAvailableUsers"
+                  v-for="user in visibleAvailableUsers"
                   :key="user.id"
                   class="user-row"
+                  :class="{ 'user-row--selected': selectedAvailableUserIds.includes(user.id) }"
                 >
-                  <div class="flex items-center gap-3 flex-1 min-w-0">
+                  <label class="flex items-center gap-3 flex-1 min-w-0 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      class="rounded border-stone-300"
+                      :checked="selectedAvailableUserIds.includes(user.id)"
+                      @change="toggleSelectedAvailableUser(user.id)"
+                    />
                     <div class="user-avatar-sm" :class="user.gender === 'male' ? 'bg-blue-50 text-blue-600' : 'bg-pink-50 text-pink-600'">
                       {{ user.display_name?.charAt(0) || '?' }}
                     </div>
@@ -274,10 +326,14 @@
                       <div class="flex items-center gap-2">
                         <strong class="text-sm font-medium truncate">{{ user.display_name }}</strong>
                         <span v-if="user.dating_persona" class="persona-dot" :style="{ background: getPersona(user.dating_persona)?.color }"></span>
+                        <span v-if="availabilityRecommendation(user)" class="text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full border" :class="availabilityRecommendation(user) === 'Best fit' ? 'text-emerald-700 border-emerald-200 bg-emerald-50' : 'text-sky-700 border-sky-200 bg-sky-50'">
+                          {{ availabilityRecommendation(user) }}
+                        </span>
                       </div>
                       <div class="text-xs text-muted flex items-center gap-2 flex-wrap">
                         <span>{{ user.gender }}</span>
                         <span v-if="user.dating_persona" class="text-stone-400">• {{ getPersona(user.dating_persona)?.name }}</span>
+                        <span v-if="user.phone" class="text-stone-400">• {{ user.phone }}</span>
                       </div>
                       <div v-if="user.interests?.length" class="flex gap-1 mt-1 flex-wrap">
                         <span 
@@ -288,31 +344,63 @@
                         <span v-if="user.interests.length > 2" class="interest-chip">+{{ user.interests.length - 2 }}</span>
                       </div>
                     </div>
-                  </div>
+                  </label>
                   <button class="btn-add" @click="addQualification(user.id)">+</button>
+                </div>
+
+                <div v-if="visibleAvailableUsers.length < filteredAvailableUsers.length" class="p-4 border-t border-stone-200 bg-white">
+                  <button class="w-full rounded-xl border border-stone-300 bg-stone-50 px-4 py-3 text-sm font-bold text-stone-700 hover:bg-stone-100 transition-colors" @click="loadMoreAvailableUsers">
+                    Load More ({{ Math.min(availableVisibleCount + availablePageSize, filteredAvailableUsers.length) - visibleAvailableUsers.length }} more)
+                  </button>
                 </div>
               </div>
             </div>
             
             <!-- Qualified Users -->
             <div class="flex flex-col h-full">
+              <div class="grid grid-cols-2 gap-2 mb-3">
+                <input
+                  type="text"
+                  v-model="qualifiedSearch"
+                  placeholder="Search qualified..."
+                  class="form-input text-sm"
+                />
+                <select v-model="qualifiedFilter" class="form-select text-sm">
+                  <option value="all">All qualified</option>
+                  <option value="notified">Invites sent</option>
+                  <option value="not_notified">Not yet invited</option>
+                </select>
+              </div>
+
               <div class="flex justify-between items-center mb-3 min-h-[32px]">
-                 <h4 class="form-label mb-0">Qualified ({{ qualifiedUsers.length }})</h4>
-                 <button class="text-xs text-red-500 font-medium hover:underline" @click="clearQualifications" v-if="qualifiedUsers.length">Clear All</button>
+                 <h4 class="form-label mb-0">Qualified ({{ filteredQualifiedUsers.length }})</h4>
+                 <div class="flex items-center gap-3">
+                   <button class="text-xs text-stone-500 font-medium hover:underline" @click="removeSelectedQualifiedUsers" v-if="selectedQualifiedUserIds.length">
+                     Remove Selected ({{ selectedQualifiedUserIds.length }})
+                   </button>
+                   <button class="text-xs text-red-500 font-medium hover:underline" @click="clearQualifications" v-if="qualifiedUsers.length">Clear All</button>
+                 </div>
               </div>
          
               <div class="border border-gray-100 rounded-lg flex-1 overflow-y-auto bg-white">
-                <div v-if="qualifiedUsers.length === 0" class="flex flex-col items-center justify-center h-full text-muted text-xs p-8 text-center">
+                <div v-if="filteredQualifiedUsers.length === 0" class="flex flex-col items-center justify-center h-full text-muted text-xs p-8 text-center">
                   <span class="text-xl mb-2">👥</span>
                   No users qualified yet
                 </div>
                 <div
                   v-else
-                  v-for="user in qualifiedUsers"
+                  v-for="user in filteredQualifiedUsers"
                   :key="user.id"
                   class="user-row"
+                  :class="{ 'user-row--selected': selectedQualifiedUserIds.includes(user.id) }"
                 >
-                  <div class="flex items-center gap-3 flex-1 min-w-0">
+                  <label class="flex items-center gap-3 flex-1 min-w-0 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      class="rounded border-stone-300"
+                      :checked="selectedQualifiedUserIds.includes(user.id)"
+                      @change="toggleSelectedQualifiedUser(user.id)"
+                    />
                     <div class="user-avatar-sm" :class="user.gender === 'male' ? 'bg-blue-100 text-blue-700' : 'bg-pink-100 text-pink-700'">
                       {{ user.display_name?.charAt(0) || '?' }}
                     </div>
@@ -320,10 +408,16 @@
                       <div class="flex items-center gap-2">
                         <strong class="text-sm font-medium truncate">{{ user.display_name }}</strong>
                         <span v-if="user.dating_persona" class="persona-dot" :style="{ background: getPersona(user.dating_persona)?.color }"></span>
+                        <span class="text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full border" :class="qualificationMetaByUserId[user.id]?.notified_at ? 'text-emerald-700 border-emerald-200 bg-emerald-50' : 'text-stone-500 border-stone-200 bg-stone-50'">
+                          {{ qualificationMetaByUserId[user.id]?.notified_at ? 'Invite Sent' : 'Not Invited' }}
+                        </span>
                       </div>
-                      <div class="text-xs text-muted">{{ user.phone }}</div>
+                      <div class="text-xs text-muted flex items-center gap-2 flex-wrap">
+                        <span>{{ user.phone }}</span>
+                        <span v-if="qualificationMetaByUserId[user.id]?.notified_at" class="text-stone-400">• {{ formatShortDateTime(qualificationMetaByUserId[user.id]?.notified_at) }}</span>
+                      </div>
                     </div>
-                  </div>
+                  </label>
                   <button class="btn-remove" @click="removeQualification(user.id)">×</button>
                 </div>
               </div>
@@ -542,17 +636,47 @@ const showQualifyModal = ref(false)
 const qualifyingEvent = ref<any>(null)
 const allUsers = ref<any[]>([])
 const qualifiedUserIds = ref<string[]>([])
+const qualificationMetaByUserId = ref<Record<string, { status?: string; notified_at?: string | null }>>({})
 const userSearch = ref('')
+const qualifiedSearch = ref('')
 const loadingUsers = ref(false)
 const notifying = ref(false)
 
 // New filter state
 const filterGender = ref('')
 const filterPersona = ref('')
+const qualifiedFilter = ref<'all' | 'notified' | 'not_notified'>('all')
+const availableSort = ref<'recommended' | 'name' | 'gender' | 'persona'>('recommended')
+const availabilityMode = ref<'all' | 'male' | 'female' | 'balanced'>('all')
+const selectedAvailableUserIds = ref<string[]>([])
+const selectedQualifiedUserIds = ref<string[]>([])
+const availablePageSize = 50
+const availableVisibleCount = ref(availablePageSize)
 
 // Computed: Users who are qualified for current event
 const qualifiedUsers = computed(() => {
   return allUsers.value.filter((u: any) => qualifiedUserIds.value.includes(u.id))
+})
+
+const filteredQualifiedUsers = computed(() => {
+  let items = [...qualifiedUsers.value]
+
+  if (qualifiedFilter.value === 'notified') {
+    items = items.filter((user: any) => Boolean(qualificationMetaByUserId.value[user.id]?.notified_at))
+  } else if (qualifiedFilter.value === 'not_notified') {
+    items = items.filter((user: any) => !qualificationMetaByUserId.value[user.id]?.notified_at)
+  }
+
+  if (qualifiedSearch.value.trim()) {
+    const search = qualifiedSearch.value.toLowerCase()
+    items = items.filter((user: any) => {
+      const name = String(user.display_name || '').toLowerCase()
+      const phone = String(user.phone || '').toLowerCase()
+      return name.includes(search) || phone.includes(search)
+    })
+  }
+
+  return items.sort((a: any, b: any) => String(a.display_name || '').localeCompare(String(b.display_name || '')))
 })
 
 // Computed: Capacity counts
@@ -574,9 +698,34 @@ const femaleCapacityPercent = computed(() => {
   return Math.min(100, (qualifiedFemaleCount.value / qualifyingEvent.value.female_capacity) * 100)
 })
 
+const remainingMaleSlots = computed(() => Math.max((qualifyingEvent.value?.male_capacity || 0) - qualifiedMaleCount.value, 0))
+const remainingFemaleSlots = computed(() => Math.max((qualifyingEvent.value?.female_capacity || 0) - qualifiedFemaleCount.value, 0))
+const notifiedQualifiedCount = computed(() =>
+  qualifiedUsers.value.filter((user: any) => Boolean(qualificationMetaByUserId.value[user.id]?.notified_at)).length
+)
+const neededGenderFilter = computed(() => {
+  if (remainingMaleSlots.value > remainingFemaleSlots.value && remainingMaleSlots.value > 0) return 'male'
+  if (remainingFemaleSlots.value > remainingMaleSlots.value && remainingFemaleSlots.value > 0) return 'female'
+  return ''
+})
+
 // Computed: Users who are NOT qualified (available to add) with filters
 const filteredAvailableUsers = computed(() => {
   let available = allUsers.value.filter((u: any) => !qualifiedUserIds.value.includes(u.id))
+
+  if (availabilityMode.value === 'male') {
+    available = available.filter((u: any) => u.gender === 'male')
+  } else if (availabilityMode.value === 'female') {
+    available = available.filter((u: any) => u.gender === 'female')
+  } else if (availabilityMode.value === 'balanced') {
+    const targetGender = neededGenderFilter.value
+    if (targetGender) {
+      available = [
+        ...available.filter((u: any) => u.gender === targetGender),
+        ...available.filter((u: any) => u.gender !== targetGender)
+      ]
+    }
+  }
   
   // Apply gender filter
   if (filterGender.value) {
@@ -597,9 +746,40 @@ const filteredAvailableUsers = computed(() => {
       return name.includes(search) || phone.includes(search)
     })
   }
-  
-  return available.slice(0, 50) // Limit display
+
+  const ranked = available.sort((a: any, b: any) => {
+    if (availableSort.value === 'name') {
+      return String(a.display_name || '').localeCompare(String(b.display_name || ''))
+    }
+
+    if (availableSort.value === 'gender') {
+      return String(a.gender || '').localeCompare(String(b.gender || '')) || String(a.display_name || '').localeCompare(String(b.display_name || ''))
+    }
+
+    if (availableSort.value === 'persona') {
+      return String(getPersona(a.dating_persona)?.name || '').localeCompare(String(getPersona(b.dating_persona)?.name || '')) || String(a.display_name || '').localeCompare(String(b.display_name || ''))
+    }
+
+    const score = (user: any) => {
+      let value = 0
+      if (neededGenderFilter.value && user.gender === neededGenderFilter.value) value += 4
+      if (availabilityMode.value === 'balanced' && neededGenderFilter.value && user.gender === neededGenderFilter.value) value += 2
+      if (user.dating_persona) value += 1
+      if (Array.isArray(user.interests) && user.interests.length) value += 1
+      return value
+    }
+
+    return score(b) - score(a) || String(a.display_name || '').localeCompare(String(b.display_name || ''))
+  })
+
+  return ranked
 })
+
+const visibleAvailableUsers = computed(() => filteredAvailableUsers.value.slice(0, availableVisibleCount.value))
+
+const allVisibleSelected = computed(() =>
+  visibleAvailableUsers.value.length > 0 && visibleAvailableUsers.value.every((user: any) => selectedAvailableUserIds.value.includes(user.id))
+)
 
 // Interest emoji map
 const interestEmojis: Record<string, string> = {
@@ -613,21 +793,89 @@ const getInterestEmoji = (interestId: string): string => {
   return interestEmojis[interestId] || '🏷️'
 }
 
-// Bulk add all filtered users
-const addAllFiltered = async () => {
-  const usersToAdd = filteredAvailableUsers.value.slice(0, 50)
-  if (!confirm(`Add ${usersToAdd.length} users to qualified list?`)) return
-  
-  for (const user of usersToAdd) {
-    await addQualification(user.id)
+const availabilityRecommendation = (user: any) => {
+  if (neededGenderFilter.value && user.gender === neededGenderFilter.value) return 'Best fit'
+  if (availabilityMode.value === 'balanced' && neededGenderFilter.value && user.gender !== neededGenderFilter.value) return 'Backup'
+  return ''
+}
+
+const prefillNeededGender = () => {
+  if (neededGenderFilter.value) {
+    filterGender.value = neededGenderFilter.value
   }
+}
+
+const toggleSelectedAvailableUser = (userId: string) => {
+  selectedAvailableUserIds.value = selectedAvailableUserIds.value.includes(userId)
+    ? selectedAvailableUserIds.value.filter((id) => id !== userId)
+    : [...selectedAvailableUserIds.value, userId]
+}
+
+const toggleSelectedQualifiedUser = (userId: string) => {
+  selectedQualifiedUserIds.value = selectedQualifiedUserIds.value.includes(userId)
+    ? selectedQualifiedUserIds.value.filter((id) => id !== userId)
+    : [...selectedQualifiedUserIds.value, userId]
+}
+
+const toggleSelectAllVisible = () => {
+  if (allVisibleSelected.value) {
+    const visibleIds = new Set(visibleAvailableUsers.value.map((user: any) => user.id))
+    selectedAvailableUserIds.value = selectedAvailableUserIds.value.filter((id) => !visibleIds.has(id))
+    return
+  }
+
+  const merged = new Set([...selectedAvailableUserIds.value, ...visibleAvailableUsers.value.map((user: any) => user.id)])
+  selectedAvailableUserIds.value = [...merged]
+}
+
+const loadMoreAvailableUsers = () => {
+  availableVisibleCount.value = Math.min(
+    availableVisibleCount.value + availablePageSize,
+    filteredAvailableUsers.value.length
+  )
+}
+
+const addSelectedUsers = async () => {
+  const ids = [...selectedAvailableUserIds.value]
+  if (!ids.length) return
+  if (!confirm(`Add ${ids.length} selected users to qualified list?`)) return
+
+  for (const userId of ids) {
+    await addQualification(userId)
+  }
+  selectedAvailableUserIds.value = []
+}
+
+const removeSelectedQualifiedUsers = async () => {
+  const ids = [...selectedQualifiedUserIds.value]
+  if (!ids.length) return
+  if (!confirm(`Remove ${ids.length} selected users from the qualified list?`)) return
+
+  for (const userId of ids) {
+    await removeQualification(userId)
+  }
+  selectedQualifiedUserIds.value = []
 }
 
 // Open qualification modal for an event
 const openQualifyModal = async (event: any) => {
+  if (new Date(event.event_date).getTime() <= Date.now()) {
+    alert('This event date has already passed. Update the event date before sending invites or qualifying users.')
+    return
+  }
+
   qualifyingEvent.value = event
   showQualifyModal.value = true
   userSearch.value = ''
+  qualifiedSearch.value = ''
+  filterGender.value = ''
+  filterPersona.value = ''
+  qualifiedFilter.value = 'all'
+  availableSort.value = 'recommended'
+  availabilityMode.value = 'all'
+  availableVisibleCount.value = availablePageSize
+  selectedAvailableUserIds.value = []
+  selectedQualifiedUserIds.value = []
   
   await Promise.all([
     fetchAllUsers(),
@@ -640,6 +888,10 @@ const closeQualifyModal = () => {
   showQualifyModal.value = false
   qualifyingEvent.value = null
   qualifiedUserIds.value = []
+  qualificationMetaByUserId.value = {}
+  availableVisibleCount.value = availablePageSize
+  selectedAvailableUserIds.value = []
+  selectedQualifiedUserIds.value = []
 }
 
 // Fetch all verified users
@@ -663,10 +915,14 @@ const fetchQualifiedUsers = async (eventId: string) => {
   const { data } = await supabase
     .schema('m2m')
     .from('event_qualifications')
-    .select('user_id')
+    .select('user_id, status, notified_at')
     .eq('event_id', eventId)
   
   qualifiedUserIds.value = (data || []).map((d: any) => d.user_id)
+  qualificationMetaByUserId.value = Object.fromEntries((data || []).map((d: any) => [d.user_id, {
+    status: d.status,
+    notified_at: d.notified_at
+  }]))
 }
 
 // Add user qualification
@@ -685,6 +941,11 @@ const addQualification = async (userId: string) => {
   
   if (!error) {
     qualifiedUserIds.value.push(userId)
+    qualificationMetaByUserId.value = {
+      ...qualificationMetaByUserId.value,
+      [userId]: { status: 'qualified', notified_at: null }
+    }
+    selectedAvailableUserIds.value = selectedAvailableUserIds.value.filter((id) => id !== userId)
   }
 }
 
@@ -702,6 +963,10 @@ const removeQualification = async (userId: string) => {
   
   if (!error) {
     qualifiedUserIds.value = qualifiedUserIds.value.filter((id: any) => id !== userId)
+    const nextMeta = { ...qualificationMetaByUserId.value }
+    delete nextMeta[userId]
+    qualificationMetaByUserId.value = nextMeta
+    selectedQualifiedUserIds.value = selectedQualifiedUserIds.value.filter((id) => id !== userId)
   }
 }
 
@@ -718,12 +983,19 @@ const clearQualifications = async () => {
   
   if (!error) {
     qualifiedUserIds.value = []
+    qualificationMetaByUserId.value = {}
+    selectedQualifiedUserIds.value = []
   }
 }
 
 // Send SMS notification to all qualified users
 const notifyQualifiedUsers = async () => {
   if (!qualifyingEvent.value || qualifiedUsers.value.length === 0) return
+
+  if (new Date(qualifyingEvent.value.event_date).getTime() <= Date.now()) {
+    alert('This event has already passed. Update the event date before sending invites.')
+    return
+  }
   
   notifying.value = true
   
@@ -746,6 +1018,15 @@ const notifyQualifiedUsers = async () => {
             .update({ notified_at: new Date().toISOString() })
             .eq('event_id', event.id)
             .eq('user_id', user.id)
+
+          qualificationMetaByUserId.value = {
+            ...qualificationMetaByUserId.value,
+            [user.id]: {
+              ...(qualificationMetaByUserId.value[user.id] || {}),
+              status: qualificationMetaByUserId.value[user.id]?.status || 'qualified',
+              notified_at: new Date().toISOString()
+            }
+          }
         } catch (e) {
           console.error('Failed to notify user:', user.phone, e)
         }
@@ -760,6 +1041,20 @@ const notifyQualifiedUsers = async () => {
     notifying.value = false
   }
 }
+
+const formatShortDateTime = (value?: string | null) => {
+  if (!value) return ''
+  return new Date(value).toLocaleDateString('en-GB', {
+    day: 'numeric',
+    month: 'short',
+    hour: 'numeric',
+    minute: '2-digit'
+  })
+}
+
+watch([userSearch, filterGender, filterPersona, availableSort, availabilityMode], () => {
+  availableVisibleCount.value = availablePageSize
+})
 
 onMounted(() => {
   fetchEvents()
@@ -806,6 +1101,29 @@ onMounted(() => {
 .capacity-fill {
   height: 100%;
   transition: width 0.3s ease;
+}
+
+.quick-chip {
+  border: 1px solid #E7E5E4;
+  background: #F8F7F5;
+  color: #57534E;
+  border-radius: 9999px;
+  padding: 0.45rem 0.85rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.quick-chip--active {
+  background: #111827;
+  color: white;
+  border-color: #111827;
+}
+
+.user-row--selected {
+  background: #F5F3FF;
+  border-left: 3px solid #7C3AED;
 }
 
 .capacity-fill--male {

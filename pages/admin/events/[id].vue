@@ -33,6 +33,109 @@
       </div>
     </div>
 
+    <div class="grid gap-6 lg:grid-cols-2 mb-6">
+      <div class="admin-card">
+        <div class="admin-card__header">
+          <h2 class="admin-card__title m-0">Pending Claims</h2>
+        </div>
+
+        <div v-if="pendingClaims.length === 0" class="state-empty py-6">
+          No pending claim holds right now.
+        </div>
+
+        <div v-else class="space-y-3">
+          <div v-for="booking in pendingClaims" :key="booking.id" class="rounded-xl border border-stone-200 bg-stone-50 p-4 flex items-start justify-between gap-3">
+            <div>
+              <p class="font-bold text-sm text-stone-900">{{ booking.profile?.display_name || 'Anonymous' }}</p>
+              <p class="text-xs text-stone-500 mt-1">{{ capitalize(booking.profile?.gender || '—') }} • {{ booking.profile?.phone || 'No phone' }}</p>
+              <p class="text-xs text-stone-500 mt-2">
+                {{ booking.payment_id ? 'Waiting for payment confirmation' : 'Promoted from waitlist and waiting for payment claim' }}
+              </p>
+              <p v-if="getClaimCountdownLabel(booking)" class="text-xs font-semibold text-sky-700 mt-2">
+                {{ getClaimCountdownLabel(booking) }}
+              </p>
+            </div>
+            <div class="text-right">
+              <span class="badge" :class="booking.payment_id ? 'badge--yellow' : 'badge--blue'">
+                {{ booking.payment_id ? 'Pending' : 'Claim Hold' }}
+              </span>
+              <p class="text-xs text-stone-400 mt-2">{{ formatTime(booking.created_at) }}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="admin-card">
+        <div class="admin-card__header">
+          <h2 class="admin-card__title m-0">Waitlist Queue</h2>
+        </div>
+
+        <div class="grid gap-4 md:grid-cols-2">
+          <div class="rounded-xl border border-stone-200 p-4">
+            <div class="flex items-center justify-between mb-3">
+              <h3 class="text-sm font-bold">Male Queue</h3>
+              <span class="badge badge--gray">{{ waitlistedMale.length }}</span>
+            </div>
+            <div v-if="waitlistedMale.length === 0" class="text-sm text-stone-400">Nobody is waiting in this bucket.</div>
+            <div v-else class="space-y-2">
+              <div v-for="(booking, index) in waitlistedMale" :key="booking.id" class="rounded-lg bg-stone-50 border border-stone-200 px-3 py-2 flex items-center justify-between gap-2">
+                <div>
+                  <p class="text-sm font-semibold text-stone-900">{{ index + 1 }}. {{ booking.profile?.display_name || 'Anonymous' }}</p>
+                  <p class="text-xs text-stone-500">{{ booking.profile?.phone || 'No phone' }}</p>
+                </div>
+                <span class="text-xs text-stone-400">{{ formatTime(booking.created_at) }}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="rounded-xl border border-stone-200 p-4">
+            <div class="flex items-center justify-between mb-3">
+              <h3 class="text-sm font-bold">Female Queue</h3>
+              <span class="badge badge--gray">{{ waitlistedFemale.length }}</span>
+            </div>
+            <div v-if="waitlistedFemale.length === 0" class="text-sm text-stone-400">Nobody is waiting in this bucket.</div>
+            <div v-else class="space-y-2">
+              <div v-for="(booking, index) in waitlistedFemale" :key="booking.id" class="rounded-lg bg-stone-50 border border-stone-200 px-3 py-2 flex items-center justify-between gap-2">
+                <div>
+                  <p class="text-sm font-semibold text-stone-900">{{ index + 1 }}. {{ booking.profile?.display_name || 'Anonymous' }}</p>
+                  <p class="text-xs text-stone-500">{{ booking.profile?.phone || 'No phone' }}</p>
+                </div>
+                <span class="text-xs text-stone-400">{{ formatTime(booking.created_at) }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="admin-card mb-6">
+      <div class="admin-card__header">
+        <h2 class="admin-card__title m-0">Released Seats</h2>
+      </div>
+
+      <div v-if="releasedBookings.length === 0" class="state-empty py-6">
+        No one has released a spot yet.
+      </div>
+
+      <div v-else class="grid gap-3 md:grid-cols-2">
+        <div v-for="booking in releasedBookings" :key="booking.id" class="rounded-xl border border-stone-200 bg-stone-50 p-4">
+          <div class="flex items-start justify-between gap-3">
+            <div>
+              <p class="font-bold text-sm text-stone-900">{{ booking.profile?.display_name || 'Anonymous' }}</p>
+              <p class="text-xs text-stone-500 mt-1">{{ capitalize(booking.profile?.gender || '—') }} • {{ booking.profile?.phone || 'No phone' }}</p>
+            </div>
+            <span class="badge badge--red">Released</span>
+          </div>
+
+          <div class="mt-3 space-y-2 text-xs text-stone-600">
+            <p><span class="font-semibold text-stone-700">Released:</span> {{ formatTime(booking.released_at || booking.updated_at || booking.created_at) }}</p>
+            <p><span class="font-semibold text-stone-700">Reason:</span> {{ formatReleaseReason(booking.release_reason) }}</p>
+            <p v-if="booking.release_note"><span class="font-semibold text-stone-700">Note:</span> {{ booking.release_note }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Bookings List -->
     <div class="admin-card">
       <div class="admin-card__header flex justify-between items-center">
@@ -54,6 +157,7 @@
               <th>Gender</th>
               <th>Phone</th>
               <th>Status</th>
+              <th>Release Reason</th>
               <th>Booked At</th>
               <th>Checked In</th>
               <th class="text-right">Actions</th>
@@ -76,6 +180,7 @@
                   {{ booking.status }}
                 </span>
               </td>
+              <td class="text-sm text-stone-500">{{ booking.status === 'cancelled' ? formatReleaseReason(booking.release_reason) : '—' }}</td>
               <td class="text-sm">{{ formatTime(booking.created_at) }}</td>
               <td class="text-sm">{{ booking.checked_in_at ? formatTime(booking.checked_in_at) : '—' }}</td>
               <td class="text-right">
@@ -104,11 +209,37 @@ definePageMeta({
 
 const route = useRoute()
 const supabase = useSupabaseClient()
+const nowTs = ref(Date.now())
+let countdownTimer: number | null = null
 
 const eventId = route.params.id as string
 const event = ref<any>(null)
 const bookings = ref<any[]>([])
 const loading = ref(true)
+
+const pendingClaims = computed(() =>
+  bookings.value
+    .filter((booking: any) => booking.status === 'pending')
+    .sort((a: any, b: any) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
+)
+
+const waitlistedMale = computed(() =>
+  bookings.value
+    .filter((booking: any) => booking.status === 'waitlisted' && String(booking.profile?.gender || '').toLowerCase() === 'male')
+    .sort((a: any, b: any) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
+)
+
+const waitlistedFemale = computed(() =>
+  bookings.value
+    .filter((booking: any) => booking.status === 'waitlisted' && String(booking.profile?.gender || '').toLowerCase() === 'female')
+    .sort((a: any, b: any) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
+)
+
+const releasedBookings = computed(() =>
+  bookings.value
+    .filter((booking: any) => booking.status === 'cancelled')
+    .sort((a: any, b: any) => new Date(b.released_at || b.updated_at || b.created_at).getTime() - new Date(a.released_at || a.updated_at || a.created_at).getTime())
+)
 
 const fetchEventDetails = async () => {
   loading.value = true
@@ -116,6 +247,7 @@ const fetchEventDetails = async () => {
   // Fetch event info
   // @ts-ignore
   const { data: eventData } = await supabase
+    .schema('m2m')
     .from('events')
     .select('*')
     .eq('id', eventId)
@@ -126,6 +258,7 @@ const fetchEventDetails = async () => {
   // Fetch bookings with profiles
   // @ts-ignore
   const { data: bookingData } = await supabase
+    .schema('m2m')
     .from('event_bookings')
     .select(`
       *,
@@ -171,6 +304,19 @@ const formatTime = (dateStr: string) => {
   })
 }
 
+const getClaimCountdownLabel = (booking: any) => {
+  if (!booking || booking.status !== 'pending' || booking.payment_id || !booking.created_at) return ''
+  const remainingMs = new Date(booking.created_at).getTime() + (30 * 60 * 1000) - nowTs.value
+  if (remainingMs <= 0) return 'Hold expiring now'
+  const totalMinutes = Math.floor(remainingMs / 60000)
+  const hours = Math.floor(totalMinutes / 60)
+  const minutes = totalMinutes % 60
+  if (hours > 0) return `${hours}h ${minutes}m left to claim`
+  if (totalMinutes > 0) return `${totalMinutes} minute${totalMinutes === 1 ? '' : 's'} left to claim`
+  const seconds = Math.max(1, Math.ceil(remainingMs / 1000))
+  return `${seconds}s left to claim`
+}
+
 const getStatusClass = (status: string) => {
    switch(status) {
     case 'open': return 'badge--green'
@@ -192,8 +338,22 @@ const getBookingStatusClass = (status: string) => {
 
 const capitalize = (str: string) => str ? str.charAt(0).toUpperCase() + str.slice(1) : ''
 
+const formatReleaseReason = (value: string | null | undefined) => {
+  if (!value) return 'Not provided'
+  return value
+    .replace(/_/g, ' ')
+    .replace(/\b\w/g, (char) => char.toUpperCase())
+}
+
 onMounted(() => {
   fetchEventDetails()
+  countdownTimer = window.setInterval(() => {
+    nowTs.value = Date.now()
+  }, 1000)
+})
+
+onUnmounted(() => {
+  if (countdownTimer) window.clearInterval(countdownTimer)
 })
 </script>
 
