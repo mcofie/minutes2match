@@ -178,6 +178,10 @@ export type M2MSchema = {
                 scorecards_open: boolean
                 scorecard_deadline: string | null
                 scorecards_processed_at: string | null
+                female_min_age: number | null
+                female_max_age: number | null
+                male_min_age: number | null
+                male_max_age: number | null
                 created_at: string
             }
             Insert: {
@@ -200,6 +204,10 @@ export type M2MSchema = {
                 scorecards_open?: boolean
                 scorecard_deadline?: string | null
                 scorecards_processed_at?: string | null
+                female_min_age?: number | null
+                female_max_age?: number | null
+                male_min_age?: number | null
+                male_max_age?: number | null
                 created_at?: string
             }
             Update: {
@@ -221,6 +229,10 @@ export type M2MSchema = {
                 scorecards_open?: boolean
                 scorecard_deadline?: string | null
                 scorecards_processed_at?: string | null
+                female_min_age?: number | null
+                female_max_age?: number | null
+                male_min_age?: number | null
+                male_max_age?: number | null
             }
             Relationships: []
         }

@@ -83,7 +83,7 @@ export async function fetchEventBookingContext(client: EventClient, options: {
 }) {
   const nowIso = new Date().toISOString()
   const [{ data: profile }, { data: event }, { data: qualification }, { data: existingBooking }] = await Promise.all([
-    client.schema('m2m').from('profiles').select('id, display_name, phone, gender').eq('id', options.userId).maybeSingle(),
+    client.schema('m2m').from('profiles').select('id, display_name, phone, gender, birth_date').eq('id', options.userId).maybeSingle(),
     client.schema('m2m').from('events').select('*').eq('id', options.eventId).maybeSingle(),
     client.schema('m2m').from('event_qualifications').select('id, status').eq('event_id', options.eventId).eq('user_id', options.userId).maybeSingle(),
     client.schema('m2m').from('event_bookings').select('*').eq('event_id', options.eventId).eq('user_id', options.userId).maybeSingle()
@@ -103,6 +103,32 @@ export async function fetchEventBookingContext(client: EventClient, options: {
 
   if (event.status === 'draft' || event.status === 'completed') {
     throw createError({ statusCode: 400, statusMessage: 'This event is not open for booking' })
+  }
+
+  if (profile) {
+    const isFemale = profile.gender === 'female'
+    const minAge = isFemale ? event.female_min_age : event.male_min_age
+    const maxAge = isFemale ? event.female_max_age : event.male_max_age
+
+    if (minAge !== null || maxAge !== null) {
+      if (!profile.birth_date) {
+        throw createError({ statusCode: 403, statusMessage: 'Please set your birth date in your profile to book this event' })
+      }
+      const birthDate = new Date(profile.birth_date)
+      const today = new Date()
+      let age = today.getFullYear() - birthDate.getFullYear()
+      const m = today.getMonth() - birthDate.getMonth()
+      if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+        age--
+      }
+
+      if (minAge !== null && age < minAge) {
+        throw createError({ statusCode: 403, statusMessage: `This event requires a minimum age of ${minAge}` })
+      }
+      if (maxAge !== null && age > maxAge) {
+        throw createError({ statusCode: 403, statusMessage: `This event has a maximum age of ${maxAge}` })
+      }
+    }
   }
 
   return { profile, event, qualification, existingBooking }

@@ -150,6 +150,28 @@
               
               <div class="grid grid-cols-2 gap-4">
                 <div class="form-group">
+                  <label class="form-label">Male Min Age</label>
+                  <input v-model.number="form.male_min_age" type="number" min="18" class="form-input" placeholder="e.g. 25" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Male Max Age</label>
+                  <input v-model.number="form.male_max_age" type="number" min="18" class="form-input" placeholder="e.g. 40" />
+                </div>
+              </div>
+
+              <div class="grid grid-cols-2 gap-4">
+                <div class="form-group">
+                  <label class="form-label">Female Min Age</label>
+                  <input v-model.number="form.female_min_age" type="number" min="18" class="form-input" placeholder="e.g. 21" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Female Max Age</label>
+                  <input v-model.number="form.female_max_age" type="number" min="18" class="form-input" placeholder="e.g. 35" />
+                </div>
+              </div>
+              
+              <div class="grid grid-cols-2 gap-4">
+                <div class="form-group">
                   <label class="form-label">Status</label>
                   <select v-model="form.status" class="form-select">
                     <option value="draft">Draft (Hidden)</option>
@@ -475,7 +497,11 @@ const form = reactive({
   ticket_price_male: 100,
   ticket_price_female: 80,
   status: 'draft',
-  is_public: true
+  is_public: true,
+  female_min_age: null as number | null,
+  female_max_age: null as number | null,
+  male_min_age: null as number | null,
+  male_max_age: null as number | null
 })
 
 const fetchEvents = async () => {
@@ -549,7 +575,11 @@ const closeModal = () => {
     ticket_price_male: 100,
     ticket_price_female: 80,
     status: 'draft',
-    is_public: true
+    is_public: true,
+    female_min_age: null,
+    female_max_age: null,
+    male_min_age: null,
+    male_max_age: null
   })
 }
 
@@ -599,7 +629,11 @@ const saveEvent = async () => {
       ticket_price_male: form.ticket_price_male,
       ticket_price_female: form.ticket_price_female,
       status: form.status,
-      is_public: form.is_public
+      is_public: form.is_public,
+      female_min_age: form.female_min_age,
+      female_max_age: form.female_max_age,
+      male_min_age: form.male_min_age,
+      male_max_age: form.male_max_age
     }
     
     if (editingEvent.value) {

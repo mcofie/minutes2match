@@ -35,6 +35,8 @@
         :booked="hasBookedEvent(event.id)"
         :bookingStatus="getBookingStatus(event.id)"
         :loading="loadingBookings"
+        :minAge="profile?.gender === 'female' ? event.female_min_age : event.male_min_age"
+        :maxAge="profile?.gender === 'female' ? event.female_max_age : event.male_max_age"
         @book="handleBookEvent(event)"
       />
     </div>

@@ -14,6 +14,21 @@
           <h1 class="text-2xl font-bold mb-2">{{ event.title }}</h1>
           <p class="text-muted">
             📅 {{ formatDate(event.event_date) }} • 📍 {{ event.venue }}
+            <template v-if="event.female_min_age || event.female_max_age || event.male_min_age || event.male_max_age">
+               • 🔞
+               <span v-if="event.female_min_age || event.female_max_age" class="mr-2">
+                 👩 
+                 <template v-if="event.female_min_age && event.female_max_age">{{ event.female_min_age }} - {{ event.female_max_age }}</template>
+                 <template v-else-if="event.female_min_age">{{ event.female_min_age }}+</template>
+                 <template v-else-if="event.female_max_age">Up to {{ event.female_max_age }}</template>
+               </span>
+               <span v-if="event.male_min_age || event.male_max_age">
+                 👨 
+                 <template v-if="event.male_min_age && event.male_max_age">{{ event.male_min_age }} - {{ event.male_max_age }}</template>
+                 <template v-else-if="event.male_min_age">{{ event.male_min_age }}+</template>
+                 <template v-else-if="event.male_max_age">Up to {{ event.male_max_age }}</template>
+               </span>
+            </template>
           </p>
         </div>
         <div class="text-right">

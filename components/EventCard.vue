@@ -34,6 +34,16 @@
           </svg>
           <span>{{ formattedTime }}</span>
         </div>
+
+        <div v-if="minAge || maxAge" class="flex items-center gap-3 text-stone-500 text-sm font-medium">
+          <svg class="w-4 h-4 text-stone-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+            <circle cx="12" cy="7" r="4"></circle>
+          </svg>
+          <span v-if="minAge && maxAge">Ages {{ minAge }} - {{ maxAge }} ({{ userGender === 'female' ? 'Ladies' : 'Gents' }})</span>
+          <span v-else-if="minAge">{{ minAge }}+ years ({{ userGender === 'female' ? 'Ladies' : 'Gents' }})</span>
+          <span v-else-if="maxAge">Up to {{ maxAge }} years ({{ userGender === 'female' ? 'Ladies' : 'Gents' }})</span>
+        </div>
       </div>
 
       <div v-if="totalTicketsSold > 0" class="flex items-center gap-2 mb-4">
@@ -123,6 +133,8 @@ interface Props {
   booked?: boolean
   bookingStatus?: 'pending' | 'confirmed' | 'checked_in' | 'waitlisted' | 'cancelled' | null
   loading?: boolean
+  minAge?: number | null
+  maxAge?: number | null
 }
 
 const props = defineProps<Props>()
