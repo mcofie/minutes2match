@@ -31,6 +31,51 @@
           <span class="text-xl font-bold">{{ event.female_tickets_sold }} / {{ event.female_capacity }}</span>
         </div>
       </div>
+
+      <div class="mt-6 rounded-2xl border border-stone-200 bg-stone-50 p-4">
+        <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+          <div>
+            <p class="text-xs font-bold uppercase tracking-widest text-stone-400">Speed Dating Scorecards</p>
+            <p class="mt-2 text-sm text-stone-600">
+              Let checked-in attendees score who they met. Mutual `Match` picks unlock for free after you process the round.
+            </p>
+          </div>
+
+          <div class="flex flex-wrap items-end gap-3">
+            <label class="text-xs font-bold uppercase tracking-widest text-stone-400">
+              Deadline (hrs)
+              <input v-model.number="deadlineHours" type="number" min="1" max="48" class="mt-2 w-24 rounded-xl border border-stone-200 bg-white px-3 py-2 text-sm text-stone-700" />
+            </label>
+            <button class="btn-secondary" :disabled="actionLoading" @click="runScorecardAction('enable')">Enable</button>
+            <button class="btn-secondary" :disabled="actionLoading" @click="runScorecardAction('open')">Open</button>
+            <button class="btn-secondary" :disabled="actionLoading" @click="runScorecardAction('close')">Close</button>
+            <button class="btn-primary" :disabled="actionLoading" @click="runScorecardAction('process')">Process Mutuals</button>
+          </div>
+        </div>
+
+        <div class="mt-4 grid gap-3 md:grid-cols-4">
+          <div class="rounded-xl border border-stone-200 bg-white px-4 py-3">
+            <p class="text-[10px] font-bold uppercase tracking-widest text-stone-400">Enabled</p>
+            <p class="mt-1 text-sm font-semibold text-stone-900">{{ event.matching_enabled ? 'Yes' : 'No' }}</p>
+          </div>
+          <div class="rounded-xl border border-stone-200 bg-white px-4 py-3">
+            <p class="text-[10px] font-bold uppercase tracking-widest text-stone-400">Open</p>
+            <p class="mt-1 text-sm font-semibold text-stone-900">{{ event.scorecards_open ? 'Live now' : 'Closed' }}</p>
+          </div>
+          <div class="rounded-xl border border-stone-200 bg-white px-4 py-3">
+            <p class="text-[10px] font-bold uppercase tracking-widest text-stone-400">Submitted</p>
+            <p class="mt-1 text-sm font-semibold text-stone-900">{{ scorecardVoterCount }}/{{ checkedInCount }}</p>
+          </div>
+          <div class="rounded-xl border border-stone-200 bg-white px-4 py-3">
+            <p class="text-[10px] font-bold uppercase tracking-widest text-stone-400">Match Votes</p>
+            <p class="mt-1 text-sm font-semibold text-stone-900">{{ matchVoteCount }}</p>
+          </div>
+        </div>
+
+        <p v-if="event.scorecard_deadline" class="mt-3 text-xs text-stone-500">
+          Current deadline: {{ formatTime(event.scorecard_deadline) }}
+        </p>
+      </div>
     </div>
 
     <div class="grid gap-6 lg:grid-cols-2 mb-6">
@@ -211,6 +256,9 @@ const route = useRoute()
 const supabase = useSupabaseClient()
 const nowTs = ref(Date.now())
 let countdownTimer: number | null = null
+const actionLoading = ref(false)
+const deadlineHours = ref(12)
+const scorecardRows = ref<any[]>([])
 
 const eventId = route.params.id as string
 const event = ref<any>(null)
@@ -241,6 +289,18 @@ const releasedBookings = computed(() =>
     .sort((a: any, b: any) => new Date(b.released_at || b.updated_at || b.created_at).getTime() - new Date(a.released_at || a.updated_at || a.created_at).getTime())
 )
 
+const checkedInCount = computed(() =>
+  bookings.value.filter((booking: any) => booking.status === 'checked_in').length
+)
+
+const scorecardVoterCount = computed(() =>
+  new Set(scorecardRows.value.map((row: any) => row.voter_user_id)).size
+)
+
+const matchVoteCount = computed(() =>
+  scorecardRows.value.filter((row: any) => row.decision === 'match').length
+)
+
 const fetchEventDetails = async () => {
   loading.value = true
   
@@ -255,20 +315,36 @@ const fetchEventDetails = async () => {
   
   event.value = eventData
 
-  // Fetch bookings with profiles
-  // @ts-ignore
-  const { data: bookingData } = await supabase
-    .schema('m2m')
-    .from('event_bookings')
-    .select(`
-      *,
-      profile:profiles(*)
-    `)
-    .eq('event_id', eventId)
-    .order('created_at', { ascending: false })
-  
-  bookings.value = bookingData || []
+  const bookingsResponse = await $fetch<{ bookings: any[] }>(`/api/admin/events/bookings?eventId=${eventId}`)
+  bookings.value = bookingsResponse.bookings || []
+
+  const scorecardResponse = await $fetch<{ rows: any[] }>(`/api/admin/events/scorecards?eventId=${eventId}`)
+  scorecardRows.value = scorecardResponse.rows || []
   loading.value = false
+}
+
+const runScorecardAction = async (action: 'enable' | 'open' | 'close' | 'process') => {
+  actionLoading.value = true
+  try {
+    const response = await $fetch<any>('/api/admin/events/scorecards', {
+      method: 'POST',
+      body: {
+        eventId,
+        action,
+        deadlineHours: deadlineHours.value
+      }
+    })
+
+    if (action === 'process') {
+      alert(`Processed scorecards. ${response.result?.mutualCount || 0} mutual pair(s) found.`)
+    }
+
+    await fetchEventDetails()
+  } catch (error: any) {
+    alert(error?.data?.statusMessage || error?.message || 'Unable to update scorecards')
+  } finally {
+    actionLoading.value = false
+  }
 }
 
 const checkIn = async (booking: any) => {
@@ -277,7 +353,13 @@ const checkIn = async (booking: any) => {
   try {
     await $fetch('/api/admin/events/check-in', {
       method: 'POST',
-      body: { bookingId: booking.id }
+      body: {
+        bookingId: booking.id,
+        eventId,
+        userId: booking.user_id || booking.profile?.id,
+        profileId: booking.profile?.id,
+        phone: booking.profile?.phone
+      }
     })
     await fetchEventDetails()
   } catch (error: any) {

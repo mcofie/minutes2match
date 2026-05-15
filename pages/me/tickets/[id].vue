@@ -80,6 +80,14 @@
             Claim Spot Now
           </NuxtLink>
 
+          <NuxtLink
+            v-if="showScorecardLink"
+            :to="`/events/${event.id}/scorecard`"
+            class="block w-full py-3 bg-white text-black rounded-xl border-2 border-black text-center text-sm font-bold uppercase tracking-widest transition-all hover:bg-stone-50"
+          >
+            {{ event?.scorecards_open ? 'Open Scorecard' : 'View Scorecard' }}
+          </NuxtLink>
+
           <button @click="downloadICS" class="w-full py-3 bg-black text-white rounded-xl border-2 border-black text-sm font-bold uppercase tracking-widest shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-0.5 hover:translate-y-0.5 transition-all">
             Add to Calendar
           </button>
@@ -222,6 +230,10 @@ const canReleaseBooking = computed(() =>
   booking.value?.status === 'confirmed'
   || booking.value?.status === 'waitlisted'
   || (booking.value?.status === 'pending' && !booking.value?.payment_id)
+)
+
+const showScorecardLink = computed(() =>
+  Boolean(event.value?.matching_enabled) && String(booking.value?.status || '') === 'checked_in'
 )
 
 const fetchTicket = async () => {

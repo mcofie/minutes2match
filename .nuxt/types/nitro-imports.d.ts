@@ -61,6 +61,9 @@ declare global {
   const expireStaleFlashLobbyIntents: typeof import('../../server/utils/flashLobby').expireStaleFlashLobbyIntents
   const extractPreferencesFromBio: typeof import('../../server/utils/ai').extractPreferencesFromBio
   const fetchEventBookingContext: typeof import('../../server/utils/events').fetchEventBookingContext
+  const fetchEventScorecardContext: typeof import('../../server/utils/eventScorecards').fetchEventScorecardContext
+  const fetchExistingScorecards: typeof import('../../server/utils/eventScorecards').fetchExistingScorecards
+  const fetchScorecardCandidates: typeof import('../../server/utils/eventScorecards').fetchScorecardCandidates
   const fetchVisibleEventDetail: typeof import('../../server/utils/events').fetchVisibleEventDetail
   const fetchVisibleEventsForUser: typeof import('../../server/utils/events').fetchVisibleEventsForUser
   const fetchWithEvent: typeof import('../../node_modules/h3').fetchWithEvent
@@ -154,6 +157,7 @@ declare global {
   const parseTelegramInitData: typeof import('../../server/utils/telegram').parseTelegramInitData
   const personas: typeof import('../../server/utils/personas').personas
   const processEventBookingLifecycle: typeof import('../../server/utils/events').processEventBookingLifecycle
+  const processEventScorecards: typeof import('../../server/utils/eventScorecards').processEventScorecards
   const processFlashLobbyLifecycle: typeof import('../../server/utils/flashLobby').processFlashLobbyLifecycle
   const processFlashLobbyLiveReminders: typeof import('../../server/utils/flashLobby').processFlashLobbyLiveReminders
   const processFlashLobbyPostLobbyQueue: typeof import('../../server/utils/flashLobby').processFlashLobbyPostLobbyQueue
@@ -177,6 +181,7 @@ declare global {
   const sanitizeSparkMessage: typeof import('../../server/utils/flashLobbyRules').sanitizeSparkMessage
   const sanitizeStatusCode: typeof import('../../node_modules/h3').sanitizeStatusCode
   const sanitizeStatusMessage: typeof import('../../node_modules/h3').sanitizeStatusMessage
+  const saveEventScorecards: typeof import('../../server/utils/eventScorecards').saveEventScorecards
   const sealSession: typeof import('../../node_modules/h3').sealSession
   const send: typeof import('../../node_modules/h3').send
   const sendError: typeof import('../../node_modules/h3').sendError
@@ -275,6 +280,7 @@ export { requireAdminAccess } from '/Users/maxwellcofie/WebstormProjects/minutes
 export { getGeminiModel, auditProfileWithAI, extractPreferencesFromBio, generateMatchExplanation } from '/Users/maxwellcofie/WebstormProjects/minutes2match/server/utils/ai';
 export { getUserBalance, creditUser, debitUser } from '/Users/maxwellcofie/WebstormProjects/minutes2match/server/utils/credits';
 export { DiscordColors, notifyRedemption, notifyDiscord, notifyNewSignup, notifyPaymentInitiated, notifyPaymentSuccess, notifyMatchUnlocked, notifyEventBooking, notifyEventBookingReleased, notifyLobbyReminder, notifyError, notifyUserLogin, notifyMatchNudge, notifyFlashLobbySparkSent, notifyFlashLobbyMutualMatch, notifyFlashLobbySuperConnectStarted, notifyFlashLobbySuperConnectCompleted, notifySubscriptionActivated, notifyFlashLobbyLifecycle } from '/Users/maxwellcofie/WebstormProjects/minutes2match/server/utils/discord';
+export { fetchEventScorecardContext, fetchScorecardCandidates, fetchExistingScorecards, saveEventScorecards, processEventScorecards } from '/Users/maxwellcofie/WebstormProjects/minutes2match/server/utils/eventScorecards';
 export { getEventBucketByGender, getEventTicketPrice, formatPaymentEmail, resolveEventUserId, fetchEventBookingContext, getEventAvailabilitySnapshot, processEventBookingLifecycle, fetchVisibleEventsForUser, fetchVisibleEventDetail } from '/Users/maxwellcofie/WebstormProjects/minutes2match/server/utils/events';
 export { FLASH_LOBBY_RESPONSE_WINDOW_HOURS, FLASH_LOBBY_ACTIVE_SESSION_WINDOW_SECONDS, touchFlashLobbySession, leaveFlashLobbySession, cleanupInactiveFlashLobbySessions, getLiveFlashLobbyAttendance, getFlashLobbyModerationMap, getFlashLobbyModerationState, getActiveFlashLobby, getMostRecentFlashLobby, createFlashLobbyMatch, calculateFlashLobbyPreviewScore, calculateFlashLobbyMatchScore, expireStaleFlashLobbyIntents, processFlashLobbyLiveReminders, processFlashLobbyPostLobbyQueue, processFlashLobbyLifecycle } from '/Users/maxwellcofie/WebstormProjects/minutes2match/server/utils/flashLobby';
 export { normalizeGender, normalizeInterest, canUsersSeeEachOther, sanitizeSparkMessage, validateSparkMessage, isResolvedIntentStatus, resolveSparkOutcome, canPerformPostLobbyAction } from '/Users/maxwellcofie/WebstormProjects/minutes2match/server/utils/flashLobbyRules';

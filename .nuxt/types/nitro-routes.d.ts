@@ -15,8 +15,15 @@ declare module "nitropack/types" {
     '/api/admin/credits': {
       'get': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/admin/credits/index.get').default>>>>
     }
+    '/api/admin/events/bookings': {
+      'get': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/admin/events/bookings.get').default>>>>
+    }
     '/api/admin/events/check-in': {
       'post': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/admin/events/check-in.post').default>>>>
+    }
+    '/api/admin/events/scorecards': {
+      'get': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/admin/events/scorecards.get').default>>>>
+      'post': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/admin/events/scorecards.post').default>>>>
     }
     '/api/admin/flash-lobby/control': {
       'post': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/admin/flash-lobby/control.post').default>>>>
@@ -173,6 +180,10 @@ declare module "nitropack/types" {
     }
     '/api/events/:id': {
       'get': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/events/[id].get').default>>>>
+    }
+    '/api/events/:id/scorecard': {
+      'get': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/events/[id]/scorecard.get').default>>>>
+      'post': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/events/[id]/scorecard.post').default>>>>
     }
     '/api/events/book': {
       'post': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/events/book.post').default>>>>

@@ -174,6 +174,10 @@ export type M2MSchema = {
                 status: 'draft' | 'open' | 'waitlist' | 'sold_out' | 'completed'
                 cover_image_url: string | null
                 is_public: boolean
+                matching_enabled: boolean
+                scorecards_open: boolean
+                scorecard_deadline: string | null
+                scorecards_processed_at: string | null
                 created_at: string
             }
             Insert: {
@@ -192,6 +196,10 @@ export type M2MSchema = {
                 status?: 'draft' | 'open' | 'waitlist' | 'sold_out' | 'completed'
                 cover_image_url?: string | null
                 is_public?: boolean
+                matching_enabled?: boolean
+                scorecards_open?: boolean
+                scorecard_deadline?: string | null
+                scorecards_processed_at?: string | null
                 created_at?: string
             }
             Update: {
@@ -209,6 +217,10 @@ export type M2MSchema = {
                 status?: 'draft' | 'open' | 'waitlist' | 'sold_out' | 'completed'
                 cover_image_url?: string | null
                 is_public?: boolean
+                matching_enabled?: boolean
+                scorecards_open?: boolean
+                scorecard_deadline?: string | null
+                scorecards_processed_at?: string | null
             }
             Relationships: []
         }
@@ -223,6 +235,9 @@ export type M2MSchema = {
                 updated_at?: string | null
                 checked_in_at?: string | null
                 checked_in_by?: string | null
+                released_at?: string | null
+                release_reason?: string | null
+                release_note?: string | null
             }
             Insert: {
                 id?: string
@@ -234,6 +249,9 @@ export type M2MSchema = {
                 updated_at?: string | null
                 checked_in_at?: string | null
                 checked_in_by?: string | null
+                released_at?: string | null
+                release_reason?: string | null
+                release_note?: string | null
             }
             Update: {
                 event_id?: string | null
@@ -243,6 +261,43 @@ export type M2MSchema = {
                 updated_at?: string | null
                 checked_in_at?: string | null
                 checked_in_by?: string | null
+                released_at?: string | null
+                release_reason?: string | null
+                release_note?: string | null
+            }
+            Relationships: []
+        }
+        event_scorecards: {
+            Row: {
+                id: string
+                event_id: string
+                voter_user_id: string
+                target_user_id: string
+                decision: 'match' | 'maybe' | 'pass'
+                note: string | null
+                submitted_at: string
+                created_at: string
+                updated_at: string
+            }
+            Insert: {
+                id?: string
+                event_id: string
+                voter_user_id: string
+                target_user_id: string
+                decision: 'match' | 'maybe' | 'pass'
+                note?: string | null
+                submitted_at?: string
+                created_at?: string
+                updated_at?: string
+            }
+            Update: {
+                event_id?: string
+                voter_user_id?: string
+                target_user_id?: string
+                decision?: 'match' | 'maybe' | 'pass'
+                note?: string | null
+                submitted_at?: string
+                updated_at?: string
             }
             Relationships: []
         }
@@ -281,8 +336,11 @@ export type M2MSchema = {
                 user_1_paid_at: string | null
                 user_2_paid_at: string | null
                 created_by: string | null
+                created_by_label: string | null
                 created_at: string
                 unlocked_at: string | null
+                user_1_amount_paid: number | null
+                user_2_amount_paid: number | null
                 feedback_status: 'pending' | 'connected' | 'no_response' | 'unmatched' | 'dating' | null
                 feedback_notes: string | null
                 feedback_updated_at: string | null
@@ -308,8 +366,11 @@ export type M2MSchema = {
                 user_1_paid_at?: string | null
                 user_2_paid_at?: string | null
                 created_by?: string | null
+                created_by_label?: string | null
                 created_at?: string
                 unlocked_at?: string | null
+                user_1_amount_paid?: number | null
+                user_2_amount_paid?: number | null
                 feedback_status?: 'pending' | 'connected' | 'no_response' | 'unmatched' | 'dating' | null
                 feedback_notes?: string | null
                 feedback_updated_at?: string | null
@@ -333,7 +394,10 @@ export type M2MSchema = {
                 user_2_paid?: boolean
                 user_1_paid_at?: string | null
                 user_2_paid_at?: string | null
+                created_by_label?: string | null
                 unlocked_at?: string | null
+                user_1_amount_paid?: number | null
+                user_2_amount_paid?: number | null
                 feedback_status?: 'pending' | 'connected' | 'no_response' | 'unmatched' | 'dating' | null
                 feedback_notes?: string | null
                 feedback_updated_at?: string | null
