@@ -196,9 +196,10 @@ export default defineEventHandler(async (event) => {
         }
 
         // Handle based on purpose
+        const paymentId = existingPayment?.id || (data as any).id // Use data.id if we just inserted a new record
         if (metadata.purpose === 'event_ticket') {
             console.log('[Webhook] Processing event_ticket payment')
-            await handleEventTicketPayment(supabase, metadata)
+            await handleEventTicketPayment(supabase, metadata, paymentId)
         } else if (metadata.purpose === 'match_unlock') {
             console.log('[Webhook] Processing match_unlock payment')
             await handleMatchUnlockPayment(supabase, data, metadata, config)
@@ -241,22 +242,52 @@ export default defineEventHandler(async (event) => {
 /**
  * Handle event ticket payment confirmation
  */
-async function handleEventTicketPayment(supabase: any, metadata: any) {
-    console.log('[Webhook] Updating event_booking for user:', metadata.userId, 'event:', metadata.eventId)
+async function handleEventTicketPayment(supabase: any, metadata: any, paymentId?: string) {
+    console.log('[Webhook] Processing event_booking confirmation. PaymentRecord:', paymentId, 'User:', metadata.userId, 'Event:', metadata.eventId)
 
-    const { error: bookingError, data } = await supabase
-        .from('event_bookings')
-        .update({ status: 'confirmed' })
-        .eq('user_id', metadata.userId)
-        .eq('event_id', metadata.eventId)
-        .eq('status', 'pending')
-        .select()
+    let updatedRows = 0
+    let confirmedBooking: any = null
 
-    if (bookingError) {
-        console.error('[Webhook] Failed to confirm booking:', bookingError)
-    } else {
-        console.log('[Webhook] Booking confirmed successfully, rows updated:', data?.length || 0)
+    // 1. Try to update by specific payment_id (most precise)
+    if (paymentId) {
+        const { data, error } = await supabase
+            .from('event_bookings')
+            .update({ status: 'confirmed' })
+            .eq('payment_id', paymentId)
+            .select()
+        
+        if (!error && data && data.length > 0) {
+            console.log('[Webhook] ✅ Booking confirmed via payment_id match')
+            updatedRows = data.length
+            confirmedBooking = data[0]
+        }
+    }
 
+    // 2. Fallback to userId + eventId if payment_id didn't match or wasn't provided
+    if (updatedRows === 0) {
+        console.log('[Webhook] Falling back to userId + eventId lookup')
+        const { data, error } = await supabase
+            .from('event_bookings')
+            .update({ status: 'confirmed' })
+            .eq('user_id', metadata.userId)
+            .eq('event_id', metadata.eventId)
+            .eq('status', 'pending')
+            .select()
+        
+        if (error) {
+            console.error('[Webhook] ❌ Failed to confirm booking via fallback:', error)
+        } else {
+            updatedRows = data?.length || 0
+            confirmedBooking = data?.[0]
+            if (updatedRows > 0) {
+                console.log('[Webhook] ✅ Booking confirmed via fallback lookup')
+            } else {
+                console.warn('[Webhook] ⚠️ No pending booking found for confirmation')
+            }
+        }
+    }
+
+    if (updatedRows > 0) {
         // Fetch event and user details for Discord notification
         const { data: eventData } = await supabase
             .from('events')
@@ -285,8 +316,6 @@ async function handleEventTicketPayment(supabase: any, metadata: any) {
             ).catch(() => {})
         }
     }
-
-    // Note: Ticket count increment is handled by database trigger
 }
 
 /**
