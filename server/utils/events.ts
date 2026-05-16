@@ -145,7 +145,7 @@ export async function getEventAvailabilitySnapshot(client: EventClient, options:
       user:profiles!event_bookings_user_id_fkey(gender)
     `)
     .eq('event_id', options.eventId)
-    .in('status', ['pending', 'confirmed', 'checked_in', 'waitlisted'])
+    .in('status', ['confirmed', 'checked_in', 'waitlisted'])
 
   let maleReserved = 0
   let femaleReserved = 0
@@ -230,7 +230,7 @@ export async function fetchVisibleEventsForUser(client: EventClient, userId?: st
       .from('event_bookings')
       .select('event_id, status')
       .eq('user_id', userId)
-      .in('status', ['confirmed', 'pending', 'waitlisted', 'checked_in'])
+      .in('status', ['confirmed', 'waitlisted', 'checked_in'])
   ])
 
   if (qualificationsError) {

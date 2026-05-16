@@ -1,6 +1,6 @@
 import { createClient } from '@supabase/supabase-js'
 import { notifyPaymentInitiated } from '~/server/utils/discord'
-import { fetchEventBookingContext, formatPaymentEmail, getEventTicketPrice, processEventBookingLifecycle, resolveEventUserId } from '~/server/utils/events'
+import { fetchEventBookingContext, formatPaymentEmail, getEventTicketPrice, getEventBucketByGender, getEventAvailabilitySnapshot, resolveEventUserId } from '~/server/utils/events'
 
 export default defineEventHandler(async (event) => {
   const body = await readBody(event).catch(() => ({} as Record<string, any>))
@@ -20,7 +20,7 @@ export default defineEventHandler(async (event) => {
     db: { schema: 'm2m' }
   })
 
-  const { profile, event: eventRow } = await fetchEventBookingContext(supabase as any, {
+  const { profile, event: eventRow, existingBooking } = await fetchEventBookingContext(supabase as any, {
     eventId,
     userId
   })
@@ -29,28 +29,53 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 400, statusMessage: 'Your profile must be set up before booking an event' })
   }
 
-  const reservation = await supabase.rpc('reserve_event_booking', {
-    p_event_id: eventId,
-    p_user_id: userId
-  })
-
-  if (reservation.error) {
-    throw createError({ statusCode: 500, statusMessage: reservation.error.message })
-  }
-
-  const reservedBooking = Array.isArray(reservation.data) ? reservation.data[0] : reservation.data
-  const bookingStatus = String(reservedBooking?.booking_status || '')
-
-  if (reservedBooking?.already_booked || bookingStatus === 'confirmed' || bookingStatus === 'checked_in') {
+  // Already booked — redirect to ticket
+  if (existingBooking?.status === 'confirmed' || existingBooking?.status === 'checked_in') {
     return {
       success: true,
       alreadyBooked: true,
-      bookingStatus,
+      bookingStatus: existingBooking.status,
       redirectTo: `/me/tickets/${eventId}`
     }
   }
 
-  if (bookingStatus === 'waitlisted') {
+  // Check availability for this gender bucket
+  const bucket = getEventBucketByGender(profile.gender)
+  if (!bucket) {
+    throw createError({ statusCode: 400, statusMessage: 'Please complete your gender on your profile before booking an event' })
+  }
+
+  const snapshot = await getEventAvailabilitySnapshot(supabase as any, { eventId })
+  const capacity = bucket === 'female'
+    ? (eventRow.female_capacity || 0)
+    : (eventRow.male_capacity || 0)
+  const reserved = bucket === 'female' ? snapshot.femaleReserved : snapshot.maleReserved
+  const waitlisted = bucket === 'female' ? snapshot.femaleWaitlisted : snapshot.maleWaitlisted
+
+  // If the event is full or in waitlist-only mode, add to waitlist
+  const isFull = reserved >= capacity || eventRow.status === 'sold_out' || eventRow.status === 'waitlist' || waitlisted > 0
+  if (isFull) {
+    // Upsert a waitlist entry
+    if (existingBooking?.status === 'waitlisted') {
+      return {
+        success: true,
+        waitlisted: true,
+        bookingStatus: 'waitlisted',
+        message: 'You are still on the waitlist. We will notify you when a spot opens.'
+      }
+    }
+
+    if (existingBooking) {
+      await supabase
+        .from('event_bookings')
+        .update({ status: 'waitlisted', updated_at: new Date().toISOString() })
+        .eq('id', existingBooking.id)
+    } else {
+      await supabase
+        .from('event_bookings')
+        .insert({ event_id: eventId, user_id: userId, status: 'waitlisted' })
+    }
+
     return {
       success: true,
       waitlisted: true,
@@ -59,6 +84,7 @@ export default defineEventHandler(async (event) => {
     }
   }
 
+  // Spots available — initialize Paystack payment directly (no pending booking)
   const amount = getEventTicketPrice(eventRow, profile.gender)
   const paymentEmail = formatPaymentEmail(profile.phone)
   const callbackUrl = `${config.public.baseUrl}/payment/callback`
@@ -90,7 +116,8 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 502, statusMessage: paystackResponse.message || 'Failed to initialize payment' })
   }
 
-  const { data: paymentRecord, error: paymentInsertError } = await supabase
+  // Create payment record (pending) — but NO pending booking row
+  const { error: paymentInsertError } = await supabase
     .from('payments')
     .insert({
       user_id: userId,
@@ -102,19 +129,10 @@ export default defineEventHandler(async (event) => {
       status: 'pending',
       metadata: { purpose: 'event_ticket', userId, eventId }
     })
-    .select('id')
-    .single()
 
   if (paymentInsertError) {
     throw createError({ statusCode: 500, statusMessage: paymentInsertError.message })
   }
-
-  await supabase
-    .from('event_bookings')
-    .update({ payment_id: paymentRecord.id })
-    .eq('id', reservedBooking.booking_id)
-
-  await processEventBookingLifecycle(supabase as any, { eventId })
 
   await notifyPaymentInitiated({
     amount,
@@ -126,7 +144,7 @@ export default defineEventHandler(async (event) => {
 
   return {
     success: true,
-    bookingStatus: 'pending',
+    bookingStatus: 'awaiting_payment',
     amount,
     authorization_url: paystackResponse.data.authorization_url,
     reference: paystackResponse.data.reference

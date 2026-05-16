@@ -46,10 +46,6 @@ export default defineEventHandler(async (event) => {
     return { success: true, alreadyReleased: true }
   }
 
-  if (booking.status === 'pending' && booking.payment_id) {
-    throw createError({ statusCode: 400, statusMessage: 'This ticket is currently confirming payment. Please wait a moment and try again.' })
-  }
-
   const previousStatus = String(booking.status || 'pending')
 
   const { error: updateError } = await supabase

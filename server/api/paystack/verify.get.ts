@@ -129,13 +129,35 @@ export default defineEventHandler(async (event) => {
         // Handle specific purposes
         if (paymentSuccess && metadata.purpose) {
             if (metadata.purpose === 'event_ticket' && metadata.eventId) {
-                await supabase
+                // Check if a booking already exists for this user + event
+                const { data: existingBooking } = await supabase
                     .schema('m2m')
                     .from('event_bookings')
-                    .update({ status: 'confirmed' })
-                    .eq('event_id', metadata.eventId)
+                    .select('id, status')
                     .eq('user_id', metadata.userId)
-                    .eq('status', 'pending')
+                    .eq('event_id', metadata.eventId)
+                    .maybeSingle()
+
+                if (existingBooking?.status === 'confirmed' || existingBooking?.status === 'checked_in') {
+                    console.log('[Verify] Booking already confirmed, skipping')
+                } else if (existingBooking) {
+                    await supabase
+                        .schema('m2m')
+                        .from('event_bookings')
+                        .update({ status: 'confirmed' })
+                        .eq('id', existingBooking.id)
+                    console.log('[Verify] ✅ Existing booking updated to confirmed')
+                } else {
+                    await supabase
+                        .schema('m2m')
+                        .from('event_bookings')
+                        .insert({
+                            event_id: metadata.eventId,
+                            user_id: metadata.userId,
+                            status: 'confirmed'
+                        })
+                    console.log('[Verify] ✅ Booking created as confirmed directly')
+                }
 
             } else if (metadata.purpose === 'match_unlock' && metadata.matchId) {
                 if (metadata.superConnect || metadata.unlockBoth) {

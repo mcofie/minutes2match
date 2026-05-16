@@ -8,6 +8,7 @@
 
 import { serverSupabaseServiceRole, serverSupabaseUser } from '#supabase/server'
 import type { M2MDatabase } from '~/types/database.types'
+import { sendSMS } from '~/server/utils/sms'
 
 interface SMSRecipient {
     id: string
@@ -78,8 +79,8 @@ export default defineEventHandler(async (event) => {
     let failCount = 0
 
     // Process in batches to balance speed and stability
-    const BATCH_SIZE = 10
-    const INTER_BATCH_DELAY = 150 // ms
+    const BATCH_SIZE = 50
+    const INTER_BATCH_DELAY = 100 // ms
 
     for (let i = 0; i < recipients.length; i += BATCH_SIZE) {
         const batch = recipients.slice(i, i + BATCH_SIZE)

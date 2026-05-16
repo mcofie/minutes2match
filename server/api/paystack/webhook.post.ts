@@ -241,80 +241,88 @@ export default defineEventHandler(async (event) => {
 
 /**
  * Handle event ticket payment confirmation
+ * Creates or confirms a booking directly — no dependency on a pre-existing pending row.
  */
 async function handleEventTicketPayment(supabase: any, metadata: any, paymentId?: string) {
     console.log('[Webhook] Processing event_booking confirmation. PaymentRecord:', paymentId, 'User:', metadata.userId, 'Event:', metadata.eventId)
 
-    let updatedRows = 0
-    let confirmedBooking: any = null
-
-    // 1. Try to update by specific payment_id (most precise)
-    if (paymentId) {
-        const { data, error } = await supabase
-            .from('event_bookings')
-            .update({ status: 'confirmed' })
-            .eq('payment_id', paymentId)
-            .select()
-        
-        if (!error && data && data.length > 0) {
-            console.log('[Webhook] ✅ Booking confirmed via payment_id match')
-            updatedRows = data.length
-            confirmedBooking = data[0]
-        }
+    if (!metadata.userId || !metadata.eventId) {
+        console.error('[Webhook] ❌ Missing userId or eventId in metadata, cannot confirm booking')
+        return
     }
 
-    // 2. Fallback to userId + eventId if payment_id didn't match or wasn't provided
-    if (updatedRows === 0) {
-        console.log('[Webhook] Falling back to userId + eventId lookup')
-        const { data, error } = await supabase
+    // Check if a booking already exists for this user + event
+    const { data: existingBooking } = await supabase
+        .from('event_bookings')
+        .select('id, status')
+        .eq('user_id', metadata.userId)
+        .eq('event_id', metadata.eventId)
+        .maybeSingle()
+
+    if (existingBooking?.status === 'confirmed' || existingBooking?.status === 'checked_in') {
+        console.log('[Webhook] ✅ Booking already confirmed, skipping duplicate')
+        return
+    }
+
+    if (existingBooking) {
+        // Update existing row (pending, waitlisted, cancelled, etc.) to confirmed
+        const { error } = await supabase
             .from('event_bookings')
-            .update({ status: 'confirmed' })
-            .eq('user_id', metadata.userId)
-            .eq('event_id', metadata.eventId)
-            .eq('status', 'pending')
-            .select()
-        
+            .update({
+                status: 'confirmed',
+                payment_id: paymentId || existingBooking.payment_id || null
+            })
+            .eq('id', existingBooking.id)
+
         if (error) {
-            console.error('[Webhook] ❌ Failed to confirm booking via fallback:', error)
+            console.error('[Webhook] ❌ Failed to confirm existing booking:', error)
         } else {
-            updatedRows = data?.length || 0
-            confirmedBooking = data?.[0]
-            if (updatedRows > 0) {
-                console.log('[Webhook] ✅ Booking confirmed via fallback lookup')
-            } else {
-                console.warn('[Webhook] ⚠️ No pending booking found for confirmation')
-            }
+            console.log('[Webhook] ✅ Existing booking updated to confirmed')
+        }
+    } else {
+        // No booking row exists — create one as confirmed directly
+        const { error } = await supabase
+            .from('event_bookings')
+            .insert({
+                event_id: metadata.eventId,
+                user_id: metadata.userId,
+                status: 'confirmed',
+                payment_id: paymentId || null
+            })
+
+        if (error) {
+            console.error('[Webhook] ❌ Failed to create confirmed booking:', error)
+        } else {
+            console.log('[Webhook] ✅ Booking created as confirmed directly')
         }
     }
 
-    if (updatedRows > 0) {
-        // Fetch event and user details for Discord notification
-        const { data: eventData } = await supabase
-            .from('events')
-            .select('title')
-            .eq('id', metadata.eventId)
-            .single()
+    // Fetch event and user details for Discord notification
+    const { data: eventData } = await supabase
+        .from('events')
+        .select('title')
+        .eq('id', metadata.eventId)
+        .single()
 
-        const { data: userData } = await supabase
-            .from('profiles')
-            .select('display_name')
-            .eq('id', metadata.userId)
-            .single()
+    const { data: userData } = await supabase
+        .from('profiles')
+        .select('display_name')
+        .eq('id', metadata.userId)
+        .single()
 
-        // Send Discord notification
-        await notifyEventBooking({
-            eventName: eventData?.title || 'Unknown Event',
-            userName: userData?.display_name || 'Unknown User',
-            ticketCount: 1
-        })
+    // Send Discord notification
+    await notifyEventBooking({
+        eventName: eventData?.title || 'Unknown Event',
+        userName: userData?.display_name || 'Unknown User',
+        ticketCount: 1
+    })
 
-        if (metadata.userId && metadata.eventId) {
-            await notifyUser(
-                metadata.userId,
-                `🎟️ Your spot for ${eventData?.title || 'your event'} is confirmed. Open Minutes 2 Match to view your ticket and event details.`,
-                { type: 'event', smsPriority: 'high' }
-            ).catch(() => {})
-        }
+    if (metadata.userId && metadata.eventId) {
+        await notifyUser(
+            metadata.userId,
+            `🎟️ Your spot for ${eventData?.title || 'your event'} is confirmed. Open Minutes 2 Match to view your ticket and event details.`,
+            { type: 'event', smsPriority: 'high' }
+        ).catch(() => {})
     }
 }
 

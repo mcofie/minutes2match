@@ -6,6 +6,7 @@ import { sendHubtelSMS } from './hubtel'
 import { sendZendSMS } from './zend'
 import { createClient } from '@supabase/supabase-js'
 import { sendTelegramMessage } from './telegram-bot'
+import { normalizeGhanaPhone } from './phone'
 
 /**
  * Strips all emojis and non-standard characters from a string to ensure SMS compatibility.

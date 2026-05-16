@@ -133,8 +133,7 @@
       <div v-else-if="booked" class="w-full flex items-center justify-between">
         <div class="flex items-center gap-2">
           <span class="w-2 h-2 rounded-full" :class="[
-            bookingStatus === 'waitlisted' ? 'bg-stone-400' : 
-            bookingStatus === 'pending' ? 'bg-amber-500 animate-pulse' : 'bg-emerald-500'
+            bookingStatus === 'waitlisted' ? 'bg-stone-400' : 'bg-emerald-500'
           ]"></span>
           <span class="text-[11px] font-black uppercase tracking-widest text-stone-900 dark:text-white">
             {{ bookingBadgeLabel }}
@@ -145,7 +144,7 @@
           :to="bookingStatus === 'confirmed' || bookingStatus === 'checked_in' ? `/me/tickets/${eventId}` : `/events/${eventId}`"
           class="text-[10px] font-black text-stone-400 hover:text-black dark:hover:text-white uppercase tracking-widest border-b border-transparent hover:border-black transition-all"
         >
-          {{ bookingStatus === 'pending' ? 'Complete Payment' : 'View Ticket' }}
+          {{ 'View Ticket' }}
         </NuxtLink>
       </div>
 
@@ -184,7 +183,7 @@ interface Props {
   ticketPriceFemale: number
   userGender: 'male' | 'female'
   booked?: boolean
-  bookingStatus?: 'pending' | 'confirmed' | 'checked_in' | 'waitlisted' | 'cancelled' | null
+  bookingStatus?: 'confirmed' | 'checked_in' | 'waitlisted' | 'cancelled' | null
   loading?: boolean
   minAge?: number | null
   maxAge?: number | null
@@ -234,7 +233,6 @@ const formattedPrice = computed(() =>
 const totalTicketsSold = computed(() => props.maleTicketsSold + props.femaleTicketsSold)
 
 const bookingBadgeLabel = computed(() => {
-  if (props.bookingStatus === 'pending') return 'Awaiting Payment'
   if (props.bookingStatus === 'waitlisted') return 'Waitlisted'
   if (props.bookingStatus === 'confirmed') return 'Confirmed'
   if (props.bookingStatus === 'checked_in') return 'Checked In'

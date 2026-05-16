@@ -127,11 +127,7 @@
               </div>
             </div>
 
-            <div v-if="claimCountdownLabel" class="mb-6 rounded-2xl border-2 border-sky-100 bg-sky-50/50 p-4 relative overflow-hidden">
-              <div class="absolute top-0 right-0 w-16 h-16 bg-sky-200 rounded-full -mr-8 -mt-8 opacity-50 blur-xl"></div>
-              <p class="text-[10px] font-black uppercase tracking-widest text-sky-600 mb-1">Claim Window</p>
-              <p class="text-sm font-bold text-sky-900">{{ claimCountdownLabel }}</p>
-            </div>
+
 
             <div class="bg-stone-50 rounded-2xl p-4 mb-6 border border-stone-100 text-center">
               <p class="text-sm font-semibold text-stone-700 leading-snug">{{ bookingMessage }}</p>
@@ -227,8 +223,7 @@ const waitlistMeta = ref<{ position: number; bucket: string | null } | null>(nul
 const loading = ref(true)
 const processing = ref(false)
 const showReleaseDialog = ref(false)
-const nowTs = ref(Date.now())
-let countdownTimer: number | null = null
+
 
 const eventId = computed(() => String(route.params.id || ''))
 
@@ -253,36 +248,12 @@ const formattedPrice = computed(() => {
   return new Intl.NumberFormat('en-GH', { style: 'currency', currency: 'GHS', minimumFractionDigits: 0 }).format(amount)
 })
 
-const isClaimablePending = computed(() => booking.value?.status === 'pending' && !booking.value?.payment_id)
 
-const claimDeadlineTs = computed(() => {
-  if (!isClaimablePending.value || !booking.value?.created_at) return null
-  return new Date(booking.value.created_at).getTime() + (30 * 60 * 1000)
-})
-
-const claimCountdownLabel = computed(() => {
-  if (!claimDeadlineTs.value) return ''
-  const remainingMs = claimDeadlineTs.value - nowTs.value
-  if (remainingMs <= 0) return 'This hold is about to roll to the next guest.'
-  const totalMinutes = Math.floor(remainingMs / 60000)
-  const hours = Math.floor(totalMinutes / 60)
-  const minutes = totalMinutes % 60
-  if (hours > 0) {
-    return `Claim your spot within ${hours}h ${minutes}m.`
-  }
-  if (totalMinutes > 0) {
-    return `Claim your spot within ${totalMinutes} minute${totalMinutes === 1 ? '' : 's'}.`
-  }
-  const seconds = Math.max(1, Math.ceil(remainingMs / 1000))
-  return `Claim your spot within ${seconds} second${seconds === 1 ? '' : 's'}.`
-})
 
 const bookingStatusLabel = computed(() => {
   if (booking.value?.status === 'checked_in') return 'Checked In'
   if (booking.value?.status === 'confirmed') return 'Booked'
   if (booking.value?.status === 'cancelled') return 'Released'
-  if (isClaimablePending.value) return 'Spot Opened'
-  if (booking.value?.status === 'pending') return 'Pending Payment'
   if (booking.value?.status === 'waitlisted') return 'Waitlisted'
   return ''
 })
@@ -295,10 +266,6 @@ const statusPillClass = computed(() => {
       return 'bg-emerald-50 border-emerald-200 text-emerald-700'
     case 'cancelled':
       return 'bg-stone-100 border-stone-200 text-stone-600'
-    case 'pending':
-      return isClaimablePending.value
-        ? 'bg-sky-50 border-sky-200 text-sky-700'
-        : 'bg-amber-50 border-amber-200 text-amber-700'
     case 'waitlisted':
       return 'bg-stone-100 border-stone-200 text-stone-600'
     default:
@@ -313,10 +280,6 @@ const heroStatusPillClass = computed(() => {
       return 'bg-emerald-500/20 border-emerald-400 text-emerald-300'
     case 'cancelled':
       return 'bg-white/10 border-white/20 text-white/80'
-    case 'pending':
-      return isClaimablePending.value
-        ? 'bg-sky-500/20 border-sky-400 text-sky-300'
-        : 'bg-amber-500/20 border-amber-400 text-amber-300'
     case 'waitlisted':
       return 'bg-white/10 border-white/20 text-white/80'
     default:
@@ -366,9 +329,7 @@ const bookingMessage = computed(() => {
   if (booking.value?.status === 'checked_in') return 'You are checked in. Enjoy the room and keep your ticket handy.'
   if (booking.value?.status === 'confirmed') return 'Your seat is secured. Bring this ticket with you on event day.'
   if (booking.value?.status === 'cancelled') return 'You released this spot. If plans change and availability remains, you can join again.'
-  if (isClaimablePending.value) return 'A waitlist spot just opened for you. Complete your ticket payment soon before the hold is released.'
   if (booking.value?.status === 'waitlisted' && waitlistMeta.value?.position) return `You are #${waitlistMeta.value.position} in the ${waitlistMeta.value.bucket || 'current'} queue. We will notify you if a spot opens.`
-  if (booking.value?.status === 'pending') return 'Your booking is waiting for payment confirmation.'
   if (booking.value?.status === 'waitlisted') return 'You are on the waitlist. We will notify you if a spot opens up.'
   if (!event.value?.is_public && !qualification.value) return 'This is an invite-only event and you are not currently on the guest list.'
   return 'Book now to secure your place in this session.'
@@ -376,19 +337,17 @@ const bookingMessage = computed(() => {
 
 const bookingButtonLabel = computed(() => {
   if (booking.value?.status === 'cancelled') return availabilityLabel.value === 'Waitlist only' ? 'Rejoin Waitlist' : 'Book Again'
-  if (isClaimablePending.value) return 'Claim Spot Now'
   if (booking.value?.status === 'waitlisted') return 'Refresh Waitlist Status'
   return availabilityLabel.value === 'Waitlist only' ? 'Join Waitlist' : 'Pay & Confirm Spot'
 })
 
 const showBookingButton = computed(() =>
-  !booking.value || booking.value.status === 'waitlisted' || isClaimablePending.value || booking.value.status === 'cancelled'
+  !booking.value || booking.value.status === 'waitlisted' || booking.value.status === 'cancelled'
 )
 
 const canReleaseBooking = computed(() =>
   booking.value?.status === 'confirmed'
   || booking.value?.status === 'waitlisted'
-  || (booking.value?.status === 'pending' && !booking.value?.payment_id)
 )
 
 const showScorecardLink = computed(() =>
@@ -511,12 +470,5 @@ const downloadICS = () => {
 
 onMounted(() => {
   fetchEventPage()
-  countdownTimer = window.setInterval(() => {
-    nowTs.value = Date.now()
-  }, 1000)
-})
-
-onUnmounted(() => {
-  if (countdownTimer) window.clearInterval(countdownTimer)
 })
 </script>
