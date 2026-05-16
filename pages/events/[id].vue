@@ -84,12 +84,13 @@
               <p v-if="event.venue_address" class="mt-1 text-xs text-stone-500">{{ event.venue_address }}</p>
             </div>
 
-            <div v-if="ageLimits.hasLimits" class="bg-white rounded-2xl p-5 border border-stone-100 shadow-sm hover:shadow-md transition-shadow sm:col-span-2 md:col-span-1">
-              <div class="w-10 h-10 rounded-full bg-purple-50 flex items-center justify-center text-purple-500 mb-4">
+            <div v-if="ageLimits.hasLimits" class="rounded-2xl p-5 border shadow-sm hover:shadow-md transition-shadow sm:col-span-2 md:col-span-1" :class="ageEligibility.eligible ? 'bg-white border-stone-100' : ageEligibility.reason === 'missing_dob' ? 'bg-amber-50 border-amber-200' : 'bg-rose-50 border-rose-200'">
+              <div class="w-10 h-10 rounded-full flex items-center justify-center mb-4" :class="ageEligibility.eligible ? 'bg-purple-50 text-purple-500' : ageEligibility.reason === 'missing_dob' ? 'bg-amber-100 text-amber-600' : 'bg-rose-100 text-rose-500'">
                 <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
               </div>
-              <p class="text-[10px] font-bold uppercase tracking-widest text-stone-400 mb-1">Age Requirement ({{ ageLimits.label }})</p>
-              <p class="text-sm font-bold text-stone-800">{{ ageLimits.display }}</p>
+              <p class="text-[10px] font-bold uppercase tracking-widest mb-1" :class="ageEligibility.eligible ? 'text-stone-400' : ageEligibility.reason === 'missing_dob' ? 'text-amber-600' : 'text-rose-500'">Age Requirement ({{ ageLimits.label }})</p>
+              <p class="text-sm font-bold" :class="ageEligibility.eligible ? 'text-stone-800' : ageEligibility.reason === 'missing_dob' ? 'text-amber-800' : 'text-rose-800'">{{ ageLimits.display }}</p>
+              <p v-if="!ageEligibility.eligible" class="mt-2 text-xs font-semibold" :class="ageEligibility.reason === 'missing_dob' ? 'text-amber-700' : 'text-rose-600'">{{ ageEligibility.message }}</p>
             </div>
           </div>
 
@@ -127,20 +128,41 @@
               </div>
             </div>
 
-
+            <!-- Age Ineligibility Warning -->
+            <div v-if="ageLimits.hasLimits && !ageEligibility.eligible" class="mb-6 rounded-2xl p-4 border-2 relative overflow-hidden" :class="ageEligibility.reason === 'missing_dob' ? 'border-amber-200 bg-amber-50/60' : 'border-rose-200 bg-rose-50/60'">
+              <div class="absolute top-0 right-0 w-16 h-16 rounded-full -mr-8 -mt-8 opacity-40 blur-xl" :class="ageEligibility.reason === 'missing_dob' ? 'bg-amber-300' : 'bg-rose-300'"></div>
+              <p class="text-[10px] font-black uppercase tracking-widest mb-1" :class="ageEligibility.reason === 'missing_dob' ? 'text-amber-700' : 'text-rose-700'">{{ ageEligibility.reason === 'missing_dob' ? 'Action Required' : 'Not Eligible' }}</p>
+              <p class="text-sm font-semibold leading-snug" :class="ageEligibility.reason === 'missing_dob' ? 'text-amber-900' : 'text-rose-900'">{{ ageEligibility.message }}</p>
+              <NuxtLink v-if="ageEligibility.reason === 'missing_dob'" to="/me" class="mt-3 inline-flex items-center gap-1.5 text-xs font-black uppercase tracking-widest px-3 py-1.5 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition-colors">
+                <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                Update Profile
+              </NuxtLink>
+            </div>
 
             <div class="bg-stone-50 rounded-2xl p-4 mb-6 border border-stone-100 text-center">
               <p class="text-sm font-semibold text-stone-700 leading-snug">{{ bookingMessage }}</p>
             </div>
 
             <div class="space-y-3">
+              <!-- Booking Error Banner -->
+              <div v-if="bookingError" class="rounded-xl p-4 border-2 border-rose-200 bg-rose-50/80 relative overflow-hidden animate-in fade-in slide-in-from-top-2 duration-300">
+                <button @click="bookingError = null" class="absolute top-2 right-2 w-6 h-6 flex items-center justify-center rounded-full text-rose-400 hover:text-rose-600 hover:bg-rose-100 transition-colors">
+                  <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M18 6L6 18M6 6l12 12"/></svg>
+                </button>
+                <p class="text-[10px] font-black uppercase tracking-widest text-rose-600 mb-1">Unable to Book</p>
+                <p class="text-sm font-semibold text-rose-900 leading-snug pr-6">{{ bookingError }}</p>
+              </div>
+
               <button
                 v-if="showBookingButton"
                 @click="bookEvent"
-                :disabled="processing"
-                class="w-full py-4 bg-stone-900 text-white rounded-xl border-2 border-stone-900 text-sm font-black uppercase tracking-widest shadow-[4px_4px_0px_0px_rgba(20,20,20,1)] hover:shadow-none hover:translate-x-1 hover:translate-y-1 transition-all disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:shadow-[4px_4px_0px_0px_rgba(20,20,20,1)] disabled:hover:translate-x-0 disabled:hover:translate-y-0"
+                :disabled="processing || !ageEligibility.eligible"
+                class="w-full py-4 rounded-xl border-2 text-sm font-black uppercase tracking-widest transition-all disabled:cursor-not-allowed"
+                :class="!ageEligibility.eligible
+                  ? 'bg-stone-200 text-stone-400 border-stone-200 cursor-not-allowed'
+                  : 'bg-stone-900 text-white border-stone-900 shadow-[4px_4px_0px_0px_rgba(20,20,20,1)] hover:shadow-none hover:translate-x-1 hover:translate-y-1 disabled:opacity-60 disabled:hover:shadow-[4px_4px_0px_0px_rgba(20,20,20,1)] disabled:hover:translate-x-0 disabled:hover:translate-y-0'"
               >
-                {{ processing ? 'Processing...' : bookingButtonLabel }}
+                {{ !ageEligibility.eligible ? ageEligibility.buttonLabel : processing ? 'Processing...' : bookingButtonLabel }}
               </button>
 
               <NuxtLink
@@ -223,8 +245,7 @@ const waitlistMeta = ref<{ position: number; bucket: string | null } | null>(nul
 const loading = ref(true)
 const processing = ref(false)
 const showReleaseDialog = ref(false)
-
-
+const bookingError = ref<string | null>(null)
 const eventId = computed(() => String(route.params.id || ''))
 
 const getEventAuthHeaders = async () => {
@@ -247,9 +268,6 @@ const formattedPrice = computed(() => {
   const amount = profile.value?.gender === 'female' ? event.value.ticket_price_female : event.value.ticket_price_male
   return new Intl.NumberFormat('en-GH', { style: 'currency', currency: 'GHS', minimumFractionDigits: 0 }).format(amount)
 })
-
-
-
 const bookingStatusLabel = computed(() => {
   if (booking.value?.status === 'checked_in') return 'Checked In'
   if (booking.value?.status === 'confirmed') return 'Booked'
@@ -288,21 +306,76 @@ const heroStatusPillClass = computed(() => {
 })
 
 const ageLimits = computed(() => {
-  if (!event.value) return { hasLimits: false, label: '', display: '' }
+  if (!event.value) return { hasLimits: false, label: '', display: '', min: null as number | null, max: null as number | null }
   
   const isFemale = profile.value?.gender === 'female'
-  const min = isFemale ? event.value.female_min_age : event.value.male_min_age
-  const max = isFemale ? event.value.female_max_age : event.value.male_max_age
+  const rawMin = isFemale ? event.value.female_min_age : event.value.male_min_age
+  const rawMax = isFemale ? event.value.female_max_age : event.value.male_max_age
+  
+  // Coerce undefined/null to null, keep valid numbers
+  const min = (rawMin != null && rawMin !== '') ? Number(rawMin) : null
+  const max = (rawMax != null && rawMax !== '') ? Number(rawMax) : null
   
   const hasLimits = min !== null || max !== null
   const label = isFemale ? 'Ladies' : 'Gents'
   
   let display = ''
-  if (min !== null && max !== null) display = `${min} - ${max} years`
+  if (min !== null && max !== null) display = `${min} – ${max} years`
   else if (min !== null) display = `${min}+ years`
   else if (max !== null) display = `Up to ${max} years`
   
-  return { hasLimits, label, display }
+  return { hasLimits, label, display, min, max }
+})
+
+const userAge = computed(() => {
+  const dob = profile.value?.birth_date
+  if (!dob) return null
+  const birthDate = new Date(dob)
+  if (isNaN(birthDate.getTime())) return null
+  const today = new Date()
+  let age = today.getFullYear() - birthDate.getFullYear()
+  const m = today.getMonth() - birthDate.getMonth()
+  if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) age--
+  return age
+})
+
+const ageEligibility = computed(() => {
+  // No age limits on this event — always eligible
+  if (!ageLimits.value.hasLimits) {
+    return { eligible: true, reason: null, message: '', buttonLabel: '' }
+  }
+
+  // User hasn't set their birth date
+  if (userAge.value === null) {
+    return {
+      eligible: false,
+      reason: 'missing_dob' as const,
+      message: 'Please add your date of birth in your profile before booking. This event has an age requirement.',
+      buttonLabel: 'Set Date of Birth'
+    }
+  }
+
+  const { min, max } = ageLimits.value
+
+  if (min !== null && userAge.value < min) {
+    return {
+      eligible: false,
+      reason: 'too_young' as const,
+      message: `This event requires guests to be at least ${min} years old. You are currently ${userAge.value}.`,
+      buttonLabel: 'Age Not Met'
+    }
+  }
+
+  if (max !== null && userAge.value > max) {
+    return {
+      eligible: false,
+      reason: 'too_old' as const,
+      message: `This event is limited to guests ${max} years or younger. You are currently ${userAge.value}.`,
+      buttonLabel: 'Age Not Met'
+    }
+  }
+
+  return { eligible: true, reason: null, message: '', buttonLabel: '' }
 })
 
 const availabilityLabel = computed(() => {
@@ -332,6 +405,7 @@ const bookingMessage = computed(() => {
   if (booking.value?.status === 'waitlisted' && waitlistMeta.value?.position) return `You are #${waitlistMeta.value.position} in the ${waitlistMeta.value.bucket || 'current'} queue. We will notify you if a spot opens.`
   if (booking.value?.status === 'waitlisted') return 'You are on the waitlist. We will notify you if a spot opens up.'
   if (!event.value?.is_public && !qualification.value) return 'This is an invite-only event and you are not currently on the guest list.'
+  if (!ageEligibility.value.eligible) return ageEligibility.value.reason === 'missing_dob' ? 'Update your profile to continue.' : 'You do not meet the age requirement for this event.'
   return 'Book now to secure your place in this session.'
 })
 
@@ -353,7 +427,6 @@ const canReleaseBooking = computed(() =>
 const showScorecardLink = computed(() =>
   Boolean(event.value?.matching_enabled) && String(booking.value?.status || '') === 'checked_in'
 )
-
 const fetchEventPage = async () => {
   loading.value = true
   try {
@@ -381,6 +454,7 @@ const fetchEventPage = async () => {
 
 const bookEvent = async () => {
   processing.value = true
+  bookingError.value = null
   try {
     const result = await $fetch<any>('/api/events/book', {
       method: 'POST',
@@ -401,7 +475,9 @@ const bookEvent = async () => {
 
     window.location.href = result.authorization_url
   } catch (error: any) {
-    toast.error('Booking failed', error?.data?.statusMessage || error?.message || 'Please try again.')
+    const serverMessage = error?.data?.statusMessage || error?.statusMessage || error?.data?.message || error?.message || 'Something went wrong. Please try again.'
+    bookingError.value = serverMessage
+    toast.error('Booking failed', serverMessage)
   } finally {
     processing.value = false
   }

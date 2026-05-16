@@ -64,58 +64,75 @@
             <svg class="w-3 h-3 transition-transform duration-300" :class="{ 'rotate-180': showMore }" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="6 9 12 15 18 9"></polyline></svg>
           </button>
         </div>
+        <!-- Age Range Badge (always visible) -->
+        <div v-if="minAge || maxAge" class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-lg bg-purple-50 dark:bg-purple-900/20 border border-purple-100 dark:border-purple-800/30 flex items-center justify-center text-purple-600 dark:text-purple-400 shrink-0">
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+          </div>
+          <span class="text-[11px] font-black uppercase tracking-wider text-purple-700 dark:text-purple-400">
+            {{ minAge && maxAge ? `Ages ${minAge}–${maxAge}` : minAge ? `Ages ${minAge}+` : `Up to ${maxAge}` }}
+            <span class="opacity-50 font-bold ml-0.5">({{ userGender === 'female' ? 'Ladies' : 'Gents' }})</span>
+          </span>
+        </div>
 
         <!-- Collapsible Section -->
-        <div v-show="showMore" class="pt-2 space-y-4 animate-in fade-in slide-in-from-top-2 duration-300">
-          <div v-if="minAge || maxAge" class="flex items-center gap-3 text-stone-500 dark:text-stone-400">
-            <div class="w-8 h-8 rounded-lg bg-purple-50 dark:bg-purple-900/20 border border-purple-100 dark:border-purple-800/30 flex items-center justify-center text-purple-600 dark:text-purple-400 shrink-0">
-              <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
-            </div>
-            <span class="text-[10px] font-black uppercase tracking-[0.1em]">
-              {{ minAge && maxAge ? `${minAge}-${maxAge}` : minAge ? `${minAge}+` : `Up to ${maxAge}` }}
-              <span class="opacity-60 font-medium ml-1">({{ userGender === 'female' ? 'Ladies' : 'Gents' }})</span>
-            </span>
-          </div>
-
-          <!-- Capacity & Attendance (Inside Collapsible) -->
-          <div class="space-y-4 pt-2 border-t border-stone-100 dark:border-stone-800">
-            <!-- Attendance Avatars / Empty State -->
+        <div v-show="showMore" class="pt-2 space-y-3 animate-in fade-in slide-in-from-top-2 duration-300">
+          <!-- Capacity & Attendance (Redesigned) -->
+          <div class="space-y-4 pt-4 border-t border-stone-100 dark:border-stone-800">
+            <!-- Attendance Info -->
             <div class="flex items-center justify-between">
-              <div v-if="totalTicketsSold > 0" class="flex items-center gap-2">
-                <div class="flex -space-x-1.5 overflow-hidden">
-                  <div v-for="i in Math.min(3, totalTicketsSold)" :key="i" class="w-6 h-6 rounded-full bg-stone-100 dark:bg-stone-800 border-2 border-white dark:border-stone-900 flex items-center justify-center text-[8px] z-[10]">
-                    {{ ['🎭', '🔥', '✨'][i-1] }}
+              <div class="flex items-center gap-3">
+                <div v-if="totalTicketsSold > 0" class="flex -space-x-2 overflow-hidden">
+                  <div v-for="i in Math.min(3, totalTicketsSold)" :key="i" 
+                    class="w-7 h-7 rounded-full bg-white dark:bg-stone-800 border-2 border-white dark:border-stone-900 flex items-center justify-center text-[10px] shadow-sm z-[10] transition-transform hover:scale-110"
+                  >
+                    {{ ['🎭', '✨', '🔥'][i-1] }}
                   </div>
                 </div>
-                <span class="text-[10px] font-black text-stone-400 dark:text-stone-500 uppercase tracking-widest">
-                  {{ totalTicketsSold }} Attending
-                </span>
-              </div>
-              <div v-else class="flex items-center gap-2">
-                <span class="text-[9px] font-black uppercase tracking-widest text-emerald-600 bg-emerald-50 dark:bg-emerald-900/20 px-2 py-0.5 rounded border border-emerald-100 dark:border-emerald-800/30">Be the first to join</span>
+                <div v-else class="w-7 h-7 rounded-full bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-100 dark:border-emerald-800/30 flex items-center justify-center text-[10px]">
+                  🌱
+                </div>
+                <div class="flex flex-col">
+                  <span class="text-[10px] font-black text-stone-900 dark:text-stone-100 uppercase tracking-widest leading-none mb-0.5">
+                    {{ totalTicketsSold > 0 ? `${totalTicketsSold} Attending` : 'Be the first' }}
+                  </span>
+                  <span class="text-[9px] font-bold text-stone-400 uppercase tracking-tighter">Community Interest</span>
+                </div>
               </div>
               
-              <div v-if="buttonState === 'almost_full'" class="flex items-center gap-1 animate-pulse">
-                <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
-                <span class="text-[9px] font-black text-amber-600 uppercase tracking-tighter">Fast Filling</span>
+              <div v-if="buttonState === 'almost_full'" class="px-2 py-1 bg-amber-50 dark:bg-amber-900/20 border border-amber-100 dark:border-amber-800/30 rounded-md flex items-center gap-1.5 animate-pulse">
+                <span class="w-1 h-1 rounded-full bg-amber-500"></span>
+                <span class="text-[8px] font-black text-amber-700 dark:text-amber-400 uppercase tracking-widest">Selling Fast</span>
+              </div>
+              <div v-else-if="buttonState === 'waitlist'" class="px-2 py-1 bg-stone-50 dark:bg-stone-900/40 border border-stone-200 dark:border-stone-700 rounded-md">
+                <span class="text-[8px] font-black text-stone-500 dark:text-stone-400 uppercase tracking-widest">Full House</span>
               </div>
             </div>
 
             <!-- Custom Capacity Bar -->
-            <div class="space-y-1.5">
-              <div class="h-1.5 w-full bg-stone-100 dark:bg-stone-800 rounded-full overflow-hidden">
+            <div class="space-y-2.5">
+              <div class="relative h-2 w-full bg-stone-100 dark:bg-stone-800/50 rounded-full overflow-hidden shadow-inner">
                 <div
-                  class="h-full rounded-full transition-all duration-1000 ease-out"
+                  class="h-full rounded-full transition-all duration-1000 ease-out relative"
                   :class="[
-                    buttonState === 'waitlist' ? 'bg-stone-400' : 
-                    buttonState === 'almost_full' ? 'bg-amber-500' : 'bg-black dark:bg-stone-100'
+                    buttonState === 'waitlist' ? 'bg-gradient-to-r from-stone-400 to-stone-500' : 
+                    buttonState === 'almost_full' ? 'bg-gradient-to-r from-amber-400 to-orange-500 shadow-[0_0_8px_rgba(245,158,11,0.4)]' : 
+                    'bg-gradient-to-r from-stone-800 to-black dark:from-stone-200 dark:to-white'
                   ]"
                   :style="{ width: capacityPercentage + '%' }"
-                ></div>
+                >
+                  <div class="absolute inset-0 bg-white/10 mix-blend-overlay"></div>
+                </div>
               </div>
-              <div class="flex justify-between items-center px-0.5">
-                <span class="text-[9px] font-black text-stone-300 dark:text-stone-600 uppercase tracking-[0.2em]">{{ capacityText }}</span>
-                <span class="text-[9px] font-bold text-stone-400 tabular-nums">{{ Math.round(capacityPercentage) }}% Full</span>
+              <div class="flex justify-between items-end px-0.5">
+                <div class="flex flex-col">
+                  <span class="text-[10px] font-black text-stone-900 dark:text-stone-100 uppercase tracking-widest">{{ capacityText }}</span>
+                  <span class="text-[8px] font-bold text-stone-400 uppercase tracking-tighter">Current Availability</span>
+                </div>
+                <div class="flex flex-col items-end">
+                  <span class="text-[10px] font-black text-stone-900 dark:text-stone-100 tabular-nums">{{ Math.round(capacityPercentage) }}%</span>
+                  <span class="text-[8px] font-bold text-stone-400 uppercase tracking-tighter">Reserved</span>
+                </div>
               </div>
             </div>
           </div>
