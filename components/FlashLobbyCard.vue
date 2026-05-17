@@ -7,7 +7,7 @@
     <!-- Main Content Layout -->
     <div class="flex flex-1 items-stretch h-full overflow-hidden">
       <!-- Image Section -->
-      <div class="w-[120px] sm:w-[140px] flex-shrink-0 bg-stone-100 relative overflow-hidden h-full border-r-2 border-black">
+      <div class="w-[120px] sm:w-[140px] flex-shrink-0 bg-stone-100 relative overflow-hidden h-full border-r-2 border-black rounded-l-[14px]">
         <!-- Gender Badge -->
         <div 
           v-if="gender"
@@ -32,7 +32,7 @@
       </div>
 
       <!-- Content Section -->
-      <div class="flex-1 p-4 sm:p-5 flex flex-col justify-between relative bg-white min-w-0">
+      <div class="flex-1 p-4 sm:p-5 flex flex-col justify-between relative bg-white min-w-0 rounded-r-[14px]">
         <!-- Match Score Ring -->
         <div class="absolute top-3 right-3 w-10 h-10 rounded-full border-2 border-black flex items-center justify-center bg-white shadow-[2px_2px_0_0_rgba(0,0,0,1)] z-10">
            <span class="text-[10px] font-bold text-rose-500 leading-none">{{ Math.round(matchScore || 0) }}%</span>

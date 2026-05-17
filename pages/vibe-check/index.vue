@@ -352,8 +352,60 @@
         </div>
       </div>
 
-      <!-- Step 11: Persona Reveal -->
-      <div v-else-if="currentStep === 11" class="w-full animate-fade-in text-center">
+      <!-- Step 11: Mandatory Profile Photo -->
+      <div v-else-if="currentStep === 11" class="w-full animate-fade-in space-y-10">
+        <div class="text-center space-y-2">
+          <span class="text-5xl block mb-6">📸</span>
+          <h1 class="text-3xl md:text-4xl font-serif font-bold text-black dark:text-white tracking-tight">Upload your photo</h1>
+          <p class="text-stone-500 dark:text-stone-400 font-light font-serif text-sm">Show matches the real you. Clear portraits get 3x more connections.</p>
+        </div>
+
+        <div class="space-y-6 flex flex-col items-center">
+          <!-- Image Preview / Selector -->
+          <div 
+            @click="triggerPhotoUpload" 
+            class="w-40 h-40 rounded-3xl border-4 border-black dark:border-stone-700 bg-stone-50 dark:bg-stone-900 overflow-hidden relative cursor-pointer group shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-1 hover:translate-y-1 transition-all"
+          >
+            <NuxtImg 
+              v-if="uploadedPhotoUrl" 
+              :src="uploadedPhotoUrl" 
+              class="w-full h-full object-cover" 
+            />
+            <div v-else class="w-full h-full flex flex-col items-center justify-center p-4 text-center">
+              <span class="text-3xl mb-2">➕</span>
+              <span class="text-[10px] font-black uppercase tracking-widest text-stone-400 animate-pulse">Select Photo</span>
+            </div>
+            <!-- Overlay loader -->
+            <div v-if="uploadingPhoto" class="absolute inset-0 bg-black/60 flex items-center justify-center">
+              <div class="w-8 h-8 border-4 border-stone-400 border-t-white rounded-full animate-spin"></div>
+            </div>
+          </div>
+
+          <!-- Hidden Input -->
+          <input 
+            type="file" 
+            ref="photoInput" 
+            accept="image/*" 
+            @change="handlePhotoUpload" 
+            class="hidden" 
+          />
+
+          <!-- Action Button (Enforced Mandatory) -->
+          <button
+            :disabled="!uploadedPhotoUrl || uploadingPhoto"
+            @click="currentStep = 12"
+            class="w-full py-4 rounded-xl font-bold uppercase tracking-widest text-sm transition-all border-2 active:scale-[0.98] disabled:cursor-not-allowed"
+            :class="!uploadedPhotoUrl || uploadingPhoto
+              ? 'bg-stone-100 text-stone-400 border-stone-200 shadow-none'
+              : 'bg-rose-500 text-white border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:bg-rose-600 hover:-translate-y-[1px] hover:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] cursor-pointer'"
+          >
+            Continue to my Persona ✨
+          </button>
+        </div>
+      </div>
+
+      <!-- Step 12: Persona Reveal -->
+      <div v-else-if="currentStep === 12" class="w-full animate-fade-in text-center">
         <div class="relative py-12">
           <div class="confetti-container">
             <span v-for="i in 20" :key="i" class="confetti" :style="{ '--delay': i * 0.1 + 's', '--x': (Math.random() * 200 - 100) + 'px' }">🎉</span>
@@ -526,7 +578,7 @@ const pickVibeContact = async () => {
 const vibeAnswers = reactive<Record<string, string>>({})
 const vibeDimensions = reactive<Record<string, string>>({})
 const currentStep = ref(1)
-const totalSteps = 11
+const totalSteps = 12
 const totalQuestions = 7 // 5 core + 2 bonus
 const showExtras = ref(false)
 
@@ -632,6 +684,77 @@ const sentVia = ref('')
 onUnmounted(() => {
   if (fallbackInterval) clearInterval(fallbackInterval)
 })
+
+// Photo upload state & methods
+const photoInput = ref<HTMLInputElement | null>(null)
+const uploadedPhotoUrl = ref<string | null>(null)
+const uploadingPhoto = ref(false)
+
+const triggerPhotoUpload = () => {
+  if (!uploadingPhoto.value) {
+    photoInput.value?.click()
+  }
+}
+
+const handlePhotoUpload = async (event: Event) => {
+  const target = event.target as HTMLInputElement
+  const file = target.files?.[0]
+  if (!file) return
+
+  uploadingPhoto.value = true
+  const supabase = useSupabaseClient()
+  
+  try {
+    const { data: { user: currentUser } } = await supabase.auth.getUser()
+    const userId = currentUser?.id
+    if (!userId) throw new Error('Not authenticated')
+
+    const fileExt = file.name.split('.').pop()
+    const fileName = `${userId}-${Date.now()}.${fileExt}`
+
+    // Upload to 'avatars' storage bucket
+    const { error: uploadError } = await supabase.storage
+      .from('avatars')
+      .upload(fileName, file, { upsert: true })
+      
+    if (uploadError) throw uploadError
+
+    const { data: urlData } = supabase.storage.from('avatars').getPublicUrl(fileName)
+    
+    // Save to the authenticated user's profile
+    const { error: updateError } = await supabase
+      .schema('m2m')
+      .from('profiles')
+      .update({ photo_url: urlData.publicUrl } as any)
+      .eq('id', userId)
+
+    if (updateError) throw updateError
+
+    uploadedPhotoUrl.value = urlData.publicUrl
+    toast.success('Photo uploaded!', 'Your profile image is set.')
+  } catch (err: any) {
+    console.error('[VibeCheck Photo] Upload failed:', err)
+    toast.error('Upload failed', err.message || 'Could not save your photo.')
+  } finally {
+    uploadingPhoto.value = false
+  }
+}
+
+const fetchUserProfilePhoto = async () => {
+  const supabase = useSupabaseClient()
+  const { data: { user: currentUser } } = await supabase.auth.getUser()
+  if (currentUser?.id) {
+    const { data: profile } = await supabase
+      .schema('m2m')
+      .from('profiles')
+      .select('photo_url')
+      .eq('id', currentUser.id)
+      .single()
+    if (profile?.photo_url) {
+      uploadedPhotoUrl.value = profile.photo_url
+    }
+  }
+}
 
 // Persona state
 const assignedPersona = ref<Persona | null>(null)
@@ -773,6 +896,9 @@ const handleSendOtp = async () => {
           await savePersona(currentUser.id, assignedPersona.value.id)
         }
         
+        // Fetch profile photo (e.g. if they already have one)
+        await fetchUserProfilePhoto()
+        
         currentStep.value = 11
         return
       }
@@ -827,6 +953,9 @@ const handleVerifyOtp = async () => {
     const { calculatePersona } = usePersona()
     assignedPersona.value = calculatePersona(vibeAnswers)
     
+    // Fetch profile photo (e.g. from Telegram pre-fills or existing seeds)
+    await fetchUserProfilePhoto()
+    
     currentStep.value = 11
   } catch (error) {
     otpError.value = 'Verification failed. Please try again.'
@@ -877,7 +1006,10 @@ const handleReturningUserCompletion = async () => {
         console.error('[VibeCheck JIT] Automatch failed after retake:', matchError)
     }
     
-    // Move to results step
+    // Fetch profile photo
+    await fetchUserProfilePhoto()
+    
+    // Move to photo upload step
     currentStep.value = 11
   } catch (error) {
     console.error('Error completing profile:', error)

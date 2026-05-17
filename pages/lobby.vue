@@ -140,31 +140,57 @@
         </div>
 
         <main class="flex-1 min-w-0 relative z-10 w-full">
-          <div class="h-4"></div>
-          <div v-if="loading" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-6">
-            <SkeletonFlashLobbyCard v-for="i in 6" :key="i" />
-          </div>
-          <div v-else-if="remainingSeconds > 0">
-            <div v-if="visibleLobbyUsers.length > 0" class="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-1000 px-0.5">
-              <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <FlashLobbyCard
-                  v-for="user in visibleLobbyUsers"
-                  :key="user.id"
-                  v-bind="user"
-                  :is-online="onlinePresenceIds.has(user.id)"
-                  @view-profile="openProfile"
-                />
-              </div>
-              <div v-if="hasMore" class="flex justify-center pt-8 pb-12">
-                <button @click="fetchParticipants(true)" :disabled="loadingMore" class="px-10 py-3 bg-white border-2 border-black rounded-xl text-[10px] font-bold uppercase tracking-[0.2em] shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-0.5 hover:translate-y-0.5 transition-all">
-                  {{ loadingMore ? 'Loading...' : 'Show more' }}
-                </button>
-              </div>
-            </div>
-            <div v-else class="py-24 text-center border-2 border-dashed border-stone-100 rounded-3xl bg-white/50 px-6">
-              <p class="text-[10px] font-bold uppercase tracking-[0.2em] text-indigo-600">Scanning frequencies... Check back in a moment.</p>
+          <div v-if="!profile?.photo_url" class="py-12 px-6 bg-white border-4 border-black rounded-3xl text-center shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] max-w-lg mx-auto space-y-6 my-12 animate-in zoom-in-95 duration-300">
+            <span class="text-6xl block animate-bounce-slow">📸</span>
+            <h3 class="text-2xl font-serif font-black text-black">Photo Required to Enter</h3>
+            <p class="text-stone-600 font-semibold text-xs leading-relaxed max-w-sm mx-auto">
+              Minutes 2 Match is a mutual discovery community. To keep speed dating high-quality, all participants must upload a profile photo before entering the live lobby.
+            </p>
+            <div class="pt-2 flex flex-col items-center">
+              <button 
+                @click="triggerLobbyPhotoUpload"
+                :disabled="uploadingLobbyPhoto"
+                class="px-8 py-4 bg-[#ff0042] text-white font-bold uppercase tracking-widest text-xs border-2 border-black rounded-2xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:scale-[0.98] hover:bg-rose-600 hover:-translate-y-0.5 transition-all flex items-center gap-2"
+              >
+                <span>{{ uploadingLobbyPhoto ? 'Uploading...' : 'Upload Profile Photo 📨' }}</span>
+              </button>
+              <input 
+                type="file" 
+                ref="lobbyPhotoInput" 
+                accept="image/*" 
+                @change="handleLobbyPhotoUpload" 
+                class="hidden" 
+              />
             </div>
           </div>
+
+          <template v-else>
+            <div class="h-4"></div>
+            <div v-if="loading" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-6">
+              <SkeletonFlashLobbyCard v-for="i in 6" :key="i" />
+            </div>
+            <div v-else-if="remainingSeconds > 0">
+              <div v-if="visibleLobbyUsers.length > 0" class="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-1000 px-0.5">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  <FlashLobbyCard
+                    v-for="user in visibleLobbyUsers"
+                    :key="user.id"
+                    v-bind="user"
+                    :is-online="onlinePresenceIds.has(user.id)"
+                    @view-profile="openProfile"
+                  />
+                </div>
+                <div v-if="hasMore" class="flex justify-center pt-8 pb-12">
+                  <button @click="fetchParticipants(true)" :disabled="loadingMore" class="px-10 py-3 bg-white border-2 border-black rounded-xl text-[10px] font-bold uppercase tracking-[0.2em] shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-0.5 hover:translate-y-0.5 transition-all">
+                    {{ loadingMore ? 'Loading...' : 'Show more' }}
+                  </button>
+                </div>
+              </div>
+              <div v-else class="py-24 text-center border-2 border-dashed border-stone-100 rounded-3xl bg-white/50 px-6">
+                <p class="text-[10px] font-bold uppercase tracking-[0.2em] text-indigo-600">Scanning frequencies... Check back in a moment.</p>
+              </div>
+            </div>
+          </template>
         </main>
       </template>
 
@@ -421,6 +447,60 @@ const selectedProfile = ref<any>(null)
 const sparkMessage = ref('')
 const submittingSpark = ref(false)
 const actionLoadingId = ref<string | null>(null)
+
+const lobbyPhotoInput = ref<HTMLInputElement | null>(null)
+const uploadingLobbyPhoto = ref(false)
+
+const triggerLobbyPhotoUpload = () => {
+  lobbyPhotoInput.value?.click()
+}
+
+const handleLobbyPhotoUpload = async (event: Event) => {
+  const target = event.target as HTMLInputElement
+  const file = target.files?.[0]
+  if (!file) return
+
+  uploadingLobbyPhoto.value = true
+  const toast = useToast()
+  
+  try {
+    const { data: { user: currentUser } } = await supabase.auth.getUser()
+    const userId = currentUser?.id
+    if (!userId) throw new Error('Not authenticated')
+
+    const fileExt = file.name.split('.').pop()
+    const fileName = `${userId}-${Date.now()}.${fileExt}`
+
+    // Upload to 'avatars' storage bucket
+    const { error: uploadError } = await supabase.storage
+      .from('avatars')
+      .upload(fileName, file, { upsert: true })
+      
+    if (uploadError) throw uploadError
+
+    const { data: urlData } = supabase.storage.from('avatars').getPublicUrl(fileName)
+    
+    // Save to the authenticated user's profile
+    const { error: updateError } = await supabase
+      .schema('m2m')
+      .from('profiles')
+      .update({ photo_url: urlData.publicUrl } as any)
+      .eq('id', userId)
+
+    if (updateError) throw updateError
+
+    // Update local dashboard state as well
+    if (profile.value) {
+      profile.value.photo_url = urlData.publicUrl
+    }
+    toast.success('Photo uploaded!', 'Welcome to the live lobby.')
+  } catch (err: any) {
+    console.error('[Lobby Photo] Upload failed:', err)
+    toast.error('Upload failed', err.message || 'Could not save your photo.')
+  } finally {
+    uploadingLobbyPhoto.value = false
+  }
+}
 
 const sparkState = ref<{
   scope: string

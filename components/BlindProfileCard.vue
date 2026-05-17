@@ -11,7 +11,7 @@
     >
       <div class="flex h-full items-stretch">
         <!-- Photo Section (Left) -->
-        <div class="w-28 sm:w-32 flex-shrink-0 bg-stone-100 dark:bg-stone-800 border-r-2 border-black dark:border-stone-800 relative overflow-hidden flex flex-col items-center justify-center">
+        <div class="w-28 sm:w-32 flex-shrink-0 bg-stone-100 dark:bg-stone-800 border-r-2 border-black dark:border-stone-800 relative overflow-hidden flex flex-col items-center justify-center rounded-l-[14px]">
           <template v-if="unlocked || currentUserPaid">
              <NuxtImg 
                v-if="photoUrl" 
@@ -48,7 +48,7 @@
         </div>
         
         <!-- Content Section (Right) -->
-        <div class="flex-1 p-2.5 sm:p-3.5 flex flex-col justify-between bg-white dark:bg-stone-900 relative min-w-0">
+        <div class="flex-1 p-2.5 sm:p-3.5 flex flex-col justify-between bg-white dark:bg-stone-900 relative min-w-0 rounded-r-[14px]">
           <!-- Subtle Theme Background Glow -->
           <div 
             class="absolute inset-0 opacity-[0.03] dark:opacity-[0.07] pointer-events-none transition-opacity group-hover:opacity-[0.05] dark:group-hover:opacity-[0.1]"

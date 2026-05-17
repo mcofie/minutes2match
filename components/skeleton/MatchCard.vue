@@ -4,12 +4,12 @@
     <div class="bg-white dark:bg-stone-900 rounded-xl overflow-hidden border-2 border-black dark:border-stone-700 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,0.05)]">
       <div class="flex">
         <!-- Photo Section Skeleton -->
-        <div class="w-32 aspect-square flex-shrink-0 bg-stone-100 dark:bg-stone-800 border-r-2 border-black dark:border-stone-700 flex items-center justify-center">
+        <div class="w-32 aspect-square flex-shrink-0 bg-stone-100 dark:bg-stone-800 border-r-2 border-black dark:border-stone-700 flex items-center justify-center rounded-l-[10px]">
            <div class="w-10 h-10 rounded-full bg-stone-200 dark:bg-stone-700"></div>
         </div>
         
         <!-- Content Section Skeleton -->
-        <div class="flex-1 p-4 flex flex-col justify-between">
+        <div class="flex-1 p-4 flex flex-col justify-between rounded-r-[10px]">
           <div class="space-y-3">
             <div class="flex justify-between">
               <div class="h-5 bg-stone-200 dark:bg-stone-800 rounded w-1/2"></div>

@@ -51,6 +51,18 @@ export default defineEventHandler(async (event) => {
     // Return data based on unlock status
     const isUnlocked = shot.status === 'unlocked' || (shot.status === 'viewed' && shot.unlocked_at)
 
+    let shooterPhotoUrl = null
+    if (isUnlocked && shot.shooter_phone) {
+        const { data: profile } = await supabase
+            .from('profiles')
+            .select('photo_url')
+            .eq('phone', shot.shooter_phone)
+            .maybeSingle()
+        if (profile?.photo_url) {
+            shooterPhotoUrl = profile.photo_url
+        }
+    }
+
     return {
         id: shot.id,
         targetName: shot.target_name,
@@ -62,6 +74,7 @@ export default defineEventHandler(async (event) => {
         // Only reveal shooter info if unlocked
         shooterName: isUnlocked ? shot.shooter_name : null,
         shooterPhone: isUnlocked ? shot.shooter_phone : null,
+        shooterPhotoUrl: isUnlocked ? shooterPhotoUrl : null,
         message: isUnlocked ? shot.message : null,
         isUnlocked
     }

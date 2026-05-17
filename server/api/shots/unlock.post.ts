@@ -31,12 +31,25 @@ export default defineEventHandler(async (event) => {
         throw createError({ statusCode: 404, message: 'Shot not found' })
     }
 
+    let shooterPhotoUrl = null
+    if (shot.shooter_phone) {
+        const { data: profile } = await supabase
+            .from('profiles')
+            .select('photo_url')
+            .eq('phone', shot.shooter_phone)
+            .maybeSingle()
+        if (profile?.photo_url) {
+            shooterPhotoUrl = profile.photo_url
+        }
+    }
+
     if (shot.status === 'unlocked') {
         // Already unlocked, just return the data
         return {
             success: true,
             shooterName: shot.shooter_name,
             shooterPhone: shot.shooter_phone,
+            shooterPhotoUrl,
             message: shot.message,
             alreadyUnlocked: true
         }
@@ -76,6 +89,7 @@ export default defineEventHandler(async (event) => {
         success: true,
         shooterName: shot.shooter_name,
         shooterPhone: shot.shooter_phone,
+        shooterPhotoUrl,
         message: shot.message,
         alreadyUnlocked: false
     }

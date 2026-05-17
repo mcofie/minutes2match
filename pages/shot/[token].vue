@@ -113,7 +113,10 @@
 
         <div class="bg-white dark:bg-stone-900 rounded-2xl border-2 border-black dark:border-stone-700 overflow-hidden shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] dark:shadow-[6px_6px_0px_0px_rgba(255,255,255,0.05)]">
           <!-- Identity Reveal -->
-          <div class="bg-rose-50 dark:bg-rose-900/20 p-6 border-b border-black dark:border-stone-700 text-center">
+          <div class="bg-rose-50 dark:bg-rose-900/20 p-6 border-b border-black dark:border-stone-700 text-center flex flex-col items-center justify-center">
+            <div v-if="shot.shooterPhotoUrl" class="w-20 h-20 rounded-2xl overflow-hidden border-2 border-black dark:border-stone-600 mb-4 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] dark:shadow-[3px_3px_0px_0px_rgba(255,255,255,0.1)]">
+              <NuxtImg :src="shot.shooterPhotoUrl" class="w-full h-full object-cover" />
+            </div>
             <p class="text-sm text-rose-600 dark:text-rose-400 font-medium mb-1">Interested in you</p>
             <p class="text-3xl font-serif font-bold text-rose-900 dark:text-rose-100 reveal-name">{{ shot.shooterName }}</p>
             <p class="text-sm text-stone-500 dark:text-stone-400 mt-2 font-mono">📱 {{ shot.shooterPhone }}</p>
@@ -422,6 +425,7 @@ const unlockShot = async () => {
         isUnlocked: true,
         shooterName: result.shooterName,
         shooterPhone: result.shooterPhone,
+        shooterPhotoUrl: result.shooterPhotoUrl,
         message: result.message,
         status: 'unlocked'
       }

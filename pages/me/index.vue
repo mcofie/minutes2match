@@ -27,6 +27,23 @@
         </div>
     </div>
 
+    <!-- Invisible Profile Warning Banner -->
+    <div 
+      v-if="!profile?.photo_url"
+      @click="triggerPhotoUpload"
+      class="mb-6 bg-rose-50 dark:bg-rose-950/20 border-2 border-black dark:border-stone-700 p-4 rounded-xl cursor-pointer hover:bg-rose-100 dark:hover:bg-rose-950/40 transition-all flex items-center justify-between gap-4 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] animate-pulse active:scale-[0.99]"
+    >
+      <div class="space-y-1">
+        <h3 class="font-bold text-rose-950 dark:text-rose-200 text-sm md:text-base flex items-center gap-2">
+          <span>⚠️</span> Your Profile is Invisible
+        </h3>
+        <p class="text-rose-700 dark:text-rose-300 text-xs font-semibold leading-relaxed">
+          Matches cannot see you! Add a profile photo to start making premium connections. Click here to upload.
+        </p>
+      </div>
+      <span class="text-2xl md:text-3xl shrink-0">📸</span>
+    </div>
+
     <div class="grid md:grid-cols-3 gap-8 min-w-0 w-full">
       <!-- Sidebar (Desktop Only) -->
       <div class="hidden md:block md:col-span-1 space-y-6 min-w-0">

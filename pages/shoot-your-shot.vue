@@ -121,6 +121,37 @@
             <label class="block text-xs font-bold uppercase tracking-widest text-stone-500 dark:text-stone-400 mb-2">Your Email <span class="text-stone-300 dark:text-stone-600 normal-case">(optional, for receipt)</span></label>
             <input v-model="form.shooterEmail" type="email" placeholder="you@email.com" class="w-full bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-lg px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-transparent transition-all placeholder:text-stone-300 dark:placeholder:text-stone-600" />
           </div>
+
+          <!-- Profile Photo Enforcement for logged-in members missing a photo -->
+          <div v-if="isLoggedIn && !currentUserProfile?.photo_url" class="border-2 border-dashed border-rose-300 dark:border-rose-800 bg-rose-50/20 p-5 rounded-xl space-y-4 mt-4">
+            <div class="flex items-center gap-3">
+              <span class="text-2xl">📸</span>
+              <div>
+                <h4 class="font-bold text-stone-900 dark:text-stone-100 text-sm">Profile Photo Required</h4>
+                <p class="text-xs text-stone-500">Members must have a profile photo to shoot a shot.</p>
+              </div>
+            </div>
+            <div class="flex items-center gap-4">
+              <div 
+                @click="triggerShotPhotoUpload" 
+                class="w-16 h-16 rounded-2xl border-2 border-black bg-stone-100 dark:bg-stone-800 flex items-center justify-center cursor-pointer overflow-hidden relative"
+              >
+                <NuxtImg v-if="shotPhotoUrl" :src="shotPhotoUrl" class="w-full h-full object-cover" />
+                <span v-else class="text-xl">➕</span>
+                <div v-if="uploadingShotPhoto" class="absolute inset-0 bg-black/60 flex items-center justify-center">
+                  <div class="w-4 h-4 border-2 border-stone-400 border-t-white rounded-full animate-spin"></div>
+                </div>
+              </div>
+              <input type="file" ref="shotPhotoInput" accept="image/*" @change="handleShotPhotoUpload" class="hidden" />
+              <button 
+                type="button"
+                @click="triggerShotPhotoUpload" 
+                class="px-4 py-2 border-2 border-black bg-white dark:bg-stone-800 dark:text-stone-200 rounded-xl text-xs font-bold shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
+              >
+                Select Photo
+              </button>
+            </div>
+          </div>
         </div>
 
         <!-- Step 2: Target -->
@@ -267,17 +298,17 @@
         <!-- Submit -->
         <button 
           type="submit" 
-          :disabled="submitting || !isComplete" 
+          :disabled="submitting || !isFormReady" 
           class="w-full py-4 rounded-xl font-bold text-lg transition-all border-2 active:scale-[0.98] disabled:cursor-not-allowed"
-          :class="submitting || !isComplete
+          :class="submitting || !isFormReady
             ? 'bg-stone-100 text-stone-400 border-stone-200 shadow-none'
             : 'bg-rose-500 text-white border-black shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] hover:bg-rose-600 hover:-translate-y-[1px] hover:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] cursor-pointer'"
         >
           {{ submitting ? 'Setting up payment...' : 'Shoot Your Shot — GH₵15' }}
         </button>
 
-        <p v-if="!isComplete" class="text-center text-xs text-amber-600 dark:text-amber-400">
-          ☝️ Pick and answer all 3 mystery clues above to continue
+        <p v-if="!isFormReady" class="text-center text-xs text-amber-600 dark:text-amber-400">
+          ☝️ Please complete all required info, upload a photo if prompted, and answer all 3 clues above to continue
         </p>
         <p v-else class="text-center text-xs text-stone-400 dark:text-stone-500">
           Secure checkout via Paystack • Your identity stays hidden until they unlock
@@ -321,14 +352,101 @@ useHead({
     { rel: 'canonical', href: 'https://minutes2match.com/shoot-your-shot' }
   ]
 })
+const supabase = useSupabaseClient()
 const { availableQuestions, selectedHints, isSelected, toggleQuestion, updateAnswer, reshuffleQuestions, isComplete, formattedHints } = useShotHints()
 
 const { isSupported: contactPickerSupported, pickContact: selectContact } = useContactPicker()
 
+const isLoggedIn = ref(false)
+const currentUserProfile = ref<any>(null)
+const shotPhotoInput = ref<HTMLInputElement | null>(null)
+const shotPhotoUrl = ref<string | null>(null)
+const uploadingShotPhoto = ref(false)
+
+const triggerShotPhotoUpload = () => {
+  shotPhotoInput.value?.click()
+}
+
+const handleShotPhotoUpload = async (event: Event) => {
+  const target = event.target as HTMLInputElement
+  const file = target.files?.[0]
+  if (!file) return
+
+  uploadingShotPhoto.value = true
+  const toast = useToast()
+  
+  try {
+    const { data: { user } } = await supabase.auth.getUser()
+    const userId = user?.id
+    if (!userId) throw new Error('Not authenticated')
+
+    const fileExt = file.name.split('.').pop()
+    const fileName = `${userId}-${Date.now()}.${fileExt}`
+
+    // Upload to 'avatars' storage
+    const { error: uploadError } = await supabase.storage
+      .from('avatars')
+      .upload(fileName, file, { upsert: true })
+      
+    if (uploadError) throw uploadError
+
+    const { data: urlData } = supabase.storage.from('avatars').getPublicUrl(fileName)
+    
+    // Save to profile
+    const { error: updateError } = await supabase
+      .schema('m2m')
+      .from('profiles')
+      .update({ photo_url: urlData.publicUrl } as any)
+      .eq('id', userId)
+
+    if (updateError) throw updateError
+
+    shotPhotoUrl.value = urlData.publicUrl
+    if (currentUserProfile.value) {
+      currentUserProfile.value.photo_url = urlData.publicUrl
+    }
+    toast.success('Photo set!', 'Profile photo saved successfully.')
+  } catch (err: any) {
+    console.error('[Shot Photo] Upload failed:', err)
+    toast.error('Upload failed', err.message || 'Could not save photo.')
+  } finally {
+    uploadingShotPhoto.value = false
+  }
+}
+
+const isFormReady = computed(() => {
+  if (!isComplete.value) return false
+  if (isLoggedIn.value && !currentUserProfile.value?.photo_url && !shotPhotoUrl.value) {
+    return false
+  }
+  return true
+})
+
 const socialProof = ref({ shotsCount: 0, vouchesCount: 0 })
 
-// Fetch social proof stats
+// Fetch social proof stats and check user session
 onMounted(async () => {
+  try {
+    const { data: { user } } = await supabase.auth.getUser()
+    if (user) {
+      isLoggedIn.value = true
+      const { data: profile } = await supabase
+        .schema('m2m')
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .maybeSingle()
+      if (profile) {
+        currentUserProfile.value = profile
+        if (profile.display_name && !form.shooterName) form.shooterName = profile.display_name
+        if (profile.phone && !form.shooterPhone) form.shooterPhone = profile.phone
+        if (user.email && !form.shooterEmail) form.shooterEmail = user.email
+      }
+    }
+  } catch (e) {
+    console.warn('[Shot Auth] Failed to check auth session:', e)
+  }
+
   try {
     const data = await $fetch('/api/stats/social-proof') as any
     socialProof.value = data
@@ -368,8 +486,8 @@ const getAnswer = (questionId: string) => {
 }
 
 const submitShot = async () => {
-  if (!isComplete.value) {
-    error.value = 'Please pick and answer all 3 mystery clues.'
+  if (!isFormReady.value) {
+    error.value = 'Please complete all required fields, including uploading a profile photo if prompted.'
     return
   }
 
