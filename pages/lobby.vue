@@ -351,7 +351,7 @@
 
     <button
       @click="openSidebar"
-      class="hidden md:flex fixed bottom-24 right-6 min-w-14 h-14 px-4 bg-white border-4 border-black rounded-2xl items-center justify-center shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] z-[140] hover:-translate-y-1 transition-all"
+      class="flex md:hidden fixed bottom-24 right-6 min-w-14 h-14 px-4 bg-white border-4 border-black rounded-2xl items-center justify-center shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] z-[140] hover:-translate-y-1 transition-all"
     >
       <div class="relative flex items-center gap-2">
         <span class="text-2xl">⚡</span>
