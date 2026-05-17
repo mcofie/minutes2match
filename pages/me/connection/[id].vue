@@ -362,10 +362,26 @@
                  </div>
 
                  <!-- Phone -->
-                 <div class="space-y-2">
+                 <div v-if="!matchProfile.preferred_contact_method || matchProfile.preferred_contact_method === 'phone'" class="space-y-2">
                     <label class="text-[10px] font-bold uppercase text-stone-500 tracking-widest">Phone (Verified)</label>
                     <div class="w-full px-4 py-3 bg-stone-50 rounded-lg border-2 border-stone-100 text-stone-900 font-mono font-bold">
                         {{ matchProfile.phone }}
+                    </div>
+                 </div>
+
+                 <!-- Instagram -->
+                 <div v-else-if="matchProfile.preferred_contact_method === 'instagram'" class="space-y-2">
+                    <label class="text-[10px] font-bold uppercase text-stone-500 tracking-widest">Instagram</label>
+                    <div class="w-full px-4 py-3 bg-stone-50 rounded-lg border-2 border-stone-100 text-stone-900 font-mono font-bold">
+                        {{ matchProfile.instagram_handle ? '@' + matchProfile.instagram_handle.replace('@', '') : 'Not provided' }}
+                    </div>
+                 </div>
+
+                 <!-- Snapchat -->
+                 <div v-else-if="matchProfile.preferred_contact_method === 'snapchat'" class="space-y-2">
+                    <label class="text-[10px] font-bold uppercase text-stone-500 tracking-widest">Snapchat</label>
+                    <div class="w-full px-4 py-3 bg-stone-50 rounded-lg border-2 border-stone-100 text-stone-900 font-mono font-bold">
+                        {{ matchProfile.snapchat_handle || 'Not provided' }}
                     </div>
                  </div>
 
