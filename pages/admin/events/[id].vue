@@ -200,7 +200,23 @@
     <div class="admin-card">
       <div class="admin-card__header flex justify-between items-center">
         <h2 class="admin-card__title m-0">Guest List ({{ bookings.length }})</h2>
-        <button class="btn-secondary text-sm" @click="fetchEventDetails">Refresh</button>
+        <div class="flex items-center gap-2">
+          <button 
+            v-if="confirmedBookingCount > 0" 
+            class="btn-secondary text-sm py-1.5 px-3"
+            @click="openBlastConfirmedModal"
+          >
+            Blast All Confirmed ({{ confirmedBookingCount }})
+          </button>
+          <button 
+            v-if="selectedBookingIds.length > 0" 
+            class="btn-primary text-sm py-1.5 px-3"
+            @click="openSendMessageModal(selectedBookingIds)"
+          >
+            Message Selected ({{ selectedBookingIds.length }})
+          </button>
+          <button class="btn-secondary text-sm" @click="fetchEventDetails">Refresh</button>
+        </div>
       </div>
 
       <div v-if="loading" class="state-loading">Loading guest list...</div>
@@ -213,6 +229,13 @@
         <table class="data-table">
           <thead>
             <tr>
+              <th class="w-10">
+                <input 
+                  type="checkbox" 
+                  :checked="bookings.length > 0 && selectedBookingIds.length === bookings.length" 
+                  @change="toggleSelectAllBookings" 
+                />
+              </th>
               <th>Guest</th>
               <th>Gender</th>
               <th>Phone</th>
@@ -224,7 +247,14 @@
             </tr>
           </thead>
           <tbody>
-            <tr v-for="booking in bookings" :key="booking.id">
+            <tr v-for="booking in bookings" :key="booking.id" :class="{ 'row-selected': selectedBookingIds.includes(booking.id) }">
+              <td>
+                <input 
+                  type="checkbox" 
+                  :value="booking.id" 
+                  v-model="selectedBookingIds" 
+                />
+              </td>
               <td>
                 <div class="flex items-center gap-3">
                    <span class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center font-bold text-xs">
@@ -244,18 +274,87 @@
               <td class="text-sm">{{ formatTime(booking.created_at) }}</td>
               <td class="text-sm">{{ booking.checked_in_at ? formatTime(booking.checked_in_at) : '—' }}</td>
               <td class="text-right">
-                <button 
-                  v-if="booking.status === 'confirmed'" 
-                  class="btn-secondary py-1 px-3 text-xs"
-                  @click="checkIn(booking)"
-                >
-                  Check In
-                </button>
-                <span v-else-if="booking.status === 'checked_in'" class="text-xs font-bold uppercase tracking-widest text-emerald-600">Done</span>
+                <div class="flex items-center justify-end gap-2">
+                  <button 
+                    class="btn-secondary py-1 px-3 text-xs"
+                    @click="openSendMessageModal([booking.id])"
+                  >
+                    Notify
+                  </button>
+                  <button 
+                    v-if="booking.status === 'confirmed'" 
+                    class="btn-secondary py-1 px-3 text-xs"
+                    @click="checkIn(booking)"
+                  >
+                    Check In
+                  </button>
+                  <span v-else-if="booking.status === 'checked_in'" class="text-xs font-bold uppercase tracking-widest text-emerald-600">Done</span>
+                </div>
               </td>
             </tr>
           </tbody>
         </table>
+      </div>
+    </div>
+
+    <!-- Send Message Modal -->
+    <div v-if="showMessageModal" class="modal-overlay" @click.self="closeMessageModal">
+      <div class="modal">
+        <div class="modal__header">
+          <h2 class="modal__title">Send SMS to Guest(s)</h2>
+          <button class="modal__close" @click="closeMessageModal">×</button>
+        </div>
+        <div class="modal__content">
+          <p class="text-sm text-stone-500 mb-4">
+            Sending SMS to <strong>{{ targetBookingIds.length }}</strong> guest(s).
+          </p>
+
+          <div class="mb-4">
+            <label class="block text-xs font-bold uppercase tracking-widest text-stone-400 mb-2">
+              Select Template
+            </label>
+            <select v-model="selectedTemplate" @change="applyTemplate" class="form-select w-full">
+              <option value="custom">Custom Message (Blank)</option>
+              <option value="confirmation">Booking Confirmation</option>
+              <option value="reminder">Event Reminder</option>
+            </select>
+          </div>
+
+          <div class="mb-4">
+            <label class="block text-xs font-bold uppercase tracking-widest text-stone-400 mb-2">
+              Message Content
+            </label>
+            <textarea 
+              v-model="smsMessageText" 
+              rows="6" 
+              class="form-input w-full font-mono text-sm p-3 h-auto" 
+              placeholder="Enter message text..."
+              required
+            ></textarea>
+          </div>
+
+          <div class="rounded-xl bg-stone-50 border border-stone-200 p-3 mb-4">
+            <p class="text-[10px] font-bold uppercase tracking-widest text-stone-400 mb-1">Available Variables</p>
+            <p class="text-xs text-stone-600 leading-relaxed">
+              Use these placeholders to customize the message per guest:<br />
+              <code class="bg-white border border-stone-200 px-1 py-0.5 rounded font-mono text-xs">{name}</code> - Guest's display name<br />
+              <code class="bg-white border border-stone-200 px-1 py-0.5 rounded font-mono text-xs">{event_title}</code> - Event title<br />
+              <code class="bg-white border border-stone-200 px-1 py-0.5 rounded font-mono text-xs">{event_date}</code> - Event Date & Time<br />
+              <code class="bg-white border border-stone-200 px-1 py-0.5 rounded font-mono text-xs">{venue}</code> - Venue name
+            </p>
+          </div>
+        </div>
+        <div class="modal__footer flex justify-end gap-2">
+          <button type="button" @click="closeMessageModal" class="btn-secondary" :disabled="sendingMessage">Cancel</button>
+          <button 
+            type="button" 
+            @click="sendMessages" 
+            class="btn-primary" 
+            :disabled="sendingMessage || !smsMessageText.trim()"
+          >
+            {{ sendingMessage ? 'Sending...' : 'Send Message' }}
+          </button>
+        </div>
       </div>
     </div>
   </div>
@@ -279,6 +378,13 @@ const eventId = route.params.id as string
 const event = ref<any>(null)
 const bookings = ref<any[]>([])
 const loading = ref(true)
+
+const selectedBookingIds = ref<string[]>([])
+const showMessageModal = ref(false)
+const targetBookingIds = ref<string[]>([])
+const selectedTemplate = ref<'custom' | 'confirmation' | 'reminder'>('custom')
+const smsMessageText = ref('')
+const sendingMessage = ref(false)
 
 const pendingClaims = computed(() =>
   bookings.value
@@ -442,6 +548,75 @@ const formatReleaseReason = (value: string | null | undefined) => {
     .replace(/\b\w/g, (char) => char.toUpperCase())
 }
 
+const confirmedBookings = computed(() => 
+  bookings.value.filter((b: any) => b.status === 'confirmed' || b.status === 'checked_in')
+)
+
+const confirmedBookingCount = computed(() => confirmedBookings.value.length)
+
+const openBlastConfirmedModal = () => {
+  const ids = confirmedBookings.value.map((b: any) => b.id)
+  openSendMessageModal(ids)
+}
+
+const allBookingsSelected = computed(() => {
+  return bookings.value.length > 0 && selectedBookingIds.value.length === bookings.value.length
+})
+
+const toggleSelectAllBookings = () => {
+  if (allBookingsSelected.value) {
+    selectedBookingIds.value = []
+  } else {
+    selectedBookingIds.value = bookings.value.map((b: any) => b.id)
+  }
+}
+
+const openSendMessageModal = (bookingIds: string[]) => {
+  targetBookingIds.value = bookingIds
+  selectedTemplate.value = 'custom'
+  smsMessageText.value = ''
+  showMessageModal.value = true
+}
+
+const closeMessageModal = () => {
+  showMessageModal.value = false
+  targetBookingIds.value = []
+  selectedTemplate.value = 'custom'
+  smsMessageText.value = ''
+}
+
+const applyTemplate = () => {
+  if (selectedTemplate.value === 'confirmation') {
+    smsMessageText.value = `Hi {name}, your spot for "{event_title}" on {event_date} at {venue} is confirmed! 🎟️ See details at minutes2match.com.`
+  } else if (selectedTemplate.value === 'reminder') {
+    smsMessageText.value = `Hi {name}, looking forward to seeing you at "{event_title}" on {event_date} at {venue}! ⚡ Please arrive on time.`
+  } else {
+    smsMessageText.value = ''
+  }
+}
+
+const sendMessages = async () => {
+  if (targetBookingIds.value.length === 0 || !smsMessageText.value.trim()) return
+  sendingMessage.value = true
+  try {
+    const res = await $fetch<any>('/api/admin/events/send-message', {
+      method: 'POST',
+      body: {
+        bookingIds: targetBookingIds.value,
+        message: smsMessageText.value,
+        eventId
+      }
+    })
+    alert(`Messages processed successfully! Sent: ${res.summary.sent}, Failed: ${res.summary.failed}.`)
+    selectedBookingIds.value = []
+    closeMessageModal()
+  } catch (error: any) {
+    alert(error?.data?.statusMessage || error?.message || 'Failed to send messages')
+  } finally {
+    sendingMessage.value = false
+  }
+}
+
 onMounted(() => {
   fetchEventDetails()
   countdownTimer = window.setInterval(() => {
@@ -489,4 +664,13 @@ onUnmounted(() => {
 .hover\:text-black:hover { color: black; }
 .transition-colors { transition: color 0.2s; }
 .btn-secondary { /* Inherited from admin.css but forcing scoped override if needed? No, standard usage */ }
+.row-selected td {
+  background-color: #F5F3FF !important;
+}
+.w-10 {
+  width: 2.5rem;
+}
+.h-auto {
+  height: auto;
+}
 </style>

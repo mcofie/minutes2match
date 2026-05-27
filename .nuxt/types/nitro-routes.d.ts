@@ -15,6 +15,9 @@ declare module "nitropack/types" {
     '/api/admin/credits': {
       'get': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/admin/credits/index.get').default>>>>
     }
+    '/api/admin/events/alert-changes': {
+      'post': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/admin/events/alert-changes.post').default>>>>
+    }
     '/api/admin/events/bookings': {
       'get': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/admin/events/bookings.get').default>>>>
     }
@@ -24,6 +27,9 @@ declare module "nitropack/types" {
     '/api/admin/events/scorecards': {
       'get': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/admin/events/scorecards.get').default>>>>
       'post': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/admin/events/scorecards.post').default>>>>
+    }
+    '/api/admin/events/send-message': {
+      'post': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/admin/events/send-message.post').default>>>>
     }
     '/api/admin/flash-lobby/control': {
       'post': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/admin/flash-lobby/control.post').default>>>>

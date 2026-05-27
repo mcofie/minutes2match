@@ -454,6 +454,66 @@
         </div>
       </div>
     </Teleport>
+
+    <!-- Change Alert Prompt Modal -->
+    <Teleport to="body">
+      <div v-if="showChangeAlertModal" class="modal-overlay" @click.self="closeChangeAlertModal">
+        <div class="modal">
+          <div class="modal__header">
+            <h2 class="modal__title">Event Details Changed</h2>
+            <button class="modal__close" @click="closeChangeAlertModal">×</button>
+          </div>
+          <div class="modal__content">
+            <p class="text-sm text-stone-500 mb-4">
+              You changed key details of this event. Would you like to alert all booked guests via SMS?
+            </p>
+
+            <div class="mb-4">
+              <label class="block text-xs font-bold uppercase tracking-widest text-stone-400 mb-2">
+                SMS Message Text
+              </label>
+              <textarea 
+                v-model="changeAlertMessage" 
+                rows="6" 
+                class="form-input w-full font-mono text-sm p-3 h-auto" 
+                placeholder="Enter alert message..."
+                required
+              ></textarea>
+            </div>
+            
+            <p class="text-xs text-stone-400">
+              Note: <code>{name}</code> will be auto-replaced with each guest's name.
+            </p>
+          </div>
+          <div class="modal__footer flex justify-end gap-2">
+            <button 
+              type="button" 
+              @click="closeChangeAlertModal" 
+              class="btn-secondary" 
+              :disabled="sendingChangeAlert"
+            >
+              Cancel
+            </button>
+            <button 
+              type="button" 
+              @click="executeSaveEvent(false)" 
+              class="btn-secondary" 
+              :disabled="sendingChangeAlert"
+            >
+              Save Without Alerts
+            </button>
+            <button 
+              type="button" 
+              @click="executeSaveEvent(true)" 
+              class="btn-primary" 
+              :disabled="sendingChangeAlert || !changeAlertMessage.trim()"
+            >
+              {{ sendingChangeAlert ? 'Sending...' : 'Send Alerts & Save' }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </Teleport>
   </div>
 </template>
 
@@ -484,6 +544,15 @@ const uploading = ref(false)
 const events = ref<any[]>([])
 const showModal = ref(false)
 const editingEvent = ref<any>(null)
+
+const showChangeAlertModal = ref(false)
+const changeAlertMessage = ref('')
+const sendingChangeAlert = ref(false)
+
+const closeChangeAlertModal = () => {
+  showChangeAlertModal.value = false
+  changeAlertMessage.value = ''
+}
 
 const form = reactive({
   title: '',
@@ -613,8 +682,11 @@ const handleImageUpload = async (e: Event) => {
   }
 }
 
-const saveEvent = async () => {
+const executeSaveEvent = async (sendAlerts: boolean) => {
   saving.value = true
+  if (sendAlerts) {
+    sendingChangeAlert.value = true
+  }
   
   try {
     const eventData = {
@@ -637,24 +709,59 @@ const saveEvent = async () => {
     }
     
     if (editingEvent.value) {
-      await supabase
+      const { error: updateError } = await supabase
         .schema('m2m')
-      .from('events')
+        .from('events')
         .update(eventData)
         .eq('id', editingEvent.value.id)
+      
+      if (updateError) throw updateError
+
+      if (sendAlerts) {
+        await $fetch('/api/admin/events/alert-changes', {
+          method: 'POST',
+          body: {
+            eventId: editingEvent.value.id,
+            message: changeAlertMessage.value
+          }
+        })
+      }
     } else {
-      await supabase
+      const { error: insertError } = await supabase
         .schema('m2m')
-      .from('events')
+        .from('events')
         .insert(eventData)
+      if (insertError) throw insertError
     }
     
+    closeChangeAlertModal()
     closeModal()
     fetchEvents()
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error saving event:', error)
+    alert(error?.data?.statusMessage || error?.message || 'Error saving event')
   } finally {
     saving.value = false
+    sendingChangeAlert.value = false
+  }
+}
+
+const saveEvent = async () => {
+  const hasDetailsChanged = editingEvent.value && (
+    form.title !== editingEvent.value.title ||
+    new Date(form.event_date).getTime() !== new Date(editingEvent.value.event_date).getTime() ||
+    form.venue !== editingEvent.value.venue ||
+    form.venue_address !== editingEvent.value.venue_address
+  )
+
+  if (hasDetailsChanged) {
+    changeAlertMessage.value = `Hi {name}, please note that the details for "${form.title}" have changed:
+Date: ${formatDate(form.event_date)}
+Venue: ${form.venue}
+Verify your ticket details at minutes2match.com.`
+    showChangeAlertModal.value = true
+  } else {
+    await executeSaveEvent(false)
   }
 }
 
