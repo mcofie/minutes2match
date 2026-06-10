@@ -282,6 +282,13 @@
                     Notify
                   </button>
                   <button 
+                    v-if="booking.status !== 'cancelled' && booking.status !== 'checked_in'" 
+                    class="btn-secondary py-1 px-3 text-xs text-red-600 hover:bg-red-50"
+                    @click="cancelTicket(booking)"
+                  >
+                    Cancel
+                  </button>
+                  <button 
                     v-if="booking.status === 'confirmed'" 
                     class="btn-secondary py-1 px-3 text-xs"
                     @click="checkIn(booking)"
@@ -357,6 +364,49 @@
         </div>
       </div>
     </div>
+
+    <!-- Cancel Ticket Modal -->
+    <div v-if="showCancelModal" class="modal-overlay" @click.self="closeCancelModal">
+      <div class="modal">
+        <div class="modal__header">
+          <h2 class="modal__title">Cancel Ticket & Send SMS</h2>
+          <button class="modal__close" @click="closeCancelModal">×</button>
+        </div>
+        <div class="modal__content">
+          <p class="text-sm text-stone-500 mb-4">
+            You are about to cancel the ticket for <strong>{{ targetCancelBooking?.profile?.display_name || 'this guest' }}</strong>.
+            This will release their spot and send them an SMS.
+          </p>
+
+          <div class="mb-4">
+            <label class="block text-xs font-bold uppercase tracking-widest text-stone-400 mb-2">
+              SMS Message Content
+            </label>
+            <textarea 
+              v-model="cancelMessageText" 
+              rows="4" 
+              class="form-input w-full font-mono text-sm p-3 h-auto" 
+              placeholder="Leave blank for default message, or type a custom one..."
+            ></textarea>
+            <p class="text-xs text-stone-400 mt-2">
+              If left blank, the default message is: <br/><i>"Hi {name}, your ticket for {event_title} has been cancelled..."</i>
+            </p>
+          </div>
+        </div>
+        <div class="modal__footer flex justify-end gap-2">
+          <button type="button" @click="closeCancelModal" class="btn-secondary" :disabled="cancellingTicket">Close</button>
+          <button 
+            type="button" 
+            @click="confirmCancelTicket" 
+            class="btn-primary" 
+            style="background-color: #dc2626; border-color: #dc2626;"
+            :disabled="cancellingTicket"
+          >
+            {{ cancellingTicket ? 'Cancelling...' : 'Cancel Ticket' }}
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -385,6 +435,11 @@ const targetBookingIds = ref<string[]>([])
 const selectedTemplate = ref<'custom' | 'confirmation' | 'reminder'>('custom')
 const smsMessageText = ref('')
 const sendingMessage = ref(false)
+
+const showCancelModal = ref(false)
+const targetCancelBooking = ref<any>(null)
+const cancelMessageText = ref('')
+const cancellingTicket = ref(false)
 
 const pendingClaims = computed(() =>
   bookings.value
@@ -485,6 +540,46 @@ const checkIn = async (booking: any) => {
     await fetchEventDetails()
   } catch (error: any) {
     alert(error?.data?.statusMessage || error?.message || 'Check-in failed')
+  }
+}
+
+const cancelTicket = (booking: any) => {
+  targetCancelBooking.value = booking
+  const guestName = booking.profile?.display_name || 'there'
+  const eventTitle = event.value?.title || 'the event'
+  cancelMessageText.value = `Hi ${guestName}, your ticket for "${eventTitle}" has been cancelled and your spot has been released. If this is a mistake, please contact support.`
+  showCancelModal.value = true
+}
+
+const closeCancelModal = () => {
+  showCancelModal.value = false
+  targetCancelBooking.value = null
+  cancelMessageText.value = ''
+}
+
+const confirmCancelTicket = async () => {
+  if (!targetCancelBooking.value) return
+  cancellingTicket.value = true
+  
+  try {
+    const res = await $fetch<any>('/api/admin/events/cancel-ticket', {
+      method: 'POST',
+      body: {
+        bookingId: targetCancelBooking.value.id,
+        message: cancelMessageText.value
+      }
+    })
+    if (res.smsSent) {
+      alert('Ticket cancelled and SMS sent successfully.')
+    } else {
+      alert('Ticket cancelled successfully, but no SMS was sent (no phone number found).')
+    }
+    await fetchEventDetails()
+    closeCancelModal()
+  } catch (error: any) {
+    alert(error?.data?.statusMessage || error?.message || 'Failed to cancel ticket')
+  } finally {
+    cancellingTicket.value = false
   }
 }
 
