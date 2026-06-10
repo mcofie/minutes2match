@@ -31,8 +31,15 @@
             </template>
           </p>
         </div>
-        <div class="text-right">
+        <div class="text-right flex flex-col items-end gap-2">
           <span class="badge" :class="getStatusClass(event.status)">{{ event.status }}</span>
+          <button 
+            v-if="event.status !== 'draft'" 
+            class="btn-secondary py-1 px-3 text-xs text-red-600 hover:bg-red-50 border-red-200"
+            @click="initiateCancelEvent"
+          >
+            Cancel Event
+          </button>
         </div>
       </div>
       
@@ -295,6 +302,16 @@
                   >
                     Check In
                   </button>
+                  <template v-else-if="booking.status === 'cancelled'">
+                    <button 
+                      v-if="!booking.release_note?.includes('[REFUNDED]')"
+                      class="btn-secondary py-1 px-3 text-xs text-green-600 hover:bg-green-50 border-green-200"
+                      @click="markRefunded(booking)"
+                    >
+                      Mark Refunded
+                    </button>
+                    <span v-else class="text-xs font-bold uppercase tracking-widest text-emerald-600 bg-emerald-50 px-2 py-1 rounded">✅ Refunded</span>
+                  </template>
                   <span v-else-if="booking.status === 'checked_in'" class="text-xs font-bold uppercase tracking-widest text-emerald-600">Done</span>
                 </div>
               </td>
@@ -407,6 +424,50 @@
         </div>
       </div>
     </div>
+
+    <!-- Cancel Event Modal -->
+    <div v-if="showCancelEventModal" class="modal-overlay" @click.self="closeCancelEventModal">
+      <div class="modal">
+        <div class="modal__header">
+          <h2 class="modal__title">Cancel Entire Event</h2>
+          <button class="modal__close" @click="closeCancelEventModal">×</button>
+        </div>
+        <div class="modal__content">
+          <p class="text-sm text-stone-500 mb-4">
+            You are about to cancel the event <strong>{{ event?.title }}</strong>.
+            This will hide the event and cancel all active bookings.
+            Confirmed guests will receive an SMS notifying them of the cancellation and refund.
+          </p>
+
+          <div class="mb-4">
+            <label class="block text-xs font-bold uppercase tracking-widest text-stone-400 mb-2">
+              SMS Message to Confirmed Guests
+            </label>
+            <textarea 
+              v-model="cancelEventMessageText" 
+              rows="4" 
+              class="form-input w-full font-mono text-sm p-3 h-auto" 
+              placeholder="Leave blank for default message, or type a custom one..."
+            ></textarea>
+            <p class="text-xs text-stone-400 mt-2">
+              If left blank, the default message is: <br/><i>"Hi {name}, we're sorry to inform you that the event {event_title} has been cancelled. Your ticket will be fully refunded shortly."</i>
+            </p>
+          </div>
+        </div>
+        <div class="modal__footer flex justify-end gap-2">
+          <button type="button" @click="closeCancelEventModal" class="btn-secondary" :disabled="cancellingEvent">Close</button>
+          <button 
+            type="button" 
+            @click="confirmCancelEvent" 
+            class="btn-primary" 
+            style="background-color: #dc2626; border-color: #dc2626;"
+            :disabled="cancellingEvent"
+          >
+            {{ cancellingEvent ? 'Cancelling Event...' : 'Cancel Event & Send SMS' }}
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -440,6 +501,10 @@ const showCancelModal = ref(false)
 const targetCancelBooking = ref<any>(null)
 const cancelMessageText = ref('')
 const cancellingTicket = ref(false)
+
+const showCancelEventModal = ref(false)
+const cancelEventMessageText = ref('')
+const cancellingEvent = ref(false)
 
 const pendingClaims = computed(() =>
   bookings.value
@@ -523,6 +588,32 @@ const runScorecardAction = async (action: 'enable' | 'open' | 'close' | 'process
   }
 }
 
+const markingRefund = ref(false)
+
+const markRefunded = async (booking: any) => {
+  if (!confirm('Are you sure you want to mark this ticket as refunded and send the guest an SMS?')) return
+  markingRefund.value = true
+  
+  try {
+    const res = await $fetch<any>('/api/admin/events/mark-refunded', {
+      method: 'POST',
+      body: {
+        bookingId: booking.id
+      }
+    })
+    if (res.smsSent) {
+      alert('Refund marked successfully and SMS sent.')
+    } else {
+      alert('Refund marked successfully, but no SMS was sent (missing phone number).')
+    }
+    await fetchEventDetails()
+  } catch (error: any) {
+    alert(error?.data?.statusMessage || error?.message || 'Failed to mark as refunded')
+  } finally {
+    markingRefund.value = false
+  }
+}
+
 const checkIn = async (booking: any) => {
   if (!confirm(`Check in ${booking.profile?.display_name}?`)) return
 
@@ -580,6 +671,37 @@ const confirmCancelTicket = async () => {
     alert(error?.data?.statusMessage || error?.message || 'Failed to cancel ticket')
   } finally {
     cancellingTicket.value = false
+  }
+}
+
+const initiateCancelEvent = () => {
+  cancelEventMessageText.value = `Hi {name}, we're sorry to inform you that the event "${event.value?.title || 'this event'}" has been cancelled. Your ticket will be fully refunded shortly.`
+  showCancelEventModal.value = true
+}
+
+const closeCancelEventModal = () => {
+  showCancelEventModal.value = false
+}
+
+const confirmCancelEvent = async () => {
+  if (!confirm(`Are you absolutely sure you want to cancel ${event.value?.title}? This will cancel ALL tickets.`)) return
+  cancellingEvent.value = true
+  
+  try {
+    const res = await $fetch<any>('/api/admin/events/cancel-event', {
+      method: 'POST',
+      body: {
+        eventId: eventId,
+        message: cancelEventMessageText.value
+      }
+    })
+    alert(`Event cancelled. ${res.smsSentCount} SMS messages sent. ${res.cancelledTicketsCount} tickets cancelled.`)
+    await fetchEventDetails()
+    closeCancelEventModal()
+  } catch (error: any) {
+    alert(error?.data?.statusMessage || error?.message || 'Failed to cancel event')
+  } finally {
+    cancellingEvent.value = false
   }
 }
 

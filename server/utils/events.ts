@@ -181,12 +181,12 @@ export async function processEventBookingLifecycle(client: EventClient, options:
     p_event_id: options.eventId || null
   }
 
-  const { data: cleaned, error: cleanupError } = await client.rpc('cleanup_stale_pending_event_bookings', rpcArgs)
+  const { data: cleaned, error: cleanupError } = await client.schema('m2m').rpc('cleanup_stale_pending_event_bookings', rpcArgs)
   if (cleanupError) {
     throw createError({ statusCode: 500, statusMessage: cleanupError.message })
   }
 
-  const { data: promoted, error: promoteError } = await client.rpc('promote_event_waitlist', rpcArgs)
+  const { data: promoted, error: promoteError } = await client.schema('m2m').rpc('promote_event_waitlist', rpcArgs)
   if (promoteError) {
     throw createError({ statusCode: 500, statusMessage: promoteError.message })
   }

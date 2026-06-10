@@ -21,11 +21,17 @@ declare module "nitropack/types" {
     '/api/admin/events/bookings': {
       'get': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/admin/events/bookings.get').default>>>>
     }
+    '/api/admin/events/cancel-event': {
+      'post': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/admin/events/cancel-event.post').default>>>>
+    }
     '/api/admin/events/cancel-ticket': {
       'post': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/admin/events/cancel-ticket.post').default>>>>
     }
     '/api/admin/events/check-in': {
       'post': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/admin/events/check-in.post').default>>>>
+    }
+    '/api/admin/events/mark-refunded': {
+      'post': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/admin/events/mark-refunded.post').default>>>>
     }
     '/api/admin/events/scorecards': {
       'get': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/admin/events/scorecards.get').default>>>>
