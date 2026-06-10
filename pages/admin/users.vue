@@ -108,6 +108,14 @@
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="inline-block mr-1"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"></path></svg>
                 TG
               </span>
+              <NuxtLink 
+                v-if="pendingDeletionUserIds.has(user.id)" 
+                to="/admin/deletion-requests" 
+                class="badge badge--red ml-1 hover:underline cursor-pointer font-bold" 
+                title="User has requested account deletion"
+              >
+                Deletion Requested ⏳
+              </NuxtLink>
             </td>
             <td>
                <span v-if="hasAvailability(user)" class="text-green-600 font-bold flex items-center gap-1 text-xs">
@@ -1077,6 +1085,8 @@ const userActivity = reactive({
   payments: [] as any[]
 })
 
+const pendingDeletionUserIds = ref<Set<string>>(new Set())
+
 // Fetch users with Server-Side Filtering & Pagination
 const fetchUsers = async () => {
   loading.value = true
@@ -1124,6 +1134,37 @@ const fetchUsers = async () => {
 
   users.value = data || []
   totalUsers.value = count || 0
+
+  // Fetch pending deletion requests for loaded users
+  if (data && data.length > 0) {
+    try {
+      const userIds = data.map((u: any) => u.id)
+      let { data: delReqs, error: delErr } = await (supabase as any)
+        .schema('m2m')
+        .from('account_deletion_requests')
+        .select('user_id')
+        .in('user_id', userIds)
+        .eq('status', 'pending')
+
+      if (delErr) {
+        const { data: pubDelReqs } = await (supabase as any)
+          .from('account_deletion_requests')
+          .select('user_id')
+          .in('user_id', userIds)
+          .eq('status', 'pending')
+        delReqs = pubDelReqs
+      }
+
+      const pendingSet = new Set<string>()
+      if (delReqs) {
+        delReqs.forEach((r: any) => pendingSet.add(r.user_id))
+      }
+      pendingDeletionUserIds.value = pendingSet
+    } catch (err) {
+      console.error('Error fetching pending deletion requests for users:', err)
+    }
+  }
+
   loading.value = false
 }
 

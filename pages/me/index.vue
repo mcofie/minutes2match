@@ -88,7 +88,7 @@
             <button 
               v-for="section in profileSections" 
               :key="section.id"
-              @click="activeProfileSection = section.id as any; if(section.id === 'account') fetchCreditData()"
+              @click="activeProfileSection = section.id as any; if(section.id === 'account') { fetchCreditData(); fetchDeletionRequest() }"
               class="w-full text-left p-4 flex items-center gap-4 transition-all border-b border-stone-100 dark:border-stone-800 last:border-0"
               :class="activeProfileSection === section.id ? 'bg-black dark:bg-stone-800 text-white' : 'hover:bg-stone-50 dark:hover:bg-stone-800/50'"
             >
@@ -124,7 +124,7 @@
             <button 
               v-for="section in profileSections" 
               :key="'m-'+section.id"
-              @click="activeProfileSection = section.id as any"
+              @click="activeProfileSection = section.id as any; if(section.id === 'account') { fetchCreditData(); fetchDeletionRequest() }"
               class="flex-shrink-0 px-5 py-2.5 rounded-full border-2 text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap flex items-center gap-2"
               :class="activeProfileSection === section.id ? 'bg-black dark:bg-stone-100 text-white dark:text-black border-black dark:border-stone-100 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]' : 'bg-white dark:bg-stone-900 text-stone-500 border-stone-200 dark:border-stone-800'"
             >
@@ -835,6 +835,89 @@
                        </button>
                      </div>
                    </div>
+
+                   <!-- Danger Zone / Delete Account Request -->
+                   <div class="mt-8 pt-6 border-t-2 border-stone-100 dark:border-stone-800 space-y-4">
+                     <div class="flex items-center gap-2">
+                       <span class="text-[10px] font-black uppercase tracking-widest text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/30 px-2.5 py-1 rounded-md border border-rose-200/50 dark:border-rose-900/30">Danger Zone</span>
+                     </div>
+
+                     <!-- Pending Request Status Card -->
+                     <div v-if="deletionRequest && deletionRequest.status === 'pending'" class="bg-gradient-to-br from-rose-50/80 via-white to-amber-50/50 dark:from-stone-900 dark:to-stone-900/90 border-2 border-rose-400/40 dark:border-rose-500/40 p-5 sm:p-6 rounded-2xl shadow-[4px_4px_0px_0px_rgba(225,29,72,0.1)] relative overflow-hidden space-y-4">
+                       <!-- Accent top bar -->
+                       <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-500 via-rose-500 to-rose-600"></div>
+
+                       <!-- Top Header & Status Badge -->
+                       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-rose-200/60 dark:border-stone-800 pb-3.5">
+                         <div class="flex items-center gap-3">
+                           <div class="w-10 h-10 rounded-xl bg-rose-500/10 dark:bg-rose-500/20 text-rose-600 dark:text-rose-400 flex items-center justify-center text-xl shrink-0 border border-rose-500/20">
+                             ⏳
+                           </div>
+                           <div>
+                             <h4 class="font-black text-stone-900 dark:text-stone-100 text-sm sm:text-base tracking-tight">Account Deletion Requested</h4>
+                             <p class="text-[11px] text-stone-500 dark:text-stone-400 font-medium">
+                               Submitted {{ new Date(deletionRequest.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) }}
+                             </p>
+                           </div>
+                         </div>
+                         <div class="self-start sm:self-center shrink-0">
+                           <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-500 text-white text-[9px] font-black uppercase tracking-widest rounded-full shadow-sm">
+                             <span class="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></span>
+                             Pending Admin Review
+                           </span>
+                         </div>
+                       </div>
+
+                       <!-- Details Pill -->
+                       <div class="bg-white dark:bg-stone-950/60 p-3 sm:p-3.5 rounded-xl border border-stone-200 dark:border-stone-800 flex flex-wrap items-center justify-between gap-2">
+                         <div class="flex items-center gap-2 text-xs">
+                           <span class="text-stone-400 font-bold uppercase text-[9px] tracking-wider">Reason:</span>
+                           <span class="font-bold capitalize text-stone-900 dark:text-stone-100 bg-stone-100 dark:bg-stone-800 px-2.5 py-1 rounded-lg">
+                             {{ (deletionRequest.reason || 'Not specified').replace(/_/g, ' ') }}
+                           </span>
+                         </div>
+                         <p v-if="deletionRequest.details" class="text-[11px] text-stone-500 dark:text-stone-400 italic max-w-full truncate">
+                           "{{ deletionRequest.details }}"
+                         </p>
+                       </div>
+
+                       <!-- Message & Cancel Action -->
+                       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-1">
+                         <p class="text-[11px] text-stone-500 dark:text-stone-400 font-medium leading-relaxed max-w-sm">
+                           Your request is currently being reviewed by the back office. You can cancel anytime before admin approval.
+                         </p>
+                         <button 
+                           @click="cancelDeletionRequest"
+                           :disabled="cancellingDeletionRequest"
+                           class="w-full sm:w-auto shrink-0 px-4 py-2.5 bg-stone-900 hover:bg-black dark:bg-stone-100 dark:hover:bg-white text-white dark:text-black font-bold uppercase tracking-widest text-[10px] rounded-xl transition-all shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.1)] active:translate-x-0.5 active:translate-y-0.5 disabled:opacity-50"
+                         >
+                           {{ cancellingDeletionRequest ? 'Cancelling...' : 'Cancel Request' }}
+                         </button>
+                       </div>
+                     </div>
+
+                     <!-- Approved Status Note -->
+                     <div v-else-if="deletionRequest && deletionRequest.status === 'approved'" class="bg-stone-100 dark:bg-stone-800 p-4 rounded-xl text-xs text-stone-600 dark:text-stone-300 border-2 border-black">
+                        <span class="font-bold">Status:</span> Your account deletion request was approved. Your account is scheduled for final removal.
+                     </div>
+
+                     <!-- Request Deletion Button -->
+                     <div v-else class="bg-stone-50/70 dark:bg-stone-900/40 p-5 sm:p-6 rounded-2xl border-2 border-stone-200 dark:border-stone-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 transition-all hover:border-rose-300 dark:hover:border-rose-900/50">
+                       <div class="space-y-1">
+                         <div class="flex items-center gap-2">
+                           <span class="text-base">🗑️</span>
+                           <h4 class="font-bold text-stone-900 dark:text-stone-100 text-sm sm:text-base">Delete Account</h4>
+                         </div>
+                         <p class="text-xs text-stone-500 dark:text-stone-400 leading-relaxed max-w-md">Request permanent removal of your profile and data. Requests are submitted to the back office for admin verification and approval.</p>
+                       </div>
+                       <button 
+                         @click="showDeletionModal = true"
+                         class="w-full sm:w-auto shrink-0 px-4 py-2.5 bg-rose-50 hover:bg-rose-500 text-rose-600 hover:text-white dark:bg-rose-950/40 dark:hover:bg-rose-600 dark:text-rose-400 dark:hover:text-white border-2 border-rose-200 dark:border-rose-800/80 font-black uppercase tracking-widest text-[10px] rounded-xl transition-all shadow-[2px_2px_0px_0px_rgba(225,29,72,0.2)] active:translate-x-0.5 active:translate-y-0.5"
+                       >
+                         Request Deletion
+                       </button>
+                     </div>
+                   </div>
                   
                   <button @click="handleLogout" class="w-full py-4 bg-white dark:bg-stone-900 border-2 border-black dark:border-stone-700 text-black dark:text-white font-bold uppercase tracking-widest text-sm rounded-xl hover:bg-rose-500 hover:text-white transition-all">
                      Sign Out
@@ -962,6 +1045,70 @@
           <p class="mt-4 text-center text-white/60 text-[10px] font-bold uppercase tracking-[0.2em]">This is how others see you</p>
        </div>
     </div>
+
+    <!-- Account Deletion Request Modal -->
+    <div v-if="showDeletionModal" class="fixed inset-0 z-[100] flex items-center justify-center p-4">
+      <div class="absolute inset-0 bg-stone-950/80 backdrop-blur-md" @click="showDeletionModal = false"></div>
+      <div class="relative bg-white dark:bg-stone-900 border-2 border-black dark:border-stone-700 rounded-2xl p-6 sm:p-8 max-w-md w-full shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] dark:shadow-[8px_8px_0px_0px_rgba(255,255,255,0.05)] space-y-6 animate-in zoom-in-95 duration-200">
+        <button @click="showDeletionModal = false" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-stone-100 dark:bg-stone-800 text-stone-500 hover:text-stone-900 dark:hover:text-white flex items-center justify-center font-bold transition-colors">✕</button>
+
+        <div class="flex items-center gap-3 pr-8">
+          <div class="w-12 h-12 rounded-2xl bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20 flex items-center justify-center text-2xl shrink-0">⚠️</div>
+          <div>
+            <h3 class="text-lg font-black text-stone-900 dark:text-white uppercase tracking-tight">Request Account Deletion</h3>
+            <p class="text-[11px] text-stone-500 dark:text-stone-400 font-medium">Back-Office Admin Review Required</p>
+          </div>
+        </div>
+
+        <div class="space-y-4">
+          <div class="bg-rose-50/80 dark:bg-rose-950/30 border-2 border-rose-200/80 dark:border-rose-900/40 p-4 rounded-xl text-xs text-rose-900 dark:text-rose-300 space-y-2">
+            <p class="font-bold flex items-center gap-2 text-rose-950 dark:text-rose-200"><span>🛑</span> What happens when approved?</p>
+            <ul class="list-disc list-inside space-y-1 text-[11px] opacity-90 leading-relaxed font-medium">
+              <li>Your profile will be permanently removed from Minutes 2 Match.</li>
+              <li>Active matches and event registrations will be cancelled.</li>
+              <li>Any remaining M2M Wallet credits will be forfeited.</li>
+            </ul>
+          </div>
+
+          <div>
+            <label class="block text-[10px] font-black uppercase tracking-widest text-stone-500 dark:text-stone-400 mb-1.5">Reason for Leaving</label>
+            <select v-model="deletionReason" class="w-full p-3 rounded-xl border-2 border-stone-200 dark:border-stone-700 bg-stone-50 dark:bg-stone-800 text-xs font-bold text-stone-900 dark:text-stone-100 outline-none focus:border-black dark:focus:border-rose-500 transition-colors">
+              <option value="found_match">Found a partner on Minutes 2 Match ❤️</option>
+              <option value="taking_break">Taking a break from dating 🧘</option>
+              <option value="privacy">Privacy / Security concerns 🛡️</option>
+              <option value="not_satisfied">Not satisfied with matches 😕</option>
+              <option value="other">Other reason 💬</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-[10px] font-black uppercase tracking-widest text-stone-500 dark:text-stone-400 mb-1.5">Additional Details (Optional)</label>
+            <textarea 
+              v-model="deletionDetails" 
+              rows="3" 
+              placeholder="Tell us how we can improve or why you're leaving..."
+              class="w-full p-3 rounded-xl border-2 border-stone-200 dark:border-stone-700 bg-stone-50 dark:bg-stone-800 text-xs text-stone-900 dark:text-stone-100 outline-none focus:border-black dark:focus:border-rose-500 transition-colors"
+            ></textarea>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-3 pt-2">
+          <button 
+            @click="showDeletionModal = false" 
+            class="flex-1 py-3 bg-stone-100 hover:bg-stone-200 dark:bg-stone-800 dark:hover:bg-stone-700 text-stone-800 dark:text-stone-200 font-bold uppercase tracking-widest text-xs rounded-xl transition-all"
+          >
+            Cancel
+          </button>
+          <button 
+            @click="submitDeletionRequest" 
+            :disabled="submittingDeletionRequest"
+            class="flex-1 py-3 bg-rose-600 hover:bg-rose-700 text-white font-bold uppercase tracking-widest text-xs rounded-xl transition-all shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-x-0.5 active:translate-y-0.5 disabled:opacity-50"
+          >
+            {{ submittingDeletionRequest ? 'Submitting...' : 'Submit Request' }}
+          </button>
+        </div>
+      </div>
+    </div>
   </div> <!-- End Outer Div -->
 </template>
 
@@ -1032,6 +1179,64 @@ const togglingActive = ref(false)
 const photoInput = ref<HTMLInputElement | null>(null)
 const photoPreview = ref<string | null>(null)
 const uploadingPhoto = ref(false)
+
+// Account Deletion Request state & methods
+const deletionRequest = ref<any>(null)
+const loadingDeletionRequest = ref(false)
+const showDeletionModal = ref(false)
+const submittingDeletionRequest = ref(false)
+const cancellingDeletionRequest = ref(false)
+const deletionReason = ref('found_match')
+const deletionDetails = ref('')
+
+const fetchDeletionRequest = async () => {
+   loadingDeletionRequest.value = true
+   try {
+      const res = await $fetch<{ success: boolean; request: any }>('/api/me/deletion-request')
+      deletionRequest.value = res?.request || null
+   } catch (err) {
+      console.error('Failed to fetch deletion request:', err)
+   } finally {
+      loadingDeletionRequest.value = false
+   }
+}
+
+const submitDeletionRequest = async () => {
+   if (submittingDeletionRequest.value) return
+   submittingDeletionRequest.value = true
+   try {
+      const res = await $fetch<{ success: boolean; message: string; request: any }>('/api/me/deletion-request', {
+         method: 'POST',
+         body: {
+            reason: deletionReason.value,
+            details: deletionDetails.value
+         }
+      })
+      toast.show(res.message || 'Account deletion request submitted', 'success')
+      deletionRequest.value = res.request
+      showDeletionModal.value = false
+   } catch (err: any) {
+      toast.show(err.data?.statusMessage || err.message || 'Failed to submit request', 'error')
+   } finally {
+      submittingDeletionRequest.value = false
+   }
+}
+
+const cancelDeletionRequest = async () => {
+   if (cancellingDeletionRequest.value) return
+   cancellingDeletionRequest.value = true
+   try {
+      const res = await $fetch<{ success: boolean; message: string; request: any }>('/api/me/deletion-request/cancel', {
+         method: 'POST'
+      })
+      toast.show(res.message || 'Deletion request cancelled', 'success')
+      deletionRequest.value = res.request
+   } catch (err: any) {
+      toast.show(err.data?.statusMessage || err.message || 'Failed to cancel request', 'error')
+   } finally {
+      cancellingDeletionRequest.value = false
+   }
+}
 
 // M2M Credit Wallet
 const creditBalanceDashboard = ref(0)
@@ -1404,6 +1609,7 @@ onMounted(async () => {
     const { initDashboard } = useDashboard()
     await initDashboard()
     fetchCreditData()
+    fetchDeletionRequest()
 })
 
 </script>

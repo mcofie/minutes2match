@@ -15,17 +15,32 @@ declare module "nitropack/types" {
     '/api/admin/credits': {
       'get': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/admin/credits/index.get').default>>>>
     }
+    '/api/admin/deletion-requests/:id/approve': {
+      'post': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/admin/deletion-requests/[id]/approve.post').default>>>>
+    }
+    '/api/admin/deletion-requests/:id/reject': {
+      'post': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/admin/deletion-requests/[id]/reject.post').default>>>>
+    }
+    '/api/admin/deletion-requests': {
+      'get': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/admin/deletion-requests/index.get').default>>>>
+    }
     '/api/admin/events/alert-changes': {
       'post': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/admin/events/alert-changes.post').default>>>>
     }
     '/api/admin/events/bookings': {
       'get': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/admin/events/bookings.get').default>>>>
     }
+    '/api/admin/events/cancel-event': {
+      'post': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/admin/events/cancel-event.post').default>>>>
+    }
     '/api/admin/events/cancel-ticket': {
       'post': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/admin/events/cancel-ticket.post').default>>>>
     }
     '/api/admin/events/check-in': {
       'post': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/admin/events/check-in.post').default>>>>
+    }
+    '/api/admin/events/mark-refunded': {
+      'post': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/admin/events/mark-refunded.post').default>>>>
     }
     '/api/admin/events/scorecards': {
       'get': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/admin/events/scorecards.get').default>>>>
@@ -270,6 +285,13 @@ declare module "nitropack/types" {
     }
     '/api/matches/nudge': {
       'post': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/matches/nudge.post').default>>>>
+    }
+    '/api/me/deletion-request': {
+      'get': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/me/deletion-request.get').default>>>>
+      'post': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/me/deletion-request.post').default>>>>
+    }
+    '/api/me/deletion-request/cancel': {
+      'post': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/me/deletion-request/cancel.post').default>>>>
     }
     '/api/me/notifications': {
       'get': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/me/notifications.get').default>>>>
