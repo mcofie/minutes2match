@@ -1212,11 +1212,11 @@ const submitDeletionRequest = async () => {
             details: deletionDetails.value
          }
       })
-      toast.show(res.message || 'Account deletion request submitted', 'success')
+      toast.success('Request Submitted', res.message || 'Account deletion request submitted')
       deletionRequest.value = res.request
       showDeletionModal.value = false
    } catch (err: any) {
-      toast.show(err.data?.statusMessage || err.message || 'Failed to submit request', 'error')
+      toast.error('Submission Failed', err.data?.statusMessage || err.message || 'Failed to submit request')
    } finally {
       submittingDeletionRequest.value = false
    }
@@ -1229,10 +1229,10 @@ const cancelDeletionRequest = async () => {
       const res = await $fetch<{ success: boolean; message: string; request: any }>('/api/me/deletion-request/cancel', {
          method: 'POST'
       })
-      toast.show(res.message || 'Deletion request cancelled', 'success')
+      toast.success('Request Cancelled', res.message || 'Deletion request cancelled')
       deletionRequest.value = res.request
    } catch (err: any) {
-      toast.show(err.data?.statusMessage || err.message || 'Failed to cancel request', 'error')
+      toast.error('Cancellation Failed', err.data?.statusMessage || err.message || 'Failed to cancel request')
    } finally {
       cancellingDeletionRequest.value = false
    }

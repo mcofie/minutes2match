@@ -847,7 +847,7 @@ const fetchStats = async () => {
 
 const fetchMatchQuality = async () => {
   try {
-    const data = await $fetch('/api/admin/matches/evaluation') as any
+    const data = await ($fetch as any)('/api/admin/matches/evaluation') as any
     matchQuality.averageConfidence = data?.overview?.averageConfidence || 0
     const bestBucket = [...(data?.buckets || [])]
       .filter((bucket: any) => bucket.total >= 3)
@@ -969,7 +969,7 @@ const getWaitingDays = (dateStr: string) => {
 const fetchIncompleteProfiles = async () => {
   loadingIncomplete.value = true
   try {
-    const response = await $fetch('/api/admin/notify-incomplete-profiles', {
+    const response = await ($fetch as any)('/api/admin/notify-incomplete-profiles', {
       method: 'POST',
       body: { dryRun: true }
     }) as { profiles: IncompleteProfile[] }
@@ -1010,7 +1010,7 @@ const confirmSendSms = async () => {
 const sendProfileReminders = async () => {
   sendingReminders.value = true
   try {
-    const response = await $fetch('/api/admin/notify-incomplete-profiles', {
+    const response = await ($fetch as any)('/api/admin/notify-incomplete-profiles', {
       method: 'POST',
       body: { 
         dryRun: false,
@@ -1034,7 +1034,7 @@ const sendProfileReminders = async () => {
 const fetchMissingDetailsProfiles = async () => {
   loadingMissingDetails.value = true
   try {
-    const response = await $fetch('/api/admin/notify-missing-details', {
+    const response = await ($fetch as any)('/api/admin/notify-missing-details', {
       method: 'POST',
       body: { dryRun: true }
     }) as { profiles: IncompleteProfile[] }
@@ -1051,7 +1051,7 @@ const fetchMissingDetailsProfiles = async () => {
 const sendMissingDetailsReminders = async () => {
   sendingMissingDetailsReminders.value = true
   try {
-    const response = await $fetch('/api/admin/notify-missing-details', {
+    const response = await ($fetch as any)('/api/admin/notify-missing-details', {
       method: 'POST',
       body: { 
         dryRun: false, 

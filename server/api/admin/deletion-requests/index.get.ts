@@ -107,7 +107,7 @@ export default defineEventHandler(async (event) => {
 
     // Combine request with profile info
     let enrichedRequests = requests.map((req: any) => {
-        const prof = profileMap.get(req.user_id) || {}
+        const prof: any = profileMap.get(req.user_id) || {}
         return {
             ...req,
             user_display_name: prof.display_name || 'Anonymous User',
