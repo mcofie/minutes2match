@@ -37,6 +37,16 @@ export default defineEventHandler(async (event) => {
     const body = await readBody(event).catch(() => ({})) || {}
     const { admin_notes } = body
 
+    // Check if admin user ID exists in m2m.profiles to satisfy foreign key constraint if present
+    const { data: adminProf } = await (client as any)
+        .schema('m2m')
+        .from('profiles')
+        .select('id')
+        .eq('id', adminUserId)
+        .maybeSingle()
+
+    const processedBy = adminProf?.id ? adminUserId : null
+
     // Update request status to rejected
     const { data: updated, error: updateError } = await (client as any)
         .schema('m2m')
@@ -44,7 +54,7 @@ export default defineEventHandler(async (event) => {
         .update({
             status: 'rejected',
             admin_notes: admin_notes || 'Request rejected by admin',
-            processed_by: adminUserId,
+            processed_by: processedBy,
             processed_at: new Date().toISOString(),
             updated_at: new Date().toISOString()
         })
