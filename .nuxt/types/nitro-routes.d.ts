@@ -139,6 +139,9 @@ declare module "nitropack/types" {
     '/api/auth/passkey/register': {
       'post': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/auth/passkey/register.post').default>>>>
     }
+    '/api/auth/phone-status': {
+      'post': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/auth/phone-status.post').default>>>>
+    }
     '/api/auth/signup': {
       'post': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/auth/signup.post').default>>>>
     }
@@ -381,14 +384,14 @@ declare module "nitropack/types" {
     '/__nuxt_error': {
       'default': Simplify<Serialize<Awaited<ReturnType<typeof import('../../node_modules/@nuxt/nitro-server/dist/runtime/handlers/renderer').default>>>>
     }
-    '/__nuxt_island/**': {
-      'default': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/#internal/nuxt/island-renderer').default>>>>
-    }
     '/__nuxt_content/releaseNotes/sql_dump.txt': {
       'default': Simplify<Serialize<Awaited<ReturnType<typeof import('../../node_modules/@nuxt/content/dist/runtime/presets/node/database-handler').default>>>>
     }
     '/__nuxt_content/info/sql_dump.txt': {
       'default': Simplify<Serialize<Awaited<ReturnType<typeof import('../../node_modules/@nuxt/content/dist/runtime/presets/node/database-handler').default>>>>
+    }
+    '/__nuxt_island/**': {
+      'default': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/#internal/nuxt/island-renderer').default>>>>
     }
     '/__nuxt_content/releaseNotes/query': {
       'default': Simplify<Serialize<Awaited<ReturnType<typeof import('../../node_modules/@nuxt/content/dist/runtime/api/query.post').default>>>>

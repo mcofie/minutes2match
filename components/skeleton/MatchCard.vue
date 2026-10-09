@@ -1,40 +1,13 @@
 <template>
-  <div class="animate-pulse">
-    <!-- Match Card Skeleton - Neo-Brutalist Style -->
-    <div class="bg-white dark:bg-stone-900 rounded-xl overflow-hidden border-2 border-black dark:border-stone-700 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,0.05)]">
-      <div class="flex">
-        <!-- Photo Section Skeleton -->
-        <div class="w-32 aspect-square flex-shrink-0 bg-stone-100 dark:bg-stone-800 border-r-2 border-black dark:border-stone-700 flex items-center justify-center rounded-l-[10px]">
-           <div class="w-10 h-10 rounded-full bg-stone-200 dark:bg-stone-700"></div>
-        </div>
-        
-        <!-- Content Section Skeleton -->
-        <div class="flex-1 p-4 flex flex-col justify-between rounded-r-[10px]">
-          <div class="space-y-3">
-            <div class="flex justify-between">
-              <div class="h-5 bg-stone-200 dark:bg-stone-800 rounded w-1/2"></div>
-              <div class="w-6 h-6 rounded-full bg-stone-200 dark:bg-stone-800"></div>
-            </div>
-            
-            <div class="flex items-center gap-2">
-              <div class="h-4 bg-stone-100 dark:bg-stone-800/50 rounded w-8"></div>
-              <div class="w-1 h-1 rounded-full bg-stone-200 dark:bg-stone-800"></div>
-              <div class="h-4 bg-stone-100 dark:bg-stone-800/50 rounded w-20"></div>
-            </div>
-
-            <div class="h-4 bg-emerald-50 dark:bg-emerald-900/20 rounded w-2/3 border border-emerald-100 dark:border-emerald-900/40"></div>
-          </div>
-          
-          <div class="flex items-center justify-between mt-4">
-             <div class="h-6 w-16 bg-stone-100 dark:bg-stone-800 rounded-lg"></div>
-             <div class="h-9 w-24 bg-stone-200 dark:bg-stone-700 rounded-xl border border-black dark:border-stone-600"></div>
-          </div>
-        </div>
+  <div class="animate-pulse" aria-hidden="true">
+    <!-- Match card skeleton: mirrors the minimal BlindProfileCard -->
+    <div class="flex flex-col rounded-[2rem] bg-gradient-to-b from-[#eceff3] to-[#f5f6f8] p-2.5">
+      <div class="aspect-square rounded-[1.6rem] bg-[#e2e6eb] sm:aspect-[4/5]"></div>
+      <div class="flex flex-col items-center gap-2.5 px-3 pb-4 pt-6">
+        <div class="h-6 w-32 rounded-full bg-[#e2e6eb]"></div>
+        <div class="h-4 w-24 rounded-full bg-[#e9ecf0]"></div>
+        <div class="mt-4 h-11 w-36 rounded-full bg-[#e2e6eb]"></div>
       </div>
     </div>
   </div>
 </template>
-
-<script setup lang="ts">
-// Neo-brutalist Match skeleton
-</script>

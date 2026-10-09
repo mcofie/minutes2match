@@ -1,117 +1,70 @@
 <template>
-  <div class="bg-white dark:bg-stone-900 rounded-[32px] border-2 border-stone-800 dark:border-stone-400 p-6 md:p-10 relative overflow-visible">
-     
-     <!-- Floating Badge for Premium -->
-     <div v-if="subscription" class="absolute -top-4 -right-2 md:right-8 bg-emerald-500 text-black border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] px-4 py-1.5 rounded-full rotate-3 z-10">
-        <span class="text-xs font-black uppercase tracking-widest flex items-center gap-1.5">
-           <span class="w-2 h-2 bg-white rounded-full animate-pulse"></span> Active
-        </span>
-     </div>
+  <div class="relative rounded-[2rem] bg-white p-5 shadow-[0_18px_50px_rgba(52,38,25,0.08)] ring-1 ring-black/5 sm:p-8 md:p-10">
+    <!-- Active badge -->
+    <span v-if="subscription" class="absolute right-5 top-5 inline-flex items-center gap-1.5 rounded-full bg-[#eef7f1] px-3 py-1 text-xs font-semibold text-[#2f7a4d] sm:right-8 sm:top-8">
+      <span class="h-1.5 w-1.5 rounded-full bg-[#3f8f5b]"></span> Active
+    </span>
 
-     <div v-if="!subscription">
-        <h4 class="text-xs font-black uppercase tracking-widest text-black dark:text-stone-500 mb-6">1. Basic Access</h4>
-        <div class="mb-4 p-4 md:p-6 bg-[#fafaf9] dark:bg-stone-800/50 rounded-2xl border-none relative group transition-colors">
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 sm:gap-4 text-center items-center">
-               <div class="space-y-1">
-                   <span class="text-2xl block mb-2 grayscale group-hover:grayscale-0 transition-all">🎁</span>
-                   <p class="text-[10px] font-bold uppercase tracking-widest text-emerald-600 dark:text-emerald-400">First Match</p>
-                   <p class="font-black text-xl text-black dark:text-white">Free</p>
-               </div>
-               
-               <!-- Vertical Divider (Desktop) -->
-               <div class="hidden sm:block absolute left-1/2 top-4 bottom-4 w-px bg-stone-200 dark:bg-stone-700"></div>
-               
-               <!-- Horizontal Divider (Mobile) -->
-               <div class="block sm:hidden w-full h-px bg-stone-200 dark:bg-stone-700"></div>
-               
-                <div class="space-y-1">
-                   <span class="text-2xl block mb-2 grayscale group-hover:grayscale-0 transition-all">🔓</span>
-                   <p class="text-[10px] font-bold uppercase tracking-widest text-stone-500 dark:text-stone-400">Pay As You Go</p>
-                   <p class="font-black text-xl text-black dark:text-white">GH₵ 15<span class="text-[10px] font-medium text-stone-400 ml-1 font-sans">per Match Unlock</span></p>
-               </div>
-            </div>
+    <!-- Pay as you go -->
+    <template v-if="!subscription">
+      <div class="grid grid-cols-2 gap-3">
+        <div class="rounded-2xl bg-[#f6f6f7] px-3 py-5 text-center">
+          <p class="text-sm text-[#6c6b6b]">First match</p>
+          <p class="font-display mt-1 text-3xl text-[#393737]">Free</p>
         </div>
-     </div>
-
-     <div class="w-full border-b border-dashed border-stone-200 dark:border-stone-800 my-10 relative"></div>
-
-     <h4 v-if="!subscription" class="text-xs font-black uppercase tracking-widest text-black dark:text-stone-500 mb-6">2. Premium Membership</h4>
-
-     <div class="flex flex-col md:flex-row md:items-start justify-between gap-8 mb-8 relative">
-        <div class="flex items-start gap-6">
-            <!-- Icon Box -->
-           <div class="w-20 h-20 rounded-2xl border-2 border-black dark:border-stone-400 flex items-center justify-center text-[40px] shadow-none"
-              :class="subscription ? 'bg-emerald-100 dark:bg-emerald-900/30' : 'bg-[#ffd6db] dark:bg-rose-900/30'"
-           >
-              👑
-           </div>
-           
-           <div>
-              <p class="text-[10px] font-bold uppercase tracking-[0.15em] text-stone-500 dark:text-stone-400 mb-2">
-                 {{ subscription ? 'Your Plan' : 'Membership' }}
-              </p>
-              <h3 class="text-3xl md:text-[40px] font-bold font-serif text-black dark:text-white mb-2 leading-none tracking-tight">
-                 {{ subscription ? 'Premium Member' : 'Unlock Premium' }}
-              </h3>
-              <p class="text-[#57534e] dark:text-stone-300 max-w-sm leading-relaxed text-[15px] pt-1 font-medium">
-                 {{ subscription 
-                    ? 'You currently have unlimited access to all features and matches.' 
-                    : 'Get unlimited match unlocks, priority visibility, and exclusive event access.' 
-                 }}
-              </p>
-           </div>
+        <div class="rounded-2xl bg-[#f6f6f7] px-3 py-5 text-center">
+          <p class="text-sm text-[#6c6b6b]">Pay as you go</p>
+          <p class="font-display mt-1 text-3xl text-[#393737]">GH₵15</p>
+          <p class="text-xs text-[#9b9690]">per unlock</p>
         </div>
-     </div>
+      </div>
+      <div class="my-6 h-px bg-black/[0.06] sm:my-8"></div>
+    </template>
 
-     <!-- Divider -->
-     <div class="w-full h-0.5 bg-stone-100 dark:bg-stone-800 mb-8"></div>
-
-     <!-- Benefits Grid -->
-     <div class="grid md:grid-cols-2 gap-x-8 gap-y-5 mb-12">
-        <div class="flex items-center gap-4 group">
-           <div class="w-6 h-6 rounded-lg bg-black dark:bg-white text-white dark:text-black flex items-center justify-center text-[10px] group-hover:scale-110 transition-transform">✓</div>
-           <span class="font-bold text-black dark:text-white text-[15px]">Unlimited Match Unlocks</span>
-        </div>
-        <div class="flex items-center gap-4 group">
-           <div class="w-6 h-6 rounded-lg bg-black dark:bg-white text-white dark:text-black flex items-center justify-center text-[10px] group-hover:scale-110 transition-transform">✓</div>
-           <span class="font-bold text-black dark:text-white text-[15px]">Priority Matching</span>
-        </div>
-        <div class="flex items-center gap-4 group">
-           <div class="w-6 h-6 rounded-lg bg-black dark:bg-white text-white dark:text-black flex items-center justify-center text-[10px] group-hover:scale-110 transition-transform">✓</div>
-           <span class="font-bold text-black dark:text-white text-[15px]">Verified Badge</span>
-        </div>
-        <div class="flex items-center gap-4 group">
-           <div class="w-6 h-6 rounded-lg bg-black dark:bg-white text-white dark:text-black flex items-center justify-center text-[10px] group-hover:scale-110 transition-transform">✓</div>
-           <span class="font-bold text-black dark:text-white text-[15px]">Exclusive Event Access</span>
-        </div>
-     </div>
-
-     <!-- Active/Action Section -->
-     <div v-if="subscription" class="bg-stone-50 dark:bg-stone-800/50 rounded-xl border-2 border-dashed border-stone-300 dark:border-stone-600 p-5 flex items-center justify-between">
-        <div class="flex items-center gap-3">
-           <span class="text-2xl">🗓️</span>
-           <div>
-              <p class="text-[10px] font-bold uppercase tracking-widest text-stone-500">Renews On</p>
-              <p class="font-bold font-mono text-lg text-black dark:text-white">{{ new Date(subscription.end_date).toLocaleDateString(undefined, { dateStyle: 'long' }) }}</p>
-           </div>
-        </div>
-        <!-- Optional Management Link -->
-        <button class="text-xs font-bold underline hover:text-emerald-500 transition-colors">Manage</button>
-     </div>
-
-     <div v-else class="flex flex-col md:flex-row items-center gap-5">
-        <button 
-           @click="$emit('subscribe')"
-           class="flex-1 w-full bg-[#ff0a43] text-white font-bold uppercase tracking-[0.1em] text-[13px] py-[18px] px-8 rounded-xl border-2 border-black dark:border-stone-200 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_#ffffff] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all flex items-center justify-center gap-3"
-        >
-           <span>Upgrade Now</span>
-           <span class="bg-[#ba0029] px-2.5 py-1 rounded-[4px] text-[10px] font-mono tracking-widest">GH₵ 75/MO</span>
-        </button>
-        <p class="text-[13px] font-bold text-stone-400 text-center flex-shrink-0">
-           Cancel anytime.
+    <!-- Premium -->
+    <div class="flex items-start gap-4" :class="subscription ? 'pr-16 sm:pr-0' : ''">
+      <div
+        class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl text-2xl sm:h-14 sm:w-14"
+        :class="subscription ? 'bg-[#eef7f1]' : 'bg-[#fff1f1]'"
+        aria-hidden="true"
+      >👑</div>
+      <div class="min-w-0">
+        <p class="text-sm text-[#9b9690]">{{ subscription ? 'Your plan' : 'Membership' }}</p>
+        <h3 class="font-display text-[1.75rem] leading-tight tracking-tight text-[#393737] sm:text-4xl">
+          {{ subscription ? 'Premium member' : 'Unlock Premium' }}
+        </h3>
+        <p class="mt-2 text-base leading-relaxed text-[#6c6b6b]">
+          {{ subscription
+            ? 'You have unlimited access to all features and matches.'
+            : 'Unlimited match unlocks, priority visibility and exclusive event access.' }}
         </p>
-     </div>
+      </div>
+    </div>
 
+    <ul class="mt-6 grid gap-3 sm:mt-8 sm:grid-cols-2">
+      <li v-for="b in benefits" :key="b" class="flex items-center gap-3 text-base text-[#393737]">
+        <span class="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#393737] text-white" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" class="h-3 w-3"><path d="M20 6 9 17l-5-5" /></svg>
+        </span>
+        {{ b }}
+      </li>
+    </ul>
+
+    <!-- Renewal / Upgrade -->
+    <div v-if="subscription" class="mt-8 flex items-center justify-between gap-4 rounded-2xl bg-[#f6f6f7] p-4">
+      <div>
+        <p class="text-sm text-[#9b9690]">Renews on</p>
+        <p class="font-medium text-[#393737]">{{ new Date(subscription.end_date).toLocaleDateString(undefined, { dateStyle: 'long' }) }}</p>
+      </div>
+      <button type="button" class="rounded-full px-3 py-2 text-sm font-medium text-[#393737] underline-offset-4 hover:underline">Manage</button>
+    </div>
+
+    <div v-else class="mt-8 flex flex-col items-center gap-3 sm:flex-row sm:gap-5">
+      <button type="button" class="btn-solid grain grain-strong w-full px-8 py-4 text-base sm:w-auto" @click="$emit('subscribe')">
+        Upgrade · GH₵75/month
+      </button>
+      <p class="text-sm text-[#9b9690]">Cancel anytime.</p>
+    </div>
   </div>
 </template>
 
@@ -123,4 +76,6 @@ const props = defineProps<{
 const emit = defineEmits<{
   (e: 'subscribe'): void
 }>()
+
+const benefits = ['Unlimited match unlocks', 'Priority matching', 'Verified badge', 'Exclusive event access']
 </script>

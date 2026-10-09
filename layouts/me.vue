@@ -1,208 +1,113 @@
 <template>
-  <div>
-    <!-- Loading Overlay -->
-    <div v-if="!authReady" class="min-h-screen bg-[#FFFCF8] dark:bg-stone-950 flex items-center justify-center">
-      <div class="flex flex-col items-center gap-4">
-        <div class="w-12 h-12 border-4 border-stone-200 border-t-rose-500 rounded-full animate-spin"></div>
-        <p class="text-xs font-bold uppercase tracking-widest text-stone-400">Loading Experience...</p>
-      </div>
-    </div>
-
-    <main 
-      v-else 
-      class="min-h-screen bg-[#FFFCF8] dark:bg-stone-950 text-stone-900 dark:text-stone-100 font-sans relative flex flex-col transition-colors duration-300 pb-24 md:pb-0"
+  <div class="m2m-app">
+    <main
+      class="relative flex min-h-screen min-h-dvh flex-col overflow-x-clip bg-gradient-to-b from-white via-[#fbfbfb] to-[#f7f7f7] pb-28 text-[#393737] md:pb-0"
       :class="{ 'is-ghost-mode': profile?.is_active === false }"
     >
-      <!-- Dot Pattern Background -->
-      <div class="absolute inset-0 opacity-[0.03] dark:opacity-[0.1] pointer-events-none" style="background-image: radial-gradient(#000 1px, transparent 1px); background-size: 24px 24px;"></div>
+      <!-- Soft glow, like the landing hero -->
+      <div aria-hidden="true" class="pointer-events-none absolute left-1/2 top-16 h-80 w-80 -translate-x-1/2 rounded-full bg-[#ed1c24]/[0.04] blur-3xl"></div>
+      <div aria-hidden="true" class="pointer-events-none absolute -right-32 top-40 h-72 w-72 rounded-full bg-[#f3c7bd]/25 blur-3xl"></div>
 
-      <!-- Navbar -->
-      <nav class="sticky top-0 z-[60] bg-[#FFFCF8]/90 dark:bg-stone-950/90 backdrop-blur-md border-b border-stone-200 dark:border-stone-800 transition-colors duration-300 shadow-sm">
-        <div class="max-w-6xl mx-auto px-4 h-16 md:h-20 flex items-center justify-between">
-          <NuxtLink to="/" class="flex items-center -ml-2">
-             <img src="/logo-full.png" alt="minutes2match" class="h-14 md:h-16 w-auto object-contain hover:opacity-80 transition-opacity dark:invert" />
+      <!-- Header -->
+      <nav class="sticky top-0 z-[60] border-b border-black/[0.04] bg-white/85 backdrop-blur-md">
+        <div class="relative mx-auto flex h-14 max-w-6xl items-center justify-end px-4 sm:h-16 sm:px-6">
+          <!-- Logo, centred -->
+          <NuxtLink to="/matches" aria-label="Minutes 2 Match" class="absolute left-1/2 top-1/2 block h-7 w-[124px] -translate-x-1/2 -translate-y-1/2 overflow-hidden transition-opacity hover:opacity-80 sm:h-8 sm:w-[140px]">
+            <NuxtImg format="webp" src="/logo-full.png" alt="Minutes 2 Match" class="absolute left-1/2 top-1/2 h-[90px] w-auto max-w-none -translate-x-1/2 -translate-y-1/2 select-none sm:h-[102px]" />
           </NuxtLink>
-          
-          <div class="flex items-center gap-2 md:gap-6">
-            <NuxtLink to="/me/notifications" class="relative p-1.5 md:p-2 hover:bg-stone-100 dark:hover:bg-stone-800 rounded-full transition-colors active:scale-95 text-stone-600 dark:text-stone-300">
-               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
-               <span v-if="unreadCount > 0" class="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-rose-500 rounded-full border-2 border-[#FFFCF8] dark:border-stone-950 animate-pulse"></span>
-            </NuxtLink>
 
-            <!-- M2M Wallet Balance -->
-            <NuxtLink 
-              v-if="walletBalance > 0"
-              to="/me"
-              class="flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1 sm:py-1.5 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-900/40 rounded-full hover:bg-green-100 dark:hover:bg-green-900/30 transition-colors cursor-pointer group"
-              title="M2M Credit — tap to view wallet"
+          <!-- Desktop tabs, on the right (phones use the bottom bar) -->
+          <div v-if="showTabs" class="hidden items-center gap-1 rounded-full bg-[#f1efec] p-1 md:flex">
+            <NuxtLink
+              v-for="t in appTabs"
+              :key="t.to"
+              :to="t.to"
+              :aria-current="isActiveTab(t.to) ? 'page' : undefined"
+              class="relative inline-flex h-9 items-center justify-center gap-2 rounded-full pl-3 pr-4 text-sm font-semibold transition-colors"
+              :class="isActiveTab(t.to) ? 'bg-[#393737] text-white shadow-[0_4px_12px_rgba(57,55,55,0.18)]' : 'text-[#6c6862] hover:text-[#393737]'"
             >
-              <span class="text-xs">💚</span>
-              <span class="text-[10px] font-bold text-green-700 dark:text-green-400 uppercase tracking-widest group-hover:text-green-900 dark:group-hover:text-green-300 transition-colors">GHS {{ walletBalance.toFixed(2) }}</span>
-            </NuxtLink>
-
-            <div class="hidden sm:flex text-right flex-col items-end">
-               <div class="flex items-center gap-1.5">
-                  <span v-if="profile?.is_active === false" class="text-xs animate-ghost" title="Ghost Mode Active">👻</span>
-                  <p class="text-xs md:text-sm font-bold text-black dark:text-stone-100 uppercase tracking-widest truncate max-w-[120px]">{{ profile?.display_name }}</p>
-               </div>
-               <div v-if="subscription" class="mt-0.5 flex items-center justify-end gap-1">
-                  <span class="bg-black text-amber-300 px-1.5 py-[1px] rounded-[3px] border border-amber-400/50 shadow-[1px_1px_0px_0px_rgba(251,191,36,1)] text-[8px] font-bold uppercase tracking-widest leading-none">
-                     👑 PREMIUM
-                  </span>
-               </div>
-            </div>
-
-            <NuxtLink 
-               to="/me"
-               class="w-9 h-9 md:w-12 md:h-12 rounded-full border-2 bg-white dark:bg-stone-800 overflow-hidden cursor-pointer hover:scale-105 transition-transform shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.1)] relative flex-shrink-0"
-               :class="subscription ? 'border-amber-400 ring-2 ring-amber-400/30' : 'border-black dark:border-stone-500'"
-            >
-              <NuxtImg v-if="profile?.photo_url" :src="profile.photo_url" class="w-full h-full object-cover" width="48" height="48" />
-              <div v-else class="w-full h-full flex items-center justify-center text-stone-400 font-bold text-lg md:text-xl font-serif italic">
-                {{ profile?.display_name?.charAt(0) || '?' }}
-              </div>
+              <span v-if="t.to === '/me'" class="h-6 w-6 shrink-0 overflow-hidden rounded-full bg-[#e7e4e0] ring-2" :class="isActiveTab(t.to) ? 'ring-white/80' : 'ring-white'">
+                <img v-if="profile?.photo_url" :src="profile.photo_url" alt="" class="h-full w-full object-cover" />
+                <span v-else class="flex h-full w-full items-center justify-center text-[11px] font-semibold text-[#6c6862]">{{ profile?.display_name?.charAt(0) || '?' }}</span>
+              </span>
+              <svg v-else viewBox="0 0 24 24" :fill="isActiveTab(t.to) ? 'currentColor' : 'none'" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4" aria-hidden="true"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
+              {{ t.label }}
+              <span v-if="t.to === '/matches' && pendingMatchCount > 0" class="h-1.5 w-1.5 rounded-full bg-[#ed1c24]" aria-label="New match"></span>
             </NuxtLink>
           </div>
         </div>
       </nav>
 
       <!-- Main Content Area -->
-      <div class="flex-1 max-w-6xl mx-auto px-4 py-8 pb-16 relative z-10 w-full min-w-0">
+      <div class="relative z-10 mx-auto w-full min-w-0 max-w-6xl flex-1 px-4 pb-16 pt-8 sm:px-6 sm:pt-10">
         <!-- Global Ghost Mode Indicator -->
-        <div v-if="profile?.is_active === false" class="ghost-banner mb-8 p-4 bg-stone-900 text-white rounded-xl border-2 border-dashed border-stone-500 flex flex-col sm:flex-row items-center justify-between gap-4 animate-in fade-in slide-in-from-top-4 duration-500 shadow-xl overflow-hidden relative group z-50 pointer-events-auto">
-           <div class="absolute top-0 left-0 w-1 h-full bg-rose-500"></div>
-             <div class="flex items-center gap-4">
-                <div class="w-12 h-12 bg-stone-800 rounded-full flex items-center justify-center text-2xl border border-stone-700 shadow-inner animate-ghost">👻</div>
-                <div class="flex-1 text-center sm:text-left">
-                   <h3 class="text-[10px] md:text-xs font-black uppercase tracking-[0.2em] text-white mb-1.5 opacity-90">Incognito Mode Active</h3>
-                   <p class="text-[9px] md:text-[10px] text-stone-200 font-bold uppercase tracking-[0.15em] leading-relaxed">Your profile is currently hidden from the match pool. <span class="text-rose-400 font-black">12 Potential Matches</span> missed your vibe today.</p>
-                </div>
-             </div>
-             <button @click="toggleAccountActive" class="w-full sm:w-auto px-6 py-2.5 bg-rose-500 text-white text-[10px] font-black uppercase tracking-widest rounded-lg hover:bg-rose-600 transition-all shadow-[4px_4px_0px_0px_rgba(0,0,0,0.3)] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] active:translate-x-0.5 active:translate-y-0.5 flex-shrink-0">
-                Go Live ⚡
-             </button>
+        <div v-if="profile?.is_active === false" class="ghost-banner pointer-events-auto relative z-50 mb-8 flex flex-col items-center justify-between gap-4 rounded-[1.5rem] bg-[#393737] p-5 text-white shadow-[0_18px_50px_rgba(52,38,25,0.15)] sm:flex-row">
+          <div class="flex items-center gap-4">
+            <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-white/10"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5" aria-hidden="true"><path d="M10.7 5.1A10.4 10.4 0 0 1 12 5c7 0 10 7 10 7a13.2 13.2 0 0 1-1.7 2.7"/><path d="M6.6 6.6A13.5 13.5 0 0 0 2 12s3 7 10 7a9.7 9.7 0 0 0 5.4-1.6"/><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"/><path d="m2 2 20 20"/></svg></div>
+            <div class="flex-1 text-center sm:text-left">
+              <h3 class="mb-1 text-sm font-semibold text-white">Incognito mode is on</h3>
+              <p class="text-sm leading-relaxed text-white/75">Your profile is hidden from the match pool. <span class="font-semibold text-[#ff8a8f]">12 potential matches</span> missed your vibe today.</p>
+            </div>
+          </div>
+          <button class="btn-solid grain w-full shrink-0 px-6 py-3 text-sm sm:w-auto" @click="toggleAccountActive">Go live ⚡</button>
         </div>
 
         <!-- Incomplete Profile Nudge -->
-        <div v-if="isProfileIncomplete && route.path !== '/me'" class="mb-8 p-4 md:p-6 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-stone-900 dark:to-stone-800 border-2 border-amber-200 dark:border-stone-700 rounded-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-sm animate-in fade-in slide-in-from-top-4 duration-500">
+        <div v-if="authReady && isProfileIncomplete && route.path !== '/me'" class="mb-8 flex flex-col items-start justify-between gap-4 rounded-[1.5rem] bg-gradient-to-br from-[#fdf3e7] to-[#fbe9e4] p-5 sm:p-6 md:flex-row md:items-center">
           <div class="flex items-start gap-4">
-            <div class="w-12 h-12 bg-amber-100 dark:bg-amber-900/30 rounded-full flex items-center justify-center text-2xl border-2 border-amber-200 dark:border-amber-700/50 flex-shrink-0">⚡</div>
+            <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-white text-2xl shadow-[0_4px_14px_rgba(52,38,25,0.06)]">⚡</div>
             <div>
-               <h3 class="text-lg font-bold text-stone-900 dark:text-stone-100 mb-1">Your profile needs some love!</h3>
-               <p class="text-xs md:text-sm text-stone-600 dark:text-stone-400 font-medium">Complete your vibe check and add a photo to start matching.</p>
+              <h3 class="font-display mb-1 text-xl text-[#393737]">Your profile needs some love</h3>
+              <p class="text-sm text-[#6c6862]">Complete your Vibe Check and add a photo to start matching.</p>
             </div>
           </div>
-          <NuxtLink 
-             to="/me"
-             class="w-full md:w-auto px-6 py-3 bg-black dark:bg-white text-white dark:text-black font-bold uppercase tracking-widest text-xs rounded-lg hover:bg-amber-500 dark:hover:bg-amber-400 hover:text-white dark:hover:text-black transition-all shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.2)] text-center"
-          >
-             Complete Profile →
-          </NuxtLink>
+          <NuxtLink to="/me" class="btn-solid grain grain-strong w-full px-6 py-3 text-sm md:w-auto">Complete profile →</NuxtLink>
         </div>
 
-        <!-- Tabs Navigation (Desktop) -->
-        <div v-if="['/matches', '/events', '/me', '/lobby'].includes(route.path)" class="hidden md:flex md:flex-wrap md:gap-4 mb-8 md:mb-12">
-          <NuxtLink 
-            to="/matches"
-            class="px-6 py-3 rounded-lg text-xs font-bold uppercase tracking-widest transition-all border-2"
-            :class="route.path === '/matches' ? 'bg-black dark:bg-stone-100 text-white dark:text-black border-black dark:border-stone-100 shadow-[4px_4px_0px_0px_rgba(244,63,94,1)]' : 'bg-white dark:bg-stone-900 text-stone-500 dark:text-stone-400 border-stone-200 dark:border-stone-700 hover:border-black dark:hover:border-stone-500 hover:text-black dark:hover:text-stone-200'"
-          >
-            Matches
-            <span v-if="pendingMatchCount > 0" class="ml-2 px-1.5 py-0.5 bg-rose-500 text-white rounded text-[10px] border border-black">{{ pendingMatchCount }}</span>
-          </NuxtLink>
-          <NuxtLink 
-            to="/events"
-            class="px-6 py-3 rounded-lg text-xs font-bold uppercase tracking-widest transition-all border-2"
-            :class="route.path === '/events' ? 'bg-black dark:bg-stone-100 text-white dark:text-black border-black dark:border-stone-100 shadow-[4px_4px_0px_0px_rgba(244,63,94,1)]' : 'bg-white dark:bg-stone-900 text-stone-500 dark:text-stone-400 border-stone-200 dark:border-stone-700 hover:border-black dark:hover:border-stone-500 hover:text-black dark:hover:text-stone-200'"
-          >
-            Events
-          </NuxtLink>
-          <NuxtLink 
-            to="/lobby"
-            class="px-6 py-3 rounded-lg text-xs font-bold uppercase tracking-widest transition-all border-2 flex items-center gap-2"
-            :class="route.path === '/lobby' ? 'bg-black dark:bg-stone-100 text-white dark:text-black border-black dark:border-stone-100 shadow-[4px_4px_0px_0px_rgba(99,102,241,1)]' : 'bg-white dark:bg-stone-900 text-stone-500 dark:text-stone-400 border-stone-200 dark:border-stone-700 hover:border-black dark:hover:border-stone-500 hover:text-black dark:hover:text-stone-200'"
-          >
-            Lobby
-            <span v-if="isLive" class="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-pulse"></span>
-          </NuxtLink>
-          <NuxtLink 
-            to="/me"
-            class="px-6 py-3 rounded-lg text-xs font-bold uppercase tracking-widest transition-all border-2"
-            :class="route.path === '/me' ? 'bg-black dark:bg-stone-100 text-white dark:text-black border-black dark:border-stone-100 shadow-[4px_4px_0px_0px_rgba(244,63,94,1)]' : 'bg-white dark:bg-stone-900 text-stone-500 dark:text-stone-400 border-stone-200 dark:border-stone-700 hover:border-black dark:hover:border-stone-500 hover:text-black dark:hover:text-stone-200'"
-          >
-            Profile
-          </NuxtLink>
-        </div>
-
-        <slot />
+        <!-- While we sign you in, show the page's shape instead of a blank spinner -->
+        <template v-if="!authReady">
+          <div v-if="route.path === '/me'" class="mx-auto max-w-xl"><SkeletonMePage /></div>
+          <div v-else-if="route.path === '/matches'" class="mx-auto max-w-3xl"><SkeletonMatchesPage /></div>
+          <div v-else class="flex justify-center py-24" aria-hidden="true">
+            <div class="h-8 w-8 animate-spin rounded-full border-[3px] border-[#ece8e3] border-t-[#ed1c24]"></div>
+          </div>
+          <p class="sr-only" role="status">Loading your space…</p>
+        </template>
+        <slot v-else />
       </div>
 
-      <!-- Footer -->
-      <footer 
-         class="border-t border-stone-200 dark:border-stone-800 bg-white/80 dark:bg-stone-900/80 backdrop-blur-sm mt-auto transition-colors"
-         :class="route.path === '/me' ? 'pb-28 pt-2 block' : 'hidden md:block pb-0'"
-      >
-        <div class="max-w-6xl mx-auto px-4 py-5">
-          <!-- Desktop Version -->
-          <div class="hidden md:flex items-center justify-between gap-3">
-            <p class="text-xs text-stone-400 font-medium">© {{ new Date().getFullYear() }} Minutes 2 Match. All rights reserved. <span class="ml-2 text-[10px] opacity-40">v{{ config.public.appVersion }}</span></p>
-            <div class="flex items-center gap-6">
-              <NuxtLink to="/release-notes" class="relative group text-xs text-stone-400 hover:text-black dark:hover:text-white transition-colors font-medium">
-                Updates
-                <span class="absolute -top-1 -right-2 w-1.5 h-1.5 bg-rose-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(244,63,94,0.8)]"></span>
-              </NuxtLink>
-              <a href="https://www.instagram.com/minutes2match" target="_blank" rel="noopener noreferrer" class="text-xs text-stone-400 hover:text-black dark:hover:text-white transition-colors font-medium">Instagram</a>
-              <NuxtLink to="/terms" class="text-xs text-stone-400 hover:text-black dark:hover:text-white transition-colors font-medium">Terms</NuxtLink>
-              <NuxtLink to="/privacy" class="text-xs text-stone-400 hover:text-black dark:hover:text-white transition-colors font-medium">Privacy</NuxtLink>
-              <span class="text-xs text-stone-300 dark:text-stone-700">Made with ❤️ in Accra</span>
-            </div>
-          </div>
-
-          <!-- Mobile App-Like Version -->
-          <div class="md:hidden flex flex-col items-center gap-5">
-             <div class="flex flex-wrap justify-center items-center gap-x-6 gap-y-3">
-               <NuxtLink to="/release-notes" class="relative text-[10px] font-bold uppercase tracking-widest text-stone-500 hover:text-black dark:hover:text-stone-300 transition-colors">
-                 Updates
-                 <span class="absolute -top-[2px] -right-[6px] w-[6px] h-[6px] bg-rose-500 rounded-full animate-pulse"></span>
-               </NuxtLink>
-               <a href="https://www.instagram.com/minutes2match" target="_blank" class="text-[10px] font-bold uppercase tracking-widest text-stone-500 hover:text-black dark:hover:text-stone-300 transition-colors">Instagram</a>
-               <NuxtLink to="/terms" class="text-[10px] font-bold uppercase tracking-widest text-stone-500 hover:text-black dark:hover:text-stone-300 transition-colors">Terms</NuxtLink>
-               <NuxtLink to="/privacy" class="text-[10px] font-bold uppercase tracking-widest text-stone-500 hover:text-black dark:hover:text-stone-300 transition-colors">Privacy</NuxtLink>
-             </div>
-             
-             <div class="flex flex-col items-center gap-1.5">
-               <span class="text-[9px] font-bold text-stone-300 dark:text-stone-700 uppercase tracking-[0.2em]">Made with ❤️ in Accra</span>
-               <p class="text-[9px] text-stone-400 font-bold uppercase tracking-[0.2em]">v{{ config.public.appVersion }}</p>
-             </div>
-          </div>
-        </div>
+      <!-- Footer: only on Profile, as one quiet centred line -->
+      <footer v-if="route.path === '/me'" class="relative z-10 mt-auto pb-6 pt-2 md:pb-8">
+        <p class="text-center text-xs text-[#b5b0aa]" :title="`Version ${config.public.appVersion}`">
+          <a href="mailto:hello@minutes2match.com" class="transition-colors hover:text-[#393737]">Help</a>
+          <span class="mx-2" aria-hidden="true">·</span>
+          <NuxtLink to="/terms" class="transition-colors hover:text-[#393737]">Terms</NuxtLink>
+          <span class="mx-2" aria-hidden="true">·</span>
+          <NuxtLink to="/privacy" class="transition-colors hover:text-[#393737]">Privacy</NuxtLink>
+          <span class="mx-2" aria-hidden="true">·</span>
+          © {{ new Date().getFullYear() }} Minutes 2 Match
+        </p>
       </footer>
 
-      <!-- Mobile Bottom Navigation -->
-      <nav v-if="['/matches', '/events', '/me', '/lobby'].includes(route.path)" class="md:hidden fixed bottom-6 left-4 right-4 z-[60] bg-white dark:bg-stone-900 border-2 border-black dark:border-stone-700 rounded-2xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,0.1)] pb-safe transition-transform duration-300">
-        <div class="flex justify-around items-center h-16 px-2">
-           <NuxtLink to="/matches" class="flex flex-col items-center justify-center gap-1 w-16 transition-all active:scale-95" :class="route.path === '/matches' ? 'text-rose-500' : 'text-stone-400 dark:text-stone-500'">
-              <div class="relative">
-                 <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
-                 <span v-if="pendingMatchCount > 0" class="absolute -top-1 -right-1 w-2.5 h-2.5 bg-rose-500 rounded-full border border-white dark:border-stone-900 animate-pulse"></span>
-              </div>
-              <span class="text-[9px] font-bold uppercase tracking-widest">Matches</span>
-           </NuxtLink>
-           <NuxtLink to="/events" class="flex flex-col items-center justify-center gap-1 w-16 transition-all active:scale-95" :class="route.path === '/events' ? 'text-black dark:text-white' : 'text-stone-400 dark:text-stone-500'">
-              <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10zm0-12H5V6h14v2zm-7 5h5v5h-5v-5z"/></svg>
-              <span class="text-[9px] font-bold uppercase tracking-widest">Events</span>
-           </NuxtLink>
-            <NuxtLink to="/lobby" class="flex flex-col items-center justify-center gap-1 w-16 transition-all active:scale-95" :class="route.path === '/lobby' ? 'text-indigo-500' : 'text-stone-400 dark:text-stone-500'">
-              <div class="relative">
-                 <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M13 2.05v2.02c3.39.49 6 3.39 6.49 6.78h2.02C20.99 5.96 17.54 2.51 13 2.05zM11 2.05c-4.54.46-8 3.91-8.51 8.45h2.02c.49-3.39 3.1-6.29 6.49-6.78V2.05zM19.49 13c-.49 3.39-3.1 6.29-6.49 6.78v2.02c4.54-.46 8-3.91 8.51-8.45h-2.02zM11 19.78c-3.39-.49-6-3.39-6.49-6.78H2.49c.51 4.54 3.96 7.99 8.51 8.45v-2.02z"/></svg>
-                 <span v-if="isLive" class="absolute -top-1 -right-1 w-2.5 h-2.5 bg-indigo-500 rounded-full border border-white dark:border-stone-900 animate-pulse"></span>
-              </div>
-              <span class="text-[9px] font-bold uppercase tracking-widest">Lobby</span>
-            </NuxtLink>
-           <NuxtLink to="/me" class="flex flex-col items-center justify-center gap-1 w-16 transition-all active:scale-95" :class="route.path === '/me' ? 'text-black dark:text-white' : 'text-stone-400 dark:text-stone-500'">
-              <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
-              <span class="text-[9px] font-bold uppercase tracking-widest">Profile</span>
-           </NuxtLink>
+      <!-- Phone bar: Matches and Profile, two equal halves -->
+      <nav v-if="showTabs" aria-label="App" class="fixed inset-x-0 bottom-0 z-[60] flex justify-center px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] md:hidden">
+        <div class="grid w-full max-w-[20rem] grid-cols-2 gap-1 rounded-full bg-white/95 p-1.5 shadow-[0_12px_40px_rgba(52,38,25,0.16)] ring-1 ring-black/5 backdrop-blur">
+          <NuxtLink
+            v-for="t in appTabs"
+            :key="'m-' + t.to"
+            :to="t.to"
+            :aria-current="isActiveTab(t.to) ? 'page' : undefined"
+            class="relative flex h-12 items-center justify-center gap-2 rounded-full text-[0.95rem] font-semibold transition-colors active:scale-[0.97]"
+            :class="isActiveTab(t.to) ? 'bg-[#393737] text-white' : 'text-[#6c6862]'"
+          >
+            <svg v-if="t.to === '/matches'" viewBox="0 0 24 24" :fill="isActiveTab(t.to) ? 'currentColor' : 'none'" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="h-[18px] w-[18px]" aria-hidden="true"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
+            <span v-else class="h-7 w-7 shrink-0 overflow-hidden rounded-full bg-[#e7e4e0] ring-2" :class="isActiveTab(t.to) ? 'ring-white/80' : 'ring-white shadow-[0_1px_4px_rgba(52,38,25,0.15)]'">
+              <img v-if="profile?.photo_url" :src="profile.photo_url" alt="" class="h-full w-full object-cover" />
+              <span v-else class="flex h-full w-full items-center justify-center text-xs font-semibold text-[#6c6862]">{{ profile?.display_name?.charAt(0) || '?' }}</span>
+            </span>
+            {{ t.label }}
+            <span v-if="t.to === '/matches' && pendingMatchCount > 0" class="absolute right-4 top-3 h-2 w-2 rounded-full bg-[#ed1c24] ring-2" :class="isActiveTab(t.to) ? 'ring-[#393737]' : 'ring-white'"></span>
+          </NuxtLink>
         </div>
       </nav>
       <PWAInstallPrompt />
@@ -213,30 +118,27 @@
 <script setup lang="ts">
 const route = useRoute()
 const config = useRuntimeConfig()
-const { authReady, profile, subscription, pendingMatchCount, isProfileIncomplete, initDashboard, toggleIncognito } = useDashboard()
+const { authReady, profile, pendingMatchCount, isProfileIncomplete, initDashboard, toggleIncognito } = useDashboard()
 const toggleAccountActive = toggleIncognito
-const { unreadCount, fetchNotifications } = useNotifications()
-const { isLive } = useFlashLobby()
 
-// M2M Credit Wallet (global)
-const walletBalance = ref(0)
-const fetchWalletBalance = async () => {
-   try {
-      const data = await $fetch<{ balance: number }>('/api/credits')
-      walletBalance.value = data?.balance || 0
-   } catch (err) {
-      // Silently fail — user may not be logged in yet
-   }
-}
+const appTabs = [
+  { to: '/matches', label: 'Matches' },
+  { to: '/me', label: 'Profile' },
+]
+// The two tabs show on the two main screens; a match brief counts as Matches
+const showTabs = computed(() => ['/matches', '/me'].includes(route.path))
+const isActiveTab = (to: string) => to === '/matches'
+  ? route.path === '/matches' || route.path.startsWith('/me/connection')
+  : route.path === '/me'
+
 
 onMounted(async () => {
     await initDashboard()
-    fetchNotifications()
-    fetchWalletBalance()
 })
 </script>
 
 <style>
+
 /* Gray out content when Ghost Mode is active but allow interaction */
 .is-ghost-mode main > .flex-1 > div:not(.ghost-banner) {
   filter: grayscale(0.8) contrast(1.1) opacity(0.85);

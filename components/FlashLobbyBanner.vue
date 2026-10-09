@@ -3,21 +3,21 @@
     
     <!-- Main Ticket Body -->
     <div :class="[
-      'relative flex flex-col md:flex-row md:items-stretch rounded-[24px] border-[3px] border-black overflow-hidden shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all duration-300 active:translate-x-1 active:translate-y-1 active:shadow-none',
-      isLive ? 'bg-indigo-600' : 'bg-white dark:bg-stone-900 text-black'
+      'relative flex flex-col md:flex-row md:items-stretch rounded-[24px] border border-[#ece8e3] overflow-hidden shadow-[0_10px_30px_rgba(52,38,25,0.07)] transition-all duration-300 active:shadow-none',
+      isLive ? 'bg-indigo-600' : 'bg-white dark:bg-stone-900 text-[#393737]'
     ]">
       
       <!-- Top Section -->
       <div class="p-3 md:p-8 flex flex-1 items-center md:items-start gap-2.5 md:gap-6 bg-white min-w-0">
          <!-- Icon Box -->
-         <div class="w-12 h-12 md:w-24 md:h-24 rounded-[14px] md:rounded-[24px] bg-black flex items-center justify-center text-xl md:text-5xl shrink-0 shadow-inner border border-stone-800">
+         <div class="w-12 h-12 md:w-24 md:h-24 rounded-[14px] md:rounded-[24px] bg-[#393737] flex items-center justify-center text-xl md:text-5xl shrink-0 shadow-inner border border-stone-800">
            {{ isLive ? '💥' : '⏳' }}
          </div>
          <div class="flex flex-col justify-center min-w-0">
             <h2 class="font-sans font-bold text-[18px] sm:text-[20px] md:text-[28px] tracking-tight leading-[1] uppercase mb-0.5 md:mb-2 break-words">
               {{ compactTitle }}
             </h2>
-            <p class="text-[8px] md:text-[11px] font-bold uppercase tracking-[0.1em] md:tracking-[0.2em] leading-[1.25] text-stone-400 max-w-[24ch] md:max-w-none">
+            <p class="text-[8px] md:text-[11px] font-bold uppercase tracking-[0.1em] md:tracking-wider leading-[1.25] text-stone-400 max-w-[24ch] md:max-w-none">
               {{ compactSubtitle }}
             </p>
          </div>
@@ -26,8 +26,8 @@
       <!-- Desktop Divider -->
       <div class="hidden md:block w-px bg-stone-100 shrink-0 relative">
          <!-- Tiny ticket punch details if you want an extra touch -->
-         <div class="absolute -top-3 -left-3 w-6 h-6 rounded-full bg-[#FAFAFA] border-[3px] border-black"></div>
-         <div class="absolute -bottom-3 -left-3 w-6 h-6 rounded-full bg-[#FAFAFA] border-[3px] border-black"></div>
+         <div class="absolute -top-3 -left-3 w-6 h-6 rounded-full bg-[#FAFAFA] border border-[#ece8e3]"></div>
+         <div class="absolute -bottom-3 -left-3 w-6 h-6 rounded-full bg-[#FAFAFA] border border-[#ece8e3]"></div>
       </div>
 
       <!-- Bottom Section -->
@@ -35,7 +35,7 @@
          <span class="text-[9px] md:text-[11px] font-bold uppercase tracking-[0.08em] md:tracking-[0.15em] text-stone-400 mb-1 md:mb-2">
            {{ isLive ? 'Lobby Closes In' : 'Starts In' }}
          </span>
-         <span class="text-[22px] sm:text-[24px] md:text-[36px] font-mono font-black tabular-nums tracking-tight md:tracking-widest mb-3 md:mb-5 leading-none">
+         <span class="text-[22px] sm:text-[24px] md:text-[36px] font-mono font-semibold tabular-nums tracking-tight md:tracking-wider mb-3 md:mb-5 leading-none">
            {{ isLive ? formattedRemaining : countdownLabel }}
          </span>
 
@@ -43,9 +43,9 @@
            v-if="!isLive"
            @click.stop="toggleReminder"
            :disabled="isSettingReminder || reminderSet"
-           class="w-full py-2.5 md:py-4 rounded-[12px] md:rounded-[16px] font-black uppercase text-[9px] md:text-[11px] tracking-[0.06em] md:tracking-[0.15em] transition-all text-white bg-black hover:bg-stone-900 shadow-sm flex items-center justify-center gap-2 border-[3px] border-black"
+           class="w-full py-2.5 md:py-4 rounded-[12px] md:rounded-[16px] font-semibold uppercase text-[9px] md:text-[11px] tracking-[0.06em] md:tracking-[0.15em] transition-all text-white bg-[#393737] hover:bg-stone-900 shadow-sm flex items-center justify-center gap-2 border border-[#ece8e3]"
          >
-           <div v-if="isSettingReminder" class="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin"></div>
+           <div v-if="isSettingReminder" class="w-4 h-4 border border-white/20 border-t-white rounded-full animate-spin"></div>
            <template v-else>
               <span v-if="reminderSet">✅ REMINDER SET</span>
               <span v-else>🔔 REMIND ME</span>
@@ -54,7 +54,7 @@
 
          <button 
            v-else
-           class="w-full py-2.5 md:py-4 rounded-[12px] md:rounded-[16px] bg-white text-indigo-600 font-black uppercase tracking-[0.06em] text-[9px] md:text-xs transition-all border-[3px] border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-1 hover:translate-y-1"
+           class="w-full py-2.5 md:py-4 rounded-[12px] md:rounded-[16px] bg-white text-indigo-600 font-semibold uppercase tracking-[0.06em] text-[9px] md:text-xs transition-all border border-[#ece8e3] shadow-[0_10px_30px_rgba(52,38,25,0.07)] hover:shadow-none"
          >
            ENTER NOW 🚀
          </button>

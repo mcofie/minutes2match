@@ -1,215 +1,116 @@
 <template>
-  <div class="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-500">
+  <div class="letter-page mx-auto max-w-3xl animate-in fade-in slide-in-from-bottom-2 duration-500">
     <Head>
       <Title>Matches | Minutes 2 Match</Title>
     </Head>
-    <div class="flex items-center justify-between flex-wrap gap-4">
-       <h2 class="text-2xl font-bold tracking-tight dark:text-white">Your Connections</h2>
-       <div class="flex items-center gap-3">
-          <div class="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-emerald-50 dark:bg-emerald-900/10 border border-emerald-100 dark:border-emerald-900/30 rounded-full">
-             <span class="relative flex h-1.5 w-1.5">
-                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                <span class="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span>
-             </span>
-             <span class="text-[9px] font-black uppercase tracking-widest text-emerald-700 dark:text-emerald-400">High Quality Pool Verified</span>
-          </div>
-           <span v-if="creditBalance > 0" class="text-sm font-bold text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-900/40 px-3 py-1 rounded-full flex items-center gap-1.5 cursor-help" title="Your M2M Credit balance — use it to unlock matches for free!">
-              💚 GHS {{ creditBalance.toFixed(2) }}
-           </span>
-           <span v-if="profile?.is_active === false" class="text-xs font-black text-rose-500 bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-900/50 px-3 py-1 rounded-full animate-ghost">👻 Ghost Mode Active</span>
-           <span class="text-sm font-medium text-stone-500 dark:text-stone-400 bg-stone-100 dark:bg-stone-800 px-3 py-1 rounded-full">{{ matches?.length || 0 }} matches</span>
-       </div>
-    </div>
 
-    <!-- Flash Lobby Entry Point -->
-    <div class="mb-4">
-      <FlashLobbyBanner />
-    </div>
+    <SkeletonMatchesPage v-if="loadingMatches" />
 
-    <!-- Quality Assurance Banner -->
-    <Transition
-      enter-active-class="transition duration-300 ease-out"
-      enter-from-class="transform -translate-y-4 opacity-0"
-      enter-to-class="transform translate-y-0 opacity-100"
-      leave-active-class="transition duration-200 ease-in"
-      leave-from-class="transform translate-y-0 opacity-100"
-      leave-to-class="transform -translate-y-4 opacity-0"
-    >
-      <div v-if="showPurityProtocol" class="group relative px-3 py-2.5 sm:p-4 bg-emerald-50 dark:bg-emerald-900/10 border-2 border-emerald-100 dark:border-emerald-900/30 rounded-xl flex items-start sm:items-center gap-3 animate-in fade-in slide-in-from-top-2 duration-700 shadow-sm overflow-hidden">
-         <div class="w-6 h-6 sm:w-10 sm:h-10 bg-white dark:bg-stone-900 rounded-md sm:rounded-xl flex items-center justify-center text-sm sm:text-lg shadow-sm border border-emerald-100 dark:border-emerald-900/50 flex-shrink-0 mt-0.5 sm:mt-0">🛡️</div>
-         <div class="flex-1 min-w-0">
-            <p class="text-[8px] sm:text-[9px] text-emerald-700 dark:text-emerald-400 font-black uppercase tracking-widest leading-relaxed">
-               <span class="text-emerald-900 dark:text-emerald-300">Community Purity Protocol:</span> 
-               <span class="opacity-80 ml-1">We actively purge inactive accounts every 48 hours. Your matches are guaranteed high-quality.</span>
-            </p>
-         </div>
-         <button 
-           @click="showPurityProtocol = false" 
-           class="p-1 hover:bg-emerald-100 dark:hover:bg-emerald-800/50 rounded-lg transition-colors text-emerald-400 hover:text-emerald-600 flex-shrink-0"
-           title="Dismiss"
-         >
-           <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-           </svg>
-         </button>
+    <!-- No matches yet -->
+    <section v-else-if="matches.length === 0" class="pb-6 pt-4 text-center sm:pt-10">
+      <span class="inline-flex rounded-full bg-white px-3.5 py-1 text-sm text-[#393737] ring-1 ring-black/[0.08]">Your matches</span>
+      <h1 class="font-display mx-auto mt-5 max-w-xl text-[2.75rem] leading-[1.02] tracking-tight text-[#393737] sm:text-[4.5rem]">Your match is on the way.</h1>
+      <p class="mx-auto mt-4 max-w-md text-lg leading-snug text-[#6c6862]">
+        <template v-if="optedInThisWeek">We're finding someone who shares what matters to you. We'll text you as soon as they're ready.</template>
+        <template v-else>You're not in this week's matching yet. Opt in and we'll look for someone who shares what matters to you.</template>
+      </p>
+      <div class="mt-7 flex flex-col items-center gap-4">
+        <NuxtLink v-if="!optedInThisWeek" to="/me" class="inline-flex items-center justify-center gap-2 rounded-full bg-[#ed1c24] px-6 py-3 text-base font-semibold text-white shadow-[0_8px_24px_rgba(237,28,36,0.18)] transition-colors hover:bg-[#d71920]">Opt in for this week</NuxtLink>
+        <NuxtLink to="/how-it-works" class="text-base font-semibold text-[#393737] underline-offset-4 hover:underline">How matching works</NuxtLink>
       </div>
-    </Transition>
+    </section>
 
-    <!-- Skeleton Loaders -->
-    <div v-if="loadingMatches" class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-      <SkeletonMatchCard v-for="i in 3" :key="i" />
-    </div>
+    <template v-else-if="featured">
+      <!-- Header, Popcorn style: pill, big serif line, quiet subline -->
+      <section class="pt-2 text-center sm:pt-8">
+        <span class="inline-flex rounded-full bg-white px-3.5 py-1 text-sm text-[#393737] ring-1 ring-black/[0.08]">{{ featuredIsThisWeek ? "This week's match" : 'Your latest match' }}</span>
+        <h1 class="font-display mt-4 text-[2.9rem] leading-[1.02] tracking-tight text-[#393737] sm:mt-5 sm:text-[5rem]">Meet {{ featuredName }}.</h1>
+        <p class="mt-3 text-lg text-[#6c6862] sm:text-xl">
+          <template v-if="scoreOf(featured)">{{ scoreOf(featured) }}% compatible. </template>Matched {{ matchedWhen(featured.created_at) }}.
+        </p>
+        <p v-if="profile?.is_active === false" class="mt-3 inline-flex rounded-full bg-[#fff1f1] px-3 py-1 text-xs font-medium text-[#b4232a]">You're hidden from matching right now</p>
+      </section>
 
-    <div v-else-if="matches.length === 0" class="space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-500">
-       <div class="py-12 text-center border-2 border-dashed border-stone-200 dark:border-stone-700 rounded-2xl bg-white dark:bg-stone-900 shadow-sm relative overflow-hidden group">
-         <!-- Decorative Background -->
-         <div class="absolute inset-0 opacity-[0.03] group-hover:opacity-[0.05] transition-opacity duration-700 pointer-events-none" style="background-image: radial-gradient(#000 1px, transparent 1px); background-size: 20px 20px;"></div>
-         
-         <span class="text-3xl md:text-4xl block mb-4 grayscale opacity-50 animate-bounce-subtle">🧠</span>
-         <p class="font-black text-stone-900 dark:text-stone-100 mb-1 flex items-center justify-center gap-2">
-           The Lab is <span class="text-rose-500 uppercase italic tracking-widest text-xs">Simulating...</span>
-         </p>
-         <p class="text-sm text-stone-500 dark:text-stone-400 font-medium px-8 leading-relaxed max-w-md mx-auto mb-6">
-           Matches are generated based on your psychometric profile. <br class="hidden sm:block"/>
-           <span class="text-black dark:text-white font-bold underline decoration-rose-500/30">You will be notified via SMS</span> when a connection is found.
-         </p>
-
-         <NuxtLink 
-           to="/how-it-works" 
-           class="inline-flex items-center gap-2 px-6 py-2.5 bg-black dark:bg-stone-800 text-white text-[10px] font-black uppercase tracking-[0.2em] rounded-full border-2 border-transparent hover:border-rose-500 transition-all shadow-lg active:scale-95"
-         >
-           <span>Learn the Protocol</span>
-           <span class="text-rose-500">→</span>
-         </NuxtLink>
-       </div>
-       
-       <!-- Show Pricing Model in Empty State -->
-       <div class="px-2 pt-4">
-          <div class="text-center mb-8">
-            <div class="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-stone-400 mb-3">
-              <span class="w-1 h-1 bg-stone-400 rounded-full"></span>
-              Match Protocol & Economics
-              <span class="w-1 h-1 bg-stone-400 rounded-full"></span>
-            </div>
-            <h3 class="text-2xl md:text-3xl font-bold font-serif text-black dark:text-white mb-2 leading-tight">Unlock Your Connections.</h3>
-            <p class="text-sm text-stone-500 dark:text-stone-400 font-medium max-w-lg mx-auto leading-relaxed">
-              Pricing applies only to <span class="text-black dark:text-white font-bold italic">active matches</span> found in your lab.
-              Memberships provide priority visibility in the matching queue.
-            </p>
+      <!-- A fan of cards: you, them, and what you share -->
+      <NuxtLink :to="briefLink(featured)" class="relative z-10 mt-8 flex items-start justify-center sm:mt-12" :aria-label="`Open your match brief with ${featuredName}`">
+        <div class="fan-card fan-back relative -mr-14 mt-8 h-[12rem] w-[8rem] shrink-0 overflow-hidden rounded-[1.1rem] bg-[#eceae6] shadow-[0_10px_30px_rgba(52,38,25,0.10)] sm:-mr-14 sm:h-[18rem] sm:w-48" style="--r: -8deg">
+          <img v-if="profile?.photo_url" :src="profile.photo_url" alt="" class="h-full w-full object-cover" />
+          <span v-else class="font-display flex h-full w-full items-center justify-center text-5xl text-[#b9c3cf]">{{ (profile?.display_name || 'You').charAt(0) }}</span>
+          <span class="absolute bottom-2.5 left-2.5 rounded-full bg-white/90 px-2.5 py-0.5 text-xs font-semibold text-[#393737] backdrop-blur">You</span>
+        </div>
+        <div class="fan-card relative z-10 h-[17rem] w-[11.5rem] shrink-0 overflow-hidden rounded-[1.25rem] bg-[#e9eff5] shadow-[0_28px_60px_rgba(52,38,25,0.26)] ring-[3px] ring-white sm:h-[23rem] sm:w-[15.5rem]" style="--r: 0deg">
+          <NuxtImg v-if="featured.matchedProfile?.photo_url" :src="featured.matchedProfile.photo_url" :alt="featuredName" width="520" height="740" class="h-full w-full object-cover" />
+          <span v-else class="font-display flex h-full w-full items-center justify-center text-7xl text-[#b9c3cf]">{{ featuredName.charAt(0) }}</span>
+          <span class="absolute bottom-3 left-3 rounded-full bg-white/90 px-2.5 py-0.5 text-xs font-semibold text-[#393737] backdrop-blur">{{ featuredName }}</span>
+        </div>
+        <!-- A keepsake made for this pair: their scene, what they share, which match this is -->
+        <div class="fan-card fan-back relative -ml-14 mt-8 h-[12rem] w-[8rem] shrink-0 overflow-hidden rounded-[1.1rem] shadow-[0_10px_30px_rgba(52,38,25,0.10)] ring-1 ring-black/[0.04] sm:h-[18rem] sm:w-48" :style="{ '--r': '8deg', background: keepsake.tint }">
+          <!-- glow behind the painted scene -->
+          <div aria-hidden="true" class="absolute -right-6 top-2 h-32 w-32 rounded-full opacity-80 blur-2xl sm:h-44 sm:w-44" :style="{ background: keepsake.glow }"></div>
+          <LetterVignette :scene="keepsake.scene" class="absolute -right-5 top-1 w-[7.5rem] opacity-90 mix-blend-luminosity sm:-right-4 sm:top-3 sm:w-[10.5rem]" />
+          <!-- tiny sparkles -->
+          <span v-for="(dot, i) in KEEPSAKE_SPARKLES" :key="i" aria-hidden="true" class="absolute rounded-full bg-white" :style="{ left: dot[0], top: dot[1], width: `${dot[2]}px`, height: `${dot[2]}px`, opacity: dot[3] }"></span>
+          <div class="absolute inset-x-0 bottom-0 flex flex-col items-end pb-3 pl-[3.6rem] pr-2.5 pt-12 text-right sm:pb-4 sm:pr-4 sm:pt-16" :style="{ background: keepsake.band }">
+            <span class="whitespace-nowrap text-[0.6rem] font-semibold uppercase tracking-[0.14em] text-white/75 sm:text-[0.65rem]"><span class="hidden sm:inline">Match </span>No. {{ keepsake.number }}</span>
+            <span class="font-display mt-1 text-[0.9rem] leading-[1.1] tracking-tight text-white [text-shadow:0_1px_8px_rgba(0,0,0,0.15)] sm:text-xl">{{ keepsake.line }}</span>
+            <span class="mt-1.5 whitespace-nowrap text-[0.65rem] tabular-nums text-white/80 sm:text-xs"><span class="sm:hidden">{{ keepsake.monthShort }}</span><span class="hidden sm:inline">{{ keepsake.month }}</span></span>
           </div>
-          <SubscriptionCard :subscription="subscription" @subscribe="handleSubscribe" />
-       </div>
-    </div>
+        </div>
+      </NuxtLink>
 
-    <div v-else class="space-y-8">
-      <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-        <BlindProfileCard
-          v-for="match in matches"
-          :key="match.id"
-          :matchId="match.id"
-          :age="getAge(match.matchedProfile?.birth_date)"
-          :personaName="getPersonaData(match.matchedProfile?.dating_persona)?.name || 'Mystery'"
-          :personaEmoji="getPersonaData(match.matchedProfile?.dating_persona)?.emoji || '🔮'"
-          :personaColor="getPersonaData(match.matchedProfile?.dating_persona)?.color || '#1a1a2e'"
-          :vibePreview="getVibePreview(match.vibeAnswers)"
-          :vibeSummary="getVibeSummary(match.vibeAnswers)"
-          :unlockPrice="match.unlock_price"
-          :unlocked="match.status === 'unlocked'"
-          :currentUserPaid="match.currentUserPaid"
-          :displayName="match.matchedProfile?.display_name"
-          :photoUrl="match.matchedProfile?.photo_url"
-          :phone="match.status === 'unlocked' ? match.matchedProfile?.phone : undefined"
-          :preferredContactMethod="match.matchedProfile?.preferred_contact_method"
-          :instagramHandle="match.matchedProfile?.instagram_handle"
-          :snapchatHandle="match.matchedProfile?.snapchat_handle"
-          :bio="match.matchedProfile?.about_me"
-          :interests="match.matchedProfile?.interests"
-          :sharedInterests="getSharedInterests(match.matchedProfile?.interests)"
-          :expiresAt="match.expires_at"
-          :matchedAt="match.created_at"
-          :location="match.matchedProfile?.location"
-          :gender="match.matchedProfile?.gender"
-          :hasSubscription="!!subscription"
-          :isFreeUnlockEligible="profile && !profile.has_used_free_unlock"
-          :otherUserPaid="match.otherUserPaid"
-          :nudged="match.nudged"
-          :aiAnalysis="match.matchedProfile?.ai_analysis || match.ai_analysis"
-          :matchScore="match.match_score"
-          :matchReasons="match.match_reasons"
-          :intent="match.matchedProfile?.intent"
-          :occupation="match.matchedProfile?.occupation"
-          :availability="profile?.availability"
-          :matchedUserAvailability="match.matchedProfile?.availability"
-          :creditBalance="creditBalance"
-          @unlock="handleUnlockMatch(match)"
-          @update-status="navigateToFeedback(match)"
-          @nudge="(payload) => handleNudgeMatch(match, payload)"
-        />
+      <!-- What we know, as a list -->
+      <div class="relative mx-auto -mt-10 max-w-md rounded-[1.75rem] bg-white px-5 pb-6 pt-14 shadow-[0_10px_30px_rgba(52,38,25,0.06)] ring-1 ring-black/[0.05] sm:-mt-12 sm:px-6 sm:pt-16">
+        <ul class="divide-y divide-black/[0.06]">
+          <li v-for="row in featuredRows" :key="row.icon" class="flex items-start gap-3.5 py-3.5 text-base text-[#393737]">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" class="mt-0.5 h-5 w-5 shrink-0 text-[#393737]" aria-hidden="true" v-html="ICONS[row.icon]"></svg>
+            <span class="min-w-0" :class="row.icon === 'note' ? 'font-display text-[1.05rem] leading-snug' : ''">{{ row.text }}</span>
+          </li>
+        </ul>
+        <div class="mt-5 flex justify-center">
+          <NuxtLink :to="briefLink(featured)" class="inline-flex items-center justify-center gap-2 rounded-full bg-[#ed1c24] px-6 py-3 text-base font-semibold text-white shadow-[0_8px_24px_rgba(237,28,36,0.18)] transition-colors hover:bg-[#d71920] w-full sm:w-auto">Read your match brief</NuxtLink>
+        </div>
       </div>
 
-      <!-- Date Suggestions: Partner Venues -->
-      <div v-show="matches.some(m => m.status === 'unlocked' && m.currentUserPaid)" class="animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-500 pt-16">
-         <div class="flex flex-col md:flex-row items-baseline justify-between mb-8 gap-4 px-2">
-            <div>
-               <h3 class="text-3xl md:text-5xl font-serif font-bold tracking-tight dark:text-white mb-2 leading-none">The M2M <span class="italic text-rose-500">Curated Date.</span></h3>
-               <p class="text-stone-500 dark:text-stone-400 text-sm md:text-base font-medium max-w-lg">We've partnered with Accra's finest spots to give you a discounted rate on your first date.</p>
-            </div>
-            <div class="flex items-center gap-2 text-[10px] font-bold text-rose-500 uppercase tracking-widest bg-rose-50 dark:bg-rose-900/10 px-4 py-2 rounded-full border border-rose-100 dark:border-rose-900/30">
-               <span>Partner Deals Active</span>
-               <span class="w-2 h-2 rounded-full bg-rose-500 animate-pulse"></span>
-            </div>
-         </div>
-
-         <div v-if="partnerVenues.length > 0" class="flex flex-nowrap overflow-x-auto gap-6 pb-8 snap-x no-scrollbar md:px-2">
-            <PartnerVenueCard 
-               v-for="venue in partnerVenues" 
-               :key="venue.id" 
-               :venue="venue"
-               :redemptionData="redemptions[venue.id] || null"
-               :loading="claimingVenueIds.has(venue.id)"
-               class="flex-shrink-0 snap-start"
-               @claim="handleClaimDiscount(venue)"
-               @reset="handleResetRedemption(venue.id)"
-            />
-         </div>
-         <div v-else class="py-12 text-center rounded-2xl border-2 border-dashed border-stone-200 dark:border-stone-800 bg-stone-50/50 dark:bg-stone-900/30">
-            <div class="text-3xl mb-3 grayscale opacity-40">🥂</div>
-            <p class="text-sm font-bold text-stone-900 dark:text-stone-100">More curated spots coming soon</p>
-            <p class="text-[10px] text-stone-500 dark:text-stone-400 uppercase tracking-widest font-bold mt-1">We're handpicking the best date spots for you.</p>
-         </div>
-
-
-          <!-- Redemption Instructions Banner -->
-          <div class="mt-4 p-6 bg-stone-900 border-2 border-black dark:border-stone-800 text-center relative overflow-hidden group rounded-2xl">
-             <div class="absolute inset-0 opacity-10" style="background-image: radial-gradient(#fff 1px, transparent 1px); background-size: 20px 20px;"></div>
-             <div class="relative z-10 flex flex-col md:flex-row items-center justify-center gap-6">
-                <div class="text-left max-w-sm">
-                   <h4 class="text-rose-500 font-black uppercase tracking-[0.3em] text-[10px] mb-2 italic">How it works:</h4>
-                   <p style="color: #ffffff !important;" class="text-[11px] leading-relaxed italic uppercase font-bold opacity-90">
-                      Simply show your <span class="text-rose-500 underline decoration-rose-500/50 underline-offset-4 font-black">unlocked match profile</span> to the staff when you arrive at any partner venue to redeem your M2M rate.
-                   </p>
-                </div>
-                <div class="hidden md:block w-px h-12 bg-white/20"></div>
-                <div class="flex items-center gap-4">
-                   <span class="text-3xl opacity-40 grayscale group-hover:grayscale-0 transition-all duration-700">🥂</span>
-                   <p class="text-[10px] md:text-[11px] font-black text-white uppercase tracking-widest text-left">Defy the small talk.<br/>Ignite the connection.</p>
-                </div>
-             </div>
-          </div>
+      <!-- No match yet this week -->
+      <div v-if="!featuredIsThisWeek" class="mx-auto mt-5 flex max-w-md items-center justify-between gap-4 rounded-2xl bg-white px-5 py-4 ring-1 ring-black/[0.05]">
+        <p class="text-sm leading-snug text-[#393737]">
+          <template v-if="optedInThisWeek">This week's match is on the way. We'll text you when it's ready.</template>
+          <template v-else>You're not in this week's matching yet.</template>
+        </p>
+        <NuxtLink v-if="!optedInThisWeek" to="/me" class="shrink-0 rounded-full bg-[#ed1c24] px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-[#d71920]">Opt in</NuxtLink>
       </div>
-    </div>
+
+      <!-- Past matches: one quiet row, like an FAQ item -->
+      <details v-if="pastMatches.length" class="group mx-auto mt-10 max-w-md sm:mt-14">
+        <summary class="flex cursor-pointer list-none items-center justify-between gap-4 rounded-2xl bg-white px-5 py-4 ring-1 ring-black/[0.05] [&::-webkit-details-marker]:hidden">
+          <span class="font-display text-[1.3rem] leading-none text-[#393737]">Past matches <span class="text-[#9b9690]">· {{ pastMatches.length }}</span></span>
+          <span class="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#ecebe9] text-[#8a8785] transition-transform duration-300 group-open:rotate-180" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="h-3 w-3"><path d="m6 9 6 6 6-6" /></svg>
+          </span>
+        </summary>
+        <ul class="mt-2 space-y-2">
+          <li v-for="m in pastMatches" :key="m.id">
+            <NuxtLink :to="briefLink(m)" class="flex items-center gap-3.5 rounded-2xl bg-white px-4 py-3 ring-1 ring-black/[0.05] transition-colors hover:bg-[#fcfbfa]">
+              <span class="h-11 w-11 shrink-0 overflow-hidden rounded-xl bg-[#eceae6]">
+                <img v-if="m.matchedProfile?.photo_url" :src="m.matchedProfile.photo_url" alt="" class="h-full w-full object-cover" loading="lazy" />
+                <span v-else class="font-display flex h-full w-full items-center justify-center text-lg text-[#9b9690]">{{ nameOf(m).charAt(0) }}</span>
+              </span>
+              <span class="min-w-0 flex-1">
+                <span class="font-display block truncate text-lg leading-tight text-[#393737]">{{ nameOf(m) }}</span>
+                <span class="mt-0.5 block truncate text-sm text-[#9b9690]">Matched {{ matchedWhen(m.created_at) }}</span>
+              </span>
+              <span v-if="scoreOf(m)" class="shrink-0 text-sm tabular-nums text-[#6c6862]">{{ scoreOf(m) }}%</span>
+            </NuxtLink>
+          </li>
+        </ul>
+      </details>
+    </template>
   </div>
 </template>
 
 <script setup lang="ts">
-const showPurityProtocol = ref(true)
-import BlindProfileCard from '~/components/BlindProfileCard.vue'
-import SkeletonMatchCard from '~/components/skeleton/MatchCard.vue'
-import SubscriptionCard from '~/components/SubscriptionCard.vue'
-import PartnerVenueCard from '~/components/PartnerVenueCard.vue'
-import { personas, type Persona } from '~/composables/usePersona'
+import { currentMatchWeekEnd, isOptedInThisWeek } from '~/utils/matchWeek'
 import { useToast } from '~/composables/useToast'
-import { useHaptic } from '~/composables/useHaptic'
 import { useMatchStore } from '~/stores/useMatchStore'
 import { storeToRefs } from 'pinia'
 import type { M2MDatabase } from '~/types/database.types'
@@ -221,112 +122,15 @@ definePageMeta({
 
 const supabase = useSupabaseClient<M2MDatabase>() as any
 const toast = useToast()
-const haptic = useHaptic()
-const { profile, subscription, fetchPendingMatchCount } = useDashboard()
+const { profile, fetchPendingMatchCount } = useDashboard()
+const optedInThisWeek = computed(() => profile.value?.is_active !== false && isOptedInThisWeek(profile.value?.weekly_opt_in_until))
 const { isTMA, hapticFeedback } = useTelegram()
 
 const matchStore = useMatchStore()
 const { matches, loadingMatches } = storeToRefs(matchStore)
 const { fetchMatches } = matchStore
 
-// Partner Venues & Redemptions
-const partnerVenues = ref<any[]>([])
-const redemptions = ref<Record<string, any>>({})
 
-// M2M Credit Balance
-const creditBalance = ref(0)
-const fetchCreditBalance = async () => {
-   try {
-      const data = await $fetch<{ balance: number }>('/api/credits')
-      creditBalance.value = data?.balance || 0
-   } catch (err) {
-      console.error('Failed to fetch credit balance:', err)
-   }
-}
-
-const claimingVenueIds = ref<Set<string>>(new Set())
-
-const fetchVenues = async () => {
-   try {
-      const data = await $fetch('/api/venues')
-      partnerVenues.value = data as any[]
-   } catch (err) {
-      console.error('Failed to fetch venues:', err)
-   }
-}
-
-const fetchUserRedemptions = async () => {
-   try {
-      const data = await $fetch('/api/redemptions')
-      if (Array.isArray(data)) {
-         const newRedemptions: Record<string, any> = {}
-         data.forEach((r: any) => {
-            newRedemptions[r.venue_id] = {
-               redemptionId: r.id,
-               redeemedAt: r.redeemed_at
-            }
-         })
-         redemptions.value = newRedemptions
-      }
-   } catch (err) {
-      console.error('Failed to fetch user redemptions:', err)
-   }
-}
-
-
-const handleClaimDiscount = async (venue: any) => {
-   // Local check to prevent unnecessary network calls
-   if (redemptions.value[venue.id]) {
-      console.log(`[Frontend] Venue ${venue.id} already claimed. Aborting.`)
-      return
-   }
-
-   // Find an unlocked match where the current user has paid
-   const activeMatch = matches.value.find(m => m.status === 'unlocked' && m.currentUserPaid)
-
-   
-   console.log(`[Frontend] Claiming discount for ${venue.name}. Associated Match ID: ${activeMatch?.id || 'none'}`)
-   
-   claimingVenueIds.value.add(venue.id)
-   try {
-      haptic.hapticSuccess()
-      const response = await $fetch('/api/redemptions', {
-         method: 'POST',
-         body: {
-            venueId: venue.id,
-            matchId: activeMatch?.id 
-         }
-      })
-      
-      if ((response as any).success) {
-         redemptions.value = {
-            ...redemptions.value,
-            [venue.id]: {
-               redemptionId: (response as any).redemptionId,
-               redeemedAt: (response as any).redeemedAt
-            }
-         }
-         
-         const isReclaim = (response as any).message?.toLowerCase().includes('already')
-
-         toast.success(
-            isReclaim ? 'Ticket Restored!' : 'M2M Rate Claimed!', 
-            isReclaim ? `Viewing your existing ticket for ${venue.name}.` : `Your ticket for ${venue.name} is ready.`
-         )
-      }
-
-   } catch (err: any) {
-      console.error('[Frontend] Redemption Error:', err)
-      toast.error('Redemption Failed', err.data?.message || 'Could not record your claim. Please try again.')
-   } finally {
-      claimingVenueIds.value.delete(venue.id)
-   }
-}
-
-
-const handleResetRedemption = (venueId: string) => {
-   delete redemptions.value[venueId]
-}
 const getAge = (birthDate: string | null): number => {
   if (!birthDate) return 25
   const birth = new Date(birthDate)
@@ -337,98 +141,124 @@ const getAge = (birthDate: string | null): number => {
   return age
 }
 
-const getPersonaData = (personaId: string | null): Persona | null => {
-  if (!personaId) return null
-  return personas[personaId] || null
+// One match a week: the newest leads, everything before it is history
+const featured = computed(() => matches.value[0] || null)
+const pastMatches = computed(() => matches.value.slice(1))
+const featuredIsThisWeek = computed(() => {
+  const created = featured.value?.created_at
+  if (!created) return false
+  const weekStart = currentMatchWeekEnd().getTime() - 7 * 24 * 60 * 60 * 1000
+  return new Date(created).getTime() > weekStart
+})
+
+const stripEmoji = (text: string) => String(text || '').replace(/[\p{Extended_Pictographic}\u{1F3FB}-\u{1F3FF}\u200D\uFE0F]/gu, '').replace(/\s{2,}/g, ' ').trim()
+const nameOf = (m: any) => m?.matchedProfile?.display_name?.split(' ')[0] || 'Your match'
+const featuredName = computed(() => nameOf(featured.value))
+const scoreOf = (m: any) => Math.round(Number(m?.match_score) || 0)
+const metaLine = (m: any) => {
+  const p = m?.matchedProfile || {}
+  return [p.birth_date ? getAge(p.birth_date) : null, p.location, p.occupation].filter(Boolean).join(' · ')
 }
+const featuredNote = computed(() => stripEmoji(featured.value?.ai_analysis || featured.value?.matchedProfile?.ai_analysis || ''))
+const featuredReasons = computed<string[]>(() =>
+  (Array.isArray(featured.value?.match_reasons) ? featured.value.match_reasons : [])
+    .filter((r: any) => typeof r === 'string').map(stripEmoji).filter(Boolean).slice(0, 3)
+)
+const briefLink = (m: any) => `/me/connection/${m.id}`
 
-const getVibePreview = (vibeAnswers: any[]): string => {
-  const previews = ['Loves deep conversations', 'Weekend adventurer', 'Ambitious go-getter', 'Social butterfly']
-  return previews[Math.floor(Math.random() * previews.length)]
+// The keepsake card: unique to the pair. The scene follows what they share; failing that, the match id picks one.
+type KeepsakeScene = 'dawn' | 'meadow' | 'tree' | 'night' | 'sunset' | 'meet'
+const INTEREST_SCENE: Record<string, { scene: KeepsakeScene; words: string }> = {
+  music: { scene: 'sunset', words: 'music' }, dancing: { scene: 'sunset', words: 'dancing' }, movies: { scene: 'night', words: 'film nights' },
+  reading: { scene: 'night', words: 'a good book' }, art: { scene: 'night', words: 'art' }, photography: { scene: 'meadow', words: 'photography' },
+  travel: { scene: 'meadow', words: 'travel' }, nature: { scene: 'meadow', words: 'the outdoors' }, fitness: { scene: 'dawn', words: 'staying active' },
+  sports: { scene: 'dawn', words: 'sport' }, food: { scene: 'tree', words: 'good food' }, cooking: { scene: 'tree', words: 'cooking' },
+  tech: { scene: 'night', words: 'tech' }, fashion: { scene: 'sunset', words: 'style' }, gaming: { scene: 'night', words: 'gaming' },
+  entrepreneurship: { scene: 'dawn', words: 'building things' },
 }
-
-const getVibeSummary = (vibeAnswers: any[]): string => {
-  if (!vibeAnswers?.length) return 'Getting to know them...'
-  const answers = vibeAnswers.map((a: any) => a.answer_value).join(', ')
-  return `Enjoys ${answers}`
+// Each scene's card colours: base gradient, a glow behind the painting, and the band behind the text
+const SCENE_TINT: Record<KeepsakeScene, string> = {
+  dawn: 'linear-gradient(165deg,#7aa7e6 0%,#b58ee8 45%,#ff9f7a 100%)',
+  meadow: 'linear-gradient(165deg,#5fb3e8 0%,#5fd0a8 55%,#c6e86b 100%)',
+  tree: 'linear-gradient(165deg,#4fc1b0 0%,#8bd67a 50%,#ffd36b 100%)',
+  night: 'linear-gradient(165deg,#3b3f9e 0%,#7a4fc4 50%,#e66fa8 100%)',
+  sunset: 'linear-gradient(165deg,#ff7a9a 0%,#ff6b5b 45%,#ffb347 100%)',
+  meet: 'linear-gradient(165deg,#ed1c24 0%,#ff5e7e 50%,#ffa45c 100%)',
 }
-
-const getSharedInterests = (matchInterests: string[] | null): string[] => {
-  if (!matchInterests || !profile.value?.interests?.length) return []
-  return matchInterests.filter(interest => profile.value.interests.includes(interest))
+const SCENE_GLOW: Record<KeepsakeScene, { glow: string; band: string }> = {
+  dawn: { glow: '#ffd9a8', band: 'linear-gradient(to top, rgba(120,70,170,0.75), rgba(120,70,170,0))' },
+  meadow: { glow: '#fff3a8', band: 'linear-gradient(to top, rgba(20,120,95,0.75), rgba(20,120,95,0))' },
+  tree: { glow: '#fff0b0', band: 'linear-gradient(to top, rgba(25,120,105,0.75), rgba(25,120,105,0))' },
+  night: { glow: '#ffd1f0', band: 'linear-gradient(to top, rgba(35,30,95,0.8), rgba(35,30,95,0))' },
+  sunset: { glow: '#ffe1a8', band: 'linear-gradient(to top, rgba(190,40,70,0.75), rgba(190,40,70,0))' },
+  meet: { glow: '#ffd6b0', band: 'linear-gradient(to top, rgba(160,15,35,0.75), rgba(160,15,35,0))' },
 }
+const KEEPSAKE_SPARKLES: [string, string, number, number][] = [
+  ['62%', '10%', 3, 0.9], ['84%', '22%', 2, 0.7], ['70%', '38%', 2, 0.6], ['90%', '50%', 3, 0.8], ['56%', '28%', 2, 0.5],
+]
+const SCENES: KeepsakeScene[] = ['dawn', 'meadow', 'tree', 'night', 'sunset', 'meet']
+const hashString = (text: string) => [...String(text)].reduce((h, c) => (h * 31 + c.charCodeAt(0)) >>> 0, 7)
 
-const handleUnlockMatch = async (match: any) => {
-  if (!profile.value || !profile.value.id || profile.value.id === 'undefined') return
-  
-  try {
-    const { initializePayment } = usePaystack()
-    
-    // Force email generation from phone (ignore personal email)
-    const paymentEmail = profile.value.phone 
-       ? `${profile.value.phone.replace(/[\s\+\-]/g, '')}@m2match.com` 
-       : 'customer@m2match.com'
+const keepsake = computed(() => {
+  const m = featured.value
+  const theirs: string[] = m?.matchedProfile?.interests || []
+  const mine: string[] = profile.value?.interests || []
+  const shared = theirs.find(i => mine.includes(i) && INTEREST_SCENE[i])
+  const intent = m?.matchedProfile?.intent === profile.value?.intent ? m?.matchedProfile?.intent : null
 
-    const response = await initializePayment(
-       paymentEmail,
-       match.unlock_price,
-       'match_unlock',
-       { userId: profile.value.id, matchId: match.id }
-    )
-    if (response.type === 'free_unlock' || response.type === 'subscription_unlock' || response.type === 'credit_unlock') {
-        hapticFeedback('medium')
-        const titles: Record<string, string> = {
-            free_unlock: 'First Match Free!',
-            subscription_unlock: 'Unlocked with Subscription',
-            credit_unlock: 'Unlocked with M2M Credit! 💚'
-        }
-        const descriptions: Record<string, string> = {
-            free_unlock: 'Your match has been unlocked successfully.',
-            subscription_unlock: 'Your match has been unlocked successfully.',
-            credit_unlock: `Remaining balance: GHS ${response.creditBalance ?? 0}`
-        }
-        toast.success(titles[response.type] || 'Unlocked!', descriptions[response.type] || 'Match unlocked.')
-        await fetchMatches(profile.value.id)
-        await fetchPendingMatchCount(profile.value.id)
-        fetchCreditBalance()
-        return
-    }
-    const authUrl = response.authorization_url || response.data?.authorization_url
-    if (authUrl) window.location.href = authUrl
-  } catch (error) {
-    console.error('Unlock error:', error)
-    hapticFeedback('heavy')
-    toast.error('Payment failed', 'Failed to process payment. Please try again.')
+  let scene: KeepsakeScene = SCENES[hashString(m?.id || '') % SCENES.length]
+  let line = 'Made for each other'
+  if (shared) {
+    scene = INTEREST_SCENE[shared].scene
+    line = `Both love ${INTEREST_SCENE[shared].words}`
+  } else if (intent === 'marriage') {
+    scene = 'dawn'; line = 'Both want forever'
+  } else if (intent === 'serious') {
+    scene = 'meet'; line = 'Both here for real'
+  } else if (featuredReasons.value[0]) {
+    line = featuredReasons.value[0]
   }
+
+  return {
+    scene,
+    line,
+    tint: SCENE_TINT[scene],
+    ...SCENE_GLOW[scene],
+    number: String(matches.value.length).padStart(2, '0'),
+    month: m?.created_at ? new Date(m.created_at).toLocaleDateString('en-GB', { month: 'long', year: 'numeric' }) : '',
+    monthShort: m?.created_at ? new Date(m.created_at).toLocaleDateString('en-GB', { month: 'short', year: 'numeric' }) : '',
+  }
+})
+
+// Line icons for the detail list (lucide-style paths)
+const ICONS: Record<string, string> = {
+  score: '<path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/>',
+  place: '<path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/>',
+  work: '<rect width="20" height="14" x="2" y="7" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>',
+  shared: '<path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3Z"/>',
+  note: '<path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/>',
 }
+const featuredRows = computed(() => {
+  const m = featured.value
+  if (!m) return []
+  const p = m.matchedProfile || {}
+  const rows: { icon: string; text: string }[] = []
+  if (scoreOf(m)) rows.push({ icon: 'score', text: `${scoreOf(m)}% compatible` })
+  const place = [p.birth_date ? `${getAge(p.birth_date)}` : '', p.location].filter(Boolean).join(' · ')
+  if (place) rows.push({ icon: 'place', text: place })
+  if (p.occupation) rows.push({ icon: 'work', text: p.occupation })
+  if (featuredReasons.value.length) rows.push({ icon: 'shared', text: featuredReasons.value.join(' · ') })
+  if (featuredNote.value) rows.push({ icon: 'note', text: `“${featuredNote.value}”` })
+  return rows
+})
 
-const handleSubscribe = async () => {
-    if (!profile.value) return
-    try {
-        const { initializePayment } = usePaystack()
-        const { data: settingsData } = await supabase.from('settings').select('value').eq('key', 'subscription_price_monthly').single() as { data: any, error: any }
-        const price = settingsData?.value?.amount || 50
-        
-        // Force email generation from phone (ignore personal email)
-        const paymentEmail = profile.value.phone 
-           ? `${profile.value.phone.replace(/[\s\+\-]/g, '')}@m2match.com` 
-           : 'customer@m2match.com'
-
-        const response = await initializePayment(
-            paymentEmail,
-            price,
-            'subscription',
-            { userId: profile.value.id }
-        )
-        const authUrl = response.authorization_url || response.data?.authorization_url
-        if (authUrl) window.location.href = authUrl
-    } catch (error) {
-        toast.error('Error', 'Failed to start subscription.')
-    }
-}
-
-const navigateToFeedback = (match: any) => {
-  navigateTo(`/me/connection/${match.id}?feedback=true`)
+const matchedWhen = (iso?: string) => {
+  if (!iso) return 'recently'
+  const days = Math.floor((Date.now() - new Date(iso).getTime()) / 86400000)
+  if (days <= 0) return 'today'
+  if (days === 1) return 'yesterday'
+  if (days < 7) return `${days} days ago`
+  return `on ${new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'long' })}`
 }
 
 onMounted(async () => {
@@ -437,9 +267,6 @@ onMounted(async () => {
     
     if (success && currentUserId.value) {
         await fetchMatches(currentUserId.value)
-        fetchVenues()
-        fetchUserRedemptions()
-        fetchCreditBalance()
     } else {
         // Fallback: try to get userId directly if initDashboard couldn't resolve
         try {
@@ -450,10 +277,7 @@ onMounted(async () => {
                 console.log('[Matches] Using fallback userId:', fallbackId)
                 await initDashboard(true) // Force re-init
                 await fetchMatches(fallbackId)
-                fetchVenues()
-                fetchUserRedemptions()
-                fetchCreditBalance()
-            } else {
+                    } else {
                 loadingMatches.value = false
             }
         } catch {
@@ -461,51 +285,6 @@ onMounted(async () => {
         }
     }
 })
-const handleNudgeMatch = async (
-  match: any,
-  payload?: string | { message?: string; onSuccess?: () => void; onError?: () => void }
-) => {
-  const customMessage = typeof payload === 'string' ? payload : payload?.message
-  try {
-    let { data: { session } } = await supabase.auth.getSession()
-    
-    // If session is stale, force a refresh before hitting the API
-    if (!session) {
-      console.warn('[Nudge Debug] No session found, attempting refresh...')
-      const { data } = await supabase.auth.refreshSession()
-      session = data.session
-    }
-
-    console.log('[Nudge Debug] Proceeding with token:', session?.access_token?.substring(0, 10) + '...')
-    
-    const res = await $fetch('/api/matches/nudge', {
-      method: 'POST',
-      body: { 
-        matchId: match.id, 
-        customMessage,
-        userId: profile.value?.id // Debug fallback for dev environments
-      },
-      headers: {
-        Authorization: `Bearer ${session?.access_token}`
-      }
-    })
-    if ((res as any).success) {
-      toast.success('Nudge Sent! ⚡', "We've sent them an SMS alert.")
-      // Update local state to hide nudge button immediately
-      const matchIndex = matches.value.findIndex(m => m.id === match.id)
-      if (matchIndex !== -1) {
-        matches.value[matchIndex].nudged = true
-      }
-      payload && typeof payload !== 'string' && payload.onSuccess?.()
-    } else {
-      toast.error('Nudge Failed', (res as any).message || 'Something went wrong.')
-      payload && typeof payload !== 'string' && payload.onError?.()
-    }
-  } catch (err) {
-    toast.error('Nudge Failed', 'Connection error.')
-    payload && typeof payload !== 'string' && payload.onError?.()
-  }
-}
 </script>
 
 <style scoped>

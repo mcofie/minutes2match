@@ -123,8 +123,10 @@ export const useDashboard = () => {
             // may take a moment to fully establish the session
             for (let attempt = 0; attempt < 5; attempt++) {
                 // Check composable first (fastest)
-                if (user.value?.id) {
-                    userId = user.value.id
+                // useSupabaseUser() holds JWT claims: the id is `sub`
+                const claimsId = (user.value as any)?.sub || (user.value as any)?.id
+                if (claimsId) {
+                    userId = claimsId
                     break
                 }
 

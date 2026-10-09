@@ -75,7 +75,7 @@ export default defineEventHandler(async (event) => {
       client
         .schema('m2m')
         .from('profiles')
-        .select('id, gender, interested_in, intent, location, religion, genotype, birth_date, dating_persona, occupation, badges, dealbreakers, min_age, max_age, preferences_extracted')
+        .select('id, gender, interested_in, intent, location, religion, genotype, birth_date, dating_persona, occupation, badges, dealbreakers, min_age, max_age, preferences_extracted, interests')
         .in('id', matchUserIds),
       client
         .schema('m2m')

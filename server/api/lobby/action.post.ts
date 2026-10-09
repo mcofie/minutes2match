@@ -167,14 +167,15 @@ export default defineEventHandler(async (event) => {
 
       return { success: true, mutual: true, matchId: match.id }
     } else {
-      // Non-subscriber: Create pending_payment match at GHS 15
+      // Matching is free: create an unlocked match
       const match = await createFlashLobbyMatch({
         initiatorId: intent.sender_id,
         targetId: intent.receiver_id,
         lobbyId: intent.lobby_id,
         matchScore,
-        unlockPrice: 15,
-        status: 'pending_payment',
+        unlockPrice: 0,
+        status: 'unlocked',
+        fullyUnlocked: true,
         reasons: [
           'Flash Lobby Spark ⚡',
           `${senderProfile?.display_name || 'Someone'}: ${intent.message}`
@@ -258,14 +259,15 @@ export default defineEventHandler(async (event) => {
 
       return { success: true, mutual: true, matchId: match.id }
     } else {
-      // Non-subscriber: Create pending_payment match at GHS 25
+      // Matching is free: create an unlocked match
       const match = await createFlashLobbyMatch({
         initiatorId: intent.sender_id,
         targetId: intent.receiver_id,
         lobbyId: intent.lobby_id,
         matchScore,
-        unlockPrice: 25,
-        status: 'pending_payment',
+        unlockPrice: 0,
+        status: 'unlocked',
+        fullyUnlocked: true,
         reasons: [
           'Flash Lobby Super Connect ⚡',
           `${senderProfile?.display_name || 'Someone'}: ${intent.message}`

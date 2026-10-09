@@ -3,11 +3,13 @@
     <!-- Trigger Input -->
     <div 
       @click="togglePopover"
-      class="w-full h-full px-4 py-3 rounded-xl border border-stone-200 dark:border-stone-700 bg-stone-50 dark:bg-stone-900 hover:bg-white dark:hover:bg-stone-800 focus-within:bg-white dark:focus-within:bg-stone-800 focus-within:ring-2 focus-within:ring-black dark:focus-within:ring-stone-500 focus-within:border-transparent transition-all cursor-pointer flex items-center justify-between group"
-      :class="{ 'ring-2 ring-black dark:ring-stone-500 bg-white dark:bg-stone-800 border-transparent': isOpen }"
+      class="w-full h-full transition-all cursor-pointer flex items-center justify-between group"
+      :class="variant === 'soft'
+        ? ['min-h-14 px-5 rounded-[1.25rem] border bg-white text-lg', isOpen ? 'border-[#393737] ring-4 ring-black/5' : 'border-[#e5e2dd] hover:border-[#cfc9c1]']
+        : ['px-4 py-3 rounded-xl border border-stone-200 dark:border-stone-700 bg-stone-50 dark:bg-stone-900 hover:bg-white dark:hover:bg-stone-800 focus-within:bg-white dark:focus-within:bg-stone-800 focus-within:ring-2 focus-within:ring-black dark:focus-within:ring-stone-500 focus-within:border-transparent', { 'ring-2 ring-black dark:ring-stone-500 bg-white dark:bg-stone-800 border-transparent': isOpen }]"
     >
-      <span v-if="modelValue" class="font-medium text-stone-900 dark:text-stone-100">{{ formattedValue }}</span>
-      <span v-else class="text-stone-400 dark:text-stone-500">{{ placeholder }}</span>
+      <span v-if="modelValue" :class="variant === 'soft' ? 'text-[#393737]' : 'font-medium text-stone-900 dark:text-stone-100'">{{ formattedValue }}</span>
+      <span v-else :class="variant === 'soft' ? 'text-[#8a857f]' : 'text-stone-400 dark:text-stone-500'">{{ placeholder }}</span>
       
       <span class="text-stone-400 dark:text-stone-500 group-hover:text-black dark:group-hover:text-white transition-colors">
         <svg v-if="mode === 'time'" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -187,6 +189,11 @@ const props = defineProps({
   placeholder: {
     type: String,
     default: 'Select date'
+  },
+  /** 'soft' matches the large rounded onboarding fields */
+  variant: {
+    type: String as PropType<'default' | 'soft'>,
+    default: 'default'
   },
   mode: {
     type: String as PropType<'date' | 'time' | 'datetime'>,

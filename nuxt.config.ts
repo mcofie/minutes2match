@@ -8,8 +8,20 @@ export default defineNuxtConfig({
     modules: ['@nuxt/fonts', '@nuxtjs/supabase', '@pinia/nuxt', '@vite-pwa/nuxt', '@nuxt/image', '@nuxt/content'],
     css: [
         '~/assets/css/main.css',
-        '~/assets/css/admin.css'
+        '~/assets/css/admin.css',
+        '~/assets/css/app-theme.css'
     ],
+    // Load the real medium/semibold/bold cuts; with only 400 the browser fakes the heavier weights
+    fonts: {
+        defaults: {
+            weights: [400, 500, 600, 700],
+        },
+        // Fallback for Messina Sans on the match letter; listed second in that font stack,
+        // so load it globally rather than relying on @nuxt/fonts spotting it
+        families: [
+            { name: 'Hanken Grotesk', global: true },
+        ],
+    },
     vite: {
         plugins: [
             tailwindcss(),

@@ -11,6 +11,8 @@
 import { createClient } from '@supabase/supabase-js'
 import { notifyDiscord, DiscordColors } from '~/server/utils/discord'
 import { calculateCompatibility, type UserProfile, type VibeAnswer } from '~/utils/compatibility'
+import { unlockedMatchFields } from '~/utils/freeMatch'
+import { currentMatchWeekStart } from '~/utils/matchWeek'
 
 // ====================
 // TYPES & INTERFACES
@@ -76,19 +78,27 @@ export default defineEventHandler(async (event) => {
             .select('*')
             .eq('is_verified', true)
             .eq('is_active', true)
+            .gte('weekly_opt_in_until', new Date().toISOString())
 
         if (usersError) throw createError({ statusCode: 500, message: 'Failed to fetch users' })
 
         const { data: existingMatches, error: matchError } = await supabase
             .from('matches')
-            .select('user_1_id, user_2_id')
+            .select('user_1_id, user_2_id, created_at')
 
         if (matchError) throw createError({ statusCode: 500, message: 'Failed to fetch matches' })
 
         const matchedPairs = new Set<string>()
+        // One match per member per week: anyone already matched this week sits this run out
+        const weekStart = currentMatchWeekStart().getTime()
+        const matchedThisWeek = new Set<string>()
         existingMatches?.forEach(m => {
             matchedPairs.add(`${m.user_1_id}-${m.user_2_id}`)
             matchedPairs.add(`${m.user_2_id}-${m.user_1_id}`)
+            if (new Date((m as any).created_at).getTime() >= weekStart) {
+                matchedThisWeek.add(m.user_1_id)
+                matchedThisWeek.add(m.user_2_id)
+            }
         })
 
         const { data: vibeAnswers, error: vibeError } = await supabase
@@ -102,7 +112,7 @@ export default defineEventHandler(async (event) => {
             userVibeAnswers.set(row.user_id, existing)
         })
 
-        const eligibleUsers = (users || []) as CronUserProfile[]
+        const eligibleUsers = ((users || []) as CronUserProfile[]).filter(u => !matchedThisWeek.has(u.id))
 
         const { data: autoMatchSetting } = await supabase
             .from('settings')
@@ -145,16 +155,13 @@ export default defineEventHandler(async (event) => {
             }
         }
 
-        const UNLOCK_PRICE = 15
         const matchesToInsert = selectedMatches.map(match => ({
             user_1_id: match.user1.id,
             user_2_id: match.user2.id,
-            unlock_price: UNLOCK_PRICE,
-            status: 'pending_payment',
+            ...unlockedMatchFields(),
             match_score: match.score,
             match_reasons: match.reasons,
-            match_warnings: match.warnings,
-            expires_at: new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString()
+            match_warnings: match.warnings
         }))
 
         let createdCount = 0

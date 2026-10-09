@@ -1,0 +1,221 @@
+/* Landing-page look for the signed-in app (Matches, Profile, Connection).
+   Scoped to .m2m-app; unlayered so it wins over Tailwind utilities like font-bold on serif headings. */
+.m2m-app {
+  font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+.m2m-app .font-display,
+.m2m-app .font-serif,
+.m2m-app h1,
+.m2m-app h2 {
+  font-family: 'Source Serif 4', Georgia, serif;
+  font-weight: 400;
+  letter-spacing: -0.025em;
+}
+.m2m-app .btn-solid {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border-radius: 9999px;
+  background-color: #ed1c24;
+  color: #fff;
+  font-weight: 500;
+  white-space: nowrap;
+  box-shadow: inset 0 2px 4px 0 rgba(255, 255, 255, 0.2), 0 8px 24px rgba(237, 28, 36, 0.18);
+  transition: background-color 150ms, opacity 150ms;
+}
+.m2m-app .btn-solid:not(:disabled):hover { background-color: #d71920; }
+.m2m-app .grain { position: relative; overflow: hidden; }
+.m2m-app .grain::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  opacity: var(--grain-opacity, 0.3);
+  mix-blend-mode: overlay;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.6' numOctaves='1' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+  background-size: 128px 128px;
+}
+.m2m-app .grain-strong { --grain-opacity: 0.55; }
+
+/* ===== Match brief as a love letter (connection page) ===== */
+.m2m-app .font-script {
+  font-family: 'Caveat', 'Segoe Script', cursive;
+  font-weight: 500;
+}
+.m2m-app .paper-grain {
+  opacity: 0.35;
+  mix-blend-mode: multiply;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='p'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.55 0 0 0 0 0.45 0 0 0 0 0.35 0 0 0 0.08 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23p)'/%3E%3C/svg%3E");
+  background-size: 220px 220px;
+}
+/*
+  The match letter page uses the Popcorn manifesto's type: Untitled Serif (Klim Type Foundry) for headings
+  and Messina Sans (Luzi Type) for everything else. Both are commercially licensed, so they are not bundled.
+  To switch to them, add the licensed files to public/fonts, e.g.
+    UntitledSerif-Regular.woff2, MessinaSans-Regular.woff2, MessinaSans-Medium.woff2, MessinaSans-SemiBold.woff2
+  and @nuxt/fonts serves them automatically. Until then the closest free faces render:
+  Source Serif 4 and Hanken Grotesk.
+*/
+.m2m-app.letter-page,
+.m2m-app .letter-page {
+  font-family: 'Messina Sans', 'Hanken Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+.m2m-app.letter-page .font-display,
+.m2m-app.letter-page h1,
+.m2m-app.letter-page h2,
+.m2m-app .letter-page .font-display,
+.m2m-app .letter-page h1,
+.m2m-app .letter-page h2 {
+  font-family: 'Untitled Serif', 'Source Serif 4', Georgia, serif;
+}
+/* Popcorn's body setting: medium weight, slightly tight */
+.m2m-app .letter-flow {
+  font-weight: 500;
+  letter-spacing: -0.025em;
+}
+/* headings share the body's charcoal, as on Popcorn (main.css otherwise forces its own heading colour) */
+.m2m-app .letter-flow h3,
+.m2m-app .letter-flow h4 {
+  color: #393737;
+}
+
+/* Matches: the fan of cards opens out from a stack, like Popcorn's creator showcase */
+@keyframes m2m-fan-in {
+  from { opacity: 0; transform: translateY(2rem) rotate(0deg); }
+  to { transform: rotate(var(--r, 0deg)); }
+}
+.m2m-app .fan-card {
+  transform: rotate(var(--r, 0deg));
+  animation: m2m-fan-in 0.9s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.m2m-app .fan-card:nth-child(2) { animation-delay: 0.05s; }
+/* the side cards sit back, softly out of focus, so the match in the middle stands out */
+.m2m-app .fan-back {
+  filter: blur(1.5px) saturate(0.85);
+  opacity: 0.85;
+}
+.m2m-app .fan-card:nth-child(1),
+.m2m-app .fan-card:nth-child(3) { animation-delay: 0.18s; }
+@media (prefers-reduced-motion: reduce) {
+  .m2m-app .fan-card { animation: none; }
+}
+
+/* ----- Letter motion ----- */
+.m2m-app {
+  --rv-ease: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Their profile panel: a bottom sheet on phones, a side panel from the right on larger screens */
+.drawer-enter-active,
+.drawer-leave-active { transition: opacity 0.35s ease; }
+.drawer-enter-active .drawer-panel,
+.drawer-leave-active .drawer-panel { transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1); }
+.drawer-enter-from,
+.drawer-leave-to { opacity: 0; }
+.drawer-enter-from .drawer-panel,
+.drawer-leave-to .drawer-panel { transform: translateY(100%); }
+@media (min-width: 640px) {
+  .drawer-enter-from .drawer-panel,
+  .drawer-leave-to .drawer-panel { transform: translateX(100%); }
+}
+
+/* Body: blocks marked v-reveal stagger their .rv-item children in as they scroll into view */
+.m2m-app .rv-item {
+  transition: opacity 0.9s var(--rv-ease), transform 0.9s var(--rv-ease);
+  transition-delay: calc(var(--i, 0) * 90ms);
+}
+.m2m-app .rv:not(.rv-in) .rv-item { opacity: 0; transform: translateY(22px); }
+
+/* Section illustrations drift up and settle in from a slight zoom */
+.m2m-app .section-art svg {
+  transition: transform 1.8s var(--rv-ease), opacity 1.2s ease;
+}
+.m2m-app .rv:not(.rv-in) .section-art svg { transform: scale(0.9) translateY(10px); opacity: 0; }
+
+.m2m-app .bar-fill {
+  transform-origin: left;
+  transition: transform 1.3s var(--rv-ease);
+  transition-delay: calc(var(--i, 0) * 110ms + 200ms);
+}
+.m2m-app .rv:not(.rv-in) .bar-fill { transform: scaleX(0); }
+
+.m2m-app .fact-rule {
+  transform-origin: left;
+  transition: transform 0.8s var(--rv-ease);
+  transition-delay: calc(var(--i, 0) * 90ms + 250ms);
+}
+.m2m-app .rv:not(.rv-in) .fact-rule { transform: scaleX(0); }
+
+.m2m-app .dot-pop {
+  transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.4s ease;
+  transition-delay: calc(var(--i, 0) * 90ms + 300ms);
+}
+.m2m-app .rv:not(.rv-in) .dot-pop { opacity: 0; transform: scale(0.3); }
+
+/* The signature writes itself in */
+.m2m-app .sig-write {
+  clip-path: inset(0 0 0 0);
+  transition: clip-path 1.8s cubic-bezier(0.65, 0, 0.35, 1) 0.35s;
+}
+.m2m-app .rv:not(.rv-in) .sig-write { clip-path: inset(0 100% 0 0); }
+
+@media (prefers-reduced-motion: reduce) {
+  .drawer-enter-active .drawer-panel,
+  .drawer-leave-active .drawer-panel { transition: none; }
+}
+
+/* Print: just the letter, on clean A4 */
+@media print {
+  /* Always print the finished state, however far they scrolled */
+  .m2m-app .love-letter .rv-item,
+  .m2m-app .love-letter .bar-fill,
+  .m2m-app .love-letter .fact-rule,
+  .m2m-app .love-letter .dot-pop {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+    animation: none !important;
+  }
+  .m2m-app .love-letter .sig-write {
+    clip-path: none !important;
+    transition: none !important;
+  }
+  @page {
+    size: A4;
+    margin: 14mm 16mm;
+  }
+  html,
+  body {
+    background: #fff !important;
+  }
+  .m2m-app .love-letter {
+    box-shadow: none !important;
+    border-radius: 0 !important;
+    background: #fff !important;
+    --tw-ring-shadow: 0 0 #0000 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  .m2m-app .love-letter .paper-grain {
+    display: none;
+  }
+  /* Let sections flow across pages, but never split a single row, quote or idea */
+  .m2m-app .love-letter li,
+  .m2m-app .love-letter figure,
+  .m2m-app .love-letter dl > div,
+  .m2m-app .love-letter .divide-y > div,
+  .m2m-app .love-letter footer {
+    break-inside: avoid;
+  }
+  .m2m-app .love-letter h3 {
+    break-after: avoid;
+  }
+  /* Nuxt devtools / toasts / floating UI */
+  .nuxt-devtools-panel,
+  #nuxt-devtools-container,
+  [data-toast] {
+    display: none !important;
+  }
+}

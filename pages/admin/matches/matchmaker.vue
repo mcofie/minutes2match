@@ -67,19 +67,6 @@
               </div>
             </div>
             
-            <div class="flex items-center gap-2">
-               <span class="text-xs font-bold uppercase text-muted tracking-wider">Price</span>
-               <div class="relative">
-                 <span class="absolute left-2 top-1.5 text-xs text-muted pointer-events-none">GH₵</span>
-                 <input 
-                   v-model.number="unlockPrice" 
-                   type="number" 
-                   class="form-input py-1 pl-7 pr-2 w-20 text-right font-bold !h-8 text-sm" 
-                   min="0"
-                 />
-               </div>
-            </div>
-
             <button 
               class="btn-secondary py-1 px-3 !h-8 text-xs font-bold"
               :disabled="generatingAuto"
@@ -271,18 +258,6 @@
           </div>
           
           <div class="flex items-center gap-4 bg-gray-50 p-2 rounded-lg border border-gray-200">
-            <div class="flex items-center gap-2 pl-2">
-              <label class="text-xs font-bold uppercase text-muted tracking-wider">Price</label>
-              <div class="flex items-center relative">
-                <span class="absolute left-2 text-xs text-muted pointer-events-none">GH₵</span>
-                <input 
-                  v-model.number="unlockPrice" 
-                  type="number" 
-                  class="form-input py-1 pl-8 pr-2 w-20 text-right font-bold !h-10 text-sm" 
-                  min="0"
-                />
-              </div>
-            </div>
             <button 
               class="btn-primary py-2 px-6 text-sm shadow-md hover:scale-105 transition-transform h-10 flex items-center gap-2"
               :disabled="!canCreateMatch || creating"
@@ -946,13 +921,11 @@ const createBulkMatches = async () => {
     const matchesToCreate = selectedAutoMatches.value.map(m => ({
       user_1_id: m.user1.id,
       user_2_id: m.user2.id,
-      unlock_price: unlockPrice.value,
+      ...unlockedMatchFields(),
       created_by: currentUser.value?.id,
-      status: 'pending_payment',
       match_score: m.score,
       match_reasons: m.reasons,
-      match_warnings: m.warnings,
-      expires_at: new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString()
+      match_warnings: m.warnings
     }))
     
     const { error } = await supabase
@@ -1102,13 +1075,11 @@ const createMatch = async () => {
       .insert({
         user_1_id: user1.value.id,
         user_2_id: user2.value.id,
-        unlock_price: unlockPrice.value,
+        ...unlockedMatchFields(),
         created_by: currentUser.value?.id,
-        status: 'pending_payment',
         match_score: matchData.value.score,
         match_reasons: matchData.value.reasons,
-        match_warnings: matchData.value.warnings,
-        expires_at: new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString()
+        match_warnings: matchData.value.warnings
       })
     
     if (error) throw error

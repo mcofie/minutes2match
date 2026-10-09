@@ -1,3 +1,5 @@
+import { isOptedInThisWeek, currentMatchWeekStart } from '~/utils/matchWeek'
+import { unlockedMatchFields } from '~/utils/freeMatch'
 import { createClient } from '@supabase/supabase-js'
 import { calculateCompatibility } from '~/utils/compatibility'
 import { notifyDiscord, DiscordColors } from './discord'
@@ -53,9 +55,21 @@ export async function runTargetedMatching(userId: string, minScore = 75) {
         return null
     }
 
-    if (!targetUser.is_verified || !targetUser.is_active) {
+    if (!targetUser.is_verified || !targetUser.is_active || !isOptedInThisWeek(targetUser.weekly_opt_in_until)) {
         console.log('[Matchmaker] User not eligible for matching (unverified/inactive):', userId)
         return null
+    }
+
+    // One match per member per week: stop if this member already has this week's match
+    const weekStart = currentMatchWeekStart().toISOString()
+    const { count: targetThisWeek } = await supabase
+        .from('matches')
+        .select('id', { count: 'exact', head: true })
+        .or(`user_1_id.eq.${userId},user_2_id.eq.${userId}`)
+        .gte('created_at', weekStart)
+    if ((targetThisWeek || 0) > 0) {
+        console.log('[Matchmaker] Already matched this week:', userId)
+        return { matched: false, count: 0, reason: 'already_matched_this_week' }
     }
 
     // 2. Fetch Vibe Answers for target user
@@ -71,6 +85,7 @@ export async function runTargetedMatching(userId: string, minScore = 75) {
         .select('*')
         .eq('is_verified', true)
         .eq('is_active', true)
+        .gte('weekly_opt_in_until', new Date().toISOString())
         .neq('id', userId)
 
     if (targetUser.interested_in && targetUser.interested_in !== 'everyone') {
@@ -83,11 +98,21 @@ export async function runTargetedMatching(userId: string, minScore = 75) {
 
     candidateQuery = candidateQuery.or(`interested_in.eq.everyone,interested_in.eq.${targetUser.gender},interested_in.is.null`)
 
-    const { data: candidates, error: candidateError } = await candidateQuery
+    const { data: allCandidates, error: candidateError } = await candidateQuery
 
-    if (candidateError || !candidates || candidates.length === 0) {
+    if (candidateError || !allCandidates || allCandidates.length === 0) {
         return { matched: false, count: 0 }
     }
+
+    // ...and never give someone a second match this week through somebody else's trigger
+    const { data: thisWeeksMatches } = await supabase
+        .from('matches')
+        .select('user_1_id, user_2_id')
+        .gte('created_at', weekStart)
+    const matchedThisWeek = new Set<string>()
+    thisWeeksMatches?.forEach(m => { matchedThisWeek.add(m.user_1_id); matchedThisWeek.add(m.user_2_id) })
+    const candidates = allCandidates.filter(c => !matchedThisWeek.has(c.id))
+    if (candidates.length === 0) return { matched: false, count: 0 }
 
     // 4. Fetch ALL Vibe Answers for candidates in one go (or batch if pool is huge)
     const candidateIds = candidates.map(c => c.id)
@@ -148,7 +173,6 @@ export async function runTargetedMatching(userId: string, minScore = 75) {
     // 7. Auto-Create Best Match
     // We only create ONE match automatically to avoid overwhelming the user
     const bestMatch = results[0]
-    const UNLOCK_PRICE = 15.00
 
     // AI Explanation for the match
     const { generateMatchExplanation } = await import('./ai')
@@ -159,14 +183,12 @@ export async function runTargetedMatching(userId: string, minScore = 75) {
         .insert({
             user_1_id: userId,
             user_2_id: bestMatch.user2.id,
-            unlock_price: UNLOCK_PRICE,
-            status: 'pending_payment',
+            ...unlockedMatchFields(),
             match_score: bestMatch.score,
             match_reasons: bestMatch.reasons,
             match_warnings: bestMatch.warnings,
             ai_analysis: aiExplanation,
-            created_by_label: 'system_jit',
-            expires_at: new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString()
+            created_by_label: 'system_jit'
         })
         .select()
         .single()
@@ -195,14 +217,14 @@ export async function runTargetedMatching(userId: string, minScore = 75) {
         const { notifyUser } = await import('./notify')
         
         // Notify User A (Triggered User)
-        await notifyUser(userId, `🔥 Great news, ${targetUser.display_name}! We found a match for you: ${bestMatch.user2.display_name} (${bestMatch.score}% compatibility). You have 48 hours to unlock — after that, the match expires. Check it out now!`, {
+        await notifyUser(userId, `🔥 Great news, ${targetUser.display_name}! We found a match for you: ${bestMatch.user2.display_name} (${bestMatch.score}% compatibility). Check it out now!`, {
             type: 'match',
             matchId: newMatch.id,
             smsPriority: 'high'
         })
 
         // Notify User B (The Partner)
-        await notifyUser(bestMatch.user2.id, `👋 Hi ${bestMatch.user2.display_name}! New match alert: ${targetUser.display_name} (${bestMatch.score}% compatibility). You both have 48 hours to unlock before this match expires!`, {
+        await notifyUser(bestMatch.user2.id, `👋 Hi ${bestMatch.user2.display_name}! New match alert: ${targetUser.display_name} (${bestMatch.score}% compatibility). Check it out now!`, {
             type: 'match',
             matchId: newMatch.id,
             smsPriority: 'normal'

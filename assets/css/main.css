@@ -222,3 +222,14 @@ input[type=number].no-spin {
 .animate-premium-modal-enter {
   animation: premium-modal-enter 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
+
+/* No italics anywhere in the product: emphasis comes from weight and colour instead */
+em,
+i,
+cite,
+dfn,
+var,
+address,
+.italic {
+    font-style: normal !important;
+}

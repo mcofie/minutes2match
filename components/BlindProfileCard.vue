@@ -1,238 +1,45 @@
 <template>
   <div class="w-full">
-    <!-- Match Card - Neo-Brutalist Layout matching skeleton -->
-    <article 
-      class="group relative bg-white dark:bg-stone-900 rounded-2xl overflow-hidden border-2 border-black dark:border-stone-800 cursor-pointer min-h-[160px] sm:min-h-[150px] h-full transition-all duration-300 active:scale-[0.98]"
-      :style="{ 
-        boxShadow: `4px 4px 0px 0px ${personaColor || '#000000'}`,
-        '--theme-color': personaColor || '#1c1917'
-      }"
+    <!-- Match card: clean, minimal (Popcorn-style product card) -->
+    <article
+      class="group flex h-full cursor-pointer flex-col rounded-[2rem] bg-gradient-to-b from-[#eceff3] to-[#f5f6f8] p-2.5 transition-transform duration-300 hover:-translate-y-0.5 active:scale-[0.99]"
       @click="navigateToConnection"
     >
-      <div class="flex h-full items-stretch">
-        <!-- Photo Section (Left) -->
-        <div class="w-28 sm:w-32 flex-shrink-0 bg-stone-100 dark:bg-stone-800 border-r-2 border-black dark:border-stone-800 relative overflow-hidden flex flex-col items-center justify-center rounded-l-[14px]">
-          <template v-if="unlocked || currentUserPaid">
-             <NuxtImg 
-               v-if="photoUrl" 
-               :src="photoUrl" 
-               :alt="displayName"
-               class="absolute inset-0 w-full h-full object-cover grayscale-[0.2] group-hover:grayscale-0 transition-all duration-700 group-hover:scale-110"
-               loading="lazy"
-               width="144"
-               height="144"
-             />
-             <div v-else class="text-3xl font-bold opacity-20 text-stone-900">{{ displayName?.charAt(0) }}</div>
-          </template>
-          <div v-else class="absolute inset-0 w-full h-full bg-stone-200 dark:bg-stone-800 flex items-center justify-center">
-             <img v-if="photoUrl" :src="photoUrl" class="absolute inset-0 w-full h-full object-cover blur-[8px] opacity-70 scale-110 drop-shadow-md" />
-             <!-- Mystery Overlay -->
-             <div class="absolute inset-0 bg-gradient-to-t from-black/25 to-transparent"></div>
-             
-             <div class="relative z-10 flex flex-col items-center animate-pulse-subtle">
-                <span class="text-2xl drop-shadow-lg filter grayscale opacity-40 mb-1.5">{{ currentUserPaid ? '⌛' : '🔒' }}</span>
-                <span class="bg-black text-white px-2.5 py-1 rounded-md text-[8.5px] font-black uppercase tracking-[0.2em] shadow-lg border border-white/10 ring-1 ring-white/20 text-center">
-                   {{ currentUserPaid ? 'Waiting for them' : 'Classified' }}
-                </span>
-             </div>
-          </div>
-          
-          <!-- Gender Badge Overlay -->
-          <div 
-            v-if="gender"
-            class="absolute top-2.5 left-2.5 z-20 w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold bg-white dark:bg-stone-800 border-2 border-black dark:border-stone-700 shadow-sm"
-            :class="gender === 'female' ? 'text-rose-500' : 'text-blue-500'"
-          >
-             {{ gender === 'female' ? '♀' : '♂' }}
-          </div>
-        </div>
-        
-        <!-- Content Section (Right) -->
-        <div class="flex-1 p-2.5 sm:p-3.5 flex flex-col justify-between bg-white dark:bg-stone-900 relative min-w-0 rounded-r-[14px]">
-          <!-- Subtle Theme Background Glow -->
-          <div 
-            class="absolute inset-0 opacity-[0.03] dark:opacity-[0.07] pointer-events-none transition-opacity group-hover:opacity-[0.05] dark:group-hover:opacity-[0.1]"
-            :style="{ backgroundColor: personaColor }"
-          ></div>
+      <!-- Photo -->
+      <div class="relative aspect-square overflow-hidden rounded-[1.6rem] bg-[#e2e6eb] sm:aspect-[4/5]">
+        <NuxtImg
+          v-if="photoUrl"
+          :src="photoUrl"
+          :alt="displayName"
+          class="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.03]"
+          loading="lazy"
+          width="480"
+          height="600"
+        />
+        <div v-else class="font-display absolute inset-0 flex items-center justify-center text-6xl text-[#b9bec6]">{{ displayName?.charAt(0) }}</div>
 
-          <!-- Match Score Activity Indicator (Revealed) -->
-          <div v-if="unlocked || currentUserPaid" class="absolute top-2.5 right-2.5 sm:top-3.5 sm:right-3.5 z-20">
-             <div class="relative w-9 h-9 sm:w-11 sm:h-11 flex items-center justify-center bg-white dark:bg-stone-900 rounded-full border border-stone-100 dark:border-stone-800 shadow-[2px_2px_12px_rgba(0,0,0,0.08)] group-hover:scale-110 transition-transform">
-                <!-- Radial Progress SVG -->
-                <svg class="absolute inset-0 w-full h-full transform -rotate-90">
-                   <circle 
-                      cx="50%" cy="50%" r="40%" 
-                      class="stroke-stone-50 dark:stroke-stone-800/50 fill-none" 
-                      stroke-width="2"
-                   />
-                   <circle 
-                      cx="50%" cy="50%" r="40%" 
-                      class="fill-none transition-all duration-1000 ease-out" 
-                      :style="{ stroke: personaColor || (safeMatchScore >= 80 ? '#10b981' : safeMatchScore >= 60 ? '#3b82f6' : '#f43f5e') }"
-                      stroke-width="2.5"
-                      stroke-linecap="round"
-                      :stroke-dasharray="2 * Math.PI * 40 + '%'"
-                      :stroke-dashoffset="(2 * Math.PI * 40 * (1 - safeMatchScore / 100)) + '%'"
-                   />
-                </svg>
-                <div class="flex flex-col items-center justify-center leading-none z-10">
-                   <span 
-                      class="text-[9px] sm:text-[11px] font-black"
-                      :style="{ color: personaColor || (safeMatchScore >= 80 ? '#059669' : safeMatchScore >= 60 ? '#2563eb' : '#e11d48') }"
-                   >
-                      {{ Math.round(safeMatchScore) }}<small class="text-[7px] opacity-70">%</small>
-                   </span>
-                   <span class="text-[5px] font-black text-stone-300 dark:text-stone-600 uppercase tracking-tighter mt-0.5">Match</span>
-                </div>
-             </div>
-          </div>
+        <!-- Match score -->
+        <span v-if="safeMatchScore > 0" class="absolute right-3 top-3 rounded-full bg-white/90 px-2.5 py-1 text-xs font-semibold text-[#393737] backdrop-blur">
+          {{ Math.round(safeMatchScore) }}% match
+        </span>
+      </div>
 
-          <div class="flex flex-col h-full gap-1.5 opacity-100 relative z-10">
-            <!-- Header Info -->
-            <div class="pr-8 mb-0.5">
-              <div class="flex items-center gap-2 mb-0.5">
-                <h3 class="text-lg sm:text-xl font-serif font-black text-stone-900 dark:text-stone-100 leading-tight truncate">
-                  {{ (unlocked || currentUserPaid) ? displayName : 'The Enigma' }}
-                </h3>
-                <span v-if="personaEmoji" class="text-base sm:text-lg animate-bounce-subtle shrink-0">{{ personaEmoji }}</span>
-              </div>
-              <div class="text-[9px] sm:text-[10px] font-black text-stone-400 dark:text-stone-500 uppercase tracking-widest flex flex-wrap items-center gap-x-1.5 leading-tight">
-                <span>{{ age }}</span>
-                <span class="opacity-30">|</span>
-                <span>{{ location || 'Accra' }}</span>
-                <template v-if="unlocked && occupation">
-                   <span class="opacity-30">|</span>
-                   <span class="text-stone-600 dark:text-stone-400 font-bold border-b transition-colors" :style="{ borderBottomColor: `${personaColor}40` }">{{ occupation }}</span>
-                </template>
-              </div>
-            </div>
+      <!-- Details -->
+      <div class="flex flex-1 flex-col items-center px-3 pb-4 pt-5 text-center">
+        <h3 class="font-display w-full truncate text-[1.75rem] leading-tight tracking-tight text-[#393737]">
+          {{ displayName }}
+        </h3>
+        <p class="mt-1 text-base text-[#6c6b6b]">
+          {{ age }} · {{ location || 'Accra' }}<template v-if="occupation"> · {{ occupation }}</template>
+        </p>
+        <p v-if="detailLine" class="mt-1 line-clamp-1 text-sm text-[#9b9690]">{{ detailLine }}</p>
 
-            <!-- Compatibility Badges (Revealed vs Mystery) -->
-            <div v-if="unlocked || currentUserPaid" class="flex flex-wrap gap-2 py-2">
-               <!-- Intent Status -->
-               <div v-if="intent" class="flex items-center">
-                  <div class="px-2 py-0.5 bg-white dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-lg flex items-center gap-1 shadow-sm">
-                     <span class="text-[10px] leading-none">{{ intent.toLowerCase().includes('marriage') ? '💍' : '✨' }}</span>
-                     <span class="text-[9px] font-black uppercase tracking-wider text-stone-500 dark:text-stone-400">{{ intent }}</span>
-                  </div>
-               </div>
-               
-               <!-- Shared Interests with Emojis -->
-               <div v-if="sharedInterests && sharedInterests.length > 0" class="flex flex-wrap gap-1.5 items-center">
-                  <span 
-                    v-for="interest in sharedInterests.slice(0, 2)" 
-                    :key="interest" 
-                    class="px-2 py-0.5 border rounded-lg text-[9px] font-bold flex items-center gap-1 transition-colors"
-                    :style="{ 
-                      backgroundColor: `${personaColor}15`, 
-                      borderColor: `${personaColor}30`,
-                      color: personaColor
-                    }"
-                  >
-                     {{ getInterestLabel(interest) }}
-                  </span>
-                  <span v-if="sharedInterests.length > 2" class="text-[9px] font-black text-stone-300 dark:text-stone-600 uppercase tracking-widest pl-0.5">
-                     +{{ sharedInterests.length - 2 }}
-                  </span>
-               </div>
-            </div>
-
-            <!-- Profile Snippet (Bio) - Only shown when unlocked to fill space -->
-            <div v-if="unlocked && bio" class="px-0.5">
-               <p class="text-[10px] font-medium text-stone-500 dark:text-stone-400 leading-normal line-clamp-2 italic">
-                  "{{ bio }}"
-               </p>
-            </div>
-
-            <!-- The Interest Tease (Curiosity Driver for Locked Matches) -->
-            <div v-else class="flex flex-col gap-1.5 py-1">
-               <div v-if="sharedInterests && sharedInterests.length > 0" class="flex items-center gap-1.5">
-                  <div class="flex -space-x-1 overflow-hidden">
-                     <div v-for="i in Math.min(3, sharedInterests.length)" :key="i" class="w-4 h-4 rounded bg-stone-100 dark:bg-stone-800 border border-white dark:border-stone-900 shadow-sm flex items-center justify-center">
-                        <span class="text-[7.5px] font-black" :style="{ color: `${personaColor}80` || '#f43f5e80' }">✓</span>
-                     </div>
-                  </div>
-                  <span class="text-[9px] font-black text-stone-400 dark:text-stone-600 uppercase tracking-widest">
-                     {{ sharedInterests.length }} Shared Interests
-                  </span>
-               </div>
-               
-               <div v-if="matchScore && matchScore > 75" class="flex items-center gap-1 opacity-60">
-                  <span class="text-[10px] leading-none">✨</span>
-                  <span class="text-[8.5px] font-black text-emerald-500 uppercase tracking-widest">High Potential</span>
-               </div>
-            </div>
-
-            <!-- Action / Status Logic -->
-            <div class="mt-auto pt-1.5 flex flex-col relative border-t border-stone-100/50 dark:border-stone-800">
-               <div v-if="!unlocked && expiresAt" class="mb-1 flex flex-col gap-0.5 opacity-90">
-                  <div class="flex items-center justify-between px-0.5">
-                     <span class="text-[7px] font-bold text-stone-300 dark:text-stone-600 uppercase tracking-[0.2em]">Expires In</span>
-                     <span class="text-[8px] font-mono font-black tabular-nums uppercase" :class="[
-                        timeRemainingPercentage > 50 ? 'text-emerald-500' : 
-                        timeRemainingPercentage > 15 ? 'text-amber-500' : 'text-rose-600'
-                     ]">{{ liveCountdown.display }}</span>
-                  </div>
-                  <div class="h-1 w-full bg-stone-100/80 dark:bg-stone-800/80 rounded-full overflow-hidden">
-                      <div 
-                         class="h-full rounded-full transition-all duration-[1500ms] ease-out"
-                         :class="[
-                            timeRemainingPercentage > 15 ? '' : 'animate-pulse shadow-[0_0_8px_rgba(225,29,72,0.4)]',
-                         ]"
-                         :style="{ 
-                            width: `${timeRemainingPercentage || 3}%`,
-                            backgroundColor: timeRemainingPercentage > 50 ? personaColor || '#10b981' : timeRemainingPercentage > 15 ? '#f59e0b' : '#e11d48'
-                         }"
-                      ></div>
-                  </div>
-               </div>
-
-               <template v-if="!unlocked">
-                  <!-- Awaiting Unlock State -->
-                  <div v-if="currentUserPaid" class="w-full">
-                     <button 
-                       v-if="!hasNudged"
-                       @click.stop="showNudgeModal = true"
-                       class="group/nudge w-full py-1.5 bg-amber-400 text-black border-2 border-black hover:bg-amber-500 rounded-lg text-[9px] font-black uppercase tracking-[0.15em] transition-all shadow-[2px_2px_0_0_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-0.5 hover:translate-y-0.5 flex items-center justify-center gap-1.5"
-                     >
-                        Nudge
-                        <span class="text-[10px] leading-none group-hover/nudge:translate-x-0.5 transition-transform">↗</span>
-                     </button>
-                     <div v-else class="w-full py-1.5 bg-stone-50 dark:bg-stone-800/50 text-stone-400 dark:text-stone-500 border border-dashed border-stone-200 dark:border-stone-700 rounded-lg text-[8.5px] font-black uppercase tracking-widest text-center italic flex items-center justify-center gap-1.5">
-                        <span class="animate-pulse">⚡</span>
-                        SENT: SMS ALERT
-                     </div>
-                  </div>
-                  
-                  <!-- Locked State / Action Button -->
-                  <button 
-                    v-else
-                    @click.stop="handleUnlock"
-                    :disabled="isUnlocking"
-                    class="group/unlock w-full px-4 py-1.5 bg-black dark:bg-stone-100 text-white dark:text-black hover:bg-rose-500 dark:hover:bg-rose-500 dark:hover:text-white rounded-lg text-[9px] font-black uppercase tracking-widest transition-all shadow-[2px_2px_0_0_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-0.5 hover:translate-y-0.5 disabled:opacity-50 disabled:shadow-none disabled:translate-x-0.5 disabled:translate-y-0.5 flex items-center justify-between"
-                  >
-                    <span v-if="!isUnlocking" class="flex items-center gap-1 opacity-90 transition-opacity">
-                       <span class="w-1 h-1 rounded-full" :class="isFreeUnlockEligible ? 'bg-emerald-400' : 'bg-rose-400'"></span>
-                       {{ isFreeUnlockEligible ? 'FREE' : formattedPrice }}
-                    </span>
-                    <span v-else class="flex items-center gap-1 opacity-50">
-                       <span class="w-1 h-1 rounded-full bg-white dark:bg-black border-2 border-stone-400 animate-ping"></span>
-                       ...
-                    </span>
-
-                    <span class="flex items-center gap-1">
-                       <template v-if="!isUnlocking">
-                          Unlock
-                          <span class="text-[10px] leading-none group-hover/unlock:translate-x-0.5 transition-transform">↗</span>
-                       </template>
-                       <template v-else>
-                          <span class="animate-pulse">SECURE...</span>
-                       </template>
-                    </span>
-                  </button>
-               </template>
-            </div>
-          </div>
+        <!-- Action: every match is unlocked, so it's always one tap to the brief -->
+        <div class="mt-auto flex w-full flex-col items-center pt-5">
+          <span class="inline-flex items-center gap-2 text-base font-semibold text-[#393737]">
+            View profile
+            <span class="flex h-5 w-5 items-center justify-center rounded-full bg-[#393737] text-white transition-transform group-hover:translate-x-0.5" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" class="h-3 w-3"><path d="m9 18 6-6-6-6" /></svg></span>
+          </span>
         </div>
       </div>
     </article>
@@ -240,20 +47,20 @@
     <!-- Modals (cleaned up) -->
     <Teleport to="body">
       <div v-if="showAnalysisModal" class="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" @click.self="showAnalysisModal = false">
-        <div class="relative w-full max-w-sm bg-white rounded-2xl border-2 border-black shadow-[4px_4px_0_0_rgba(0,0,0,1)] p-6">
-           <button @click="showAnalysisModal = false" class="absolute top-4 right-4 text-stone-400 hover:text-black">
+        <div class="relative w-full max-w-sm bg-white rounded-2xl border border-[#ece8e3] shadow-[0_10px_30px_rgba(52,38,25,0.07)] p-6">
+           <button @click="showAnalysisModal = false" class="absolute top-4 right-4 text-stone-400 hover:text-[#393737]">
               <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
            </button>
            <h3 class="text-lg font-serif font-bold text-stone-900 mb-4 flex items-center gap-2">
-              <span class="text-2xl">{{ personaEmoji }}</span> Intelligence
+              <span class="text-2xl">{{ personaEmoji }}</span> Why you match
            </h3>
            <div class="space-y-4 mb-6">
-              <p v-if="aiAnalysis" class="text-sm font-medium text-stone-600 bg-stone-50 p-4 rounded-xl border border-stone-100">
+              <p v-if="aiAnalysis" class="text-sm font-medium text-stone-600 bg-stone-50 p-4 rounded-2xl border border-stone-100">
                  "{{ aiAnalysis }}"
               </p>
            </div>
-           <button @click="showAnalysisModal = false; handleUnlock();" class="w-full py-3 bg-rose-500 text-white font-bold uppercase tracking-widest text-[10px] rounded-xl hover:bg-rose-600 transition-all shadow-[2px_2px_0_0_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-0.5 hover:translate-y-0.5 border-2 border-black">
-              Initialize Connection
+           <button @click="showAnalysisModal = false; handleUnlock();" class="w-full py-3 bg-rose-500 text-white font-bold uppercase tracking-wider text-[10px] rounded-2xl hover:bg-rose-600 transition-all shadow-[0_10px_30px_rgba(52,38,25,0.07)] hover:shadow-none border border-[#ece8e3]">
+              I'm interested
            </button>
         </div>
       </div>
@@ -261,16 +68,16 @@
 
     <Teleport to="body">
       <div v-if="showNudgeModal" class="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" @click.self="showNudgeModal = false">
-        <div class="relative w-full max-w-sm bg-white rounded-2xl border-2 border-black shadow-[4px_4px_0_0_rgba(0,0,0,1)] p-6">
-           <h3 class="text-lg font-serif font-bold text-stone-900 mb-2">Priority Nudge</h3>
-           <p class="text-xs text-stone-500 mb-4">Send a direct reminder via SMS.</p>
-           <textarea v-model="nudgeMessage" class="w-full p-4 bg-stone-50 border border-stone-200 focus:border-black rounded-xl text-xs font-medium focus:ring-0 mb-4 h-28 resize-none"></textarea>
+        <div class="relative w-full max-w-sm bg-white rounded-2xl border border-[#ece8e3] shadow-[0_10px_30px_rgba(52,38,25,0.07)] p-6">
+           <h3 class="font-display text-2xl text-[#393737] mb-1">Send a nudge</h3>
+           <p class="text-sm text-[#6c6b6b] mb-4">We’ll text them a friendly reminder.</p>
+           <textarea v-model="nudgeMessage" class="w-full p-4 bg-stone-50 border border-stone-200 focus:border-[#ece8e3] rounded-2xl text-xs font-medium focus:ring-0 mb-4 h-28 resize-none"></textarea>
            <div class="flex gap-2">
-               <button @click="showNudgeModal = false" class="flex-1 py-3 bg-stone-100 text-stone-700 font-bold uppercase tracking-widest text-[10px] rounded-xl hover:bg-stone-200 border-2 border-transparent transition-all">
+               <button @click="showNudgeModal = false" class="flex-1 py-3 bg-stone-100 text-stone-700 font-bold uppercase tracking-wider text-[10px] rounded-2xl hover:bg-stone-200 border border-transparent transition-all">
                   Cancel
                </button>
-               <button @click="handleNudge" :disabled="nudging || !nudgeMessage.trim()" class="flex-1 py-3 bg-black text-white font-bold uppercase tracking-widest text-[10px] rounded-xl hover:bg-stone-800 transition-all disabled:opacity-50 shadow-[2px_2px_0_0_rgba(0,0,0,1)] active:shadow-none active:translate-x-0.5 active:translate-y-0.5">
-                  {{ nudging ? 'Sending...' : 'Transmit' }}
+               <button @click="handleNudge" :disabled="nudging || !nudgeMessage.trim()" class="flex-1 py-3 bg-[#393737] text-white font-bold uppercase tracking-wider text-[10px] rounded-2xl hover:bg-stone-800 transition-all disabled:opacity-50 shadow-[0_10px_30px_rgba(52,38,25,0.07)] active:shadow-none">
+                  {{ nudging ? 'Sending…' : 'Send nudge' }}
                </button>
            </div>
         </div>
@@ -340,6 +147,15 @@ const copied = ref(false)
 const isUnlocking = ref(false)
 const copiedIndex = ref<number | null>(null)
 const showCelebration = ref(false)
+// One quiet line under the name: intent + up to two shared interests
+const detailLine = computed(() => {
+  const parts: string[] = []
+  if (props.intent) parts.push(props.intent.charAt(0).toUpperCase() + props.intent.slice(1))
+  const shared = props.sharedInterests || []
+  if (shared.length) parts.push(shared.slice(0, 2).map(i => getInterestLabel(i)).join(', ') + (shared.length > 2 ? ` +${shared.length - 2}` : ''))
+  return parts.join(' · ')
+})
+
 const showNudgeModal = ref(false)
 const nudging = ref(false)
 const localNudged = ref(false)
@@ -458,8 +274,10 @@ watch(() => props.unlocked, (newVal) => {
 
 const handleUnlock = async () => {
   isUnlocking.value = true
-  // Emit the event to parent
+  // Parent records the interest; once it lands this card re-renders (waiting / unlocked).
+  // Reset in case the request failed so the button never stays stuck.
   emit('unlock')
+  setTimeout(() => { isUnlocking.value = false }, 6000)
 }
 
 // Compatibility Score (based on shared interests)

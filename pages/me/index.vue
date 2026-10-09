@@ -1,1122 +1,373 @@
 <template>
-  <div class="animate-in fade-in slide-in-from-bottom-2 duration-500">
+  <div class="mx-auto max-w-xl animate-in fade-in slide-in-from-bottom-2 space-y-5 duration-500">
     <Head>
-      <Title>Profile | Minutes 2 Match</Title>
+      <Title>Your account | Minutes 2 Match</Title>
     </Head>
-    <!-- Header -->
-    <div class="flex items-center justify-between gap-3 mb-6 md:mb-8 pt-2">
-       <h2 class="text-2xl font-bold tracking-tight dark:text-white leading-none">Profile</h2>
-       <!-- Badges Container -->
-       <div class="flex items-center gap-1.5 md:gap-2 shrink-0 max-w-[60%] sm:max-w-none">
-           <span class="inline-flex shrink-0 items-center gap-1.5 text-[9px] font-bold uppercase tracking-widest text-stone-500 dark:text-stone-400 bg-stone-100 dark:bg-stone-900 border border-stone-200 dark:border-stone-800 px-2 py-1.5 rounded-full shadow-sm">
-             <span class="text-xs">{{ personaData?.emoji || '🔮' }}</span>
-             <span class="hidden sm:inline">{{ personaData?.name || 'Vibing' }}</span>
-           </span>
-           <span class="inline-flex shrink-0 items-center gap-1 text-[9px] font-bold uppercase tracking-widest text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-100 dark:border-emerald-900/30 px-2 py-1.5 rounded-full shadow-sm" title="Your Trust Score">
-             <span>🛡️</span> 
-             <span>{{ trustScore || 60 }}%</span>
-           </span>
-           <span @click="activeProfileSection = 'account'; fetchCreditData()" class="inline-flex shrink-0 items-center gap-1 text-[9px] font-bold uppercase tracking-widest text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-900/20 border border-green-100 dark:border-green-900/30 px-2 py-1.5 rounded-full shadow-sm cursor-pointer hover:bg-green-100 dark:hover:bg-green-900/30 transition-colors" title="M2M Credit — tap to view wallet">
-             <span class="text-[10px]">💚</span> 
-             <span>GHS {{ creditBalanceDashboard.toFixed(2) }}</span>
-           </span>
-           <button @click="showPreview = true" class="inline-flex shrink-0 items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-white bg-black hover:bg-rose-500 px-2.5 py-1.5 rounded-full shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transition-all active:translate-x-0.5 active:translate-y-0.5" title="Preview Profile">
-             <span class="text-xs">👁️</span>
-             <span class="hidden sm:inline">Preview</span>
-           </button>
-        </div>
-    </div>
 
-    <!-- Invisible Profile Warning Banner -->
-    <div 
-      v-if="!profile?.photo_url"
-      @click="triggerPhotoUpload"
-      class="mb-6 bg-rose-50 dark:bg-rose-950/20 border-2 border-black dark:border-stone-700 p-4 rounded-xl cursor-pointer hover:bg-rose-100 dark:hover:bg-rose-950/40 transition-all flex items-center justify-between gap-4 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] animate-pulse active:scale-[0.99]"
+    <template v-if="showSkeleton">
+      <SkeletonMePage />
+      <p class="sr-only" role="status">Loading your account…</p>
+    </template>
+
+    <template v-else>
+    <!-- Header: photo + greeting -->
+    <header class="flex items-center gap-4 pb-1">
+      <button
+        id="me-photo"
+        type="button"
+        class="group relative h-16 w-16 shrink-0 rounded-full sm:h-20 sm:w-20"
+        :aria-label="profile?.photo_url ? 'Change your photo' : 'Add a photo'"
+        :disabled="uploadingPhoto"
+        @click="photoInput?.click()"
+      >
+        <span class="block h-full w-full overflow-hidden rounded-full bg-[#f4f3f1] shadow-[0_8px_24px_rgba(52,38,25,0.12)] ring-4 ring-white">
+          <img v-if="photoPreview || profile?.photo_url" :src="photoPreview || profile?.photo_url" alt="" class="h-full w-full object-cover" />
+          <span v-else class="font-display flex h-full w-full items-center justify-center text-2xl text-[#9b9690]">{{ firstName.charAt(0) }}</span>
+        </span>
+        <span class="absolute -bottom-0.5 -right-0.5 flex h-7 w-7 items-center justify-center rounded-full bg-[#ed1c24] text-white ring-2 ring-white">
+          <span v-if="uploadingPhoto" class="h-3.5 w-3.5 animate-spin rounded-full border-2 border-white/40 border-t-white"></span>
+          <svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-3.5 w-3.5" aria-hidden="true"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z" /><circle cx="12" cy="13" r="3" /></svg>
+        </span>
+      </button>
+      <input ref="photoInput" type="file" accept="image/jpeg,image/png,image/webp,image/heic" class="hidden" @change="handlePhotoUpload" />
+      <div class="min-w-0">
+        <h2 class="text-[2rem] leading-none tracking-tight text-[#393737] sm:text-[2.5rem]">Hi, {{ firstName }}.</h2>
+        <p class="mt-1.5 text-sm text-[#9b9690]">{{ uploadingPhoto ? 'Uploading your photo…' : 'Tap your photo to change it' }}</p>
+      </div>
+    </header>
+
+    <!-- This week's matching -->
+    <section class="overflow-hidden rounded-[1.75rem] p-5 shadow-[0_10px_30px_rgba(52,38,25,0.07)] ring-1 ring-black/5" :class="optedIn ? 'bg-gradient-to-br from-[#eef7f1] to-white' : 'bg-gradient-to-br from-[#e9eff5] to-white'">
+      <p class="text-sm font-medium text-[#9b9690]">This week's matching</p>
+      <h3 class="font-display mt-1 text-2xl text-[#393737]">{{ optedIn ? "You're in for this week." : 'Want a match this week?' }}</h3>
+      <p class="mt-1.5 text-base leading-relaxed text-[#6c6862]">
+        <template v-if="optedIn">We'll include you until {{ weekEndLabel }}.</template>
+        <template v-else>Opt in before {{ weekEndLabel }}. It's free.</template>
+      </p>
+      <button
+        v-if="!optedIn"
+        type="button"
+        :disabled="savingOptIn"
+        class="btn-solid grain grain-strong mt-5 w-full px-6 py-3.5 text-base disabled:opacity-60 sm:w-auto sm:px-8"
+        @click="setWeeklyOptIn(true)"
+      >{{ savingOptIn ? 'Opting in…' : 'Opt in for this week' }}</button>
+      <button
+        v-else
+        type="button"
+        :disabled="savingOptIn"
+        class="mt-4 rounded-full px-1 py-1 text-sm font-medium text-[#6c6862] underline-offset-4 hover:text-[#393737] hover:underline disabled:opacity-60"
+        @click="setWeeklyOptIn(false)"
+      >{{ savingOptIn ? 'Updating…' : 'Skip this week' }}</button>
+    </section>
+
+    <!-- Your personality type, from the Vibe Check -->
+    <section v-if="myPersona" class="relative overflow-hidden rounded-[1.75rem] p-5 shadow-[0_10px_30px_rgba(52,38,25,0.07)] ring-1 ring-black/5 sm:p-6" :style="{ background: myPersona.tint }">
+      <LetterVignette :scene="myPersona.scene" class="pointer-events-none absolute -right-5 -top-8 w-28 opacity-90 sm:-right-3 sm:-top-6 sm:w-32" />
+      <div class="relative pr-24 sm:pr-28">
+        <p class="text-sm font-medium text-[#6c6862]">Your personality type</p>
+        <h3 class="font-display mt-1 text-[1.75rem] leading-[1.1] tracking-tight text-[#393737]">{{ myPersona.name }}</h3>
+      </div>
+      <p class="relative mt-2.5 pr-12 text-base leading-relaxed text-[#4c4a4a] sm:pr-16">{{ myPersona.description }}</p>
+      <ul class="relative mt-4 flex flex-wrap gap-1.5">
+        <li v-for="word in myPersona.keywords" :key="word" class="rounded-full bg-white/75 px-3 py-1 text-sm capitalize text-[#393737] ring-1 ring-black/[0.04]">{{ word }}</li>
+      </ul>
+      <NuxtLink to="/vibe-check?retake=true" class="relative mt-4 inline-flex items-center gap-1.5 text-sm font-medium text-[#6c6862] transition-colors hover:text-[#393737]">
+        Not quite you? Retake the Vibe Check <span aria-hidden="true">→</span>
+      </NuxtLink>
+    </section>
+    <NuxtLink v-else to="/vibe-check?retake=true" class="flex items-center gap-4 rounded-[1.5rem] bg-white p-4 shadow-[0_6px_20px_rgba(52,38,25,0.05)] ring-1 ring-black/5">
+      <LetterVignette scene="meet" class="w-12 shrink-0" />
+      <span class="min-w-0 flex-1">
+        <span class="block text-sm text-[#9b9690]">Your personality type</span>
+        <span class="block text-base font-medium text-[#393737]">Take the Vibe Check to find out</span>
+      </span>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5 shrink-0 text-[#b5b0aa]" aria-hidden="true"><path d="m9 18 6-6-6-6" /></svg>
+    </NuxtLink>
+
+    <!-- Match readiness: one line, just the next step -->
+    <button
+      v-if="readiness.missing.length"
+      type="button"
+      class="flex w-full items-center gap-4 rounded-[1.5rem] bg-white p-4 text-left shadow-[0_6px_20px_rgba(52,38,25,0.05)] ring-1 ring-black/5 transition-colors hover:bg-[#fcfbfa]"
+      @click="goToReadinessItem(readiness.missing[0])"
     >
-      <div class="space-y-1">
-        <h3 class="font-bold text-rose-950 dark:text-rose-200 text-sm md:text-base flex items-center gap-2">
-          <span>⚠️</span> Your Profile is Invisible
-        </h3>
-        <p class="text-rose-700 dark:text-rose-300 text-xs font-semibold leading-relaxed">
-          Matches cannot see you! Add a profile photo to start making premium connections. Click here to upload.
-        </p>
-      </div>
-      <span class="text-2xl md:text-3xl shrink-0">📸</span>
-    </div>
+      <span class="relative h-12 w-12 shrink-0" aria-hidden="true">
+        <svg viewBox="0 0 48 48" class="h-full w-full -rotate-90">
+          <circle cx="24" cy="24" r="20" fill="none" stroke="#f1efec" stroke-width="5" />
+          <circle cx="24" cy="24" r="20" fill="none" stroke="#ed1c24" stroke-width="5" stroke-linecap="round" :stroke-dasharray="125.66" :stroke-dashoffset="125.66 * (1 - readiness.percent / 100)" />
+        </svg>
+        <span class="absolute inset-0 flex items-center justify-center text-xs font-semibold tabular-nums text-[#393737]">{{ readiness.percent }}%</span>
+      </span>
+      <span class="min-w-0 flex-1">
+        <span class="block text-sm text-[#9b9690]">Better matches · {{ readiness.missing.length }} {{ readiness.missing.length === 1 ? 'thing' : 'things' }} left</span>
+        <span class="block truncate text-base font-medium text-[#393737]">Next: {{ readiness.missing[0].label }}</span>
+      </span>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5 shrink-0 text-[#b5b0aa]" aria-hidden="true"><path d="m9 18 6-6-6-6" /></svg>
+    </button>
 
-    <div class="grid md:grid-cols-3 gap-8 min-w-0 w-full">
-      <!-- Sidebar (Desktop Only) -->
-      <div class="hidden md:block md:col-span-1 space-y-6 min-w-0">
-         <!-- Photo Card -->
-         <div class="bg-white dark:bg-stone-900 p-6 rounded-xl border-2 border-black dark:border-stone-700 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] dark:shadow-[8px_8px_0px_0px_rgba(255,255,255,0.05)] text-center flex flex-col items-center">
-            <div class="relative w-32 h-32 mx-auto mb-6 group cursor-pointer" @click="triggerPhotoUpload">
-               <div class="w-full h-full rounded-full overflow-hidden bg-stone-100 dark:bg-stone-800 border-2 border-black dark:border-stone-600 relative">
-                  <NuxtImg v-if="photoPreview || profile?.photo_url" :src="photoPreview || profile?.photo_url" class="w-full h-full object-cover" width="128" height="128" />
-                  <div v-else class="w-full h-full flex items-center justify-center text-4xl text-stone-300 dark:text-stone-600">📷</div>
-                  <div class="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                     <span class="text-white text-xs font-bold uppercase tracking-widest">{{ uploadingPhoto ? 'Wait...' : 'Update' }}</span>
-                  </div>
-               </div>
-               <input type="file" ref="photoInput" accept="image/*" @change="handlePhotoUpload" class="hidden" />
-            </div>
-            
-            <!-- Profile Strength -->
-            <div class="w-full mb-6">
-               <div class="flex justify-between items-center mb-2">
-                  <span class="text-[9px] font-bold uppercase tracking-widest text-stone-400 dark:text-stone-300">Profile Strength</span>
-                  <span class="text-xs font-black" :class="profileStrength > 80 ? 'text-emerald-500' : 'text-rose-500'">{{ profileStrength }}%</span>
-               </div>
-               <div class="w-full h-3 bg-stone-100 dark:bg-stone-800 rounded-full border border-black overflow-hidden relative">
-                  <div class="absolute top-0 left-0 h-full transition-all duration-1000" :class="profileStrength > 80 ? 'bg-emerald-400' : 'bg-rose-400'" :style="{ width: `${profileStrength}%` }"></div>
-                  <!-- Strength Notches -->
-                  <div class="absolute inset-0 flex justify-between px-1">
-                     <div v-for="i in 4" :key="i" class="w-px h-full bg-black/10"></div>
-                  </div>
-               </div>
-            </div>
+    <!-- Your profile: one tidy list, each row opens to edit -->
+    <section class="rounded-[1.75rem] bg-white shadow-[0_10px_30px_rgba(52,38,25,0.07)] ring-1 ring-black/5">
+      <p class="px-5 pb-1 pt-5 text-sm font-medium text-[#9b9690] sm:px-6 sm:pt-6">Your profile</p>
+      <ul class="divide-y divide-black/[0.06]">
+        <li v-for="panel in PANELS" :key="panel.id">
+          <button
+            type="button"
+            class="flex min-h-[4.25rem] w-full scroll-mt-20 items-center gap-4 px-5 py-4 text-left active:bg-[#faf9f7] sm:px-6"
+            :aria-expanded="openPanel === panel.id"
+            :aria-controls="`panel-${panel.id}`"
+            @click="togglePanel(panel.id)"
+          >
+            <span class="min-w-0 flex-1">
+              <span class="block text-base font-medium text-[#393737]">{{ panel.title }}</span>
+              <span class="mt-0.5 block truncate text-sm" :class="summaries[panel.id].empty ? 'text-[#ed1c24]' : 'text-[#9b9690]'">{{ summaries[panel.id].text }}</span>
+            </span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5 shrink-0 text-[#b5b0aa] transition-transform duration-200" :class="openPanel === panel.id ? 'rotate-90' : ''" aria-hidden="true"><path d="m9 18 6-6-6-6" /></svg>
+          </button>
 
-            <p class="text-[10px] font-medium text-stone-500 dark:text-stone-400">
-               <span v-if="profileStrength < 100" class="flex flex-col gap-1">
-                  <span>💡 <span class="font-bold">Add matching info</span> for 2x more matches</span>
-               </span>
-               <span v-else class="text-emerald-500 font-bold">🚀 You're unstoppable!</span>
-            </p>
-         </div>
-
-         <!-- Section Navigation (Sidebar) -->
-         <div class="bg-white dark:bg-stone-900 rounded-xl border-2 border-black dark:border-stone-700 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] dark:shadow-[8px_8px_0px_0px_rgba(255,255,255,0.05)] overflow-hidden">
-            <button 
-              v-for="section in profileSections" 
-              :key="section.id"
-              @click="activeProfileSection = section.id as any; if(section.id === 'account') { fetchCreditData(); fetchDeletionRequest() }"
-              class="w-full text-left p-4 flex items-center gap-4 transition-all border-b border-stone-100 dark:border-stone-800 last:border-0"
-              :class="activeProfileSection === section.id ? 'bg-black dark:bg-stone-800 text-white' : 'hover:bg-stone-50 dark:hover:bg-stone-800/50'"
-            >
-              <span class="text-xl">{{ section.icon }}</span>
-              <div class="flex-1">
-                <p class="text-[10px] font-bold uppercase tracking-widest" :class="activeProfileSection === section.id ? 'text-rose-400' : 'text-stone-400'">{{ section.label }}</p>
-                <p class="text-xs font-semibold" :class="activeProfileSection === section.id ? 'text-white' : 'text-stone-600 dark:text-stone-300'">{{ section.desc }}</p>
+          <div v-if="openPanel === panel.id" :id="`panel-${panel.id}`" class="scroll-mt-20 px-5 pb-6 sm:px-6">
+            <!-- About you -->
+            <template v-if="panel.id === 'about'">
+              <div class="relative">
+                <label for="me-bio" class="sr-only">Bio</label>
+                <textarea id="me-bio" v-model="editForm.about_me" rows="4" maxlength="300" placeholder="What drives you? What are you looking for?" class="w-full resize-none rounded-[1.25rem] border border-[#e5e2dd] bg-white p-4 pb-8 text-base leading-relaxed text-[#393737] outline-none transition-[border-color,box-shadow] placeholder:text-[#9b9690] focus:border-[#393737] focus:ring-4 focus:ring-black/5"></textarea>
+                <span class="absolute bottom-3 right-4 text-xs tabular-nums text-[#b5b0aa]">{{ editForm.about_me.length }}/300</span>
               </div>
-            </button>
-         </div>
+              <p class="mt-2 text-sm text-[#9b9690]">We read your bio to match personalities.</p>
+            </template>
 
-
-
-         <!-- Persona Detail Card -->
-         <div v-if="personaData" class="bg-white dark:bg-stone-900 p-6 md:p-8 rounded-xl border-2 border-black dark:border-stone-700 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] md:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] dark:shadow-[8px_8px_0px_0px_rgba(255,255,255,0.05)] group hover:-translate-y-1 hover:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] md:hover:shadow-[10px_10px_0px_0px_rgba(0,0,0,1)] transition-all animate-in fade-in slide-in-from-bottom-4 duration-700 delay-200">
-            <div class="flex items-center gap-4 mb-6">
-               <div class="w-[60px] h-[60px] rounded-[18px] border-2 border-black bg-[#ff0042] flex items-center justify-center text-3xl shadow-none">{{ personaData.emoji }}</div>
-               <div>
-                  <h4 class="text-[18px] font-bold text-black uppercase tracking-tight">{{ personaData.name }}</h4>
-                  <p class="text-[10px] font-bold text-[#a8a29e] uppercase tracking-[0.15em] mt-1">Your Vibe</p>
-               </div>
-            </div>
-            <p class="text-[15px] font-medium text-[#57534e] dark:text-stone-300 leading-relaxed italic">"{{ personaData.description }}"</p>
-         </div>
-
-
-      </div>
-
-      <!-- Main Content Area -->
-      <div class="md:col-span-2 space-y-6 pb-32 md:pb-0 min-w-0">
-         <!-- Mobile Section Nav -->
-         <div class="md:hidden flex overflow-x-auto gap-3 pb-4 no-scrollbar sticky top-16 z-[55] bg-[#FFFCF8]/95 dark:bg-stone-950/95 backdrop-blur-md py-4 border-b border-stone-100 dark:border-stone-800 transition-all duration-300 -mx-4 px-4 shadow-[0_10px_10px_-10px_rgba(0,0,0,0.05)]">
-            <button 
-              v-for="section in profileSections" 
-              :key="'m-'+section.id"
-              @click="activeProfileSection = section.id as any; if(section.id === 'account') { fetchCreditData(); fetchDeletionRequest() }"
-              class="flex-shrink-0 px-5 py-2.5 rounded-full border-2 text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap flex items-center gap-2"
-              :class="activeProfileSection === section.id ? 'bg-black dark:bg-stone-100 text-white dark:text-black border-black dark:border-stone-100 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]' : 'bg-white dark:bg-stone-900 text-stone-500 border-stone-200 dark:border-stone-800'"
-            >
-              <span class="text-sm">{{ section.icon }}</span>
-              {{ section.label }}
-            </button>
-         </div>
-
-         <!-- Mobile Photo/Badges Header (Only show in Identity section) -->
-         <div v-if="activeProfileSection === 'identity'" class="md:hidden flex flex-col gap-4 mb-4">
-            <div @click="triggerPhotoUpload" class="bg-white dark:bg-stone-900 p-4 rounded-xl border-2 border-black dark:border-stone-700 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] flex items-center gap-4 active:scale-[0.98] transition-all overflow-hidden">
-               <div class="w-14 h-14 rounded-full overflow-hidden border-2 border-black flex-shrink-0">
-                  <NuxtImg v-if="photoPreview || profile?.photo_url" :src="photoPreview || profile?.photo_url" class="w-full h-full object-cover" width="56" height="56" />
-                  <div v-else class="w-full h-full flex items-center justify-center text-xl text-stone-300">📷</div>
-               </div>
-               <div class="flex-1 min-w-0">
-                  <p class="text-[10px] font-bold uppercase tracking-widest text-black dark:text-white mb-0.5">Profile Photo</p>
-                  <p class="text-[9px] font-medium text-stone-500 uppercase tracking-widest truncate">Tap to update</p>
-               </div>
-            </div>
-            <div class="bg-white dark:bg-stone-900 p-4 rounded-xl border-2 border-black dark:border-stone-700 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] flex items-center gap-4 overflow-hidden">
-               <div class="flex -space-x-2 flex-shrink-0">
-                  <template v-if="profile?.badges?.length">
-                     <div v-for="badge in profile.badges.slice(0,3)" :key="badge" :title="badge" class="w-10 h-10 rounded-full border-2 border-black bg-white flex items-center justify-center text-lg shadow-sm">
-                        <span v-if="badge.includes('photo')">📸</span>
-                        <span v-else-if="badge.includes('phone')">📱</span>
-                        <span v-else-if="badge.includes('premium')">👑</span>
-                        <span v-else>🌟</span>
-                     </div>
-                  </template>
-                  <div v-else class="w-10 h-10 rounded-full border-2 border-stone-100 bg-stone-50 flex items-center justify-center text-stone-300">?</div>
-               </div>
-               <div class="flex-1 min-w-0">
-                  <p class="text-[10px] font-bold uppercase tracking-widest text-black dark:text-white mb-0.5">Badges Earned</p>
-                  <p class="text-[9px] font-medium text-stone-500 uppercase tracking-widest truncate">{{ profile?.badges?.length || 0 }} achievements</p>
-               </div>
-            </div>
-         </div>
-
-         <!-- IDENTITY SECTION -->
-         <div v-if="activeProfileSection === 'identity'" class="space-y-8 animate-in fade-in slide-in-from-right-4 duration-300">
-            <!-- Basic Info -->
-            <div class="bg-white dark:bg-stone-900 p-4 sm:p-6 md:p-8 rounded-xl border-2 border-black dark:border-stone-700 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] md:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,0.05)]">
-                <h3 class="text-lg md:text-2xl font-serif font-bold text-black dark:text-white mb-6 md:mb-8 flex items-center gap-2">
-                  <span>Basic Info</span>
-                  <div class="h-px flex-1 bg-stone-100 dark:bg-stone-800"></div>
-                </h3>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div class="space-y-2">
-                    <label class="text-[10px] font-bold uppercase text-stone-500 dark:text-stone-400 tracking-widest">Display Name</label>
-                    <input 
-                      type="text" 
-                      v-model="editForm.display_name" 
-                      placeholder="Your Name"
-                      class="w-full px-4 py-3 rounded-lg border-2 bg-white dark:bg-stone-950 dark:text-white focus:border-black dark:focus:border-stone-500 outline-none transition-all font-bold" 
-                      :class="!editForm.display_name?.trim() ? 'border-rose-500 bg-rose-50/50' : 'border-stone-200 dark:border-stone-700'"
-                    />
-                    <p v-if="!editForm.display_name?.trim()" class="text-[9px] font-bold text-rose-500 uppercase tracking-widest mt-1">Name is required</p>
-                  </div>
-                  <div class="space-y-2">
-                    <label class="text-[10px] font-bold uppercase text-stone-500 dark:text-stone-400 tracking-widest">Base Location</label>
-                    <input list="locations-list" v-model="editForm.location" class="w-full px-4 py-3 rounded-lg border-2 border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-950 dark:text-white focus:border-black dark:focus:border-stone-500 outline-none transition-all font-bold" placeholder="e.g. Accra, Ghana" />
-                    <datalist id="locations-list">
-                       <option v-for="loc in ghanaLocations" :key="loc" :value="loc" />
-                    </datalist>
-                    <div class="flex flex-wrap gap-2 mt-2">
-                       <button v-for="loc in ['Accra', 'East Legon', 'Kumasi', 'Tema']" :key="loc" @click="editForm.location = loc" type="button" class="px-2 py-1 text-[9px] font-bold uppercase tracking-widest border border-stone-100 dark:border-stone-800 rounded hover:bg-stone-50 dark:hover:bg-stone-800 transition-colors">{{ loc }}</button>
-                    </div>
-                  </div>
-                  <div class="space-y-2">
-                    <label class="text-[10px] font-bold uppercase text-stone-500 dark:text-stone-400 tracking-widest">Gender</label>
-                    <select v-model="editForm.gender" class="w-full px-4 py-3 rounded-lg border-2 border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-950 dark:text-white focus:border-black dark:focus:border-stone-500 outline-none transition-all font-bold">
-                       <option value="male">Male</option>
-                       <option value="female">Female</option>
-                    </select>
-                  </div>
-                  <div class="space-y-2">
-                    <label class="text-[10px] font-bold uppercase text-stone-500 dark:text-stone-400 tracking-widest">Birth Date</label>
-                    <UiDatePicker 
-                      v-model="editForm.birth_date" 
-                      placeholder="Select your birthday"
-                      class="font-mono text-sm w-full"
-                      forBirthday
-                    />
-                  </div>
-                </div>
+            <!-- Lifestyle & contact -->
+            <div v-else-if="panel.id === 'lifestyle'" class="grid gap-3 sm:grid-cols-2">
+              <div class="sm:col-span-2">
+                <label for="me-city" class="mb-1.5 block text-sm text-[#6c6862]">Where you live</label>
+                <select id="me-city" v-model="editForm.location" :class="FIELD">
+                  <option value="" disabled>Choose your city</option>
+                  <optgroup label="Ghana"><option v-for="c in CITIES.ghana" :key="c" :value="c">{{ c }}</option></optgroup>
+                  <optgroup label="Kenya"><option v-for="c in CITIES.kenya" :key="c" :value="c">{{ c }}</option></optgroup>
+                  <option value="Other">Somewhere else</option>
+                </select>
+              </div>
+              <div>
+                <label for="me-job" class="mb-1.5 block text-sm text-[#6c6862]">Occupation</label>
+                <input id="me-job" v-model="editForm.occupation" type="text" placeholder="e.g. Nurse" list="me-occupations" :class="FIELD" />
+                <datalist id="me-occupations"><option v-for="o in commonOccupations" :key="o" :value="o" /></datalist>
+              </div>
+              <div>
+                <label for="me-religion" class="mb-1.5 block text-sm text-[#6c6862]">Faith</label>
+                <select id="me-religion" v-model="editForm.religion" :class="FIELD">
+                  <option value="">Prefer not to say</option>
+                  <option v-for="r in RELIGIONS" :key="r" :value="r">{{ r }}</option>
+                </select>
+              </div>
+              <div>
+                <label for="me-height" class="mb-1.5 block text-sm text-[#6c6862]">Height</label>
+                <select id="me-height" v-model.number="editForm.height_cm" :class="FIELD">
+                  <option :value="null">Prefer not to say</option>
+                  <option v-for="h in heightOptions" :key="h.value" :value="h.value">{{ h.label }}</option>
+                </select>
+              </div>
+              <div>
+                <label for="me-genotype" class="mb-1.5 block text-sm text-[#6c6862]">Genotype</label>
+                <select id="me-genotype" v-model="editForm.genotype" :class="FIELD">
+                  <option value="">Prefer not to say</option>
+                  <option v-for="g in ['AA', 'AS', 'AC', 'SS']" :key="g" :value="g">{{ g }}</option>
+                </select>
+              </div>
+              <div class="sm:col-span-2 mt-2 border-t border-black/[0.06] pt-4">
+                <label for="me-contact" class="mb-1.5 block text-sm text-[#6c6862]">How matches reach you</label>
+                <select id="me-contact" v-model="editForm.preferred_contact_method" :class="FIELD">
+                  <option value="phone">WhatsApp / phone</option>
+                  <option value="instagram">Instagram</option>
+                  <option value="snapchat">Snapchat</option>
+                </select>
+              </div>
+              <div v-if="editForm.preferred_contact_method === 'instagram'" class="sm:col-span-2">
+                <label for="me-ig" class="mb-1.5 block text-sm text-[#6c6862]">Instagram handle</label>
+                <input id="me-ig" v-model="editForm.instagram_handle" type="text" placeholder="@yourhandle" autocomplete="off" :class="FIELD" />
+              </div>
+              <div v-if="editForm.preferred_contact_method === 'snapchat'" class="sm:col-span-2">
+                <label for="me-sc" class="mb-1.5 block text-sm text-[#6c6862]">Snapchat username</label>
+                <input id="me-sc" v-model="editForm.snapchat_handle" type="text" placeholder="yourhandle" autocomplete="off" :class="FIELD" />
+              </div>
             </div>
 
-            <!-- Bio / About Me -->
-             <div class="bg-white dark:bg-stone-900 p-4 sm:p-6 md:p-8 rounded-xl border-2 border-black dark:border-stone-700 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] md:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,0.05)]">
-                <div class="flex items-center justify-between mb-4 md:mb-6">
-                   <h3 class="text-lg md:text-2xl font-serif font-bold text-black dark:text-white">About Me</h3>
-                   <span class="text-xs font-mono font-bold" :class="editForm.about_me.length > 250 ? 'text-rose-500 md:text-rose-400' : 'text-stone-400 dark:text-stone-500'">
-                      {{ editForm.about_me.length }}/300
-                   </span>
-                </div>
-                <textarea 
-                  v-model="editForm.about_me" 
-                  maxlength="300"
-                  rows="4"
-                  placeholder="Tell your story... What drives you? What are you looking for?"
-                  class="w-full p-4 rounded-xl border-2 border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-950 dark:text-white focus:border-black dark:focus:border-stone-500 outline-none transition-all font-medium resize-none leading-relaxed"
-                ></textarea>
-                <div class="mt-4 flex flex-wrap gap-2">
-                   <span class="px-3 py-1 bg-rose-50 dark:bg-rose-900/20 text-rose-600 dark:text-rose-400 text-[10px] font-bold uppercase rounded-full">🔥 Bio helps you match 80% faster</span>
-                </div>
-             </div>
-         </div>
-
-         <!-- LIFESTYLE SECTION -->
-         <div v-if="activeProfileSection === 'lifestyle'" class="space-y-8 animate-in fade-in slide-in-from-right-4 duration-300">
-            <div class="bg-white dark:bg-stone-900 p-4 sm:p-6 md:p-8 rounded-xl border-2 border-black dark:border-stone-700 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] md:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] dark:shadow-[8px_8px_0px_0px_rgba(255,255,255,0.05)]">
-               <h3 class="text-lg md:text-2xl font-serif font-bold text-black dark:text-white mb-6 md:mb-8 flex items-center gap-2">
-                  <span>Lifestyle</span>
-                  <div class="h-px flex-1 bg-stone-100 dark:bg-stone-800"></div>
-               </h3>
-               <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div class="space-y-2">
-                    <label class="text-[10px] font-bold uppercase text-stone-500 dark:text-stone-400 tracking-widest">Occupation</label>
-                    <input list="occupations-list" v-model="editForm.occupation" class="w-full px-4 py-3 rounded-lg border-2 border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-950 dark:text-white focus:border-black dark:focus:border-stone-500 outline-none transition-all font-bold" />
-                    <datalist id="occupations-list">
-                       <option v-for="job in commonOccupations" :key="job" :value="job" />
-                    </datalist>
-                    <div class="flex flex-wrap gap-2 mt-2">
-                       <button v-for="job in ['Entrepreneur', 'Student', 'Engineer', 'Creative']" :key="job" @click="editForm.occupation = job" type="button" class="px-2 py-1 text-[9px] font-bold uppercase tracking-widest border border-stone-100 dark:border-stone-800 rounded hover:bg-stone-50 dark:hover:bg-stone-800 transition-colors">{{ job }}</button>
-                    </div>
-                  </div>
-                  <div class="space-y-2">
-                    <label class="text-[10px] font-bold uppercase text-stone-500 dark:text-stone-400 tracking-widest">Height (cm)</label>
-                     <select v-model="editForm.height_cm" class="w-full px-4 py-3 rounded-lg border-2 border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-950 dark:text-white focus:border-black dark:focus:border-stone-500 outline-none transition-all font-bold">
-                        <option :value="null">Select height...</option>
-                        <option v-for="h in heightOptions" :key="h.cm" :value="h.cm">{{ h.label }}</option>
-                     </select>
-                  </div>
-                  <div class="space-y-2">
-                    <label class="text-[10px] font-bold uppercase text-stone-500 dark:text-stone-400 tracking-widest">Genotype</label>
-                    <select v-model="editForm.genotype" class="w-full px-4 py-3 rounded-lg border-2 border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-950 dark:text-white focus:border-black dark:focus:border-stone-500 outline-none transition-all font-bold">
-                       <option value="">Select...</option>
-                       <option value="AA">AA</option>
-                       <option value="AS">AS</option>
-                       <option value="AC">AC</option>
-                       <option value="SS">SS</option>
-                    </select>
-                  </div>
-                  <div class="space-y-2">
-                    <label class="text-[10px] font-bold uppercase text-stone-500 dark:text-stone-400 tracking-widest">Religion</label>
-                    <select v-model="editForm.religion" class="w-full px-4 py-3 rounded-lg border-2 border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-950 dark:text-white focus:border-black dark:focus:border-stone-500 outline-none transition-all font-bold">
-                       <option value="">Select...</option>
-                       <option value="christian">Christian</option>
-                       <option value="muslim">Muslim</option>
-                       <option value="traditional">Traditional</option>
-                       <option value="other">Other</option>
-                    </select>
-                  </div>
-               </div>
-            </div>
-
-            <!-- Contact & Socials -->
-            <div class="bg-white dark:bg-stone-900 p-4 sm:p-6 md:p-8 rounded-xl border-2 border-black dark:border-stone-700 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] md:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] dark:shadow-[8px_8px_0px_0px_rgba(255,255,255,0.05)]">
-               <h3 class="text-lg md:text-2xl font-serif font-bold text-black dark:text-white mb-6 md:mb-8 flex items-center gap-2">
-                 <span>Match Reveal Settings</span>
-                 <div class="h-px flex-1 bg-stone-100 dark:bg-stone-800"></div>
-               </h3>
-               <p class="text-xs md:text-sm font-medium text-stone-500 dark:text-stone-400 mb-6 max-w-2xl leading-relaxed">
-                  Choose how your matches get in touch. Only your preferred reveal method will be shared once unlocked.
-               </p>
-               <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div class="space-y-2">
-                      <label class="text-[10px] font-bold uppercase text-stone-500 dark:text-stone-400 tracking-widest">Instagram Handle</label>
-                      <div class="relative">
-                        <span class="absolute left-4 top-1/2 -translate-y-1/2 text-stone-400 font-bold">@</span>
-                        <input type="text" v-model="editForm.instagram_handle" placeholder="username" class="w-full pl-8 pr-4 py-3 rounded-lg border-2 border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-950 dark:text-white focus:border-black dark:focus:border-stone-500 outline-none transition-all font-bold" />
-                      </div>
-                  </div>
-                  <div class="space-y-2">
-                      <label class="text-[10px] font-bold uppercase text-stone-500 dark:text-stone-400 tracking-widest">Snapchat Handle</label>
-                      <div class="relative">
-                        <span class="absolute left-4 top-1/2 -translate-y-1/2 text-stone-400 font-bold">👻</span>
-                        <input type="text" v-model="editForm.snapchat_handle" placeholder="username" class="w-full pl-10 pr-4 py-3 rounded-lg border-2 border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-950 dark:text-white focus:border-black dark:focus:border-stone-500 outline-none transition-all font-bold" />
-                      </div>
-                  </div>
-                  <div class="md:col-span-2 space-y-4 pt-4">
-                      <label class="text-[10px] font-bold uppercase text-stone-500 dark:text-stone-400 block mb-2 tracking-widest">Preferred Reveal Method</label>
-                      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                         <button 
-                           type="button"
-                           @click="editForm.preferred_contact_method = 'phone'"
-                           class="flex items-center gap-3 p-4 rounded-xl border-2 transition-all group"
-                           :class="editForm.preferred_contact_method === 'phone' ? 'border-black dark:border-white bg-stone-50 dark:bg-stone-800' : 'border-stone-100 dark:border-stone-800 bg-white dark:bg-stone-900 hover:border-stone-200 dark:hover:border-stone-700'"
-                         >
-                           <div class="w-10 h-10 rounded-full flex items-center justify-center text-lg" :class="editForm.preferred_contact_method === 'phone' ? 'bg-black dark:bg-white text-white dark:text-black' : 'bg-stone-50 dark:bg-stone-800 text-stone-400 group-hover:bg-stone-100 dark:group-hover:bg-stone-700'">📱</div>
-                           <div class="text-left">
-                             <p class="text-xs font-bold uppercase tracking-widest" :class="editForm.preferred_contact_method === 'phone' ? 'text-black dark:text-white' : 'text-stone-400'">Phone</p>
-                             <p class="text-[10px] text-stone-400">Reveal mobile number</p>
-                           </div>
-                         </button>
-
-                         <button 
-                           type="button"
-                           @click="editForm.preferred_contact_method = 'instagram'"
-                           class="flex items-center gap-3 p-4 rounded-xl border-2 transition-all group"
-                           :class="editForm.preferred_contact_method === 'instagram' ? 'border-black dark:border-white bg-stone-50 dark:bg-stone-800' : 'border-stone-100 dark:border-stone-800 bg-white dark:bg-stone-900 hover:border-stone-200 dark:hover:border-stone-700'"
-                         >
-                           <div class="w-10 h-10 rounded-full flex items-center justify-center text-lg" :class="editForm.preferred_contact_method === 'instagram' ? 'bg-gradient-to-tr from-yellow-400 via-rose-500 to-purple-600 text-white' : 'bg-stone-50 dark:bg-stone-800 text-stone-400 group-hover:bg-stone-100 dark:group-hover:bg-stone-700'">📸</div>
-                           <div class="text-left">
-                             <p class="text-xs font-bold uppercase tracking-widest" :class="editForm.preferred_contact_method === 'instagram' ? 'text-black dark:text-white' : 'text-stone-400'">Instagram</p>
-                             <p class="text-[10px] text-stone-400">Reveal IG handle</p>
-                           </div>
-                         </button>
-
-                         <button 
-                           type="button"
-                           @click="editForm.preferred_contact_method = 'snapchat'"
-                           class="flex items-center gap-3 p-4 rounded-xl border-2 transition-all group"
-                           :class="editForm.preferred_contact_method === 'snapchat' ? 'border-black dark:border-white bg-stone-50 dark:bg-stone-800' : 'border-stone-100 dark:border-stone-800 bg-white dark:bg-stone-900 hover:border-stone-200 dark:hover:border-stone-700'"
-                         >
-                           <div class="w-10 h-10 rounded-full flex items-center justify-center text-lg" :class="editForm.preferred_contact_method === 'snapchat' ? 'bg-yellow-400 text-white' : 'bg-stone-50 dark:bg-stone-800 text-stone-400 group-hover:bg-stone-100 dark:group-hover:bg-stone-700'">👻</div>
-                           <div class="text-left">
-                             <p class="text-xs font-bold uppercase tracking-widest" :class="editForm.preferred_contact_method === 'snapchat' ? 'text-black dark:text-white' : 'text-stone-400'">Snapchat</p>
-                             <p class="text-[10px] text-stone-400">Reveal Snap handle</p>
-                           </div>
-                         </button>
-                      </div>
-                  </div>
-               </div>
-            </div>
-         </div>
-
-         <!-- HOBBIES SECTION -->
-         <div v-if="activeProfileSection === 'hobbies'" class="animate-in fade-in slide-in-from-right-4 duration-300">
-            <!-- Interests -->
-            <div class="bg-white dark:bg-stone-900 p-4 sm:p-6 md:p-8 rounded-xl border-2 border-black dark:border-stone-700 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] md:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,0.05)]">
-               <div class="flex items-center justify-between mb-4 md:mb-6">
-                  <h3 class="text-lg md:text-2xl font-serif font-bold text-black dark:text-white">Interests</h3>
-                  <span class="text-xs font-mono font-bold text-stone-400 dark:text-stone-500">{{ editForm.interests.length }}/6 selected</span>
-               </div>
-               <div class="flex flex-wrap gap-2">
-                  <button 
-                     v-for="interest in availableInterests" 
-                     :key="interest.id"
-                     @click="toggleInterest(interest.id)"
-                     class="px-4 py-2 rounded-full border-2 text-xs font-bold transition-all"
-                     :class="editForm.interests.includes(interest.id) ? 'bg-black text-white border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]' : 'bg-white text-stone-500 border-stone-100 hover:border-stone-200'"
-                  >
-                     {{ interest.label }}
-                  </button>
-               </div>
-            </div>
-         </div>
-
-         <!-- MATCHING SECTION -->
-         <div v-if="activeProfileSection === 'matching'" class="space-y-8 animate-in fade-in slide-in-from-right-4 duration-300">
-            <!-- Intent & Interest -->
-            <div class="bg-white dark:bg-stone-900 p-4 sm:p-6 md:p-8 rounded-xl border-2 border-black dark:border-stone-700 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] md:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,0.05)]">
-               <h3 class="text-lg md:text-2xl font-serif font-bold text-black dark:text-white mb-6 md:mb-8 flex items-center gap-2">
-                  <span>Matching Preferences</span>
-                  <div class="h-px flex-1 bg-stone-100 dark:bg-stone-800"></div>
-               </h3>
-               <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div class="space-y-2">
-                    <label class="text-[10px] font-bold uppercase text-stone-500 dark:text-stone-400 tracking-widest">Considering</label>
-                     <select v-model="editForm.intent" class="w-full px-4 py-3 rounded-lg border-2 border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-950 dark:text-white focus:border-black dark:focus:border-stone-500 outline-none transition-all font-bold">
-                      <option value="marriage">Marriage</option>
-                      <option value="serious">Serious Relationship</option>
-                      <option value="casual">Casual Dating</option>
-                      <option value="friendship">Friendship</option>
-                    </select>
-                  </div>
-                  <div class="space-y-2">
-                    <label class="text-[10px] font-bold uppercase text-stone-500 dark:text-stone-400 tracking-widest">Interested In</label>
-                    <select v-model="editForm.interested_in" class="w-full px-4 py-3 rounded-lg border-2 border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-950 dark:text-white focus:border-black dark:focus:border-stone-500 outline-none transition-all font-bold">
-                      <option value="male">Men</option>
-                      <option value="female">Women</option>
-                      <option value="everyone">Everyone</option>
-                    </select>
-                  </div>
-               </div>
-            </div>
-
-             <!-- Dealbreakers Summary in Matching -->
-             <div class="bg-white dark:bg-stone-900 p-4 sm:p-6 md:p-8 rounded-xl border-2 border-rose-200 dark:border-rose-900 shadow-[4px_4px_0px_0px_rgba(244,63,94,0.3)] md:shadow-[8px_8px_0px_0px_rgba(244,63,94,0.3)] dark:shadow-[4px_4px_0px_0px_rgba(244,63,94,0.1)]">
-                <div class="flex items-center gap-3 mb-2">
-                   <span class="text-2xl">🚫</span>
-                   <h3 class="text-lg md:text-2xl font-serif font-bold text-black dark:text-white">Dealbreakers</h3>
-                </div>
-               <p class="text-[10px] font-bold uppercase tracking-widest text-stone-400 dark:text-stone-500 mb-8">Set your non-negotiable preferences. We'll filter matches accordingly.</p>
-               
-               <!-- Age Range -->
-               <div class="mb-8">
-                  <div class="flex justify-between items-center mb-4">
-                     <label class="text-[10px] font-bold uppercase text-stone-600 dark:text-stone-300 tracking-widest">Age Range: {{ editForm.min_age }} - {{ editForm.max_age }}</label>
-                  </div>
-                  <div class="px-2">
-                     <div class="flex gap-4">
-                        <div class="flex-1 space-y-2">
-                           <span class="text-[9px] font-bold text-stone-400 uppercase">Min</span>
-                           <input type="range" v-model.number="editForm.min_age" min="18" max="50" class="w-full h-1.5 bg-stone-100 rounded-lg appearance-none cursor-pointer accent-black" />
-                        </div>
-                        <div class="flex-1 space-y-2">
-                           <span class="text-[9px] font-bold text-stone-400 uppercase">Max</span>
-                           <input type="range" v-model.number="editForm.max_age" min="20" max="60" class="w-full h-1.5 bg-stone-100 rounded-lg appearance-none cursor-pointer accent-black" />
-                        </div>
-                     </div>
-                  </div>
-               </div>
-
-               <!-- Multi-select Dealbreakers -->
-               <div class="space-y-6">
-                  <div v-for="cat in ['genotype', 'religion', 'intent']" :key="cat" class="space-y-3">
-                     <label class="text-[10px] font-bold uppercase text-stone-600 dark:text-stone-300 tracking-widest">{{ cat }} Preferences</label>
-                     <div class="flex flex-wrap gap-2">
-                        <button 
-                           v-for="val in getOptions(cat)" 
-                           :key="val"
-                           @click="toggleDealbreaker(cat as any, val)"
-                           class="px-3 py-1.5 rounded-lg border-2 text-[10px] font-bold transition-all"
-                           :class="editForm.dealbreakers[cat as keyof typeof editForm.dealbreakers]?.includes(val) ? 'bg-rose-500 text-white border-rose-600 shadow-[2px_2px_0px_0px_rgba(0,0,0,0.1)]' : 'bg-white dark:bg-stone-800 text-stone-500 border-stone-100 dark:border-stone-700'"
-                        >
-                           {{ val }}
-                        </button>
-                     </div>
-                  </div>
-               </div>
-            </div>
-         </div>
-
-          <!-- AVAILABILITY SECTION -->
-          <div v-if="activeProfileSection === 'availability'" class="animate-in fade-in slide-in-from-right-4 duration-300">
-             <div class="bg-white dark:bg-stone-900 p-4 sm:p-6 md:p-8 rounded-xl border-2 border-black dark:border-stone-700 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] md:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,0.05)]">
-                <h3 class="text-lg md:text-2xl font-serif font-bold text-black dark:text-white mb-6 md:mb-8 flex items-center gap-2">
-                   <span>Dating Availability</span>
-                   <div class="h-px flex-1 bg-stone-100 dark:bg-stone-800"></div>
-                </h3>
-                <AvailabilityPicker v-model="editForm.availability" />
-             </div>
-          </div>
-
-         <!-- SECURITY SECTION -->
-         <div v-if="activeProfileSection === 'security'" class="space-y-8 animate-in fade-in slide-in-from-right-4 duration-300">
-            <div class="bg-white dark:bg-stone-900 p-4 sm:p-6 md:p-8 rounded-xl border-2 border-black dark:border-stone-700 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] md:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,0.05)]">
-                <h3 class="text-lg md:text-2xl font-serif font-bold text-black dark:text-white mb-4">Passkeys</h3>
-                <p class="text-sm text-stone-500 mb-8 leading-relaxed">
-                   Use FaceID, TouchID, or your device passcode to sign in instantly without waiting for an SMS. This is much more secure than OTPs.
-                </p>
-
-                <div v-if="passkeys.length > 0" class="space-y-3 mb-8">
-                   <div v-for="pk in passkeys" :key="pk.id" class="flex items-center justify-between p-4 bg-stone-50 dark:bg-stone-800 rounded-lg border-2 border-stone-100 dark:border-stone-700">
-                      <div class="flex items-center gap-3">
-                         <span class="text-xl">🔑</span>
-                         <div>
-                            <p class="text-xs font-bold">{{ pk.name }}</p>
-                            <p class="text-[10px] text-stone-400 uppercase">Registered {{ new Date(pk.created_at).toLocaleDateString() }}</p>
-                         </div>
-                      </div>
-                      <button @click="handleDeletePasskey(pk.id)" class="text-stone-400 hover:text-rose-500 p-2 transition-colors">
-                         <span class="text-lg">🗑️</span>
-                      </button>
-                   </div>
-                </div>
-
-                <button 
-                  v-if="isPasskeySupported"
-                  @click="handleRegisterPasskey"
-                  :disabled="registeringPasskey"
-                  class="w-full py-4 bg-stone-50 dark:bg-stone-800 text-black dark:text-white border-2 border-black dark:border-stone-600 rounded-xl font-bold uppercase tracking-widest text-xs hover:bg-stone-100 dark:hover:bg-stone-700 transition-all flex items-center justify-center gap-3 group"
-                >
-                   <span class="text-xl group-hover:scale-110 transition-transform">➕</span>
-                   {{ registeringPasskey ? 'Registering...' : 'Add FaceID / TouchID' }}
-                </button>
-                <div v-else class="p-4 bg-amber-50 dark:bg-amber-900/10 border-2 border-amber-100 dark:border-amber-900/30 rounded-xl text-amber-700 dark:text-amber-400 text-xs text-center font-medium">
-                   ⚠️ Your browser or device doesn't support Passkeys, or you are not using a secure (HTTPS) connection.
-                </div>
-            </div>
-         </div>
-
-         <!-- ACCOUNT SECTION -->
-         <div v-if="activeProfileSection === 'account'" class="space-y-8 animate-in fade-in slide-in-from-right-4 duration-300">
-            <!-- M2M Credit Card -->
-            <div class="space-y-6">
-               <!-- Physical Credit Card (Flippable) -->
-               <div class="mx-auto w-full max-w-[420px]" style="perspective: 1200px;">
-                  <div 
-                     @click="cardFlipped = !cardFlipped"
-                     class="relative aspect-[1.586/1] cursor-pointer transition-transform duration-700 select-none"
-                     :class="cardFlipped ? 'credit-card-flipped' : ''"
-                     style="transform-style: preserve-3d;"
-                  >
-                     <!-- ===== FRONT FACE ===== -->
-                     <div class="absolute inset-0 rounded-[20px] overflow-hidden backface-hidden" :style="{ background: cardGradient, boxShadow: `0 20px 60px -15px ${cardShadow}` }">
-                        <!-- Card texture overlay -->
-                        <div class="absolute inset-0 opacity-[0.03]" style="background-image: radial-gradient(circle at 2px 2px, rgba(0,0,0,0.3) 1px, transparent 0); background-size: 8px 8px;"></div>
-                        
-                        <!-- Soft glow decoration -->
-                        <div class="absolute -top-20 -right-20 w-64 h-64 rounded-full bg-white/10 blur-3xl"></div>
-                        <div class="absolute -bottom-16 -left-16 w-48 h-48 rounded-full blur-2xl" :class="cardAccentGlow"></div>
-                        
-                        <!-- Large decorative heart watermark -->
-                        <div class="absolute top-1/2 right-6 -translate-y-1/2 opacity-[0.07] pointer-events-none">
-                           <svg width="120" height="120" viewBox="0 0 24 24" fill="currentColor" :class="cardTextDark"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
-                        </div>
-
-                        <!-- Card Content -->
-                        <div class="relative z-10 h-full flex flex-col justify-between p-6 sm:p-7">
-                           <!-- Top Row: Logo & Contactless -->
-                           <div class="flex items-start justify-between">
-                              <div class="flex items-center -ml-3">
-                                 <img src="/logo-full.png" alt="Minutes 2 Match" class="h-14 md:h-16 w-auto object-contain opacity-95" />
-                              </div>
-                              <div class="opacity-40 pt-2">
-                                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" :class="cardTextDark">
-                                    <path d="M7.5 12a4.5 4.5 0 0 1 4.5-4.5"/>
-                                    <path d="M5 12a7 7 0 0 1 7-7"/>
-                                    <path d="M10 12a2 2 0 0 1 2-2"/>
-                                 </svg>
-                              </div>
-                           </div>
-                           
-                           <!-- Middle: EMV Chip -->
-                           <div class="flex items-center gap-4">
-                              <div class="w-11 h-8 rounded-md bg-gradient-to-br from-amber-200 via-yellow-200 to-amber-300 border border-amber-300/50 shadow-sm relative overflow-hidden">
-                                 <div class="absolute inset-0 grid grid-cols-3 grid-rows-3 gap-px p-px opacity-30">
-                                    <div class="bg-amber-400 rounded-[1px]"></div><div class="bg-amber-400 rounded-[1px]"></div><div class="bg-amber-400 rounded-[1px]"></div>
-                                    <div class="bg-amber-400 rounded-[1px]"></div><div class="bg-amber-300 rounded-[1px]"></div><div class="bg-amber-400 rounded-[1px]"></div>
-                                    <div class="bg-amber-400 rounded-[1px]"></div><div class="bg-amber-400 rounded-[1px]"></div><div class="bg-amber-400 rounded-[1px]"></div>
-                                 </div>
-                              </div>
-                           </div>
-
-                           <!-- Bottom: Balance & Name -->
-                           <div class="space-y-3">
-                              <div>
-                                 <p class="text-[9px] font-bold uppercase tracking-[0.2em] mb-1" :class="cardTextLight">Available Balance</p>
-                                 <p class="text-2xl sm:text-3xl font-black font-mono tabular-nums tracking-wider leading-none" :class="cardTextDark">
-                                    GHS {{ creditBalanceDashboard.toFixed(2) }}
-                                 </p>
-                              </div>
-                              <div class="flex items-end justify-between">
-                                 <div>
-                                    <p class="text-[8px] font-bold uppercase tracking-[0.15em] mb-0.5" :class="cardTextLight">Cardholder</p>
-                                    <p class="text-[13px] font-bold uppercase tracking-[0.1em]" :class="cardTextMuted">{{ profile?.display_name || 'M2M Member' }}</p>
-                                 </div>
-                                 <div class="text-right">
-                                    <p class="text-[8px] font-bold uppercase tracking-[0.15em] mb-0.5" :class="cardTextLight">Valid</p>
-                                    <p class="text-[13px] font-bold tracking-wide" :class="cardTextMuted">∞</p>
-                                 </div>
-                              </div>
-                           </div>
-                        </div>
-
-                        <!-- Tap hint -->
-                        <div class="absolute bottom-2 left-1/2 -translate-x-1/2 text-[8px] font-bold uppercase tracking-[0.2em] opacity-30" :class="cardTextDark">Tap to flip</div>
-                     </div>
-
-                     <!-- ===== BACK FACE ===== -->
-                     <div class="absolute inset-0 rounded-[20px] overflow-hidden backface-hidden credit-card-back" :style="{ background: cardGradient, boxShadow: `0 20px 60px -15px ${cardShadow}` }">
-                        <!-- Card texture -->
-                        <div class="absolute inset-0 opacity-[0.03]" style="background-image: radial-gradient(circle at 2px 2px, rgba(0,0,0,0.3) 1px, transparent 0); background-size: 8px 8px;"></div>
-
-                        <div class="relative z-10 h-full flex flex-col">
-                           <!-- Magnetic Stripe -->
-                           <div class="w-full h-12 bg-stone-900/70 mt-6"></div>
-                           
-                           <!-- Signature Strip & CVV -->
-                           <div class="px-6 sm:px-7 mt-4 flex items-center gap-3">
-                              <div class="flex-1 h-9 rounded bg-white/60 backdrop-blur-sm flex items-center px-3">
-                                 <span class="text-[10px] italic font-medium text-stone-400">{{ profile?.display_name || 'M2M Member' }}</span>
-                              </div>
-                              <div class="text-right">
-                                 <p class="text-[7px] font-bold uppercase tracking-widest mb-0.5" :class="cardTextLight">CVV</p>
-                                 <p class="text-sm font-black font-mono" :class="cardTextDark">♡♡♡</p>
-                              </div>
-                           </div>
-
-                           <!-- Card details -->
-                           <div class="flex-1 px-6 sm:px-7 py-4 flex flex-col justify-between">
-                              <!-- Stats row -->
-                              <div class="grid grid-cols-3 gap-3">
-                                 <div class="text-center">
-                                    <p class="text-[8px] font-bold uppercase tracking-widest mb-1" :class="cardTextLight">Credits In</p>
-                                    <p class="text-sm font-black font-mono" :class="cardTextDark">{{ creditTransactions.filter((t: any) => t.type === 'credit').length }}</p>
-                                 </div>
-                                 <div class="text-center">
-                                    <p class="text-[8px] font-bold uppercase tracking-widest mb-1" :class="cardTextLight">Spent</p>
-                                    <p class="text-sm font-black font-mono" :class="cardTextDark">{{ creditTransactions.filter((t: any) => t.type === 'debit').length }}</p>
-                                 </div>
-                                 <div class="text-center">
-                                    <p class="text-[8px] font-bold uppercase tracking-widest mb-1" :class="cardTextLight">Balance</p>
-                                    <p class="text-sm font-black font-mono" :class="cardTextDark">{{ creditBalanceDashboard.toFixed(0) }}</p>
-                                 </div>
-                              </div>
-
-                              <!-- Bottom branding -->
-                              <div class="flex items-end justify-between">
-                                 <div>
-                                    <p class="text-[8px] font-bold uppercase tracking-[0.15em]" :class="cardTextLight">M2M Credit System</p>
-                                    <p class="text-[7px] uppercase tracking-[0.1em]" :class="cardTextLight">Non-transferable • Non-withdrawable</p>
-                                 </div>
-                                 <div class="w-8 h-8 rounded-lg bg-white/20 backdrop-blur-sm flex items-center justify-center border border-white/10">
-                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" :class="cardTextDark"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
-                                 </div>
-                              </div>
-                           </div>
-                        </div>
-
-                        <!-- Tap hint -->
-                        <div class="absolute bottom-2 left-1/2 -translate-x-1/2 text-[8px] font-bold uppercase tracking-[0.2em] opacity-30" :class="cardTextDark">Tap to flip back</div>
-                     </div>
-                  </div>
-               </div>
-
-               <!-- Top Up Wallet -->
-               <div v-show="false" class="bg-white dark:bg-stone-900 rounded-xl border-2 border-stone-200 dark:border-stone-700 p-4 sm:p-5 overflow-hidden">
-                  <div class="flex items-center justify-between mb-4">
-                     <p class="text-[10px] font-black uppercase tracking-widest text-stone-400 dark:text-stone-500">Top Up Wallet</p>
-                     <span class="text-[9px] font-bold text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20 px-2 py-0.5 rounded-full">Instant Credit</span>
-                  </div>
-
-                  <!-- Quick Amount Buttons -->
-                  <div class="grid grid-cols-2 gap-3 mb-4">
-                     <button 
-                        @click="topUpAmount = 15; topUpCustom = false"
-                        class="relative p-4 rounded-xl border-2 transition-all duration-200 text-left group"
-                        :class="topUpAmount === 15 && !topUpCustom 
-                           ? 'border-green-500 bg-green-50 dark:bg-green-900/20 shadow-[0_0_0_1px_rgba(22,163,74,0.3)]' 
-                           : 'border-stone-200 dark:border-stone-700 hover:border-stone-300 dark:hover:border-stone-600 bg-stone-50/50 dark:bg-stone-800/30'"
-                     >
-                        <div class="flex items-center justify-between mb-2">
-                           <span class="text-lg font-black text-stone-900 dark:text-stone-100 font-mono">GHS 15</span>
-                           <span v-if="topUpAmount === 15 && !topUpCustom" class="w-5 h-5 rounded-full bg-green-500 flex items-center justify-center">
-                              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg>
-                           </span>
-                        </div>
-                        <p class="text-[10px] font-bold text-stone-400 dark:text-stone-500 uppercase tracking-widest">1 Match Unlock</p>
-                     </button>
-                     <button 
-                        @click="topUpAmount = 30; topUpCustom = false"
-                        class="relative p-4 rounded-xl border-2 transition-all duration-200 text-left group"
-                        :class="topUpAmount === 30 && !topUpCustom 
-                           ? 'border-green-500 bg-green-50 dark:bg-green-900/20 shadow-[0_0_0_1px_rgba(22,163,74,0.3)]' 
-                           : 'border-stone-200 dark:border-stone-700 hover:border-stone-300 dark:hover:border-stone-600 bg-stone-50/50 dark:bg-stone-800/30'"
-                     >
-                        <div class="flex items-center justify-between mb-2">
-                           <span class="text-lg font-black text-stone-900 dark:text-stone-100 font-mono">GHS 30</span>
-                           <span v-if="topUpAmount === 30 && !topUpCustom" class="w-5 h-5 rounded-full bg-green-500 flex items-center justify-center">
-                              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg>
-                           </span>
-                        </div>
-                        <div class="flex items-center gap-2">
-                           <p class="text-[10px] font-bold text-stone-400 dark:text-stone-500 uppercase tracking-widest">2 Match Unlocks</p>
-                           <span class="text-[8px] font-black uppercase tracking-widest text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 px-1.5 py-0.5 rounded">Popular</span>
-                        </div>
-                     </button>
-                  </div>
-
-                  <!-- Custom Amount -->
-                  <div class="mb-4">
-                     <button 
-                        @click="topUpCustom = !topUpCustom; if (topUpCustom) topUpAmount = 0"
-                        class="w-full text-left px-4 py-3 rounded-xl border-2 transition-all duration-200 flex items-center justify-between"
-                        :class="topUpCustom 
-                           ? 'border-green-500 bg-green-50 dark:bg-green-900/20' 
-                           : 'border-stone-200 dark:border-stone-700 hover:border-stone-300 dark:hover:border-stone-600 bg-stone-50/50 dark:bg-stone-800/30'"
-                     >
-                        <span class="text-xs font-bold text-stone-600 dark:text-stone-400 uppercase tracking-widest">Custom Amount</span>
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-stone-400 transition-transform duration-200" :class="topUpCustom ? 'rotate-180' : ''"><path d="M6 9l6 6 6-6"/></svg>
-                     </button>
-                     <div v-if="topUpCustom" class="mt-3 px-1 animate-in fade-in slide-in-from-top-2 duration-200">
-                        <div class="relative">
-                           <span class="absolute left-4 top-1/2 -translate-y-1/2 text-sm font-bold text-stone-400">GHS</span>
-                           <input 
-                              v-model.number="topUpCustomAmount"
-                              type="number"
-                              min="1"
-                              max="500"
-                              step="1"
-                              placeholder="Enter amount (min 1)"
-                              class="w-full pl-14 pr-4 py-3 rounded-xl border-2 border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-800 text-stone-900 dark:text-stone-100 font-mono font-bold text-lg focus:border-green-500 focus:ring-2 focus:ring-green-500/20 outline-none transition-all"
-                           />
-                        </div>
-                        <p v-if="topUpCustomAmount && topUpCustomAmount >= 1" class="mt-2 text-[10px] font-bold text-stone-400 uppercase tracking-widest">
-                           ≈ {{ Math.floor(topUpCustomAmount / 15) }} match unlock{{ Math.floor(topUpCustomAmount / 15) !== 1 ? 's' : '' }}
-                           <span v-if="topUpCustomAmount % 15 > 0"> + GHS {{ (topUpCustomAmount % 15).toFixed(0) }} remainder</span>
-                        </p>
-                        <p v-else-if="topUpCustomAmount && topUpCustomAmount < 1" class="mt-2 text-[10px] font-bold text-rose-500 uppercase tracking-widest">Minimum top-up is GHS 1</p>
-                     </div>
-                  </div>
-
-                  <!-- Top Up Button -->
-                  <button 
-                     @click="handleTopUp"
-                     :disabled="topUpLoading || (!topUpCustom && !topUpAmount) || (topUpCustom && (!topUpCustomAmount || topUpCustomAmount < 1))"
-                     class="w-full py-3.5 rounded-xl font-black text-sm uppercase tracking-widest transition-all duration-200 flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed"
-                     :class="topUpLoading 
-                        ? 'bg-stone-200 dark:bg-stone-700 text-stone-500'
-                        : 'bg-green-600 hover:bg-green-700 text-white shadow-[0_4px_14px_rgba(22,163,74,0.4)] hover:shadow-[0_6px_20px_rgba(22,163,74,0.5)] active:translate-y-0.5'"
-                  >
-                     <div v-if="topUpLoading" class="w-4 h-4 border-2 border-stone-400 border-t-white rounded-full animate-spin"></div>
-                     <template v-else>
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14m-7-7h14"/></svg>
-                        Top Up {{ topUpCustom && topUpCustomAmount >= 5 ? `GHS ${topUpCustomAmount}` : topUpAmount ? `GHS ${topUpAmount}` : '' }}
-                     </template>
-                  </button>
-               </div>
-
-               <!-- How Credits Work (below card) -->
-               <div class="bg-white dark:bg-stone-900 rounded-xl border-2 border-stone-200 dark:border-stone-700 p-4 sm:p-5">
-                  <p class="text-[10px] font-black uppercase tracking-widest text-stone-400 dark:text-stone-500 mb-3">How Credits Work</p>
-                  <ul class="space-y-2.5 text-[13px] text-stone-600 dark:text-stone-400 font-medium leading-relaxed">
-                     <li class="flex items-start gap-2.5">
-                        <span class="w-5 h-5 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center text-[10px] shrink-0 mt-0.5">💚</span>
-                        <span>Match expires and you paid? <strong class="text-stone-900 dark:text-stone-200">Your full unlock amount returns as M2M wallet credit</strong></span>
-                     </li>
-                     <li class="flex items-start gap-2.5">
-                        <span class="w-5 h-5 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center text-[10px] shrink-0 mt-0.5">⚡</span>
-                        <span>Credits auto-apply when you unlock your next match</span>
-                     </li>
-                     <li class="flex items-start gap-2.5">
-                        <span class="w-5 h-5 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center text-[10px] shrink-0 mt-0.5">∞</span>
-                        <span>Credits never expire — they stay on your card forever</span>
-                     </li>
-                  </ul>
-               </div>
-
-               <!-- Transaction History (below card) -->
-               <div class="bg-white dark:bg-stone-900 rounded-xl border-2 border-stone-200 dark:border-stone-700 overflow-hidden">
-                  <div class="px-4 sm:px-5 py-3 border-b border-stone-100 dark:border-stone-800 flex items-center justify-between">
-                     <p class="text-[10px] font-black uppercase tracking-widest text-stone-400 dark:text-stone-500">Transaction History</p>
-                     <span v-if="creditTransactions.length > 0" class="text-[9px] font-bold text-stone-400 bg-stone-100 dark:bg-stone-800 px-2 py-0.5 rounded-full">{{ creditTransactions.length }}</span>
-                  </div>
-                  <div v-if="creditTransactions.length > 0" class="divide-y divide-stone-50 dark:divide-stone-800 max-h-[240px] overflow-y-auto">
-                     <div v-for="txn in creditTransactions.slice(0, 8)" :key="txn.id" class="px-4 sm:px-5 py-3 flex items-center justify-between hover:bg-stone-50/50 dark:hover:bg-stone-800/30 transition-colors">
-                        <div class="flex items-center gap-3 min-w-0">
-                           <div class="w-8 h-8 rounded-full flex items-center justify-center text-sm shrink-0" :class="txn.type === 'credit' ? 'bg-green-100 dark:bg-green-900/30' : 'bg-rose-50 dark:bg-rose-900/20'">
-                              {{ txn.type === 'credit' ? '↑' : '↓' }}
-                           </div>
-                           <div class="min-w-0">
-                              <p class="text-xs font-bold text-stone-800 dark:text-stone-200 truncate capitalize">{{ (txn.description || txn.reason).replace(/_/g, ' ') }}</p>
-                              <p class="text-[10px] text-stone-400 dark:text-stone-500 font-medium">{{ new Date(txn.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) }}</p>
-                           </div>
-                        </div>
-                        <span class="text-sm font-black font-mono tabular-nums shrink-0 ml-3" :class="txn.type === 'credit' ? 'text-green-600 dark:text-green-400' : 'text-rose-500'">
-                           {{ txn.type === 'credit' ? '+' : '-' }}{{ parseFloat(txn.amount).toFixed(2) }}
-                        </span>
-                     </div>
-                  </div>
-                  <div v-else class="py-10 text-center">
-                     <div class="text-3xl mb-2 opacity-20">💳</div>
-                     <p class="text-xs text-stone-400 dark:text-stone-500 font-medium italic">No transactions yet</p>
-                  </div>
-               </div>
-            </div>
-
-            <!-- Subscription Card -->
-            <div class="bg-white dark:bg-stone-900 p-4 sm:p-6 md:p-8 rounded-xl border-2 border-black dark:border-stone-700 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] md:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,0.05)]">
-               <h3 class="text-lg md:text-2xl font-serif font-bold text-black dark:text-white mb-6 md:mb-8">Subscription Status</h3>
-               <SubscriptionCard :subscription="subscription" @subscribe="handleSubscribe" />
-            </div>
-
-            <!-- Account Settings -->
-            <div class="bg-white dark:bg-stone-900 p-4 sm:p-6 md:p-8 rounded-xl border-2 border-black dark:border-stone-700 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] md:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,0.05)]">
-               <h3 class="text-lg md:text-2xl font-serif font-bold text-black dark:text-white mb-6 md:mb-8">Account Actions</h3>
-               <div class="space-y-4">
-                   <div class="bg-emerald-50 dark:bg-emerald-900/10 p-4 rounded-xl border-2 border-emerald-100 dark:border-emerald-900/30 mb-6">
-                      <div class="flex items-center gap-3 mb-2">
-                         <span class="text-xl">🛡️</span>
-                         <h4 class="font-bold text-emerald-900 dark:text-emerald-400 text-sm uppercase tracking-wider">Trust Score: {{ trustScore || 60 }}%</h4>
-                      </div>
-                       <p class="text-[10px] text-emerald-800 dark:text-emerald-500 font-medium leading-relaxed">
-                          Higher trust scores improve your match quality and visibility. Increase yours by verifying your identity.
-                       </p>
-                    </div>
-
-                    <div class="grid grid-cols-2 gap-3 mb-6">
-                       <div class="p-3 bg-white dark:bg-stone-900 border-2 border-stone-200 dark:border-stone-800 rounded-xl flex flex-col items-center text-center gap-1 group cursor-pointer hover:border-emerald-500 transition-colors">
-                          <span class="text-xl">📱</span>
-                          <span class="text-[9px] font-black uppercase text-stone-400">Phone</span>
-                          <span class="text-[10px] font-bold text-emerald-500">+20 pts</span>
-                       </div>
-                       <div @click="triggerPhotoUpload" class="p-3 bg-white dark:bg-stone-900 border-2 border-stone-200 dark:border-stone-800 rounded-xl flex flex-col items-center text-center gap-1 group cursor-pointer hover:border-emerald-500 transition-colors">
-                          <span class="text-xl">📸</span>
-                          <span class="text-[9px] font-black uppercase text-stone-400">Photo ID</span>
-                          <span class="text-[10px] font-bold text-emerald-500">+30 pts</span>
-                       </div>
-                    </div>
-
-                   <!-- Privacy & Security -->
-                   <div class="space-y-4">
-                     <div class="flex items-center justify-between bg-stone-50 dark:bg-stone-900/50 p-6 rounded-2xl border-2 border-transparent" :class="!editForm.is_active ? 'border-black bg-stone-100 dark:bg-stone-900' : ''">
-                       <div class="space-y-1">
-                         <div class="flex items-center gap-2">
-                           <span class="text-sm font-black uppercase tracking-widest" :class="!editForm.is_active ? 'text-rose-500' : 'text-stone-900 dark:text-stone-100'">Incognito Mode</span>
-                           <span v-if="!editForm.is_active" class="px-2 py-0.5 bg-rose-500 text-[8px] font-black text-white rounded uppercase tracking-widest animate-pulse">Engaged</span>
-                         </div>
-                         <p class="text-[10px] font-bold text-stone-500 dark:text-stone-400 uppercase tracking-widest leading-relaxed">Vanish from the pool & kill all notifications instantly.</p>
-                       </div>
-                       <button 
-                         @click="toggleIncognito"
-                         :disabled="saving"
-                         class="relative inline-flex h-7 w-12 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-300 ease-in-out focus:outline-none"
-                         :class="!editForm.is_active ? 'bg-black dark:bg-rose-500 shadow-[inset_2px_2px_4px_rgba(0,0,0,0.2)]' : 'bg-stone-200 dark:bg-stone-800'"
-                       >
-                         <span 
-                           class="pointer-events-none inline-block h-6 w-6 transform rounded-full bg-white shadow-[2px_2px_4px_rgba(0,0,0,0.15)] ring-0 transition duration-300 ease-in-out flex items-center justify-center text-[8px]"
-                           :class="!editForm.is_active ? 'translate-x-5' : 'translate-x-0'"
-                         >
-                            {{ !editForm.is_active ? '✓' : '' }}
-                         </span>
-                       </button>
-                     </div>
-                   </div>
-
-                   <!-- Danger Zone / Delete Account Request -->
-                   <div class="mt-8 pt-6 border-t-2 border-stone-100 dark:border-stone-800 space-y-4">
-                     <div class="flex items-center gap-2">
-                       <span class="text-[10px] font-black uppercase tracking-widest text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/30 px-2.5 py-1 rounded-md border border-rose-200/50 dark:border-rose-900/30">Danger Zone</span>
-                     </div>
-
-                     <!-- Pending Request Status Card -->
-                     <div v-if="deletionRequest && deletionRequest.status === 'pending'" class="bg-gradient-to-br from-rose-50/80 via-white to-amber-50/50 dark:from-stone-900 dark:to-stone-900/90 border-2 border-rose-400/40 dark:border-rose-500/40 p-5 sm:p-6 rounded-2xl shadow-[4px_4px_0px_0px_rgba(225,29,72,0.1)] relative overflow-hidden space-y-4">
-                       <!-- Accent top bar -->
-                       <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-500 via-rose-500 to-rose-600"></div>
-
-                       <!-- Top Header & Status Badge -->
-                       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-rose-200/60 dark:border-stone-800 pb-3.5">
-                         <div class="flex items-center gap-3">
-                           <div class="w-10 h-10 rounded-xl bg-rose-500/10 dark:bg-rose-500/20 text-rose-600 dark:text-rose-400 flex items-center justify-center text-xl shrink-0 border border-rose-500/20">
-                             ⏳
-                           </div>
-                           <div>
-                             <h4 class="font-black text-stone-900 dark:text-stone-100 text-sm sm:text-base tracking-tight">Account Deletion Requested</h4>
-                             <p class="text-[11px] text-stone-500 dark:text-stone-400 font-medium">
-                               Submitted {{ new Date(deletionRequest.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) }}
-                             </p>
-                           </div>
-                         </div>
-                         <div class="self-start sm:self-center shrink-0">
-                           <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-500 text-white text-[9px] font-black uppercase tracking-widest rounded-full shadow-sm">
-                             <span class="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></span>
-                             Pending Admin Review
-                           </span>
-                         </div>
-                       </div>
-
-                       <!-- Details Pill -->
-                       <div class="bg-white dark:bg-stone-950/60 p-3 sm:p-3.5 rounded-xl border border-stone-200 dark:border-stone-800 flex flex-wrap items-center justify-between gap-2">
-                         <div class="flex items-center gap-2 text-xs">
-                           <span class="text-stone-400 font-bold uppercase text-[9px] tracking-wider">Reason:</span>
-                           <span class="font-bold capitalize text-stone-900 dark:text-stone-100 bg-stone-100 dark:bg-stone-800 px-2.5 py-1 rounded-lg">
-                             {{ (deletionRequest.reason || 'Not specified').replace(/_/g, ' ') }}
-                           </span>
-                         </div>
-                         <p v-if="deletionRequest.details" class="text-[11px] text-stone-500 dark:text-stone-400 italic max-w-full truncate">
-                           "{{ deletionRequest.details }}"
-                         </p>
-                       </div>
-
-                       <!-- Message & Cancel Action -->
-                       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-1">
-                         <p class="text-[11px] text-stone-500 dark:text-stone-400 font-medium leading-relaxed max-w-sm">
-                           Your request is currently being reviewed by the back office. You can cancel anytime before admin approval.
-                         </p>
-                         <button 
-                           @click="cancelDeletionRequest"
-                           :disabled="cancellingDeletionRequest"
-                           class="w-full sm:w-auto shrink-0 px-4 py-2.5 bg-stone-900 hover:bg-black dark:bg-stone-100 dark:hover:bg-white text-white dark:text-black font-bold uppercase tracking-widest text-[10px] rounded-xl transition-all shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.1)] active:translate-x-0.5 active:translate-y-0.5 disabled:opacity-50"
-                         >
-                           {{ cancellingDeletionRequest ? 'Cancelling...' : 'Cancel Request' }}
-                         </button>
-                       </div>
-                     </div>
-
-                     <!-- Approved Status Note -->
-                     <div v-else-if="deletionRequest && deletionRequest.status === 'approved'" class="bg-stone-100 dark:bg-stone-800 p-4 rounded-xl text-xs text-stone-600 dark:text-stone-300 border-2 border-black">
-                        <span class="font-bold">Status:</span> Your account deletion request was approved. Your account is scheduled for final removal.
-                     </div>
-
-                     <!-- Request Deletion Button -->
-                     <div v-else class="bg-stone-50/70 dark:bg-stone-900/40 p-5 sm:p-6 rounded-2xl border-2 border-stone-200 dark:border-stone-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 transition-all hover:border-rose-300 dark:hover:border-rose-900/50">
-                       <div class="space-y-1">
-                         <div class="flex items-center gap-2">
-                           <span class="text-base">🗑️</span>
-                           <h4 class="font-bold text-stone-900 dark:text-stone-100 text-sm sm:text-base">Delete Account</h4>
-                         </div>
-                         <p class="text-xs text-stone-500 dark:text-stone-400 leading-relaxed max-w-md">Request permanent removal of your profile and data. Requests are submitted to the back office for admin verification and approval.</p>
-                       </div>
-                       <button 
-                         @click="showDeletionModal = true"
-                         class="w-full sm:w-auto shrink-0 px-4 py-2.5 bg-rose-50 hover:bg-rose-500 text-rose-600 hover:text-white dark:bg-rose-950/40 dark:hover:bg-rose-600 dark:text-rose-400 dark:hover:text-white border-2 border-rose-200 dark:border-rose-800/80 font-black uppercase tracking-widest text-[10px] rounded-xl transition-all shadow-[2px_2px_0px_0px_rgba(225,29,72,0.2)] active:translate-x-0.5 active:translate-y-0.5"
-                       >
-                         Request Deletion
-                       </button>
-                     </div>
-                   </div>
-                  
-                  <button @click="handleLogout" class="w-full py-4 bg-white dark:bg-stone-900 border-2 border-black dark:border-stone-700 text-black dark:text-white font-bold uppercase tracking-widest text-sm rounded-xl hover:bg-rose-500 hover:text-white transition-all">
-                     Sign Out
-                  </button>
-               </div>
-            </div>
-
-               <!-- Payment History -->
-             <div class="bg-white dark:bg-stone-900 rounded-xl border-2 border-black dark:border-stone-700 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] group overflow-hidden">
-                <button @click="showPaymentHistory = !showPaymentHistory" class="w-full flex items-center justify-between p-4 hover:bg-stone-50 dark:hover:bg-stone-800 transition-colors">
-                   <div class="flex items-center gap-3">
-                      <span class="text-xl">💳</span>
-                      <h3 class="font-black uppercase tracking-widest text-[10px] sm:text-xs text-black dark:text-white">Transaction Logs</h3>
-                   </div>
-                   <div class="flex items-center gap-2">
-                       <span v-if="userPayments.length > 0" class="px-2 py-0.5 bg-black text-white dark:bg-stone-800 dark:text-stone-400 text-[8px] font-black rounded-full">{{ userPayments.length }}</span>
-                       <span class="text-stone-400 transition-transform duration-300" :class="showPaymentHistory ? 'rotate-180' : ''">▼</span>
-                   </div>
-                </button>
-                <div v-show="showPaymentHistory" class="border-t border-stone-100 dark:border-stone-800 animate-in slide-in-from-top-2 duration-300">
-                   <div v-if="loadingPayments" class="p-8 text-center flex flex-col items-center gap-3">
-                      <div class="w-6 h-6 border-2 border-stone-200 border-t-black rounded-full animate-spin"></div>
-                      <p class="text-[9px] font-bold uppercase tracking-widest text-stone-400">Syncing history...</p>
-                   </div>
-                   <div v-else-if="userPayments.length === 0" class="p-12 text-center flex flex-col items-center gap-4">
-                      <div class="w-12 h-12 bg-stone-50 dark:bg-stone-800 rounded-full flex items-center justify-center text-xl grayscale opacity-50">💸</div>
-                      <div>
-                         <p class="text-[10px] font-black uppercase tracking-widest text-stone-500">No transactions recorded</p>
-                         <p class="text-[9px] text-stone-400 mt-1 uppercase tracking-widest">Matches & tickets will appear here</p>
-                      </div>
-                   </div>
-                   <div v-else class="max-h-[300px] overflow-y-auto no-scrollbar">
-                      <div v-for="payment in userPayments" :key="'p-m-'+payment.id" class="p-4 border-b border-stone-50 dark:border-stone-800/50 last:border-0 hover:bg-stone-50/50 dark:hover:bg-stone-800/30 transition-colors flex items-center justify-between group/row">
-                         <div class="flex items-center gap-4 min-w-0">
-                            <div class="w-10 h-10 rounded-lg flex items-center justify-center text-lg border-2 border-stone-100 dark:border-stone-800 bg-white dark:bg-stone-900 shadow-sm group-hover/row:scale-110 transition-transform cursor-help" :title="payment.provider">
-                               <span v-if="payment.purpose === 'subscription'">👑</span>
-                               <span v-else-if="payment.purpose === 'match_unlock'">💕</span>
-                               <span v-else-if="payment.purpose === 'event_ticket'">🎟️</span>
-                               <span v-else>💰</span>
-                            </div>
-                            <div class="min-w-0">
-                               <p class="text-[10px] font-black uppercase tracking-widest text-stone-900 dark:text-white truncate">
-                                  {{ (payment.purpose || 'unknown transaction').replace('_', ' ') }}
-                               </p>
-                               <div class="flex flex-wrap items-center gap-1 sm:gap-2 mt-1">
-                                  <span class="text-[8px] sm:text-[9px] font-bold text-stone-400 uppercase tracking-widest">{{ new Date(payment.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) }}</span>
-                                  <div class="w-0.5 h-0.5 sm:w-1 sm:h-1 bg-stone-300 rounded-full"></div>
-                                  <span class="text-[8px] sm:text-[9px] font-bold uppercase tracking-widest" :class="payment.status === 'success' ? 'text-emerald-500' : (payment.status === 'failed' ? 'text-rose-500' : 'text-amber-500')">
-                                     {{ payment.status }}
-                                  </span>
-                               </div>
-                            </div>
-                         </div>
-                         <div class="text-right ml-4 shrink-0">
-                            <p class="text-xs font-black text-black dark:text-white font-mono leading-none">{{ formatPaymentGHS(payment.amount) }}</p>
-                            <p class="text-[8px] font-bold text-stone-400 uppercase mt-1 tracking-widest">{{ payment.provider }}</p>
-                         </div>
-                      </div>
-                   </div>
-                </div>
-             </div>
-         </div>
-
-         <!-- STICKY FOOTER ACTIONS (Only for editable sections) -->
-         <div v-if="activeProfileSection !== 'account'" class="bg-white/95 dark:bg-stone-950/95 backdrop-blur-md p-3 md:p-4 rounded-xl border-2 border-black dark:border-stone-700 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] md:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,0.05)] sticky bottom-[104px] md:bottom-8 z-30 flex items-center gap-4 mt-12 transition-all duration-300">
-            <button 
-              :disabled="saving || !editForm.display_name?.trim()"
-              @click="saveProfile"
-              class="flex-1 py-4 px-6 bg-black dark:bg-white text-white dark:text-black font-bold uppercase tracking-widest text-[10px] md:text-xs rounded-xl hover:bg-rose-500 dark:hover:bg-rose-500 hover:text-white dark:hover:text-white transition-all flex items-center justify-center gap-3 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:shadow-none active:translate-x-0.5 active:translate-y-0.5 overflow-hidden relative group"
-            >
-              <span v-if="saving" class="flex items-center gap-2">
-                 <div class="w-3 h-3 border-2 border-stone-600 border-t-white rounded-full animate-spin"></div>
-                 Wait...
-              </span>
-              <template v-else>
-                 <span>Save Changes</span>
-                 <span class="group-hover:translate-x-1 transition-transform">👉</span>
-              </template>
-            </button>
-            <div v-if="saveSuccess" class="absolute -top-12 left-1/2 -translate-x-1/2 bg-emerald-500 text-white text-[10px] font-bold px-4 py-2 rounded-full shadow-lg border-2 border-black animate-in fade-in slide-in-from-bottom-2">
-               Updated Successfully!
-            </div>
-         </div>
-       </div> <!-- End Main Content Area -->
-    </div> <!-- End Grid -->
-
-    <!-- Profile Preview Modal -->
-    <div v-if="showPreview" class="fixed inset-0 z-[100] flex items-center justify-center p-4">
-       <div class="absolute inset-0 bg-stone-950/80 backdrop-blur-sm" @click="showPreview = false"></div>
-       <div class="relative w-full max-w-sm max-h-[90vh] overflow-y-auto animate-in zoom-in-95 duration-200">
-          <div class="flex flex-wrap items-center justify-between mb-4 bg-white dark:bg-stone-900 p-4 rounded-xl border-2 border-black dark:border-stone-700 relative gap-3">
-             <div class="flex flex-wrap gap-2 pr-6">
-                <button 
-                  @click="previewUnlocked = false"
+            <!-- Hobbies -->
+            <template v-else-if="panel.id === 'hobbies'">
+              <p class="mb-3 text-sm text-[#9b9690]">Pick up to 6 · {{ editForm.interests.length }} selected</p>
+              <div class="flex flex-wrap gap-2">
+                <button
+                  v-for="i in availableInterests"
+                  :key="i.id"
                   type="button"
-                  class="px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-widest border-2 whitespace-nowrap"
-                  :class="[!previewUnlocked ? 'bg-black text-white border-black' : 'bg-white text-stone-400 border-stone-100']"
-                >Blind View</button>
-                <button 
-                  @click="previewUnlocked = true"
+                  :aria-pressed="editForm.interests.includes(i.id)"
+                  :disabled="!editForm.interests.includes(i.id) && editForm.interests.length >= 6"
+                  class="rounded-full px-4 py-2 text-sm transition-colors disabled:opacity-40"
+                  :class="editForm.interests.includes(i.id) ? 'bg-[#393737] text-white' : 'bg-white text-[#393737] ring-1 ring-black/10 hover:ring-[#393737]'"
+                  @click="toggleInterest(i.id)"
+                >{{ i.label }}</button>
+              </div>
+            </template>
+
+            <!-- When you're free -->
+            <template v-else-if="panel.id === 'free'">
+              <p class="mb-3 text-sm text-[#9b9690]">We use this to suggest a date time that works for you both.</p>
+              <div class="overflow-hidden rounded-[1.25rem] border border-[#e5e2dd]">
+                <div class="grid grid-cols-[minmax(0,1.3fr)_repeat(3,minmax(0,1fr))] border-b border-[#efebe6] bg-[#faf9f7] text-xs text-[#9b9690]">
+                  <span class="px-3 py-2"></span>
+                  <span v-for="slot in SLOTS" :key="slot.id" class="px-1 py-2 text-center">{{ slot.label }}</span>
+                </div>
+                <div v-for="day in DAYS" :key="day.id" class="grid grid-cols-[minmax(0,1.3fr)_repeat(3,minmax(0,1fr))] items-center border-b border-[#efebe6] last:border-b-0">
+                  <span class="px-3 py-2.5 text-sm text-[#393737]">{{ day.label }}</span>
+                  <div v-for="slot in SLOTS" :key="slot.id" class="flex justify-center py-1.5">
+                    <button
+                      type="button"
+                      :aria-pressed="isFree(day.id, slot.id)"
+                      :aria-label="`${day.label} ${slot.label}`"
+                      class="flex h-10 w-10 items-center justify-center rounded-full transition-colors sm:h-9 sm:w-9"
+                      :class="isFree(day.id, slot.id) ? 'bg-[#393737] text-white' : 'bg-white text-transparent ring-1 ring-black/10 hover:ring-[#393737]'"
+                      @click="toggleFree(day.id, slot.id)"
+                    >
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" class="h-3.5 w-3.5" aria-hidden="true"><path d="M20 6 9 17l-5-5" /></svg>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </template>
+
+            <!-- Who you're looking for -->
+            <div v-else-if="panel.id === 'seek'" class="grid gap-3 sm:grid-cols-2">
+              <div>
+                <label for="me-intent" class="mb-1.5 block text-sm text-[#6c6862]">Looking for</label>
+                <select id="me-intent" v-model="editForm.intent" :class="FIELD">
+                  <option v-for="i in INTENTS" :key="i.value" :value="i.value">{{ i.label }}</option>
+                </select>
+              </div>
+              <div>
+                <label for="me-interested" class="mb-1.5 block text-sm text-[#6c6862]">Interested in</label>
+                <select id="me-interested" v-model="editForm.interested_in" :class="FIELD">
+                  <option value="male">Men</option>
+                  <option value="female">Women</option>
+                  <option value="everyone">Everyone</option>
+                </select>
+              </div>
+              <div>
+                <label for="me-min-age" class="mb-1.5 block text-sm text-[#6c6862]">Age from</label>
+                <select id="me-min-age" v-model.number="editForm.min_age" :class="FIELD">
+                  <option v-for="a in ageOptions" :key="'min' + a" :value="a" :disabled="a > editForm.max_age">{{ a }}</option>
+                </select>
+              </div>
+              <div>
+                <label for="me-max-age" class="mb-1.5 block text-sm text-[#6c6862]">Age to</label>
+                <select id="me-max-age" v-model.number="editForm.max_age" :class="FIELD">
+                  <option v-for="a in ageOptions" :key="'max' + a" :value="a" :disabled="a < editForm.min_age">{{ a }}</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Dealbreakers -->
+            <template v-else-if="panel.id === 'deal'">
+              <p class="text-sm text-[#9b9690]">Tap anything you're not open to. We'll never match you with someone who…</p>
+              <p class="mb-2 mt-4 text-sm text-[#6c6862]">…is of this faith</p>
+              <div class="flex flex-wrap gap-2">
+                <button
+                  v-for="r in RELIGIONS"
+                  :key="r"
                   type="button"
-                  class="px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-widest border-2 whitespace-nowrap"
-                  :class="[previewUnlocked ? 'bg-rose-500 text-white border-rose-600' : 'bg-white text-stone-400 border-stone-100']"
-                >Unlocked View</button>
-             </div>
-             <button @click="showPreview = false" type="button" class="absolute top-3 right-4 p-1 text-stone-400 hover:text-black">✖</button>
+                  :aria-pressed="editForm.dealbreakers.religion.includes(r)"
+                  class="rounded-full px-4 py-2 text-sm transition-colors"
+                  :class="editForm.dealbreakers.religion.includes(r) ? 'bg-[#393737] text-white' : 'bg-white text-[#393737] ring-1 ring-black/10 hover:ring-[#393737]'"
+                  @click="toggleDealbreaker('religion', r)"
+                >{{ r }}</button>
+              </div>
+              <p class="mb-2 mt-4 text-sm text-[#6c6862]">…is looking for</p>
+              <div class="flex flex-wrap gap-2">
+                <button
+                  v-for="i in INTENTS"
+                  :key="i.value"
+                  type="button"
+                  :aria-pressed="editForm.dealbreakers.intent.includes(i.value)"
+                  class="rounded-full px-4 py-2 text-sm transition-colors"
+                  :class="editForm.dealbreakers.intent.includes(i.value) ? 'bg-[#393737] text-white' : 'bg-white text-[#393737] ring-1 ring-black/10 hover:ring-[#393737]'"
+                  @click="toggleDealbreaker('intent', i.value)"
+                >{{ i.label }}</button>
+              </div>
+              <p class="mt-4 text-sm text-[#9b9690]">We also automatically avoid genotype pairings that carry a health risk.</p>
+            </template>
+
+            <div class="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:items-center sm:justify-end">
+              <button type="button" class="h-12 w-full rounded-full text-base font-medium text-[#6c6862] hover:text-[#393737] sm:h-11 sm:w-auto sm:px-5 sm:text-sm" @click="cancelPanel">Cancel</button>
+              <button type="button" :disabled="saving" class="btn-solid grain h-12 w-full px-6 text-base disabled:opacity-60 sm:h-11 sm:w-auto sm:text-sm" @click="savePanel">{{ saving ? 'Saving…' : 'Save' }}</button>
+            </div>
           </div>
-          <BlindProfileCard 
-            :match-id="'preview'"
-            :display-name="editForm.display_name"
-            :photo-url="photoPreview || profile?.photo_url"
-            :gender="editForm.gender as any"
-            :location="editForm.location"
-            :age="calculatedAge || 25"
-            :persona-name="personaData?.name || 'New Member'"
-            :persona-emoji="personaData?.emoji || '👤'"
-            :persona-color="'#rose-500'"
-            :vibe-preview="personaData?.description || 'No vibe description yet.'"
-            :unlock-price="50"
-            :interests="editForm.interests"
-            :bio="editForm.about_me"
-            :unlocked="previewUnlocked"
-            :phone="profile?.phone"
-          />
-          <p class="mt-4 text-center text-white/60 text-[10px] font-bold uppercase tracking-[0.2em]">This is how others see you</p>
-       </div>
-    </div>
+        </li>
+      </ul>
+    </section>
 
-    <!-- Account Deletion Request Modal -->
-    <div v-if="showDeletionModal" class="fixed inset-0 z-[100] flex items-center justify-center p-4">
-      <div class="absolute inset-0 bg-stone-950/80 backdrop-blur-md" @click="showDeletionModal = false"></div>
-      <div class="relative bg-white dark:bg-stone-900 border-2 border-black dark:border-stone-700 rounded-2xl p-6 sm:p-8 max-w-md w-full shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] dark:shadow-[8px_8px_0px_0px_rgba(255,255,255,0.05)] space-y-6 animate-in zoom-in-95 duration-200">
-        <button @click="showDeletionModal = false" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-stone-100 dark:bg-stone-800 text-stone-500 hover:text-stone-900 dark:hover:text-white flex items-center justify-center font-bold transition-colors">✕</button>
-
-        <div class="flex items-center gap-3 pr-8">
-          <div class="w-12 h-12 rounded-2xl bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20 flex items-center justify-center text-2xl shrink-0">⚠️</div>
-          <div>
-            <h3 class="text-lg font-black text-stone-900 dark:text-white uppercase tracking-tight">Request Account Deletion</h3>
-            <p class="text-[11px] text-stone-500 dark:text-stone-400 font-medium">Back-Office Admin Review Required</p>
-          </div>
-        </div>
-
-        <div class="space-y-4">
-          <div class="bg-rose-50/80 dark:bg-rose-950/30 border-2 border-rose-200/80 dark:border-rose-900/40 p-4 rounded-xl text-xs text-rose-900 dark:text-rose-300 space-y-2">
-            <p class="font-bold flex items-center gap-2 text-rose-950 dark:text-rose-200"><span>🛑</span> What happens when approved?</p>
-            <ul class="list-disc list-inside space-y-1 text-[11px] opacity-90 leading-relaxed font-medium">
-              <li>Your profile will be permanently removed from Minutes 2 Match.</li>
-              <li>Active matches and event registrations will be cancelled.</li>
-              <li>Any remaining M2M Wallet credits will be forfeited.</li>
-            </ul>
-          </div>
-
-          <div>
-            <label class="block text-[10px] font-black uppercase tracking-widest text-stone-500 dark:text-stone-400 mb-1.5">Reason for Leaving</label>
-            <select v-model="deletionReason" class="w-full p-3 rounded-xl border-2 border-stone-200 dark:border-stone-700 bg-stone-50 dark:bg-stone-800 text-xs font-bold text-stone-900 dark:text-stone-100 outline-none focus:border-black dark:focus:border-rose-500 transition-colors">
-              <option value="found_match">Found a partner on Minutes 2 Match ❤️</option>
-              <option value="taking_break">Taking a break from dating 🧘</option>
-              <option value="privacy">Privacy / Security concerns 🛡️</option>
-              <option value="not_satisfied">Not satisfied with matches 😕</option>
-              <option value="other">Other reason 💬</option>
-            </select>
-          </div>
-
-          <div>
-            <label class="block text-[10px] font-black uppercase tracking-widest text-stone-500 dark:text-stone-400 mb-1.5">Additional Details (Optional)</label>
-            <textarea 
-              v-model="deletionDetails" 
-              rows="3" 
-              placeholder="Tell us how we can improve or why you're leaving..."
-              class="w-full p-3 rounded-xl border-2 border-stone-200 dark:border-stone-700 bg-stone-50 dark:bg-stone-800 text-xs text-stone-900 dark:text-stone-100 outline-none focus:border-black dark:focus:border-rose-500 transition-colors"
-            ></textarea>
-          </div>
-        </div>
-
-        <div class="flex items-center gap-3 pt-2">
-          <button 
-            @click="showDeletionModal = false" 
-            class="flex-1 py-3 bg-stone-100 hover:bg-stone-200 dark:bg-stone-800 dark:hover:bg-stone-700 text-stone-800 dark:text-stone-200 font-bold uppercase tracking-widest text-xs rounded-xl transition-all"
-          >
-            Cancel
+    <!-- Account -->
+    <section class="rounded-[1.75rem] bg-white shadow-[0_10px_30px_rgba(52,38,25,0.07)] ring-1 ring-black/5">
+      <p class="px-5 pb-1 pt-5 text-sm font-medium text-[#9b9690] sm:px-6 sm:pt-6">Account</p>
+      <ul class="divide-y divide-black/[0.06]">
+        <li>
+          <NuxtLink to="/vibe-check?retake=true" class="flex min-h-[4.25rem] items-center gap-4 px-5 py-4 active:bg-[#faf9f7] sm:px-6">
+            <span class="min-w-0 flex-1">
+              <span class="block text-base font-medium text-[#393737]">Retake the Vibe Check</span>
+              <span class="mt-0.5 block text-sm text-[#9b9690]">Your new answers replace the old ones</span>
+            </span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5 shrink-0 text-[#b5b0aa]" aria-hidden="true"><path d="m9 18 6-6-6-6" /></svg>
+          </NuxtLink>
+        </li>
+        <li v-if="deletionRequest?.status === 'pending'" class="px-5 py-4 sm:px-6">
+          <p class="text-base font-medium text-[#393737]">Account deletion in progress</p>
+          <p class="mt-0.5 text-sm text-[#9b9690]">We'll remove your profile and data shortly.</p>
+          <button type="button" :disabled="cancellingDeletionRequest" class="mt-3 rounded-full bg-white px-5 py-2.5 text-sm font-medium text-[#393737] ring-1 ring-black/10 hover:bg-[#fafafa] disabled:opacity-60" @click="cancelDeletionRequest">
+            {{ cancellingDeletionRequest ? 'Cancelling…' : 'Keep my account' }}
           </button>
-          <button 
-            @click="submitDeletionRequest" 
-            :disabled="submittingDeletionRequest"
-            class="flex-1 py-3 bg-rose-600 hover:bg-rose-700 text-white font-bold uppercase tracking-widest text-xs rounded-xl transition-all shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-x-0.5 active:translate-y-0.5 disabled:opacity-50"
-          >
-            {{ submittingDeletionRequest ? 'Submitting...' : 'Submit Request' }}
+        </li>
+        <li v-else>
+          <button type="button" class="flex min-h-[4.25rem] w-full items-center gap-4 px-5 py-4 text-left active:bg-[#faf9f7] sm:px-6" @click="showDeletionModal = true">
+            <span class="flex-1 text-base font-medium text-[#b4232a]">Delete account</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5 shrink-0 text-[#b5b0aa]" aria-hidden="true"><path d="m9 18 6-6-6-6" /></svg>
           </button>
+        </li>
+      </ul>
+    </section>
+
+
+    <!-- Delete confirmation -->
+    <Teleport to="body">
+      <div v-if="showDeletionModal" class="m2m-app fixed inset-0 z-[120] flex items-end justify-center bg-black/40 p-4 backdrop-blur-sm sm:items-center" @click.self="showDeletionModal = false">
+        <div class="w-full max-w-md rounded-[1.75rem] bg-white p-6 shadow-[0_24px_60px_rgba(0,0,0,0.18)] sm:p-8" role="dialog" aria-modal="true" aria-labelledby="delete-title">
+          <h3 id="delete-title" class="font-display text-2xl text-[#393737]">Delete your account?</h3>
+          <p class="mt-2 text-base text-[#6c6862]">This removes your profile, Vibe Check answers and matches. It can't be undone.</p>
+          <label for="del-reason" class="mt-5 block text-sm text-[#6c6862]">Why are you leaving?</label>
+          <select id="del-reason" v-model="deletionReason" :class="[FIELD, 'mt-1.5']">
+            <option value="found_match">I found a partner on Minutes 2 Match ❤️</option>
+            <option value="taking_break">I'm taking a break from dating</option>
+            <option value="privacy">Privacy or security concerns</option>
+            <option value="not_satisfied">I'm not happy with my matches</option>
+            <option value="other">Something else</option>
+          </select>
+          <label for="del-details" class="mt-4 block text-sm text-[#6c6862]">Anything else? (optional)</label>
+          <textarea id="del-details" v-model="deletionDetails" rows="3" maxlength="500" class="mt-1.5 w-full resize-none rounded-[1.25rem] border border-[#e5e2dd] p-4 text-base text-[#393737] outline-none focus:border-[#393737]"></textarea>
+          <div class="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+            <button type="button" class="rounded-full px-6 py-3.5 text-sm font-medium text-[#6c6862] hover:text-[#393737]" @click="showDeletionModal = false">Cancel</button>
+            <button type="button" :disabled="submittingDeletionRequest" class="rounded-full bg-[#b4232a] px-6 py-3.5 text-sm font-medium text-white hover:bg-[#9a1d23] disabled:opacity-60" @click="submitDeletionRequest">
+              {{ submittingDeletionRequest ? 'Submitting…' : 'Delete my account' }}
+            </button>
+          </div>
         </div>
       </div>
-    </div>
-  </div> <!-- End Outer Div -->
+    </Teleport>
+    </template>
+  </div>
 </template>
 
 <script setup lang="ts">
-import SubscriptionCard from '~/components/SubscriptionCard.vue'
-import { personas } from '~/composables/usePersona'
 import { useToast } from '~/composables/useToast'
 import type { M2MDatabase } from '~/types/database.types'
+import { currentMatchWeekEnd, isOptedInThisWeek } from '~/utils/matchWeek'
+import { normalizeCity } from '~/utils/compatibility'
+import { SCALE_QUESTIONS, VALUES_KEY } from '~/utils/vibeQuestions'
+import { personas } from '~/composables/usePersona'
 
 definePageMeta({
   layout: 'me',
@@ -1124,65 +375,412 @@ definePageMeta({
 })
 
 const supabase = useSupabaseClient<M2MDatabase>() as any
-const user = useSupabaseUser()
 const toast = useToast()
 const haptic = useHaptic()
-const { profile, subscription, fetchProfileById, trustScore, currentUserId, initDashboard } = useDashboard()
+const { profile, currentUserId, fetchProfileById, initDashboard } = useDashboard()
 
-const activeProfileSection = ref<'identity' | 'lifestyle' | 'hobbies' | 'availability' | 'matching' | 'account' | 'security'>('identity')
-const profileSections = [
-  { id: 'identity', label: 'Identity', icon: '👤', desc: 'Basic info & bio' },
-  { id: 'lifestyle', label: 'Lifestyle', icon: '🌟', desc: 'Social & details' },
-  { id: 'hobbies', label: 'Hobbies', icon: '🎨', desc: 'Your interests' },
-  { id: 'availability', label: 'Availability', icon: '📅', desc: 'When you are free' },
-  { id: 'matching', label: 'Matching', icon: '💍', desc: 'Who you seek' },
-  { id: 'security', label: 'Security', icon: '🔒', desc: 'Passkeys & Login' },
-  { id: 'account', label: 'Account', icon: '⚙️', desc: 'Status & Subscription' }
-]
-
-const editForm = reactive({
-  display_name: '', gender: '', birth_date: '', location: '', intent: '', interested_in: '', genotype: '', religion: '', height_cm: null as number | null, occupation: '', instagram_handle: '', snapchat_handle: '', preferred_contact_method: 'phone', about_me: '', min_age: 18, max_age: 50, interests: [] as string[], is_active: true,
-  dealbreakers: { genotype: [] as string[], intent: [] as string[], religion: [] as string[] },
-  availability: { weekdays: [], friday: [], saturday: [], sunday: [] }
+// Personality type: each one gets its own painted scene and soft background
+const PERSONA_LOOK: Record<string, { scene: 'dawn' | 'meadow' | 'tree' | 'night' | 'sunset' | 'meet'; tint: string }> = {
+  power_player: { scene: 'dawn', tint: 'linear-gradient(135deg,#eaf1fa 0%,#ffffff 55%,#fdf0e2 100%)' },
+  romantic: { scene: 'sunset', tint: 'linear-gradient(135deg,#fdeef0 0%,#ffffff 55%,#fdeadb 100%)' },
+  adventurer: { scene: 'meadow', tint: 'linear-gradient(135deg,#e8f3ee 0%,#ffffff 55%,#eaf2fa 100%)' },
+  intellectual: { scene: 'night', tint: 'linear-gradient(135deg,#ecebf8 0%,#ffffff 55%,#f6ecf2 100%)' },
+  social_butterfly: { scene: 'meet', tint: 'linear-gradient(135deg,#fdf3df 0%,#ffffff 55%,#fdebe6 100%)' },
+  homebody: { scene: 'tree', tint: 'linear-gradient(135deg,#f3efe6 0%,#ffffff 55%,#eaf2e6 100%)' },
+}
+const myPersona = computed(() => {
+  const p = personas[profile.value?.dating_persona as string]
+  if (!p) return null
+  return { ...p, ...(PERSONA_LOOK[p.id] || PERSONA_LOOK.social_butterfly) }
 })
 
-const availableInterests = [
-  { id: 'travel', label: 'Travel ✈️' }, { id: 'fitness', label: 'Fitness 💪' }, { id: 'cooking', label: 'Cooking 🍳' }, { id: 'movies', label: 'Movies 🎬' }, { id: 'music', label: 'Music 🎵' }, { id: 'gaming', label: 'Gaming 🎮' }, { id: 'reading', label: 'Reading 📚' }, { id: 'art', label: 'Art 🎨' }, { id: 'sports', label: 'Sports ⚽' }, { id: 'tech', label: 'Tech 💻' }, { id: 'fashion', label: 'Fashion 👗' }, { id: 'food', label: 'Foodie 🍕' }, { id: 'nature', label: 'Nature 🌿' }, { id: 'photography', label: 'Photography 📸' }, { id: 'dancing', label: 'Dancing 💃' }, { id: 'entrepreneurship', label: 'Business 💼' }
-]
+const FIELD = 'h-12 w-full rounded-[1.25rem] border border-[#e5e2dd] bg-white px-4 text-base text-[#393737] outline-none transition-[border-color,box-shadow] placeholder:text-[#9b9690] focus:border-[#393737] focus:ring-4 focus:ring-black/5'
 
-const ghanaLocations = [
-  'Accra', 'East Legon', 'Osu', 'Cantonments', 'Spintex', 'Airport Residential', 'Labone', 'Dzorwulu', 'Madina', 'Adenta', 'Tema', 'Kumasi', 'Tamale', 'Takoradi', 'Sekondi', 'Cape Coast', 'Koforidua', 'Sunyani', 'Ho', 'Wa', 'Bolgatanga', 'Techiman', 'Obuasi', 'Tarkwa'
+const firstName = computed(() => (profile.value?.display_name || 'there').split(' ')[0])
+
+// ===== 1. Weekly opt-in =====
+const savingOptIn = ref(false)
+const optedIn = computed(() => profile.value?.is_active !== false && isOptedInThisWeek(profile.value?.weekly_opt_in_until))
+const weekEndLabel = computed(() =>
+  currentMatchWeekEnd().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' }) + ' night'
+)
+
+const setWeeklyOptIn = async (optIn: boolean) => {
+  const userId = currentUserId.value
+  if (!userId) {
+    toast.error('Please sign in again', 'Your session may have expired.')
+    return
+  }
+  savingOptIn.value = true
+  try {
+    const update = optIn
+      ? { weekly_opt_in_until: currentMatchWeekEnd().toISOString(), is_active: true }
+      : { weekly_opt_in_until: null }
+    const { error } = await supabase.schema('m2m').from('profiles').update(update as any).eq('id', userId)
+    if (error) throw error
+    await fetchProfileById(userId)
+    haptic.hapticSuccess()
+    toast.success(optIn ? "You're in this week 💫" : 'Skipping this week', optIn ? "We'll text you when your match is ready." : 'Opt in again whenever you like.')
+  } catch (err: any) {
+    console.error('[Me] Opt-in update failed:', err)
+    haptic.hapticError()
+    // 42703 = column missing: the weekly opt-in migration (071) hasn't been run on the database yet
+    if (err?.code === '42703') {
+      toast.error('Weekly matching isn’t switched on yet', 'Please try again shortly.')
+    } else {
+      toast.error("Couldn't update", 'Please try again.')
+    }
+  } finally {
+    savingOptIn.value = false
+  }
+}
+
+// ===== 2. Profile (bio, social & lifestyle, hobbies, who you seek) =====
+const editForm = reactive({
+  about_me: '',
+  preferred_contact_method: 'phone',
+  instagram_handle: '',
+  snapchat_handle: '',
+  occupation: '',
+  religion: '',
+  height_cm: null as number | null,
+  genotype: '',
+  interests: [] as string[],
+  intent: 'serious',
+  interested_in: 'everyone',
+  min_age: 18,
+  max_age: 50,
+  location: '',
+  availability: { weekdays: [] as string[], friday: [] as string[], saturday: [] as string[], sunday: [] as string[] } as Record<string, string[]>,
+  dealbreakers: { religion: [] as string[], intent: [] as string[] },
+})
+
+const CITIES = {
+  ghana: ['Accra', 'Kumasi', 'Tema', 'Takoradi', 'Cape Coast', 'Tamale', 'Koforidua', 'Ho', 'Sunyani'],
+  kenya: ['Nairobi', 'Mombasa', 'Kisumu', 'Nakuru', 'Eldoret'],
+}
+const ALL_CITIES = [...CITIES.ghana, ...CITIES.kenya]
+// Saved values may be lowercase ("accra") or a neighbourhood ("East Legon"); show them as a city
+const toCityOption = (raw?: string | null) => {
+  const city = normalizeCity(raw)
+  if (!city) return ''
+  return ALL_CITIES.find(c => c.toLowerCase() === city) || 'Other'
+}
+
+const DAYS = [
+  { id: 'weekdays', label: 'Weekdays' },
+  { id: 'friday', label: 'Friday' },
+  { id: 'saturday', label: 'Saturday' },
+  { id: 'sunday', label: 'Sunday' },
+]
+const SLOTS = [
+  { id: 'afternoon', label: 'Afternoon' },
+  { id: 'evening', label: 'Evening' },
+  { id: 'night', label: 'Late night' },
+]
+const isFree = (day: string, slot: string) => (editForm.availability[day] || []).includes(slot)
+const toggleFree = (day: string, slot: string) => {
+  const list = editForm.availability[day] || (editForm.availability[day] = [])
+  const i = list.indexOf(slot)
+  if (i === -1) list.push(slot)
+  else list.splice(i, 1)
+}
+
+const RELIGIONS = ['Christian', 'Muslim', 'Traditional', 'Other']
+const INTENTS = [
+  { value: 'marriage', label: 'Marriage' },
+  { value: 'serious', label: 'Something serious' },
+  { value: 'casual', label: 'Something casual' },
+  { value: 'friendship', label: 'Friendship' },
+]
+const toggleDealbreaker = (kind: 'religion' | 'intent', value: string) => {
+  const list = editForm.dealbreakers[kind]
+  const i = list.indexOf(value)
+  if (i === -1) list.push(value)
+  else list.splice(i, 1)
+}
+
+const availableInterests = [
+  { id: 'travel', label: 'Travel ✈️' }, { id: 'fitness', label: 'Fitness 💪' }, { id: 'cooking', label: 'Cooking 🍳' }, { id: 'movies', label: 'Movies 🎬' },
+  { id: 'music', label: 'Music 🎵' }, { id: 'gaming', label: 'Gaming 🎮' }, { id: 'reading', label: 'Reading 📚' }, { id: 'art', label: 'Art 🎨' },
+  { id: 'sports', label: 'Sports ⚽' }, { id: 'tech', label: 'Tech 💻' }, { id: 'fashion', label: 'Fashion 👗' }, { id: 'food', label: 'Foodie 🍕' },
+  { id: 'nature', label: 'Nature 🌿' }, { id: 'photography', label: 'Photography 📸' }, { id: 'dancing', label: 'Dancing 💃' }, { id: 'entrepreneurship', label: 'Business 💼' },
 ]
 
 const commonOccupations = [
-  'Entrepreneur', 'Software Engineer', 'Medical Doctor', 'Lawyer', 'Banker', 'Teacher', 'Creative / Artist', 'Student', 'Nurse', 'Architect', 'Real Estate Developer', 'HR Professional', 'Marketing Executive', 'Pilot', 'Fashion Designer', 'Chef', 'Auditor', 'Pharmacist', 'Content Creator'
+  'Entrepreneur', 'Software Engineer', 'Medical Doctor', 'Lawyer', 'Banker', 'Teacher', 'Creative / Artist', 'Student', 'Nurse', 'Architect',
+  'Real Estate Developer', 'HR Professional', 'Marketing Executive', 'Pilot', 'Fashion Designer', 'Chef', 'Auditor', 'Pharmacist', 'Content Creator',
 ]
 
 const cmToFtIn = (cm: number) => {
-  const totalInches = cm / 2.54
-  const feet = Math.floor(totalInches / 12)
-  const inches = Math.round(totalInches % 12)
-  return `${feet}'${inches}"`
+  const totalIn = Math.round(cm / 2.54)
+  return `${Math.floor(totalIn / 12)}'${totalIn % 12}"`
 }
-
 const heightOptions = Array.from({ length: 81 }, (_, i) => {
   const cm = 140 + i
-  return { cm, label: `${cm} cm (${cmToFtIn(cm)})` }
+  return { value: cm, label: `${cm} cm (${cmToFtIn(cm)})` }
 })
+const ageOptions = Array.from({ length: 63 }, (_, i) => 18 + i)
 
-const loadingPayments = useState<boolean>('loading_payments', () => false)
-const userPayments = useState<any[]>('user_payments', () => [])
-const showPaymentHistory = ref(false)
+const toggleInterest = (id: string) => {
+  const idx = editForm.interests.indexOf(id)
+  if (idx === -1) {
+    if (editForm.interests.length < 6) editForm.interests.push(id)
+  } else {
+    editForm.interests.splice(idx, 1)
+  }
+}
+
 const saving = ref(false)
 const saveSuccess = ref(false)
-const togglingActive = ref(false)
+
+const saveProfile = async (): Promise<boolean> => {
+  const userId = currentUserId.value
+  if (!userId) {
+    toast.error('Please sign in again', 'Your session may have expired.')
+    return false
+  }
+  if (editForm.min_age > editForm.max_age) {
+    toast.error('Check the age range', 'The youngest age must be below the oldest.')
+    return false
+  }
+  saving.value = true
+  try {
+    // Only the fields on this page; everything else on the profile is left as is
+    const { error } = await supabase.schema('m2m').from('profiles').update({
+      about_me: editForm.about_me.trim() || null,
+      preferred_contact_method: editForm.preferred_contact_method || 'phone',
+      instagram_handle: editForm.instagram_handle.trim() || null,
+      snapchat_handle: editForm.snapchat_handle.trim() || null,
+      occupation: editForm.occupation.trim() || null,
+      religion: editForm.religion || null,
+      height_cm: editForm.height_cm,
+      genotype: editForm.genotype || null,
+      interests: editForm.interests,
+      intent: editForm.intent,
+      interested_in: editForm.interested_in,
+      min_age: editForm.min_age,
+      max_age: editForm.max_age,
+      location: editForm.location || null,
+      availability: editForm.availability,
+      // Keep any genotype dealbreakers set elsewhere
+      dealbreakers: { ...(profile.value?.dealbreakers && !Array.isArray(profile.value.dealbreakers) ? profile.value.dealbreakers : {}), religion: editForm.dealbreakers.religion, intent: editForm.dealbreakers.intent },
+    } as any).eq('id', userId)
+    if (error) throw error
+    await fetchProfileById(userId)
+
+    // Refresh the AI preference extraction used for matching when the bio is meaningful
+    if (editForm.about_me.trim().length > 10) {
+      $fetch('/api/ai/extract-preferences', { method: 'POST', body: { userId } }).catch(err => console.error('Auto-extraction failed:', err))
+    }
+
+    saveSuccess.value = true
+    haptic.hapticSuccess()
+    toast.success('Profile saved', 'Your changes apply to your next match.')
+    setTimeout(() => { saveSuccess.value = false }, 3000)
+    return true
+  } catch (err) {
+    console.error('[Me] Save failed:', err)
+    haptic.hapticError()
+    toast.error("Couldn't save your profile", 'Please try again.')
+    return false
+  } finally {
+    saving.value = false
+  }
+}
+
+const fillForm = (p: any) => {
+  if (!p) return
+  Object.assign(editForm, {
+    about_me: p.about_me || '',
+    preferred_contact_method: p.preferred_contact_method || 'phone',
+    instagram_handle: p.instagram_handle || '',
+    snapchat_handle: p.snapchat_handle || '',
+    occupation: p.occupation || '',
+    religion: p.religion || '',
+    height_cm: p.height_cm || null,
+    genotype: p.genotype || '',
+    interests: [...(p.interests || [])],
+    intent: p.intent || 'serious',
+    interested_in: p.interested_in || 'everyone',
+    min_age: p.min_age || 18,
+    max_age: p.max_age || 50,
+    location: toCityOption(p.location),
+    availability: parseAvailability(p.availability),
+    dealbreakers: {
+      religion: [...(p.dealbreakers?.religion || [])],
+      intent: [...(p.dealbreakers?.intent || [])].map((v: string) => v.toLowerCase()),
+    },
+  })
+}
+watch(() => profile.value, (p) => fillForm(p), { immediate: true })
+
+function parseAvailability(raw: any): Record<string, string[]> {
+  let parsed: any = raw
+  try {
+    if (typeof raw === 'string') parsed = raw ? JSON.parse(raw) : {}
+  } catch {
+    parsed = {}
+  }
+  return {
+    weekdays: [...(parsed?.weekdays || [])],
+    friday: [...(parsed?.friday || [])],
+    saturday: [...(parsed?.saturday || [])],
+    sunday: [...(parsed?.sunday || [])],
+  }
+}
+
+// ===== Profile photo =====
 const photoInput = ref<HTMLInputElement | null>(null)
 const photoPreview = ref<string | null>(null)
 const uploadingPhoto = ref(false)
 
-// Account Deletion Request state & methods
-const deletionRequest = ref<any>(null)
-const loadingDeletionRequest = ref(false)
+const handlePhotoUpload = async (event: Event) => {
+  const input = event.target as HTMLInputElement
+  const file = input.files?.[0]
+  input.value = '' // allow picking the same file again
+  const userId = currentUserId.value
+  if (!file || !userId) return
+  if (!file.type.startsWith('image/')) {
+    toast.error('Not an image', 'Please choose a photo (JPG or PNG).')
+    return
+  }
+  if (file.size > 5 * 1024 * 1024) {
+    toast.error('Photo too large', 'Please choose one under 5 MB.')
+    return
+  }
+
+  const localPreview = URL.createObjectURL(file)
+  photoPreview.value = localPreview
+  uploadingPhoto.value = true
+  try {
+    const ext = (file.name.split('.').pop() || 'jpg').toLowerCase()
+    const fileName = `${userId}-${Date.now()}.${ext}`
+    const { error: uploadError } = await supabase.storage.from('avatars').upload(fileName, file, { contentType: file.type, upsert: false })
+    if (uploadError) throw uploadError
+    const { data: urlData } = supabase.storage.from('avatars').getPublicUrl(fileName)
+    const { error: updateError } = await supabase.schema('m2m').from('profiles').update({ photo_url: urlData.publicUrl } as any).eq('id', userId)
+    if (updateError) throw updateError
+    await fetchProfileById(userId)
+    haptic.hapticSuccess()
+    toast.success('Photo updated', 'Your matches will see your new photo.')
+  } catch (err) {
+    console.error('[Me] Photo upload failed:', err)
+    haptic.hapticError()
+    toast.error('Upload failed', 'Please try again.')
+  } finally {
+    uploadingPhoto.value = false
+    photoPreview.value = null
+    URL.revokeObjectURL(localPreview)
+  }
+}
+
+// ===== Match readiness: the details the matchmaker and brief rely on =====
+// Kept in shared state so switching back to Profile shows the right next step straight away.
+// null = not loaded yet (the skeleton covers that on a first visit).
+const myVibeKeys = useState<string[] | null>('me_vibeKeys', () => null)
+const fetchMyVibeKeys = async () => {
+  if (!currentUserId.value) { myVibeKeys.value ??= []; return }
+  try {
+    const { data } = await supabase.schema('m2m').from('vibe_answers').select('question_key').eq('user_id', currentUserId.value)
+    myVibeKeys.value = ((data as any[]) || []).map(a => a.question_key)
+  } catch {
+    myVibeKeys.value ??= []
+  }
+}
+
+const readiness = computed(() => {
+  const p = profile.value || {}
+  const v2Answered = [...SCALE_QUESTIONS.map(q => q.key), VALUES_KEY].filter(k => (myVibeKeys.value || []).includes(k)).length
+  const v2Total = SCALE_QUESTIONS.length + 1
+  const freeSlots = Object.values(parseAvailability(p.availability)).flat().length
+  const checks = [
+    { id: 'photo', done: !!p.photo_url, label: 'Add a profile photo', why: 'The first thing your match sees', action: 'Add', target: 'me-photo' },
+    { id: 'vibe', done: v2Answered >= v2Total - 1, label: 'Answer the new Vibe Check', why: `${v2Answered} of ${v2Total} new questions answered · biggest boost to accuracy`, action: 'Answer', to: '/vibe-check?retake=true' },
+    { id: 'bio', done: (p.about_me || '').trim().length >= 40, label: 'Write a short bio', why: 'We read it to match personalities', action: 'Add', target: 'me-bio' },
+    { id: 'city', done: !!normalizeCity(p.location), label: 'Add your city', why: 'Matches near you are easier to meet', action: 'Add', target: 'me-city' },
+    { id: 'hobbies', done: (p.interests || []).length >= 3, label: 'Pick at least 3 hobbies', why: 'Shared hobbies count towards your score', action: 'Pick', target: 'me-hobbies' },
+    { id: 'work', done: !!(p.occupation || '').trim(), label: 'Add your occupation', why: 'Helps us find a good fit for your lifestyle', action: 'Add', target: 'me-job' },
+    { id: 'faith', done: !!p.religion, label: 'Add your faith', why: 'Shared faith is one of the strongest signals', action: 'Add', target: 'me-religion' },
+    { id: 'free', done: freeSlots >= 2, label: 'Tell us when you’re free', why: 'So we can suggest a date time that works', action: 'Add', target: 'me-availability' },
+  ]
+  const done = checks.filter(c => c.done).length
+  return { percent: Math.round((done / checks.length) * 100), missing: checks.filter(c => !c.done) }
+})
+
+// ===== Rows: one panel open at a time, each with its own Save / Cancel =====
+type PanelId = 'about' | 'lifestyle' | 'hobbies' | 'free' | 'seek' | 'deal'
+const PANELS: { id: PanelId; title: string }[] = [
+  { id: 'about', title: 'About you' },
+  { id: 'lifestyle', title: 'Lifestyle & contact' },
+  { id: 'hobbies', title: 'Hobbies' },
+  { id: 'free', title: "When you're free" },
+  { id: 'seek', title: "Who you're looking for" },
+  { id: 'deal', title: 'Dealbreakers' },
+]
+const openPanel = ref<PanelId | null>(null)
+
+const togglePanel = (id: PanelId) => {
+  if (openPanel.value && openPanel.value !== id) fillForm(profile.value) // drop unsaved edits from the other row
+  openPanel.value = openPanel.value === id ? null : id
+  // On phones the opened row can land below the fold: bring its header into view
+  if (openPanel.value) {
+    nextTick(() => document.getElementById(`panel-${id}`)?.previousElementSibling?.scrollIntoView({ behavior: 'smooth', block: 'start' }))
+  }
+}
+const cancelPanel = () => {
+  fillForm(profile.value)
+  openPanel.value = null
+}
+const savePanel = async () => {
+  if (await saveProfile()) openPanel.value = null
+}
+
+const INTEREST_LABEL = Object.fromEntries(availableInterests.map(i => [i.id, i.label]))
+const SLOT_SHORT: Record<string, string> = { afternoon: 'afternoon', evening: 'evening', night: 'late night' }
+const DAY_SHORT: Record<string, string> = { weekdays: 'Weekdays', friday: 'Fri', saturday: 'Sat', sunday: 'Sun' }
+
+// One-line summaries shown on each row (from what's saved, not unsaved edits)
+const summaries = computed(() => {
+  const p = profile.value || {}
+  const city = toCityOption(p.location)
+  const lifestyle = [p.occupation, p.religion, city === 'Other' ? '' : city].filter(Boolean).join(' · ')
+  const hobbies = (p.interests || []).map((i: string) => (INTEREST_LABEL[i] || i).replace(/\s*\p{Extended_Pictographic}.*$/u, '')).join(', ')
+  const avail = parseAvailability(p.availability)
+  const freeParts = Object.entries(avail).flatMap(([day, slots]) => slots.map(sl => `${DAY_SHORT[day]} ${SLOT_SHORT[sl] || sl}`))
+  const seekWho = ({ male: 'Men', female: 'Women', everyone: 'Everyone' } as Record<string, string>)[p.interested_in] || 'Everyone'
+  const seekIntent = INTENTS.find(i => i.value === p.intent)?.label || ''
+  const db = p.dealbreakers && !Array.isArray(p.dealbreakers) ? p.dealbreakers : {}
+  const dealCount = (db.religion || []).length + (db.intent || []).length
+  return {
+    about: { text: (p.about_me || '').trim() || 'Add a few lines about you', empty: !(p.about_me || '').trim() },
+    lifestyle: { text: lifestyle || 'Add your city, work and faith', empty: !lifestyle },
+    hobbies: { text: hobbies || 'Pick a few hobbies', empty: !hobbies },
+    free: { text: freeParts.length ? freeParts.slice(0, 3).join(', ') + (freeParts.length > 3 ? ` +${freeParts.length - 3}` : '') : "Add when you're free", empty: !freeParts.length },
+    seek: { text: [seekWho, `${p.min_age || 18}–${p.max_age || 50}`, seekIntent].filter(Boolean).join(' · '), empty: false },
+    deal: { text: dealCount ? `${dealCount} set` : 'None', empty: false },
+  } as Record<PanelId, { text: string; empty: boolean }>
+})
+
+// Readiness line: jump straight to the right row (or photo / Vibe Check)
+const TARGET_PANEL: Record<string, PanelId> = {
+  'me-bio': 'about', 'me-city': 'lifestyle', 'me-job': 'lifestyle', 'me-religion': 'lifestyle', 'me-hobbies': 'hobbies', 'me-availability': 'free',
+}
+const goToReadinessItem = (item: { to?: string; target?: string }) => {
+  if (item.to) return navigateTo(item.to)
+  if (item.target === 'me-photo') return photoInput.value?.click()
+  const panel = item.target ? TARGET_PANEL[item.target] : undefined
+  if (!panel) return
+  if (openPanel.value !== panel) togglePanel(panel)
+  nextTick(() => {
+    const el = document.getElementById(item.target!) || document.getElementById(`panel-${panel}`)
+    el?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    ;(el as HTMLElement | null)?.focus?.({ preventScroll: true })
+  })
+}
+
+// ===== 4. Account deletion =====
+const deletionRequest = useState<any>('me_deletionRequest', () => null)
 const showDeletionModal = ref(false)
 const submittingDeletionRequest = ref(false)
 const cancellingDeletionRequest = ref(false)
@@ -1190,442 +788,53 @@ const deletionReason = ref('found_match')
 const deletionDetails = ref('')
 
 const fetchDeletionRequest = async () => {
-   loadingDeletionRequest.value = true
-   try {
-      const res = await $fetch<{ success: boolean; request: any }>('/api/me/deletion-request')
-      deletionRequest.value = res?.request || null
-   } catch (err) {
-      console.error('Failed to fetch deletion request:', err)
-   } finally {
-      loadingDeletionRequest.value = false
-   }
+  try {
+    const res = await $fetch<{ success: boolean; request: any }>('/api/me/deletion-request')
+    deletionRequest.value = res?.request || null
+  } catch (err) {
+    console.error('Failed to fetch deletion request:', err)
+  }
 }
 
 const submitDeletionRequest = async () => {
-   if (submittingDeletionRequest.value) return
-   submittingDeletionRequest.value = true
-   try {
-      const res = await $fetch<{ success: boolean; message: string; request: any }>('/api/me/deletion-request', {
-         method: 'POST',
-         body: {
-            reason: deletionReason.value,
-            details: deletionDetails.value
-         }
-      })
-      toast.success('Request Submitted', res.message || 'Account deletion request submitted')
-      deletionRequest.value = res.request
-      showDeletionModal.value = false
-   } catch (err: any) {
-      toast.error('Submission Failed', err.data?.statusMessage || err.message || 'Failed to submit request')
-   } finally {
-      submittingDeletionRequest.value = false
-   }
+  if (submittingDeletionRequest.value) return
+  submittingDeletionRequest.value = true
+  try {
+    const res = await $fetch<{ success: boolean; message: string; request: any }>('/api/me/deletion-request', {
+      method: 'POST',
+      body: { reason: deletionReason.value, details: deletionDetails.value },
+    })
+    toast.success('Request received', res.message || "We'll delete your account shortly.")
+    deletionRequest.value = res.request
+    showDeletionModal.value = false
+  } catch (err: any) {
+    toast.error("Couldn't submit", err.data?.statusMessage || err.message || 'Please try again.')
+  } finally {
+    submittingDeletionRequest.value = false
+  }
 }
 
 const cancelDeletionRequest = async () => {
-   if (cancellingDeletionRequest.value) return
-   cancellingDeletionRequest.value = true
-   try {
-      const res = await $fetch<{ success: boolean; message: string; request: any }>('/api/me/deletion-request/cancel', {
-         method: 'POST'
-      })
-      toast.success('Request Cancelled', res.message || 'Deletion request cancelled')
-      deletionRequest.value = res.request
-   } catch (err: any) {
-      toast.error('Cancellation Failed', err.data?.statusMessage || err.message || 'Failed to cancel request')
-   } finally {
-      cancellingDeletionRequest.value = false
-   }
-}
-
-// M2M Credit Wallet
-const creditBalanceDashboard = ref(0)
-const creditTransactions = ref<any[]>([])
-const cardFlipped = ref(false)
-
-// Gender-based card color scheme
-const cardColorScheme = computed(() => {
-   const gender = editForm.gender || profile.value?.gender
-   if (gender === 'female') {
-      return {
-         gradient: 'linear-gradient(135deg, #fce7f3 0%, #fbcfe8 25%, #f9a8d4 60%, #f472b6 100%)',
-         shadow: 'rgba(236,72,153,0.3)',
-         textDark: 'text-pink-900',
-         textMuted: 'text-pink-900/70',
-         textLight: 'text-pink-800/40',
-         accentGlow: 'bg-pink-400/20'
-      }
-   } else if (gender === 'male') {
-      return {
-         gradient: 'linear-gradient(135deg, #d1fae5 0%, #a7f3d0 25%, #6ee7b7 60%, #34d399 100%)',
-         shadow: 'rgba(22,163,74,0.3)',
-         textDark: 'text-emerald-900',
-         textMuted: 'text-emerald-900/70',
-         textLight: 'text-emerald-800/40',
-         accentGlow: 'bg-emerald-400/20'
-      }
-   }
-   // Default / unset — lavender
-   return {
-      gradient: 'linear-gradient(135deg, #e8e0f0 0%, #d8cceb 25%, #c4b5e0 60%, #a78bda 100%)',
-      shadow: 'rgba(139,92,246,0.3)',
-      textDark: 'text-purple-900',
-      textMuted: 'text-purple-900/70',
-      textLight: 'text-purple-800/40',
-      accentGlow: 'bg-purple-400/20'
-   }
-})
-
-const cardGradient = computed(() => cardColorScheme.value.gradient)
-const cardShadow = computed(() => cardColorScheme.value.shadow)
-const cardTextDark = computed(() => cardColorScheme.value.textDark)
-const cardTextMuted = computed(() => cardColorScheme.value.textMuted)
-const cardTextLight = computed(() => cardColorScheme.value.textLight)
-const cardAccentGlow = computed(() => cardColorScheme.value.accentGlow)
-const fetchCreditData = async () => {
-   try {
-      const data = await $fetch<{ balance: number; transactions: any[] }>('/api/credits')
-      creditBalanceDashboard.value = data?.balance || 0
-      creditTransactions.value = data?.transactions || []
-   } catch (err) {
-      console.error('Failed to fetch credit data:', err)
-   }
-}
-
-const topUpAmount = ref(15)
-const topUpCustom = ref(false)
-const topUpCustomAmount = ref<number>(0)
-const topUpLoading = ref(false)
-
-const handleTopUp = async () => {
-    console.log('[Top-up] Initiation started...')
-    const finalAmount = topUpCustom.value ? topUpCustomAmount.value : topUpAmount.value
-    console.log('[Top-up] Amount determined:', finalAmount)
-
-    if (!finalAmount || finalAmount <= 0) {
-        toast.error('Invalid Amount', 'Please select or enter a valid top-up amount.')
-        return
-    }
-
-    const { currentUserId, initDashboard } = useDashboard()
-    let userId = currentUserId.value
-    
-    // Safety: If ID is missing, try to initialize the dashboard again
-    if (!userId) {
-        console.log('[Top-up] ID missing, attempting emergency dashboard init...')
-        const success = await initDashboard(true)
-        if (success) userId = currentUserId.value
-    }
-
-    if (!userId) {
-        console.error('[Top-up] Still missing user ID after init retry')
-        toast.error('Auth Error', 'User identity not found. Please log in again.')
-        return
-    }
-
-    // Paystack requires an email. If anonymous, we use a placeholder based on ID
-    const paystackEmail = user.value?.email || `${userId.substring(0, 8)}@anonymous.m2match.com`
-    console.log('[Top-up] Using email for Paystack:', paystackEmail)
-
-    topUpLoading.value = true
-    try {
-        console.log('[Top-up] Requesting initialization from API...')
-        const response = await $fetch<{ authorization_url: string }>('/api/paystack/initialize', {
-            method: 'POST',
-            body: {
-                email: paystackEmail,
-                amount: finalAmount,
-                metadata: {
-                    purpose: 'wallet_topup',
-                    userId: userId
-                }
-            }
-        })
-
-        console.log('[Top-up] API Response:', response)
-
-        if (response?.authorization_url) {
-            console.log('[Top-up] Redirecting to Paystack:', response.authorization_url)
-            window.location.href = response.authorization_url
-        } else {
-            throw new Error('Failed to get payment URL from response')
-        }
-    } catch (err: any) {
-        console.error('[Top-up] Error during initialization:', err)
-        toast.error('Initialization Failed', err.data?.message || 'Failed to initialize top-up. Please try again.')
-    } finally {
-        topUpLoading.value = false
-        console.log('[Top-up] Process complete.')
-    }
-}
-
-// Passkey Logic
-const { isSupported: isPasskeySupported, register: registerPasskey } = usePasskeys()
-const registeringPasskey = ref(false)
-const passkeys = ref<any[]>([])
-
-const fetchPasskeys = async () => {
-    if (!profile.value?.id) return
-    const { data } = await supabase.schema('m2m').from('user_passkeys').select('*').eq('user_id', profile.value.id)
-    passkeys.value = data || []
-}
-
-const handleRegisterPasskey = async () => {
-    registeringPasskey.value = true
-    try {
-        await registerPasskey()
-        await fetchPasskeys()
-        toast.success('Passkey Registered!', 'You can now sign in with One-Tap.')
-    } catch (err: any) {
-        toast.error('Passkey Failed', err.message)
-    } finally {
-        registeringPasskey.value = false
-    }
-}
-
-const handleDeletePasskey = async (id: string) => {
-    try {
-        const { error } = await supabase.schema('m2m').from('user_passkeys').delete().eq('id', id)
-        if (error) throw error
-        await fetchPasskeys()
-        toast.success('Passkey deleted')
-    } catch (err) {
-        toast.error('Failed to remove passkey')
-    }
-}
-
-watch(activeProfileSection, (val) => {
-    if (val === 'security') fetchPasskeys()
-})
-
-const personaData = computed(() => profile.value?.dating_persona ? personas[profile.value.dating_persona] : null)
-
-const profileStrength = computed(() => {
-  let score = 0
-  if (profile.value?.photo_url) score += 20
-  if (editForm.about_me?.length > 20) score += 20
-  if (editForm.location) score += 10
-  if (editForm.occupation) score += 10
-  if (editForm.height_cm) score += 10
-  if (editForm.interests?.length >= 3) score += 15
-  if (editForm.instagram_handle || editForm.snapchat_handle) score += 15
-  return Math.min(score, 100)
-})
-
-const showPreview = ref(false)
-const previewUnlocked = ref(false)
-
-const calculatedAge = computed(() => {
-  if (!editForm.birth_date) return null
-  const birth = new Date(editForm.birth_date)
-  const today = new Date()
-  let age = today.getFullYear() - birth.getFullYear()
-  const m = today.getMonth() - birth.getMonth()
-  if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--
-  return age
-})
-
-const toggleInterest = (interestId: string) => {
-  const idx = editForm.interests.indexOf(interestId)
-  if (idx === -1) { if (editForm.interests.length < 6) editForm.interests.push(interestId) }
-  else editForm.interests.splice(idx, 1)
-}
-
-const toggleDealbreaker = (category: 'genotype' | 'intent' | 'religion', value: string) => {
-  const current = [...(editForm.dealbreakers[category] || [])]
-  const idx = current.indexOf(value)
-  if (idx === -1) current.push(value)
-  else current.splice(idx, 1)
-  editForm.dealbreakers[category] = current
-}
-
-const getOptions = (cat: string) => {
-    if (cat === 'genotype') return ['AA', 'AS', 'AC', 'SS']
-    if (cat === 'religion') return ['Christian', 'Muslim', 'Traditional', 'Other']
-    if (cat === 'intent') return ['Marriage', 'Serious', 'Casual', 'Friendship']
-    return []
-}
-
-const saveProfile = async () => {
-  const { currentUserId, fetchProfileById } = useDashboard()
-  const userId = currentUserId.value
-  
-  if (!userId || userId === 'undefined') {
-    toast.error('Auth Error', 'Your session might have expired. Please login again.')
-    return
-  }
-
-  if (!editForm.display_name?.trim()) {
-    toast.error('Name Required', 'Please enter your name to save the profile.')
-    return
-  }
-
-  saving.value = true
+  if (cancellingDeletionRequest.value) return
+  cancellingDeletionRequest.value = true
   try {
-    console.log('[Profile] Saving availability to schema m2m:', editForm.availability)
-    const { error } = await supabase.schema('m2m').from('profiles').update({
-        display_name: editForm.display_name, gender: editForm.gender, birth_date: editForm.birth_date, location: editForm.location, intent: editForm.intent, interested_in: editForm.interested_in, genotype: editForm.genotype || null, religion: editForm.religion || null, height_cm: editForm.height_cm, occupation: editForm.occupation || null, instagram_handle: editForm.instagram_handle || null, snapchat_handle: editForm.snapchat_handle || null, preferred_contact_method: editForm.preferred_contact_method || 'phone', about_me: editForm.about_me || null, min_age: editForm.min_age, max_age: editForm.max_age, interests: editForm.interests, dealbreakers: editForm.dealbreakers, availability: editForm.availability
-    } as any).eq('id', userId)
-    if (error) throw error
-    await fetchProfileById(userId)
-    
-    // Trigger AI Extraction if bio is present
-    if (editForm.about_me && editForm.about_me.length > 10) {
-       $fetch('/api/ai/extract-preferences', {
-           method: 'POST',
-           body: { userId }
-       }).catch(err => console.error('Auto-extraction failed:', err))
-    }
-
-    saveSuccess.value = true
-    haptic.hapticSuccess()
-    toast.success('Profile updated!', 'Your changes have been saved.')
-    setTimeout(() => { saveSuccess.value = false }, 3000)
-  } catch (err) {
-    console.error('[Profile] Save failed:', err)
-    haptic.hapticError()
-    toast.error('Failed to save profile', 'Please try again.')
+    const res = await $fetch<{ success: boolean; message: string; request: any }>('/api/me/deletion-request/cancel', { method: 'POST' })
+    toast.success('Welcome back', res.message || 'Your account will stay.')
+    deletionRequest.value = res.request
+  } catch (err: any) {
+    toast.error("Couldn't cancel", err.data?.statusMessage || err.message || 'Please try again.')
   } finally {
-    saving.value = false
+    cancellingDeletionRequest.value = false
   }
 }
 
-const toggleIncognito = async () => {
-  const { currentUserId, fetchProfileById } = useDashboard()
-  const userId = currentUserId.value
-  
-  if (!userId || userId === 'undefined') {
-    toast.error('Auth Error', 'Your session might have expired. Please login again.')
-    return
-  }
-
-  saving.value = true
-  try {
-    const newStatus = !editForm.is_active
-    const { error } = await supabase.schema('m2m').from('profiles').update({ is_active: newStatus } as any).eq('id', userId)
-    if (error) throw error
-    
-    editForm.is_active = newStatus
-    await fetchProfileById(userId)
-    
-    haptic.hapticSuccess()
-    toast.success(
-        newStatus ? 'Mode: Live 🚀' : 'Mode: Incognito 🛡️',
-        newStatus ? 'You are now visible in the matching pool.' : 'You have vanished from all feeds.'
-    )
-  } catch (err) {
-    console.error('[Profile] Incognito toggle failed:', err)
-    haptic.hapticError()
-    toast.error('Failed to update status', 'Please try again.')
-  } finally {
-    saving.value = false
-  }
-}
-
-const toggleAccountActive = toggleIncognito // Alias for backward compatibility
-
-const triggerPhotoUpload = () => {
-  haptic.hapticTap()
-  photoInput.value?.click()
-}
-const handlePhotoUpload = async (event: Event) => {
-  const target = event.target as HTMLInputElement
-  const file = target.files?.[0]
-  const { currentUserId, fetchProfileById } = useDashboard()
-  const userId = currentUserId.value
-  
-  if (!file || !userId || userId === 'undefined') return
-  if (file.size > 5 * 1024 * 1024) return toast.error('File too large')
-  
-  uploadingPhoto.value = true
-  try {
-    const fileName = `${userId}-${Date.now()}.${file.name.split('.').pop()}`
-    await supabase.storage.from('avatars').upload(fileName, file)
-    const { data: urlData } = supabase.storage.from('avatars').getPublicUrl(fileName)
-    await supabase.from('profiles').update({ photo_url: urlData.publicUrl } as any).eq('id', userId)
-    await fetchProfileById(userId)
-  } catch (err) { toast.error('Upload failed') }
-  finally { uploadingPhoto.value = false }
-}
-
-const { logout } = useDashboard()
-const handleLogout = async () => { await logout() }
-const formatPaymentGHS = (amount: number) => new Intl.NumberFormat('en-GH', { style: 'currency', currency: 'GHS' }).format(amount || 0)
-
-const fetchUserPayments = async (userId: string) => {
-  if (!userId || userId === 'undefined') return
-  loadingPayments.value = true
-  try {
-    const { data } = await supabase.from('payments').select('*').eq('user_id', userId).order('created_at', { ascending: false }).limit(20)
-    userPayments.value = data || []
-  } finally { loadingPayments.value = false }
-}
-
-const handleSubscribe = async () => {
-    const { currentUserId } = useDashboard()
-    const userId = currentUserId.value
-    if (!userId || userId === 'undefined' || !profile.value) return
-    try {
-        const { initializePayment } = usePaystack()
-        const { data: settingsData } = await supabase.from('settings').select('value').eq('key', 'subscription_price_monthly').single() as { data: any, error: any }
-        const price = settingsData?.value?.amount || 50
-        const response = await initializePayment(
-            profile.value.phone ? `${profile.value.phone.replace(/\+/g, '')}@m2match.com` : 'user@m2match.com',
-            price, 'subscription', { userId }
-        )
-        const authUrl = response.authorization_url || response.data?.authorization_url
-        if (authUrl) window.location.href = authUrl
-    } catch (error) { toast.error('Error', 'Failed to start subscription.') }
-}
-
-watch(() => profile.value, (newProfile) => {
-  if (newProfile) {
-    // Defensive availability parsing
-    const serverAvail = newProfile.availability
-    let parsedAvail: any = {}
-    try {
-       parsedAvail = (typeof serverAvail === 'string' && serverAvail ? JSON.parse(serverAvail) : serverAvail) || {}
-    } catch (e) {
-       console.error('[Profile] Error parsing availability JSON:', e)
-       parsedAvail = {}
-    }
-
-    Object.assign(editForm, {
-      display_name: newProfile.display_name || '', gender: newProfile.gender || '', birth_date: newProfile.birth_date || '', location: newProfile.location || '', intent: newProfile.intent || '', interested_in: newProfile.interested_in || '', genotype: newProfile.genotype || '', religion: newProfile.religion || '', height_cm: newProfile.height_cm || null, occupation: newProfile.occupation || '', instagram_handle: newProfile.instagram_handle || '', snapchat_handle: newProfile.snapchat_handle || '', preferred_contact_method: newProfile.preferred_contact_method || 'phone', about_me: newProfile.about_me || '', min_age: newProfile.min_age || 18, max_age: newProfile.max_age || 50, interests: [...(newProfile.interests || [])], is_active: newProfile.is_active !== false,
-      dealbreakers: { genotype: newProfile.dealbreakers?.genotype || [], intent: newProfile.dealbreakers?.intent || [], religion: newProfile.dealbreakers?.religion || [] },
-      availability: {
-         weekdays: parsedAvail.weekdays || [],
-         friday: parsedAvail.friday || [],
-         saturday: parsedAvail.saturday || [],
-         sunday: parsedAvail.sunday || []
-      }
-    })
-    fetchUserPayments(newProfile.id)
-    fetchPasskeys() // Always fetch passkeys so global badges show correctly
-  }
-}, { immediate: true })
+// Skeleton until everything the page draws is here, so nothing appears and then changes.
+// After the first visit it's all in shared state, so switching tabs shows the full page at once.
+const showSkeleton = computed(() => !profile.value || myVibeKeys.value === null)
 
 onMounted(async () => {
-    const { initDashboard } = useDashboard()
-    await initDashboard()
-    fetchCreditData()
-    fetchDeletionRequest()
+  await initDashboard()
+  // refresh quietly in the background; the cached values are already on screen
+  await Promise.all([fetchMyVibeKeys(), fetchDeletionRequest()])
 })
-
 </script>
-
-<style scoped>
-/* Credit Card Flip */
-.backface-hidden {
-   -webkit-backface-visibility: hidden;
-   backface-visibility: hidden;
-}
-
-.credit-card-back {
-   transform: rotateY(180deg);
-}
-
-.credit-card-flipped {
-   transform: rotateY(180deg);
-}
-</style>

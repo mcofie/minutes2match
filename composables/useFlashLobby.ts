@@ -165,9 +165,11 @@ export const useFlashLobby = () => {
       if (currentTime.value.getSeconds() % 30 === 0) fetchLobbies()
     }, 1000)
 
-    // Realtime subscription for instant Pause/Resume/AddTime feedback
+    // Realtime subscription for instant Pause/Resume/AddTime feedback.
+    // Unique name per instance: supabase.channel() returns an existing channel with the same
+    // name, and adding listeners to an already-subscribed channel throws (layout + banner both use this).
     channel = supabase
-      .channel('lobby-global-state')
+      .channel(`lobby-global-state-${Math.random().toString(36).slice(2, 10)}`)
       .on(
         'postgres_changes',
         { event: '*', schema: 'm2m', table: 'flash_lobbies' },

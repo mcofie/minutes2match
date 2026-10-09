@@ -4,6 +4,8 @@
  * Pure scoring utilities used by client/admin views and server-side match creation.
  */
 
+import { SCALE_QUESTIONS, VALUES_KEY, VALUES_QUESTION, parseScaleAnswer, parseValuesAnswer } from './vibeQuestions'
+
 export interface VibeAnswer {
   question_key: string
   answer: string
@@ -21,7 +23,10 @@ export interface UserProfile {
   dating_persona?: string
   occupation?: string
   badges?: string[]
-  dealbreakers?: string[]
+  /** Hobbies picked on the profile (travel, music, …) */
+  interests?: string[]
+  /** Values the person is not open to, e.g. { religion: ['Muslim'], intent: ['Casual'] } */
+  dealbreakers?: { religion?: string[]; intent?: string[]; genotype?: string[] } | string[] | null
   min_age?: number
   max_age?: number
   preferences_extracted?: {
@@ -69,7 +74,7 @@ export interface CompatibilityResult {
   signals: CompatibilitySignal[]
 }
 
-const COMPATIBILITY_MAP: Record<string, Record<string, string[]>> = {
+export const COMPATIBILITY_MAP: Record<string, Record<string, string[]>> = {
   love_language: {
     'Words of Affirmation - Tell me you love me 💬': ['Words of Affirmation - Tell me you love me 💬', 'Quality Time - Give me your undivided attention ⏰'],
     'Acts of Service - Do things for me 🛠️': ['Acts of Service - Do things for me 🛠️', 'Quality Time - Give me your undivided attention ⏰'],
@@ -128,6 +133,20 @@ const addSignal = (signals: CompatibilitySignal[], category: CompatibilitySignal
   }
 }
 
+// Accra neighbourhoods count as Accra; everything compares case-insensitively
+const ACCRA_AREAS = ['accra', 'east legon', 'osu', 'cantonments', 'spintex', 'airport residential', 'labone', 'dzorwulu', 'madina', 'adenta', 'tema']
+const NAIROBI_AREAS = ['nairobi', 'westlands', 'kilimani', 'karen', 'lavington', 'kileleshwa', 'runda', 'parklands']
+export const normalizeCity = (location?: string | null) => {
+  const l = (location || '').trim().toLowerCase().replace(/_/g, ' ').replace(/\s+/g, ' ')
+  if (!l || l === 'other') return ''
+  // "Accra, Ofankor Barrier" or "East Legon, Accra": any part naming a known area decides it
+  const parts = l.split(',').map(x => x.trim()).filter(Boolean)
+  if (parts.some(x => ACCRA_AREAS.includes(x))) return 'accra'
+  if (parts.some(x => NAIROBI_AREAS.includes(x))) return 'nairobi'
+  return parts[0]
+}
+const displayCity = (city: string) => city.replace(/\b\w/g, c => c.toUpperCase())
+
 export const calculateAge = (birthDate: string): number => {
   const today = new Date()
   const birth = new Date(birthDate)
@@ -153,44 +172,38 @@ export const isCompatibleProfession = (p1: string, p2: string) => {
   return check(technology) || check(legalFinance) || check(health)
 }
 
-const getMissingData = (
-  u1: UserProfile,
-  ans1List: VibeAnswer[],
-  u2: UserProfile,
-  ans2List: VibeAnswer[],
-  dims1: Map<string, string>,
-  dims2: Map<string, string>
-) => {
-  const missing = new Set<string>()
+// Which Vibe Check a pair can be compared on: the new one if both answered most of it,
+// otherwise the original five core questions, otherwise nothing.
+export const MIN_V2_ANSWERS = 8
+export const MIN_LEGACY_ANSWERS = 4
+export const MIN_CONFIDENCE = 60
+type AnswerMode = 'v2' | 'legacy' | null
 
+const countV2Answers = (answers: Map<string, string>) =>
+  SCALE_QUESTIONS.filter(q => parseScaleAnswer(answers.get(q.key)) !== null).length +
+  (parseValuesAnswer(answers.get(VALUES_KEY)).length ? 1 : 0)
+const countLegacyAnswers = (dims: Map<string, string>, answers: Map<string, string>) =>
+  DIMENSIONS_TO_CHECK.filter(({ dim }) => dims.get(dim) || answers.get(LEGACY_DIMENSION_KEYS[dim] || dim)).length
+
+const getMissingData = (u1: UserProfile, u2: UserProfile, mode: AnswerMode) => {
+  const missing = new Set<string>()
   if (!u1.intent || !u2.intent) missing.add('relationship intent')
   if (!u1.birth_date || !u2.birth_date) missing.add('birth date')
-  if (!u1.location || !u2.location) missing.add('location')
-  if (!u1.dating_persona || !u2.dating_persona) missing.add('dating persona')
+  if (!normalizeCity(u1.location) || !normalizeCity(u2.location)) missing.add('city')
   if (!u1.occupation || !u2.occupation) missing.add('occupation')
-  if (!Array.isArray(u1.badges) || !u1.badges.length || !Array.isArray(u2.badges) || !u2.badges.length) missing.add('interest badges')
-  if (!u1.preferences_extracted || !u2.preferences_extracted) missing.add('AI preference extraction')
-  if (!ans1List.length || !ans2List.length) missing.add('vibe answers')
-
-  for (const dimension of DIMENSIONS_TO_CHECK) {
-    if (!dims1.get(dimension.dim) || !dims2.get(dimension.dim)) {
-      missing.add(dimension.missingKey)
-    }
-  }
-
+  if (!u1.religion || !u2.religion) missing.add('faith')
+  if (!Array.isArray(u1.interests) || !u1.interests.length || !Array.isArray(u2.interests) || !u2.interests.length) missing.add('hobbies')
+  if (!mode) missing.add('vibe answers')
   return Array.from(missing)
 }
 
-const calculateConfidence = (missingData: string[], u1: UserProfile, ans1List: VibeAnswer[], u2: UserProfile, ans2List: VibeAnswer[]) => {
-  let confidence = 100
-  confidence -= missingData.length * 8
-
-  if (ans1List.length < 3 || ans2List.length < 3) confidence -= 12
-  if (!u1.preferences_extracted || !u2.preferences_extracted) confidence -= 10
-  if (!u1.birth_date || !u2.birth_date) confidence -= 10
-  if (!u1.intent || !u2.intent) confidence -= 8
-
-  return Math.max(30, Math.min(100, confidence))
+// How much we can trust the score: complete profiles answering the new Vibe Check score highest
+const calculateConfidence = (missingData: string[], mode: AnswerMode, v2a: number, v2b: number) => {
+  let confidence = 100 - missingData.length * 8
+  if (mode === 'v2') confidence -= (SCALE_QUESTIONS.length + 1 - Math.min(v2a, v2b)) * 3
+  else if (mode === 'legacy') confidence -= 10 // the original questions tell us less
+  else confidence -= 40
+  return Math.max(0, Math.min(100, confidence))
 }
 
 export const calculateCompatibility = (
@@ -230,19 +243,26 @@ export const calculateCompatibility = (
   const answers2 = new Map(ans2List.map(a => [a.question_key, a.answer]))
   const dims1 = new Map((ans1List as any[]).map(a => [a.dimension || a.question_key, a.answer]))
   const dims2 = new Map((ans2List as any[]).map(a => [a.dimension || a.question_key, a.answer]))
-  const missingData = getMissingData(u1, ans1List, u2, ans2List, dims1, dims2)
+  const v2a = countV2Answers(answers1)
+  const v2b = countV2Answers(answers2)
+  const mode: AnswerMode =
+    v2a >= MIN_V2_ANSWERS && v2b >= MIN_V2_ANSWERS ? 'v2'
+      : countLegacyAnswers(dims1, answers1) >= MIN_LEGACY_ANSWERS && countLegacyAnswers(dims2, answers2) >= MIN_LEGACY_ANSWERS ? 'legacy'
+        : null
+  const missingData = getMissingData(u1, u2, mode)
+  if (!mode) addSignal(signals, 'hard_block', 'Not enough Vibe Check answers to compare')
 
   let vibePoints = 0
   let maxVibeWeight = 0
 
-  for (const { dim, weight } of DIMENSIONS_TO_CHECK) {
+  // Original Vibe Check (members who haven't taken the new one): every core question counts, answered or not
+  for (const { dim, weight } of mode === 'legacy' ? DIMENSIONS_TO_CHECK : []) {
     const legacyKey = LEGACY_DIMENSION_KEYS[dim] || dim
     const a1 = dims1.get(dim) || answers1.get(legacyKey)
     const a2 = dims2.get(dim) || answers2.get(legacyKey)
 
-    if (!a1 || !a2) continue
-
     maxVibeWeight += weight
+    if (!a1 || !a2) continue
     if (a1 === a2) vibePoints += weight
     else if (COMPATIBILITY_MAP[dim]?.[a1]?.includes(a2) || COMPATIBILITY_MAP[legacyKey]?.[a1]?.includes(a2)) {
       vibePoints += weight * 0.5
@@ -250,6 +270,37 @@ export const calculateCompatibility = (
     } else {
       addSignal(signals, 'watchout', `${dim.replace('_', ' ')} may require more work`)
     }
+  }
+
+  // Vibe Check v2: 1–7 statements score by distance (0 apart = full points, 6 apart = none)
+  let scalesCompared = 0
+  let scalesInSync = 0
+  for (const q of mode === 'v2' ? SCALE_QUESTIONS : []) {
+    const a1 = parseScaleAnswer(answers1.get(q.key))
+    const a2 = parseScaleAnswer(answers2.get(q.key))
+    maxVibeWeight += q.weight // unanswered counts as zero, not as "not asked"
+    if (a1 === null || a2 === null) continue
+
+    const gap = Math.abs(a1 - a2)
+    vibePoints += q.weight * (1 - gap / 6)
+    // Life-defining differences no amount of agreement elsewhere should outweigh
+    if (q.key === 'v2_kids' && gap >= 5) addSignal(signals, 'hard_block', `Opposite on having children (${a1} vs ${a2})`)
+    if (q.key === 'v2_faith' && gap >= 4 && Math.max(a1, a2) >= 6) addSignal(signals, 'hard_block', `Faith matters very differently (${a1} vs ${a2})`)
+    scalesCompared++
+    if (gap <= 1) scalesInSync++
+    if (gap >= 4) addSignal(signals, 'watchout', `${q.label}: far apart (${a1} vs ${a2})`)
+    else if (gap >= 2) addSignal(signals, 'difference_not_bad', `${q.label}: close but not identical`)
+  }
+  if (scalesCompared >= 5 && scalesInSync / scalesCompared >= 0.7) strengths.push('In sync on the big questions 🎯')
+
+  // Vibe Check v2: shared core values (3 of 5 in common earns full points)
+  const values1 = parseValuesAnswer(answers1.get(VALUES_KEY))
+  const values2 = parseValuesAnswer(answers2.get(VALUES_KEY))
+  if (mode === 'v2') maxVibeWeight += VALUES_QUESTION.weight
+  if (mode === 'v2' && values1.length && values2.length) {
+    const sharedValues = values1.filter(v => values2.includes(v))
+    vibePoints += VALUES_QUESTION.weight * Math.min(1, sharedValues.length / 3)
+    if (sharedValues.length >= 3) strengths.push('Shared core values 💛')
   }
 
   breakdown.vibeMatch = maxVibeWeight > 0 ? Math.round((vibePoints / maxVibeWeight) * 40) : 0
@@ -267,12 +318,17 @@ export const calculateCompatibility = (
       strengths.push('Long-term Intent Alignment')
       addSignal(signals, 'difference_not_bad', 'Intent timing is adjacent, not identical')
     } else {
-      malus += 10
-      addSignal(signals, 'soft_risk', 'Conflict in relationship goals')
+      const longTerm = ['marriage', 'serious']
+      if (longTerm.includes(u1.intent) !== longTerm.includes(u2.intent)) {
+        addSignal(signals, 'hard_block', 'One wants something long-term, the other does not')
+      } else {
+        malus += 10
+        addSignal(signals, 'soft_risk', 'Conflict in relationship goals')
+      }
     }
   }
 
-  if (u1.religion && u2.religion && u1.religion === u2.religion) {
+  if (u1.religion && u2.religion && u1.religion.toLowerCase() === u2.religion.toLowerCase()) {
     breakdown.goalsMatch += 8
     strengths.push('Shared Belief System 🙏')
   }
@@ -296,13 +352,15 @@ export const calculateCompatibility = (
     }
   }
 
-  if (u1.location && u2.location) {
-    if (u1.location === u2.location) {
-      breakdown.lifestyleMatch += 5
-      strengths.push(`Local Connection (${u1.location}) 📍`)
-    } else {
-      addSignal(signals, 'watchout', 'Different locations may add logistics friction')
-    }
+  const city1 = normalizeCity(u1.location)
+  const city2 = normalizeCity(u2.location)
+  if (!city1 || !city2) {
+    addSignal(signals, 'hard_block', 'City unknown')
+  } else if (city1 === city2) {
+    breakdown.lifestyleMatch += 5
+    strengths.push(`Local Connection (${displayCity(city1)}) 📍`)
+  } else {
+    addSignal(signals, 'hard_block', `Different cities (${displayCity(city1)} and ${displayCity(city2)})`)
   }
 
   if (u1.birth_date && u2.birth_date) {
@@ -324,17 +382,18 @@ export const calculateCompatibility = (
     }
   }
 
-  const b1 = Array.isArray(u1.badges) ? u1.badges : []
-  const b2 = Array.isArray(u2.badges) ? u2.badges : []
-  if (b1.length && b2.length) {
-    const common = b1.filter(b => b2.includes(b))
+  // Shared hobbies (profile interests; badges are achievements like "verified", not hobbies)
+  const i1 = Array.isArray(u1.interests) ? u1.interests : []
+  const i2 = Array.isArray(u2.interests) ? u2.interests : []
+  if (i1.length && i2.length) {
+    const common = i1.filter(i => i2.includes(i))
     if (common.length >= 3) {
       breakdown.interestMatch = 10
       strengths.push('Numerous shared hobbies 🎨')
     } else if (common.length >= 1) {
       breakdown.interestMatch = 5
     } else {
-      addSignal(signals, 'watchout', 'Few shared interest badges on record')
+      addSignal(signals, 'watchout', 'No hobbies in common yet')
     }
   }
 
@@ -343,15 +402,26 @@ export const calculateCompatibility = (
     addSignal(signals, 'hard_block', '⚠️ Critical Genotype Incompatibility')
   }
 
-  const db1 = Array.isArray(u1.dealbreakers) ? u1.dealbreakers : []
-  const db2 = Array.isArray(u2.dealbreakers) ? u2.dealbreakers : []
-  if (db1.length && b2.length && db1.some(d => b2.includes(d))) {
-    malus += 50
-    addSignal(signals, 'hard_block', 'Matched User A\'s dealbreaker')
+  // Dealbreakers: each person can rule out religions, intents or genotypes
+  const hitsDealbreaker = (from: UserProfile, other: UserProfile) => {
+    const db = from.dealbreakers
+    if (!db || Array.isArray(db)) return null
+    const has = (list: string[] | undefined, value?: string) =>
+      !!value && (list || []).some(v => v.toLowerCase() === value.toLowerCase())
+    if (has(db.religion, other.religion)) return 'religion'
+    if (has(db.intent, other.intent)) return 'relationship goal'
+    if (has(db.genotype, other.genotype)) return 'genotype'
+    return null
   }
-  if (db2.length && b1.length && db2.some(d => b1.includes(d))) {
+  const deal1 = hitsDealbreaker(u1, u2)
+  const deal2 = hitsDealbreaker(u2, u1)
+  if (deal1) {
     malus += 50
-    addSignal(signals, 'hard_block', 'Matched User B\'s dealbreaker')
+    addSignal(signals, 'hard_block', `Matches User A's dealbreaker (${deal1})`)
+  }
+  if (deal2) {
+    malus += 50
+    addSignal(signals, 'hard_block', `Matches User B's dealbreaker (${deal2})`)
   }
 
   if (u1.preferences_extracted && u2.preferences_extracted) {
@@ -392,7 +462,8 @@ export const calculateCompatibility = (
     (breakdown.aiSynergy || 0)
 
   const finalScore = Math.max(0, Math.min(100, Math.round(rawScore - malus)))
-  const confidence = calculateConfidence(missingData, u1, ans1List, u2, ans2List)
+  const confidence = calculateConfidence(missingData, mode, v2a, v2b)
+  if (mode && confidence < MIN_CONFIDENCE) addSignal(signals, 'hard_block', `Too little to go on (confidence ${confidence}%)`)
   const hardBlockers = signals.filter(signal => signal.category === 'hard_block').map(signal => signal.message)
   const softRisks = signals.filter(signal => signal.category === 'soft_risk').map(signal => signal.message)
   const watchouts = signals.filter(signal => signal.category === 'watchout').map(signal => signal.message)

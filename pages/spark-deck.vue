@@ -606,7 +606,7 @@ onMounted(async () => {
             const response: any = await supabase
                .from('profiles')
                .select('display_name, phone')
-               .eq('id', user.value.id)
+               .eq('id', (user.value as any).sub || (user.value as any).id)
                .single()
             
             const profile = response.data
@@ -655,7 +655,7 @@ const proceedToCheckout = async () => {
          sparkDeckPrice.value,
          'spark_deck',
          { 
-            userId: user.value?.id || null,
+            userId: (user.value as any)?.sub || (user.value as any)?.id || null,
             shippingDetails: {
                name: shippingDetails.name,
                phone: shippingDetails.phone,

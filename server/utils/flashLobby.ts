@@ -237,10 +237,10 @@ export async function createFlashLobbyMatch(options: {
         targetId,
         lobbyId,
         matchScore = 0,
-        unlockPrice = 15,
-        status = 'pending_payment',
+        unlockPrice = 0,
+        status = 'unlocked',
         reasons = ['Flash Lobby Spark ⚡'],
-        fullyUnlocked = false
+        fullyUnlocked = true
     } = options
 
     const { data: existing } = await supabase
