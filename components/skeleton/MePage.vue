@@ -44,8 +44,8 @@
     <!-- account -->
     <div class="rounded-[1.75rem] bg-white ring-1 ring-black/5">
       <span class="mx-5 mb-2 mt-5 block h-3.5 w-20 rounded-full bg-[#efece8] sm:mx-6 sm:mt-6"></span>
-      <div v-for="n in 2" :key="n" class="flex items-center gap-4 border-t border-black/[0.06] px-5 py-4 first-of-type:border-t-0 sm:px-6">
-        <span class="h-4 flex-1 rounded-full bg-[#ebe8e4]" :style="{ maxWidth: n === 1 ? '9rem' : '7.5rem' }"></span>
+      <div v-for="n in 3" :key="n" class="flex items-center gap-4 border-t border-black/[0.06] px-5 py-4 first-of-type:border-t-0 sm:px-6">
+        <span class="h-4 flex-1 rounded-full bg-[#ebe8e4]" :style="{ maxWidth: ['9rem', '5rem', '7.5rem'][n - 1] }"></span>
         <span class="h-4 w-2.5 rounded-full bg-[#efece8]"></span>
       </div>
     </div>

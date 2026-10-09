@@ -315,6 +315,12 @@
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5 shrink-0 text-[#b5b0aa]" aria-hidden="true"><path d="m9 18 6-6-6-6" /></svg>
           </NuxtLink>
         </li>
+        <li>
+          <button type="button" :disabled="loggingOut" class="flex min-h-[4.25rem] w-full items-center gap-4 px-5 py-4 text-left active:bg-[#faf9f7] disabled:opacity-60 sm:px-6" @click="handleLogout">
+            <span class="flex-1 text-base font-medium text-[#393737]">{{ loggingOut ? 'Logging out…' : 'Log out' }}</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5 shrink-0 text-[#b5b0aa]" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><path d="m16 17 5-5-5-5" /><path d="M21 12H9" /></svg>
+          </button>
+        </li>
         <li v-if="deletionRequest?.status === 'pending'" class="px-5 py-4 sm:px-6">
           <p class="text-base font-medium text-[#393737]">Account deletion in progress</p>
           <p class="mt-0.5 text-sm text-[#9b9690]">We'll remove your profile and data shortly.</p>
@@ -377,7 +383,15 @@ definePageMeta({
 const supabase = useSupabaseClient<M2MDatabase>() as any
 const toast = useToast()
 const haptic = useHaptic()
-const { profile, currentUserId, fetchProfileById, initDashboard } = useDashboard()
+const { profile, currentUserId, fetchProfileById, initDashboard, logout } = useDashboard()
+
+// Log out: signs out and reloads the home page (which also clears anything cached for this member)
+const loggingOut = ref(false)
+const handleLogout = async () => {
+  if (loggingOut.value) return
+  loggingOut.value = true
+  await logout()
+}
 
 // Personality type: each one gets its own painted scene and soft background
 const PERSONA_LOOK: Record<string, { scene: 'dawn' | 'meadow' | 'tree' | 'night' | 'sunset' | 'meet'; tint: string }> = {

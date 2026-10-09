@@ -17,29 +17,8 @@
               class="absolute left-1/2 top-1/2 h-[90px] w-auto max-w-none -translate-x-1/2 -translate-y-1/2 object-contain select-none sm:h-[102px]"
             />
           </NuxtLink>
-
-          <div class="absolute right-0 md:hidden">
-            <button type="button" class="flex h-11 w-11 items-center justify-center rounded-full" :aria-label="mobileMenuOpen ? 'Close menu' : 'Open menu'" :aria-expanded="mobileMenuOpen" @click="mobileMenuOpen = !mobileMenuOpen">
-              <svg width="15" height="15" viewBox="0 0 15 15" fill="none" class="h-6 w-6 text-[#ed1c24]">
-                <path d="M1.5 3C1.22386 3 1 3.22386 1 3.5C1 3.77614 1.22386 4 1.5 4H13.5C13.7761 4 14 3.77614 14 3.5C14 3.22386 13.7761 3 13.5 3H1.5ZM1 7.5C1 7.22386 1.22386 7 1.5 7H13.5C13.7761 7 14 7.22386 14 7.5C14 7.77614 13.7761 8 13.5 8H1.5C1.22386 8 1 7.77614 1 7.5ZM1 11.5C1 11.2239 1.22386 11 1.5 11H13.5C13.7761 11 14 11.2239 14 11.5C14 11.7761 13.7761 12 13.5 12H1.5C1.22386 12 1 11.7761 1 11.5Z" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" />
-              </svg>
-            </button>
-          </div>
         </div>
 
-        <!-- Mobile menu -->
-        <Transition
-          enter-active-class="transition duration-200 ease-out"
-          enter-from-class="opacity-0 -translate-y-2"
-          leave-active-class="transition duration-150 ease-in"
-          leave-to-class="opacity-0 -translate-y-2"
-        >
-          <div v-if="mobileMenuOpen" class="md:hidden absolute left-4 right-4 top-14 z-30 sm:top-16 rounded-2xl bg-white p-2 shadow-xl">
-            <NuxtLink v-for="l in mobileLinks" :key="l.to" :to="l.to" class="block rounded-xl px-4 py-3 text-base font-medium text-[#393737] hover:bg-[#f0f0f0]" @click="mobileMenuOpen = false">
-              {{ l.label }}
-            </NuxtLink>
-          </div>
-        </Transition>
       </div>
 
       <!-- Hero content -->
@@ -85,6 +64,10 @@
               </div>
             </form>
             <p class="mt-4 text-sm text-[#817a72]">No swiping. Just thoughtful introductions.</p>
+            <p class="mt-2 text-sm text-[#817a72]">
+              Already a member?
+              <NuxtLink to="/login" class="font-semibold text-[#393737] underline decoration-[#393737]/30 underline-offset-4 transition-colors hover:text-[#ed1c24] hover:decoration-[#ed1c24]/40">Log in</NuxtLink>
+            </p>
           </div>
         </div>
       </div>
@@ -453,15 +436,10 @@ const footerCols: { title: string; links: { label: string; to?: string; href?: s
   { title: 'Product', links: [{ label: 'How it works', section: 'how-it-works' }, { label: 'Events', to: '/events' }, { label: 'Vibe Check', to: '/vibe-check' }] },
   { title: 'Company', links: [{ label: 'Contact', href: 'mailto:hello@minutes2match.com' }, { label: 'Instagram', href: 'https://www.instagram.com/minutes2match' }, { label: 'Terms', to: '/terms' }, { label: 'Privacy', to: '/privacy' }] },
 ]
-const mobileMenuOpen = ref(false)
 const heroWords = ['person', 'match', 'spark']
 const heroWordIndex = ref(0)
 let heroWordTimer: ReturnType<typeof setInterval> | undefined
 
-const mobileLinks = [
-  { to: '/events', label: 'Events' },
-  { to: '/login', label: 'Log in' },
-]
 // Hero: vibe-check already accepts ?phone= and normalises it
 const phone = ref('')
 const phoneCountry = ref<PhoneCountryCode>('+233')
