@@ -29,7 +29,7 @@
           <svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-3.5 w-3.5" aria-hidden="true"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z" /><circle cx="12" cy="13" r="3" /></svg>
         </span>
       </button>
-      <input ref="photoInput" type="file" accept="image/jpeg,image/png,image/webp,image/heic" class="hidden" @change="handlePhotoUpload" />
+      <input ref="photoInput" type="file" accept="image/*,.heic,.heif" class="hidden" @change="handlePhotoUpload" />
       <div class="min-w-0">
         <h2 class="text-[2rem] leading-none tracking-tight text-[#393737] sm:text-[2.5rem]">Hi, {{ firstName }}.</h2>
         <p class="mt-1.5 text-sm text-[#9b9690]">{{ uploadingPhoto ? 'Uploading your photo…' : 'Tap your photo to change it' }}</p>
@@ -319,6 +319,7 @@
 
 <script setup lang="ts">
 import { useToast } from '~/composables/useToast'
+import { PhotoError } from '~/composables/usePhotoUpload'
 import type { M2MDatabase } from '~/types/database.types'
 import { currentMatchWeekEnd, isOptedInThisWeek } from '~/utils/matchWeek'
 import { normalizeCity } from '~/utils/compatibility'
@@ -590,39 +591,27 @@ const photoInput = ref<HTMLInputElement | null>(null)
 const photoPreview = ref<string | null>(null)
 const uploadingPhoto = ref(false)
 
+const { uploadProfilePhoto } = usePhotoUpload()
 const handlePhotoUpload = async (event: Event) => {
   const input = event.target as HTMLInputElement
   const file = input.files?.[0]
   input.value = '' // allow picking the same file again
   const userId = currentUserId.value
-  if (!file || !userId) return
-  if (!file.type.startsWith('image/')) {
-    toast.error('Not an image', 'Please choose a photo (JPG or PNG).')
-    return
-  }
-  if (file.size > 5 * 1024 * 1024) {
-    toast.error('Photo too large', 'Please choose one under 5 MB.')
-    return
-  }
+  if (!file || !userId || uploadingPhoto.value) return
 
+  // Show it straight away; the helper resizes, rotates and converts it to JPEG before upload
   const localPreview = URL.createObjectURL(file)
   photoPreview.value = localPreview
   uploadingPhoto.value = true
   try {
-    const ext = (file.name.split('.').pop() || 'jpg').toLowerCase()
-    const fileName = `${userId}-${Date.now()}.${ext}`
-    const { error: uploadError } = await supabase.storage.from('avatars').upload(fileName, file, { contentType: file.type, upsert: false })
-    if (uploadError) throw uploadError
-    const { data: urlData } = supabase.storage.from('avatars').getPublicUrl(fileName)
-    const { error: updateError } = await supabase.schema('m2m').from('profiles').update({ photo_url: urlData.publicUrl } as any).eq('id', userId)
-    if (updateError) throw updateError
+    await uploadProfilePhoto(file, userId)
     await fetchProfileById(userId)
     haptic.hapticSuccess()
     toast.success('Photo updated', 'Your matches will see your new photo.')
-  } catch (err) {
+  } catch (err: any) {
     console.error('[Me] Photo upload failed:', err)
     haptic.hapticError()
-    toast.error('Upload failed', 'Please try again.')
+    toast.error('Upload failed', err instanceof PhotoError ? err.message : 'Please check your connection and try again.')
   } finally {
     uploadingPhoto.value = false
     photoPreview.value = null

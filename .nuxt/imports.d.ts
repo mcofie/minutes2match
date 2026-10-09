@@ -43,6 +43,7 @@ export { useNotifications } from '../composables/useNotifications';
 export { usePasskeys } from '../composables/usePasskeys';
 export { usePaystack, PaymentMetadata } from '../composables/usePaystack';
 export { personas, usePersona, Persona } from '../composables/usePersona';
+export { PhotoError, preparePhoto, usePhotoUpload } from '../composables/usePhotoUpload';
 export { useScrollAnimation, vScrollAnimate, ScrollAnimationOptions } from '../composables/useScrollAnimation';
 export { useSeo, useEventSeo } from '../composables/useSeo';
 export { getRandomQuestions, useShotHints, ShotQuestion } from '../composables/useShotHints';

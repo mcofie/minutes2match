@@ -390,7 +390,7 @@
             :aria-label="uploadedPhotoUrl ? 'Change photo' : 'Choose a photo'"
             @click="triggerPhotoUpload"
           >
-            <NuxtImg v-if="uploadedPhotoUrl" :src="uploadedPhotoUrl" class="h-full w-full object-cover" />
+            <img v-if="photoPreview || uploadedPhotoUrl" :src="photoPreview || avatarUrl(uploadedPhotoUrl, 176)" alt="Your photo" class="h-full w-full object-cover" />
             <span v-else class="flex h-full w-full flex-col items-center justify-center gap-2 p-4 text-center">
               <span class="flex h-12 w-12 items-center justify-center rounded-full bg-[#f4f3f1] text-2xl text-[#9b9690]">+</span>
               <span class="text-sm font-medium text-[#6c6862]">Choose a photo</span>
@@ -400,7 +400,7 @@
             </span>
           </button>
 
-          <input ref="photoInput" type="file" accept="image/*" class="hidden" @change="handlePhotoUpload" />
+          <input ref="photoInput" type="file" accept="image/*,.heic,.heif" class="hidden" @change="handlePhotoUpload" />
 
           <button type="button" class="btn-next" :disabled="!uploadedPhotoUrl || uploadingPhoto" @click="currentStep = doneStep">Next</button>
         </div>
@@ -437,6 +437,7 @@
 <script setup lang="ts">
 import UiButton from '~/components/ui/Button.vue'
 import VibeCard from '~/components/VibeCard.vue'
+import { PhotoError } from '~/composables/usePhotoUpload'
 import { usePersona, type Persona } from '~/composables/usePersona'
 import { createClient } from '@supabase/supabase-js'
 import type { M2MDatabase } from '~/types/database.types'
@@ -759,47 +760,28 @@ const triggerPhotoUpload = () => {
   }
 }
 
+// Show the chosen photo straight away, then prepare (resize, rotate, JPEG) and upload it
+const photoPreview = ref<string | null>(null)
+const { uploadProfilePhoto } = usePhotoUpload()
 const handlePhotoUpload = async (event: Event) => {
-  const target = event.target as HTMLInputElement
-  const file = target.files?.[0]
-  if (!file) return
+  const input = event.target as HTMLInputElement
+  const file = input.files?.[0]
+  input.value = '' // so picking the same file again still works
+  if (!file || uploadingPhoto.value) return
 
+  const localPreview = URL.createObjectURL(file)
+  photoPreview.value = localPreview
   uploadingPhoto.value = true
-  const supabase = useSupabaseClient()
-  
   try {
-    const { data: { user: currentUser } } = await supabase.auth.getUser()
-    const userId = currentUser?.id
-    if (!userId) throw new Error('Not authenticated')
-
-    const fileExt = file.name.split('.').pop()
-    const fileName = `${userId}-${Date.now()}.${fileExt}`
-
-    // Upload to 'avatars' storage bucket
-    const { error: uploadError } = await supabase.storage
-      .from('avatars')
-      .upload(fileName, file, { upsert: true })
-      
-    if (uploadError) throw uploadError
-
-    const { data: urlData } = supabase.storage.from('avatars').getPublicUrl(fileName)
-    
-    // Save to the authenticated user's profile
-    const { error: updateError } = await supabase
-      .schema('m2m')
-      .from('profiles')
-      .update({ photo_url: urlData.publicUrl } as any)
-      .eq('id', userId)
-
-    if (updateError) throw updateError
-
-    uploadedPhotoUrl.value = urlData.publicUrl
-    toast.success('Photo uploaded!', 'Your profile image is set.')
+    uploadedPhotoUrl.value = await uploadProfilePhoto(file)
+    hapticFeedback('light')
   } catch (err: any) {
     console.error('[VibeCheck Photo] Upload failed:', err)
-    toast.error('Upload failed', err.message || 'Could not save your photo.')
+    toast.error('Upload failed', err instanceof PhotoError ? err.message : 'Please check your connection and try again.')
   } finally {
     uploadingPhoto.value = false
+    photoPreview.value = null
+    URL.revokeObjectURL(localPreview)
   }
 }
 

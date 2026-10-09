@@ -9,6 +9,7 @@ declare global {
   const MIN_LEGACY_ANSWERS: typeof import('../../utils/compatibility').MIN_LEGACY_ANSWERS
   const MIN_V2_ANSWERS: typeof import('../../utils/compatibility').MIN_V2_ANSWERS
   const PHONE_COUNTRIES: typeof import('../../utils/phoneNumbers').PHONE_COUNTRIES
+  const PhotoError: typeof import('../../composables/usePhotoUpload').PhotoError
   const SCALE_QUESTIONS: typeof import('../../utils/vibeQuestions').SCALE_QUESTIONS
   const VALUES_KEY: typeof import('../../utils/vibeQuestions').VALUES_KEY
   const VALUES_PICK: typeof import('../../utils/vibeQuestions').VALUES_PICK
@@ -107,6 +108,7 @@ declare global {
   const preloadComponents: typeof import('../../node_modules/nuxt/dist/app/composables/preload').preloadComponents
   const preloadPayload: typeof import('../../node_modules/nuxt/dist/app/composables/payload').preloadPayload
   const preloadRouteComponents: typeof import('../../node_modules/nuxt/dist/app/composables/preload').preloadRouteComponents
+  const preparePhoto: typeof import('../../composables/usePhotoUpload').preparePhoto
   const prerenderRoutes: typeof import('../../node_modules/nuxt/dist/app/composables/ssr').prerenderRoutes
   const provide: typeof import('vue').provide
   const proxyRefs: typeof import('vue').proxyRefs
@@ -185,6 +187,7 @@ declare global {
   const usePasskeys: typeof import('../../composables/usePasskeys').usePasskeys
   const usePaystack: typeof import('../../composables/usePaystack').usePaystack
   const usePersona: typeof import('../../composables/usePersona').usePersona
+  const usePhotoUpload: typeof import('../../composables/usePhotoUpload').usePhotoUpload
   const usePinia: typeof import('../../node_modules/@pinia/nuxt/dist/runtime/composables').usePinia
   const usePreviewMode: typeof import('../../node_modules/nuxt/dist/app/composables/preview').usePreviewMode
   const useRequestEvent: typeof import('../../node_modules/nuxt/dist/app/composables/ssr').useRequestEvent
@@ -295,6 +298,9 @@ declare global {
   export type { Persona } from '../../composables/usePersona'
   import('../../composables/usePersona')
   // @ts-ignore
+  export type { PhotoError } from '../../composables/usePhotoUpload'
+  import('../../composables/usePhotoUpload')
+  // @ts-ignore
   export type { ScrollAnimationOptions } from '../../composables/useScrollAnimation'
   import('../../composables/useScrollAnimation')
   // @ts-ignore
@@ -328,6 +334,7 @@ declare module 'vue' {
     readonly MIN_LEGACY_ANSWERS: UnwrapRef<typeof import('../../utils/compatibility')['MIN_LEGACY_ANSWERS']>
     readonly MIN_V2_ANSWERS: UnwrapRef<typeof import('../../utils/compatibility')['MIN_V2_ANSWERS']>
     readonly PHONE_COUNTRIES: UnwrapRef<typeof import('../../utils/phoneNumbers')['PHONE_COUNTRIES']>
+    readonly PhotoError: UnwrapRef<typeof import('../../composables/usePhotoUpload')['PhotoError']>
     readonly SCALE_QUESTIONS: UnwrapRef<typeof import('../../utils/vibeQuestions')['SCALE_QUESTIONS']>
     readonly VALUES_KEY: UnwrapRef<typeof import('../../utils/vibeQuestions')['VALUES_KEY']>
     readonly VALUES_PICK: UnwrapRef<typeof import('../../utils/vibeQuestions')['VALUES_PICK']>
@@ -426,6 +433,7 @@ declare module 'vue' {
     readonly preloadComponents: UnwrapRef<typeof import('../../node_modules/nuxt/dist/app/composables/preload')['preloadComponents']>
     readonly preloadPayload: UnwrapRef<typeof import('../../node_modules/nuxt/dist/app/composables/payload')['preloadPayload']>
     readonly preloadRouteComponents: UnwrapRef<typeof import('../../node_modules/nuxt/dist/app/composables/preload')['preloadRouteComponents']>
+    readonly preparePhoto: UnwrapRef<typeof import('../../composables/usePhotoUpload')['preparePhoto']>
     readonly prerenderRoutes: UnwrapRef<typeof import('../../node_modules/nuxt/dist/app/composables/ssr')['prerenderRoutes']>
     readonly provide: UnwrapRef<typeof import('vue')['provide']>
     readonly proxyRefs: UnwrapRef<typeof import('vue')['proxyRefs']>
@@ -504,6 +512,7 @@ declare module 'vue' {
     readonly usePasskeys: UnwrapRef<typeof import('../../composables/usePasskeys')['usePasskeys']>
     readonly usePaystack: UnwrapRef<typeof import('../../composables/usePaystack')['usePaystack']>
     readonly usePersona: UnwrapRef<typeof import('../../composables/usePersona')['usePersona']>
+    readonly usePhotoUpload: UnwrapRef<typeof import('../../composables/usePhotoUpload')['usePhotoUpload']>
     readonly usePinia: UnwrapRef<typeof import('../../node_modules/@pinia/nuxt/dist/runtime/composables')['usePinia']>
     readonly usePreviewMode: UnwrapRef<typeof import('../../node_modules/nuxt/dist/app/composables/preview')['usePreviewMode']>
     readonly useRequestEvent: UnwrapRef<typeof import('../../node_modules/nuxt/dist/app/composables/ssr')['useRequestEvent']>
