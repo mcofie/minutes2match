@@ -135,7 +135,7 @@ const addSignal = (signals: CompatibilitySignal[], category: CompatibilitySignal
 
 // Accra neighbourhoods count as Accra; everything compares case-insensitively
 const ACCRA_AREAS = ['accra', 'east legon', 'osu', 'cantonments', 'spintex', 'airport residential', 'labone', 'dzorwulu', 'madina', 'adenta', 'tema']
-const NAIROBI_AREAS = ['nairobi', 'westlands', 'kilimani', 'karen', 'lavington', 'kileleshwa', 'runda', 'parklands']
+const NAIROBI_AREAS = ['nairobi', 'kiambu', 'ruaka', 'ruiru', 'westlands', 'kilimani', 'karen', 'lavington', 'kileleshwa', 'runda', 'parklands']
 export const normalizeCity = (location?: string | null) => {
   const l = (location || '').trim().toLowerCase().replace(/_/g, ' ').replace(/\s+/g, ' ')
   if (!l || l === 'other') return ''

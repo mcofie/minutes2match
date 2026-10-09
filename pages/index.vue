@@ -367,6 +367,20 @@
             </NuxtLink>
             <p class="mt-4 max-w-sm text-[15px] leading-relaxed text-[#77736f]">Thoughtful introductions and curated events to help you meet with intention.</p>
 
+            <!-- Where we match -->
+            <div class="mt-6">
+              <p class="text-xs font-semibold uppercase tracking-[0.14em] text-[#9a9692]">Now matching in</p>
+              <ul class="mt-3 flex flex-wrap gap-2.5">
+                <li v-for="c in footerCities" :key="c.city" class="flex items-center gap-3 rounded-2xl bg-white py-2.5 pl-2.5 pr-4 ring-1 ring-black/5 shadow-[0_4px_14px_rgba(57,55,55,0.05)]">
+                  <CountryFlag :code="c.flag" class="h-7 w-[2.625rem]" />
+                  <span class="leading-tight">
+                    <span class="block text-[15px] font-semibold text-[#393737]">{{ c.city }}</span>
+                    <span class="block text-xs text-[#9a9692]">{{ c.country }}</span>
+                  </span>
+                </li>
+              </ul>
+            </div>
+
             <nav aria-label="Social links" class="mt-6 flex items-center gap-2 text-[#5f5b57]">
               <a href="https://www.instagram.com/minutes2match" target="_blank" rel="noopener noreferrer" aria-label="Instagram" class="flex h-10 w-10 items-center justify-center rounded-full bg-white ring-1 ring-black/5 transition-colors hover:bg-[#fce8e8] hover:text-[#ed1c24]">
                 <svg viewBox="0 0 24 24" fill="currentColor" class="h-5 w-5" aria-hidden="true"><path d="M7.8 2h8.4A5.8 5.8 0 0 1 22 7.8v8.4a5.8 5.8 0 0 1-5.8 5.8H7.8A5.8 5.8 0 0 1 2 16.2V7.8A5.8 5.8 0 0 1 7.8 2Zm0 2A3.8 3.8 0 0 0 4 7.8v8.4A3.8 3.8 0 0 0 7.8 20h8.4a3.8 3.8 0 0 0 3.8-3.8V7.8A3.8 3.8 0 0 0 16.2 4H7.8ZM12 7a5 5 0 1 1 0 10 5 5 0 0 1 0-10Zm0 2a3 3 0 1 0 0 6 3 3 0 0 0 0-6Zm5.25-3.25a1.25 1.25 0 1 1 0 2.5 1.25 1.25 0 0 1 0-2.5Z"/></svg>
@@ -409,16 +423,18 @@
 import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue'
 
 useSeoMeta({
-  title: 'Minutes 2 Match | Real Connections via Protocol & Events',
+  title: 'Minutes 2 Match | Date without swiping',
+  description: 'Date without swiping. We get to know you deeply, then introduce you to one compatible match each week in Accra and Nairobi.',
   ogTitle: 'Minutes 2 Match | Date without swiping',
-  description: 'Date without swiping. We get to know you deeply, then introduce you to a compatible match and curated events in Accra.',
-  ogDescription: 'Date without swiping. We get to know you deeply, then introduce you to a compatible match each week.',
-  ogImage: '/og-image.png',
+  ogDescription: 'We get to know you deeply, then introduce you to one compatible match each week.',
+  ogUrl: 'https://minutes2match.com/',
+  ogImage: 'https://minutes2match.com/og-image.png',
   twitterCard: 'summary_large_image',
   twitterTitle: 'Minutes 2 Match | Date without swiping',
-  twitterDescription: 'We get to know you deeply, then introduce you to a compatible match each week.',
-  twitterImage: '/og-image.png',
+  twitterDescription: 'We get to know you deeply, then introduce you to one compatible match each week.',
+  twitterImage: 'https://minutes2match.com/og-image.png',
 })
+useHead({ link: [{ rel: 'canonical', href: 'https://minutes2match.com/' }] })
 
 const config = useRuntimeConfig()
 const router = useRouter()
@@ -435,6 +451,10 @@ const scrollToSection = (id: string) => {
 const footerCols: { title: string; links: { label: string; to?: string; href?: string; section?: string }[] }[] = [
   { title: 'Product', links: [{ label: 'How it works', section: 'how-it-works' }, { label: 'Events', to: '/events' }, { label: 'Vibe Check', to: '/vibe-check' }] },
   { title: 'Company', links: [{ label: 'Contact', href: 'mailto:hello@minutes2match.com' }, { label: 'Instagram', href: 'https://www.instagram.com/minutes2match' }, { label: 'Terms', to: '/terms' }, { label: 'Privacy', to: '/privacy' }] },
+]
+const footerCities = [
+  { city: 'Accra', country: 'Ghana', flag: 'gh' as const },
+  { city: 'Nairobi', country: 'Kenya', flag: 'ke' as const },
 ]
 const heroWords = ['person', 'match', 'spark']
 const heroWordIndex = ref(0)
@@ -521,6 +541,9 @@ const requestCity = () => {
   window.location.href = `mailto:hello@minutes2match.com?subject=${encodeURIComponent(`Bring Minutes 2 Match to ${city}`)}&body=${encodeURIComponent(`Hi! I'd love to see Minutes 2 Match in ${city}.`)}`
 }
 onMounted(() => {
+  // Arriving from another page via /#how-it-works: land on that section once the page has laid out
+  const hash = window.location.hash.slice(1)
+  if (hash && document.getElementById(hash)) requestAnimationFrame(() => setTimeout(() => scrollToSection(hash), 60))
   if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
     heroWordTimer = window.setInterval(() => {
       heroWordIndex.value = (heroWordIndex.value + 1) % heroWords.length

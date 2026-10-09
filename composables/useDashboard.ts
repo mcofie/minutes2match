@@ -22,22 +22,14 @@ export const useDashboard = () => {
             return null
         }
         try {
-            const { data, error } = await supabase
-                .schema('m2m')
-                .from('profiles')
-                .select('*')
-                .eq('id', userId)
-                .single() as { data: any, error: any }
+            // Profile and passkey count side by side
+            const [{ data }, { count: passkeyCount }] = await Promise.all([
+                supabase.schema('m2m').from('profiles').select('*').eq('id', userId).single(),
+                supabase.schema('m2m').from('user_passkeys').select('id', { count: 'exact', head: true }).eq('user_id', userId),
+            ]) as [{ data: any }, { count: number | null }]
 
             profile.value = data
             if (data) {
-                // Fetch passkey status to update trust score
-                const { count: passkeyCount } = await supabase
-                    .schema('m2m')
-                    .from('user_passkeys')
-                    .select('id', { count: 'exact', head: true })
-                    .eq('user_id', userId)
-
                 let score = 20 // Base score
                 if (data.photo_url && !data.photo_url.includes('placeholder')) score += 20
                 if (data.phone) score += 20

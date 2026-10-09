@@ -21,7 +21,7 @@
         @click="photoInput?.click()"
       >
         <span class="block h-full w-full overflow-hidden rounded-full bg-[#f4f3f1] shadow-[0_8px_24px_rgba(52,38,25,0.12)] ring-4 ring-white">
-          <img v-if="photoPreview || profile?.photo_url" :src="photoPreview || profile?.photo_url" alt="" class="h-full w-full object-cover" />
+          <img v-if="photoPreview || profile?.photo_url" :src="photoPreview || avatarUrl(profile?.photo_url, 96)" alt="" decoding="async" class="h-full w-full object-cover" />
           <span v-else class="font-display flex h-full w-full items-center justify-center text-2xl text-[#9b9690]">{{ firstName.charAt(0) }}</span>
         </span>
         <span class="absolute -bottom-0.5 -right-0.5 flex h-7 w-7 items-center justify-center rounded-full bg-[#ed1c24] text-white ring-2 ring-white">
@@ -136,75 +136,50 @@
             </template>
 
             <!-- Lifestyle & contact -->
-            <div v-else-if="panel.id === 'lifestyle'" class="grid gap-3 sm:grid-cols-2">
-              <div class="sm:col-span-2">
-                <label for="me-city" class="mb-1.5 block text-sm text-[#6c6862]">Where you live</label>
-                <select id="me-city" v-model="editForm.location" :class="FIELD">
-                  <option value="" disabled>Choose your city</option>
-                  <optgroup label="Ghana"><option v-for="c in CITIES.ghana" :key="c" :value="c">{{ c }}</option></optgroup>
-                  <optgroup label="Kenya"><option v-for="c in CITIES.kenya" :key="c" :value="c">{{ c }}</option></optgroup>
-                  <option value="Other">Somewhere else</option>
-                </select>
-              </div>
+            <div v-else-if="panel.id === 'lifestyle'" class="space-y-7">
+              <fieldset>
+                <legend class="mb-2 text-sm text-[#6c6862]">Where you live</legend>
+                <CityPicker id="me-city" v-model="editForm.location" />
+              </fieldset>
+
               <div>
-                <label for="me-job" class="mb-1.5 block text-sm text-[#6c6862]">Occupation</label>
-                <input id="me-job" v-model="editForm.occupation" type="text" placeholder="e.g. Nurse" list="me-occupations" :class="FIELD" />
+                <label for="me-job" class="mb-2 block text-sm text-[#6c6862]">What do you do?</label>
+                <input id="me-job" v-model="editForm.occupation" type="text" maxlength="60" placeholder="e.g. Nurse, designer, student" list="me-occupations" autocomplete="organization-title" :class="FIELD" />
                 <datalist id="me-occupations"><option v-for="o in commonOccupations" :key="o" :value="o" /></datalist>
               </div>
-              <div>
-                <label for="me-religion" class="mb-1.5 block text-sm text-[#6c6862]">Faith</label>
-                <select id="me-religion" v-model="editForm.religion" :class="FIELD">
-                  <option value="">Prefer not to say</option>
-                  <option v-for="r in RELIGIONS" :key="r" :value="r">{{ r }}</option>
-                </select>
-              </div>
-              <div>
-                <label for="me-height" class="mb-1.5 block text-sm text-[#6c6862]">Height</label>
-                <select id="me-height" v-model.number="editForm.height_cm" :class="FIELD">
-                  <option :value="null">Prefer not to say</option>
-                  <option v-for="h in heightOptions" :key="h.value" :value="h.value">{{ h.label }}</option>
-                </select>
-              </div>
-              <div>
-                <label for="me-genotype" class="mb-1.5 block text-sm text-[#6c6862]">Genotype</label>
-                <select id="me-genotype" v-model="editForm.genotype" :class="FIELD">
-                  <option value="">Prefer not to say</option>
-                  <option v-for="g in ['AA', 'AS', 'AC', 'SS']" :key="g" :value="g">{{ g }}</option>
-                </select>
-              </div>
-              <div class="sm:col-span-2 mt-2 border-t border-black/[0.06] pt-4">
-                <label for="me-contact" class="mb-1.5 block text-sm text-[#6c6862]">How matches reach you</label>
-                <select id="me-contact" v-model="editForm.preferred_contact_method" :class="FIELD">
-                  <option value="phone">WhatsApp / phone</option>
-                  <option value="instagram">Instagram</option>
-                  <option value="snapchat">Snapchat</option>
-                </select>
-              </div>
-              <div v-if="editForm.preferred_contact_method === 'instagram'" class="sm:col-span-2">
-                <label for="me-ig" class="mb-1.5 block text-sm text-[#6c6862]">Instagram handle</label>
-                <input id="me-ig" v-model="editForm.instagram_handle" type="text" placeholder="@yourhandle" autocomplete="off" :class="FIELD" />
-              </div>
-              <div v-if="editForm.preferred_contact_method === 'snapchat'" class="sm:col-span-2">
-                <label for="me-sc" class="mb-1.5 block text-sm text-[#6c6862]">Snapchat username</label>
-                <input id="me-sc" v-model="editForm.snapchat_handle" type="text" placeholder="yourhandle" autocomplete="off" :class="FIELD" />
-              </div>
+
+              <fieldset id="me-religion" tabindex="-1" class="outline-none">
+                <legend class="mb-2 text-sm text-[#6c6862]">Faith</legend>
+                <ChoiceChips v-model="editForm.religion" :options="RELIGIONS" />
+              </fieldset>
+
+              <HeightSlider v-model="editForm.height_cm" />
+
+              <fieldset>
+                <legend class="mb-2 text-sm text-[#6c6862]">Genotype <span class="text-[#9b9690]">· only if you're comfortable sharing</span></legend>
+                <ChoiceChips v-model="editForm.genotype" :options="GENOTYPES" layout="grid-4" />
+              </fieldset>
+
+              <fieldset class="border-t border-black/[0.06] pt-6">
+                <legend class="sr-only">How matches reach you</legend>
+                <SegmentedControl v-model="editForm.preferred_contact_method" label="How matches reach you" :options="CONTACT_METHODS" />
+                <div v-if="editForm.preferred_contact_method === 'instagram' || editForm.preferred_contact_method === 'snapchat'" class="relative mt-3">
+                  <label :for="editForm.preferred_contact_method === 'instagram' ? 'me-ig' : 'me-sc'" class="sr-only">{{ editForm.preferred_contact_method === 'instagram' ? 'Instagram handle' : 'Snapchat username' }}</label>
+                  <span class="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-base text-[#9b9690]" aria-hidden="true">@</span>
+                  <input v-if="editForm.preferred_contact_method === 'instagram'" id="me-ig" v-model="editForm.instagram_handle" type="text" placeholder="your Instagram handle" autocomplete="off" autocapitalize="off" spellcheck="false" :class="[FIELD, 'pl-9']" @blur="editForm.instagram_handle = editForm.instagram_handle.trim().replace(/^@+/, '')" />
+                  <input v-else id="me-sc" v-model="editForm.snapchat_handle" type="text" placeholder="your Snapchat username" autocomplete="off" autocapitalize="off" spellcheck="false" :class="[FIELD, 'pl-9']" @blur="editForm.snapchat_handle = editForm.snapchat_handle.trim().replace(/^@+/, '')" />
+                </div>
+                <p v-else class="mt-2 text-sm text-[#9b9690]">Your match sees your WhatsApp number once your connection is unlocked.</p>
+              </fieldset>
             </div>
 
             <!-- Hobbies -->
             <template v-else-if="panel.id === 'hobbies'">
-              <p class="mb-3 text-sm text-[#9b9690]">Pick up to 6 · {{ editForm.interests.length }} selected</p>
-              <div class="flex flex-wrap gap-2">
-                <button
-                  v-for="i in availableInterests"
-                  :key="i.id"
-                  type="button"
-                  :aria-pressed="editForm.interests.includes(i.id)"
-                  :disabled="!editForm.interests.includes(i.id) && editForm.interests.length >= 6"
-                  class="rounded-full px-4 py-2 text-sm transition-colors disabled:opacity-40"
-                  :class="editForm.interests.includes(i.id) ? 'bg-[#393737] text-white' : 'bg-white text-[#393737] ring-1 ring-black/10 hover:ring-[#393737]'"
-                  @click="toggleInterest(i.id)"
-                >{{ i.label }}</button>
+              <div class="mb-3 flex items-baseline justify-between gap-3">
+                <p class="text-sm text-[#6c6862]">Pick up to 6</p>
+                <p class="text-sm font-semibold tabular-nums" :class="editForm.interests.length >= 6 ? 'text-[#ed1c24]' : 'text-[#393737]'">{{ editForm.interests.length }}/6</p>
               </div>
+              <ChoiceChips id="me-hobbies" v-model="editForm.interests" :options="interestOptions" multiple :max="6" />
             </template>
 
             <!-- When you're free -->
@@ -234,63 +209,27 @@
             </template>
 
             <!-- Who you're looking for -->
-            <div v-else-if="panel.id === 'seek'" class="grid gap-3 sm:grid-cols-2">
-              <div>
-                <label for="me-intent" class="mb-1.5 block text-sm text-[#6c6862]">Looking for</label>
-                <select id="me-intent" v-model="editForm.intent" :class="FIELD">
-                  <option v-for="i in INTENTS" :key="i.value" :value="i.value">{{ i.label }}</option>
-                </select>
-              </div>
-              <div>
-                <label for="me-interested" class="mb-1.5 block text-sm text-[#6c6862]">Interested in</label>
-                <select id="me-interested" v-model="editForm.interested_in" :class="FIELD">
-                  <option value="male">Men</option>
-                  <option value="female">Women</option>
-                  <option value="everyone">Everyone</option>
-                </select>
-              </div>
-              <div>
-                <label for="me-min-age" class="mb-1.5 block text-sm text-[#6c6862]">Age from</label>
-                <select id="me-min-age" v-model.number="editForm.min_age" :class="FIELD">
-                  <option v-for="a in ageOptions" :key="'min' + a" :value="a" :disabled="a > editForm.max_age">{{ a }}</option>
-                </select>
-              </div>
-              <div>
-                <label for="me-max-age" class="mb-1.5 block text-sm text-[#6c6862]">Age to</label>
-                <select id="me-max-age" v-model.number="editForm.max_age" :class="FIELD">
-                  <option v-for="a in ageOptions" :key="'max' + a" :value="a" :disabled="a < editForm.min_age">{{ a }}</option>
-                </select>
-              </div>
+            <div v-else-if="panel.id === 'seek'" class="space-y-7">
+              <fieldset>
+                <legend class="mb-2 text-sm text-[#6c6862]">Looking for</legend>
+                <ChoiceChips v-model="editForm.intent" :options="INTENTS" layout="grid-2" :clearable="false" />
+              </fieldset>
+              <SegmentedControl v-model="editForm.interested_in" label="Interested in" :options="INTERESTED_IN" />
+              <AgeRangeSlider v-model:min="editForm.min_age" v-model:max="editForm.max_age" label="Ages you'd like to meet" />
             </div>
 
             <!-- Dealbreakers -->
             <template v-else-if="panel.id === 'deal'">
               <p class="text-sm text-[#9b9690]">Tap anything you're not open to. We'll never match you with someone who…</p>
-              <p class="mb-2 mt-4 text-sm text-[#6c6862]">…is of this faith</p>
-              <div class="flex flex-wrap gap-2">
-                <button
-                  v-for="r in RELIGIONS"
-                  :key="r"
-                  type="button"
-                  :aria-pressed="editForm.dealbreakers.religion.includes(r)"
-                  class="rounded-full px-4 py-2 text-sm transition-colors"
-                  :class="editForm.dealbreakers.religion.includes(r) ? 'bg-[#393737] text-white' : 'bg-white text-[#393737] ring-1 ring-black/10 hover:ring-[#393737]'"
-                  @click="toggleDealbreaker('religion', r)"
-                >{{ r }}</button>
-              </div>
-              <p class="mb-2 mt-4 text-sm text-[#6c6862]">…is looking for</p>
-              <div class="flex flex-wrap gap-2">
-                <button
-                  v-for="i in INTENTS"
-                  :key="i.value"
-                  type="button"
-                  :aria-pressed="editForm.dealbreakers.intent.includes(i.value)"
-                  class="rounded-full px-4 py-2 text-sm transition-colors"
-                  :class="editForm.dealbreakers.intent.includes(i.value) ? 'bg-[#393737] text-white' : 'bg-white text-[#393737] ring-1 ring-black/10 hover:ring-[#393737]'"
-                  @click="toggleDealbreaker('intent', i.value)"
-                >{{ i.label }}</button>
-              </div>
-              <p class="mt-4 text-sm text-[#9b9690]">We also automatically avoid genotype pairings that carry a health risk.</p>
+              <fieldset class="mt-5">
+                <legend class="mb-2 text-sm text-[#6c6862]">…is of this faith</legend>
+                <ChoiceChips :model-value="editForm.dealbreakers.religion" :options="RELIGIONS" multiple @update:model-value="editForm.dealbreakers.religion = $event" />
+              </fieldset>
+              <fieldset class="mt-5">
+                <legend class="mb-2 text-sm text-[#6c6862]">…is looking for</legend>
+                <ChoiceChips :model-value="editForm.dealbreakers.intent" :options="INTENTS" multiple @update:model-value="editForm.dealbreakers.intent = $event" />
+              </fieldset>
+              <p class="mt-5 text-sm text-[#9b9690]">We also automatically avoid genotype pairings that carry a health risk.</p>
             </template>
 
             <div class="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:items-center sm:justify-end">
@@ -341,19 +280,30 @@
     <!-- Delete confirmation -->
     <Teleport to="body">
       <div v-if="showDeletionModal" class="m2m-app fixed inset-0 z-[120] flex items-end justify-center bg-black/40 p-4 backdrop-blur-sm sm:items-center" @click.self="showDeletionModal = false">
-        <div class="w-full max-w-md rounded-[1.75rem] bg-white p-6 shadow-[0_24px_60px_rgba(0,0,0,0.18)] sm:p-8" role="dialog" aria-modal="true" aria-labelledby="delete-title">
+        <div class="max-h-[calc(100dvh-2rem)] w-full max-w-md overflow-y-auto rounded-[1.75rem] bg-white p-6 shadow-[0_24px_60px_rgba(0,0,0,0.18)] sm:p-8" role="dialog" aria-modal="true" aria-labelledby="delete-title">
           <h3 id="delete-title" class="font-display text-2xl text-[#393737]">Delete your account?</h3>
           <p class="mt-2 text-base text-[#6c6862]">This removes your profile, Vibe Check answers and matches. It can't be undone.</p>
-          <label for="del-reason" class="mt-5 block text-sm text-[#6c6862]">Why are you leaving?</label>
-          <select id="del-reason" v-model="deletionReason" :class="[FIELD, 'mt-1.5']">
-            <option value="found_match">I found a partner on Minutes 2 Match ❤️</option>
-            <option value="taking_break">I'm taking a break from dating</option>
-            <option value="privacy">Privacy or security concerns</option>
-            <option value="not_satisfied">I'm not happy with my matches</option>
-            <option value="other">Something else</option>
-          </select>
-          <label for="del-details" class="mt-4 block text-sm text-[#6c6862]">Anything else? (optional)</label>
-          <textarea id="del-details" v-model="deletionDetails" rows="3" maxlength="500" class="mt-1.5 w-full resize-none rounded-[1.25rem] border border-[#e5e2dd] p-4 text-base text-[#393737] outline-none focus:border-[#393737]"></textarea>
+          <fieldset class="mt-5">
+            <legend class="mb-2 text-sm text-[#6c6862]">Why are you leaving?</legend>
+            <div class="space-y-2">
+              <button
+                v-for="r in DELETION_REASONS"
+                :key="r.value"
+                type="button"
+                :aria-pressed="deletionReason === r.value"
+                class="flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-left text-[15px] transition-all active:scale-[0.99]"
+                :class="deletionReason === r.value ? 'bg-[#393737] font-medium text-white' : 'bg-white text-[#393737] ring-1 ring-[#e5e2dd] hover:ring-[#cfc9c1]'"
+                @click="deletionReason = r.value"
+              >
+                <span class="flex h-5 w-5 shrink-0 items-center justify-center rounded-full" :class="deletionReason === r.value ? 'bg-white' : 'ring-1 ring-black/20'" aria-hidden="true">
+                  <span v-if="deletionReason === r.value" class="h-2 w-2 rounded-full bg-[#393737]"></span>
+                </span>
+                {{ r.label }}
+              </button>
+            </div>
+          </fieldset>
+          <label for="del-details" class="mt-5 block text-sm text-[#6c6862]">Anything else? (optional)</label>
+          <textarea id="del-details" v-model="deletionDetails" rows="3" maxlength="500" placeholder="We read every note" class="mt-1.5 w-full resize-none rounded-[1.25rem] border border-[#e5e2dd] p-4 text-base text-[#393737] outline-none transition-[border-color,box-shadow] placeholder:text-[#a8a39d] focus:border-[#393737] focus:ring-4 focus:ring-black/5"></textarea>
           <div class="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
             <button type="button" class="rounded-full px-6 py-3.5 text-sm font-medium text-[#6c6862] hover:text-[#393737]" @click="showDeletionModal = false">Cancel</button>
             <button type="button" :disabled="submittingDeletionRequest" class="rounded-full bg-[#b4232a] px-6 py-3.5 text-sm font-medium text-white hover:bg-[#9a1d23] disabled:opacity-60" @click="submitDeletionRequest">
@@ -471,7 +421,7 @@ const editForm = reactive({
 
 const CITIES = {
   ghana: ['Accra', 'Kumasi', 'Tema', 'Takoradi', 'Cape Coast', 'Tamale', 'Koforidua', 'Ho', 'Sunyani'],
-  kenya: ['Nairobi', 'Mombasa', 'Kisumu', 'Nakuru', 'Eldoret'],
+  kenya: ['Nairobi', 'Kiambu', 'Mombasa', 'Kisumu', 'Nakuru', 'Eldoret', 'Thika'],
 }
 const ALL_CITIES = [...CITIES.ghana, ...CITIES.kenya]
 // Saved values may be lowercase ("accra") or a neighbourhood ("East Legon"); show them as a city
@@ -501,18 +451,23 @@ const toggleFree = (day: string, slot: string) => {
 }
 
 const RELIGIONS = ['Christian', 'Muslim', 'Traditional', 'Other']
+const GENOTYPES = ['AA', 'AS', 'AC', 'SS']
+const CONTACT_METHODS = [
+  { value: 'phone', label: 'WhatsApp' },
+  { value: 'instagram', label: 'Instagram' },
+  { value: 'snapchat', label: 'Snapchat' },
+]
+const INTERESTED_IN = [
+  { value: 'male', label: 'Men' },
+  { value: 'female', label: 'Women' },
+  { value: 'everyone', label: 'Everyone' },
+]
 const INTENTS = [
   { value: 'marriage', label: 'Marriage' },
   { value: 'serious', label: 'Something serious' },
   { value: 'casual', label: 'Something casual' },
   { value: 'friendship', label: 'Friendship' },
 ]
-const toggleDealbreaker = (kind: 'religion' | 'intent', value: string) => {
-  const list = editForm.dealbreakers[kind]
-  const i = list.indexOf(value)
-  if (i === -1) list.push(value)
-  else list.splice(i, 1)
-}
 
 const availableInterests = [
   { id: 'travel', label: 'Travel ✈️' }, { id: 'fitness', label: 'Fitness 💪' }, { id: 'cooking', label: 'Cooking 🍳' }, { id: 'movies', label: 'Movies 🎬' },
@@ -521,29 +476,15 @@ const availableInterests = [
   { id: 'nature', label: 'Nature 🌿' }, { id: 'photography', label: 'Photography 📸' }, { id: 'dancing', label: 'Dancing 💃' }, { id: 'entrepreneurship', label: 'Business 💼' },
 ]
 
+// Same list, without the emoji, for the pickers
+const interestOptions = availableInterests.map(i => ({ value: i.id, label: i.label.replace(/\s*\p{Extended_Pictographic}.*$/u, '') }))
+
 const commonOccupations = [
   'Entrepreneur', 'Software Engineer', 'Medical Doctor', 'Lawyer', 'Banker', 'Teacher', 'Creative / Artist', 'Student', 'Nurse', 'Architect',
   'Real Estate Developer', 'HR Professional', 'Marketing Executive', 'Pilot', 'Fashion Designer', 'Chef', 'Auditor', 'Pharmacist', 'Content Creator',
 ]
 
-const cmToFtIn = (cm: number) => {
-  const totalIn = Math.round(cm / 2.54)
-  return `${Math.floor(totalIn / 12)}'${totalIn % 12}"`
-}
-const heightOptions = Array.from({ length: 81 }, (_, i) => {
-  const cm = 140 + i
-  return { value: cm, label: `${cm} cm (${cmToFtIn(cm)})` }
-})
-const ageOptions = Array.from({ length: 63 }, (_, i) => 18 + i)
 
-const toggleInterest = (id: string) => {
-  const idx = editForm.interests.indexOf(id)
-  if (idx === -1) {
-    if (editForm.interests.length < 6) editForm.interests.push(id)
-  } else {
-    editForm.interests.splice(idx, 1)
-  }
-}
 
 const saving = ref(false)
 const saveSuccess = ref(false)
@@ -619,7 +560,7 @@ const fillForm = (p: any) => {
     interested_in: p.interested_in || 'everyone',
     min_age: p.min_age || 18,
     max_age: p.max_age || 50,
-    location: toCityOption(p.location),
+    location: p.location === 'other' || p.location === 'Other' ? '' : (p.location || ''),
     availability: parseAvailability(p.availability),
     dealbreakers: {
       religion: [...(p.dealbreakers?.religion || [])],
@@ -693,10 +634,10 @@ const handlePhotoUpload = async (event: Event) => {
 // Kept in shared state so switching back to Profile shows the right next step straight away.
 // null = not loaded yet (the skeleton covers that on a first visit).
 const myVibeKeys = useState<string[] | null>('me_vibeKeys', () => null)
-const fetchMyVibeKeys = async () => {
-  if (!currentUserId.value) { myVibeKeys.value ??= []; return }
+const fetchMyVibeKeys = async (userId = currentUserId.value) => {
+  if (!userId) { myVibeKeys.value ??= []; return }
   try {
-    const { data } = await supabase.schema('m2m').from('vibe_answers').select('question_key').eq('user_id', currentUserId.value)
+    const { data } = await supabase.schema('m2m').from('vibe_answers').select('question_key').eq('user_id', userId)
     myVibeKeys.value = ((data as any[]) || []).map(a => a.question_key)
   } catch {
     myVibeKeys.value ??= []
@@ -799,6 +740,13 @@ const showDeletionModal = ref(false)
 const submittingDeletionRequest = ref(false)
 const cancellingDeletionRequest = ref(false)
 const deletionReason = ref('found_match')
+const DELETION_REASONS = [
+  { value: 'found_match', label: 'I found a partner on Minutes 2 Match' },
+  { value: 'taking_break', label: "I'm taking a break from dating" },
+  { value: 'privacy', label: 'Privacy or security concerns' },
+  { value: 'not_satisfied', label: "I'm not happy with my matches" },
+  { value: 'other', label: 'Something else' },
+]
 const deletionDetails = ref('')
 
 const fetchDeletionRequest = async () => {
@@ -846,9 +794,11 @@ const cancelDeletionRequest = async () => {
 // After the first visit it's all in shared state, so switching tabs shows the full page at once.
 const showSkeleton = computed(() => !profile.value || myVibeKeys.value === null)
 
+// Everything loads side by side; cached values are already on screen and refresh quietly
+const supaUser = useSupabaseUser()
 onMounted(async () => {
-  await initDashboard()
-  // refresh quietly in the background; the cached values are already on screen
-  await Promise.all([fetchMyVibeKeys(), fetchDeletionRequest()])
+  const fastId = (supaUser.value as any)?.sub || (supaUser.value as any)?.id || currentUserId.value
+  await Promise.all([initDashboard(), fastId ? fetchMyVibeKeys(fastId) : null, fetchDeletionRequest()])
+  if (!fastId) await fetchMyVibeKeys()
 })
 </script>

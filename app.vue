@@ -12,6 +12,11 @@ const route = useRoute()
 const { isTMA, webApp, hapticFeedback } = useTelegram()
 const isMounted = ref(false)
 
+// Brand every tab title once: pages that already say "Minutes 2 Match" are left as they are
+useHead({
+  titleTemplate: (title?: string) => !title ? 'Minutes 2 Match' : title.includes('Minutes 2 Match') ? title : `${title} | Minutes 2 Match`,
+})
+
 // Handle Telegram Back Button and Initialization
 onMounted(() => {
   isMounted.value = true

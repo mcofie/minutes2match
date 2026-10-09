@@ -343,7 +343,7 @@ useSeoMeta({
   ogTitle: 'Shoot Your Shot 🎯 | Seconds to Connection',
   description: 'Got someone on your mind? Send a mystery SMS with 3 clues and let them reveal it\'s you. Bold moves only on Minutes 2 Match.',
   ogDescription: 'Got someone on your mind? Send a mystery SMS with 3 clues and let them reveal it\'s you. Bold moves only on Minutes 2 Match.',
-  ogImage: '/og-shot.png',
+  ogImage: 'https://minutes2match.com/og-shot.png',
   twitterCard: 'summary_large_image',
 })
 

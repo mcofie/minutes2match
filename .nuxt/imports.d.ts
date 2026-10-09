@@ -38,6 +38,7 @@ export { useDashboard } from '../composables/useDashboard';
 export { useFlashLobby } from '../composables/useFlashLobby';
 export { useFormValidation, ValidationRule, FieldConfig, FieldState } from '../composables/useFormValidation';
 export { useHaptic } from '../composables/useHaptic';
+export { useMatchBrief, MatchBrief } from '../composables/useMatchBrief';
 export { useNotifications } from '../composables/useNotifications';
 export { usePasskeys } from '../composables/usePasskeys';
 export { usePaystack, PaymentMetadata } from '../composables/usePaystack';
@@ -48,7 +49,9 @@ export { getRandomQuestions, useShotHints, ShotQuestion } from '../composables/u
 export { useTelegram } from '../composables/useTelegram';
 export { useToast, Toast } from '../composables/useToast';
 export { useZend } from '../composables/useZend';
+export { avatarUrl } from '../utils/avatarUrl';
 export { COMPATIBILITY_MAP, normalizeCity, calculateAge, checkAgeViolation, isCompatibleProfession, MIN_V2_ANSWERS, MIN_LEGACY_ANSWERS, MIN_CONFIDENCE, calculateCompatibility, getCompatibilityTier, VibeAnswer, UserProfile, CompatibilitySignalCategory, CompatibilitySignal, CompatibilityResult } from '../utils/compatibility';
+export { DATE_CATALOG, pickDateIdeas, Slot, DateIdea, DateIdeaInput, PickedIdea } from '../utils/dateIdeas';
 export { downloadCSV } from '../utils/downloadCsv';
 export { unlockedMatchFields } from '../utils/freeMatch';
 export { currentMatchWeekEnd, isOptedInThisWeek, currentMatchWeekStart } from '../utils/matchWeek';

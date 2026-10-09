@@ -344,7 +344,7 @@ useSeoMeta({
   ogTitle: 'Transparent Pricing | Minutes 2 Match',
   description: 'Invest in connection. Simple, transparent pricing for match unlocks and curated events in Accra. No hidden fees, just real dates.',
   ogDescription: 'Invest in connection. Simple, transparent pricing for match unlocks and curated events in Accra. No hidden fees, just real dates.',
-  ogImage: '/og-image.png',
+  ogImage: 'https://minutes2match.com/og-image.png',
   twitterCard: 'summary_large_image',
 })
 

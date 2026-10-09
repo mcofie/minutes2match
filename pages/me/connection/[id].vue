@@ -16,7 +16,7 @@
           </NuxtLink>
           <NuxtLink to="/me" class="inline-flex h-9 items-center justify-center gap-2 rounded-full pl-3 pr-4 text-sm font-semibold text-[#6c6862] transition-colors hover:text-[#393737]">
             <span class="h-6 w-6 shrink-0 overflow-hidden rounded-full bg-[#e7e4e0] ring-2 ring-white">
-                <img v-if="currentUser?.photo_url" :src="currentUser.photo_url" alt="" class="h-full w-full object-cover" />
+                <img v-if="currentUser?.photo_url" :src="avatarUrl(currentUser.photo_url, 96)" alt="" decoding="async" class="h-full w-full object-cover" />
                 <span v-else class="flex h-full w-full items-center justify-center text-[11px] font-semibold text-[#6c6862]">{{ currentUser?.display_name?.charAt(0) || '?' }}</span>
             </span>
             Profile
@@ -56,7 +56,7 @@
             </NuxtLink>
             <button type="button" class="inline-flex min-w-0 items-center gap-2.5 rounded-full bg-white py-1.5 pl-1.5 pr-4 text-sm font-medium text-[#393737] ring-1 ring-black/10 transition-colors hover:bg-[#fafafa]" @click="showProfile = true">
               <span class="h-8 w-8 shrink-0 overflow-hidden rounded-full bg-[#f4f3f1]">
-                <img v-if="matchProfile.photo_url" :src="matchProfile.photo_url" alt="" class="h-full w-full object-cover" />
+                <img v-if="matchProfile.photo_url" :src="avatarUrl(matchProfile.photo_url, 48)" alt="" decoding="async" class="h-full w-full object-cover" />
                 <span v-else class="font-display flex h-full w-full items-center justify-center text-sm text-[#9b9690]">{{ theirFirstName.charAt(0) }}</span>
               </span>
               <span class="truncate">{{ theirFirstName }}'s profile</span>
@@ -74,13 +74,13 @@
               <span class="inline-flex rounded-full bg-white/80 px-4 py-1.5 text-sm font-medium text-[#393737] shadow-[0_4px_14px_rgba(57,77,100,0.08)] backdrop-blur">Your match brief</span>
 
               <div class="mt-6 flex items-center justify-center sm:mt-8" aria-hidden="true">
-                <div class="h-16 w-16 overflow-hidden rounded-full bg-[#eef1f5] ring-4 ring-white sm:h-20 sm:w-20">
-                  <img v-if="currentUser?.photo_url" :src="currentUser.photo_url" alt="" class="h-full w-full object-cover" />
-                  <span v-else class="font-display flex h-full w-full items-center justify-center text-2xl text-[#9b9690]">{{ myFirstName.charAt(0) }}</span>
+                <div class="h-20 w-20 overflow-hidden rounded-full bg-[#eef1f5] ring-4 ring-white sm:h-24 sm:w-24">
+                  <img v-if="currentUser?.photo_url" :src="avatarUrl(currentUser.photo_url, 96)" alt="" decoding="async" class="h-full w-full object-cover" />
+                  <span v-else class="font-display flex h-full w-full items-center justify-center text-3xl text-[#9b9690]">{{ myFirstName.charAt(0) }}</span>
                 </div>
-                <div class="-ml-4 h-16 w-16 overflow-hidden rounded-full bg-[#eef1f5] ring-4 ring-white sm:h-20 sm:w-20">
-                  <img v-if="matchProfile?.photo_url" :src="matchProfile.photo_url" alt="" class="h-full w-full object-cover" :class="(match?.unlocked || match?.currentUserPaid) ? '' : 'scale-110 blur-[6px]'" />
-                  <span v-else class="font-display flex h-full w-full items-center justify-center text-2xl text-[#9b9690]">?</span>
+                <div class="-ml-5 h-20 w-20 overflow-hidden rounded-full bg-[#eef1f5] ring-4 ring-white sm:h-24 sm:w-24">
+                  <img v-if="matchProfile?.photo_url" :src="avatarUrl(matchProfile.photo_url, 96)" alt="" decoding="async" fetchpriority="high" class="h-full w-full object-cover" :class="(match?.unlocked || match?.currentUserPaid) ? '' : 'scale-110 blur-[6px]'" />
+                  <span v-else class="font-display flex h-full w-full items-center justify-center text-3xl text-[#9b9690]">?</span>
                 </div>
               </div>
 
@@ -263,21 +263,64 @@
                 <p class="rv-item mt-1 text-[3rem] font-semibold leading-none tracking-[-0.05em] text-[#393737] sm:text-[4.5rem]" style="--i: 2">meet.</p>
               </div>
 
-              <!-- VI. A few date ideas -->
-              <section v-if="briefNum('dates')" v-reveal class="letter-section mt-14 sm:mt-28">
+              <!-- VI. A few date ideas: three cards, each with a little scene, why it fits, when and where -->
+              <section v-if="briefNum('dates')" v-reveal class="letter-section mt-14 sm:mt-24">
                 <div class="rv-item text-center">
-                  <h3 class="font-display text-[2rem] leading-[1.05] tracking-tight text-[#393737] sm:text-[4rem]">A few date ideas</h3>
+                  <p class="text-base text-[#393737] sm:text-2xl">Where to start</p>
+                  <h3 class="font-display mt-1.5 text-[2rem] leading-[1.05] tracking-tight text-[#393737] sm:text-[4rem]">A few date ideas</h3>
                 </div>
-                <p class="rv-item mx-auto mt-2.5 max-w-xl text-center sm:mt-4 text-base leading-[1.65] text-[#6c6862] sm:text-xl sm:leading-[1.6]" style="--i: 1">Chosen for the two of you, based on what you share and when you're both free.</p>
-                <ol class="mt-5 space-y-5 sm:mt-6 sm:space-y-6">
-                  <li v-for="(idea, i) in dateIdeas" :key="idea.id" class="rv-item flex gap-4" :style="{ '--i': i + 2 }">
-                    <span class="dot-pop font-display flex h-9 w-9 shrink-0 sm:h-11 sm:w-11 items-center justify-center rounded-full border border-[#dad6d1] text-lg text-[#c4121a]" aria-hidden="true">{{ i + 1 }}</span>
-                    <div class="min-w-0">
-                      <h4 class="font-display text-xl leading-snug">{{ idea.title }}</h4>
-                      <p class="mt-1 text-base leading-relaxed text-[#6c6862]">{{ idea.desc }}</p>
-                      <p class="mt-2 text-sm text-[#393737]">{{ idea.why.join(' · ') }}</p>
-                      <p v-if="idea.when || idea.where" class="mt-1 text-sm text-[#9b9690]">
-                        <template v-if="idea.when">{{ idea.when }}</template><template v-if="idea.when && idea.where"> · </template><template v-if="idea.where">{{ idea.where }}</template>
+                <p class="rv-item mx-auto mt-2.5 max-w-xl text-center text-base leading-[1.65] text-[#6c6862] sm:mt-4 sm:text-xl sm:leading-[1.6]" style="--i: 1">Picked for you two from what you share, where you live and when you're both free. Swipe to see them all.</p>
+
+                <!-- Swipe through: cards bleed to the screen edge and snap into place; details open per card -->
+                <ol class="no-scrollbar -mx-4 -mb-6 mt-6 flex items-stretch snap-x snap-mandatory gap-3 overflow-x-auto scroll-px-4 px-4 pb-10 pt-1 sm:-mx-6 sm:mt-9 sm:scroll-px-6 sm:px-6 sm:[mask-image:linear-gradient(to_right,transparent,#000_1.5rem,#000_calc(100%-1.5rem),transparent)] print:mx-0 print:flex-wrap print:overflow-visible print:px-0" aria-label="Date ideas">
+                  <li
+                    v-for="(idea, i) in dateIdeas"
+                    :key="idea.id"
+                    class="rv-item flex w-[min(78vw,17rem)] shrink-0 snap-start flex-col rounded-[1.5rem] bg-white p-4 text-left ring-1 ring-black/5 sm:w-[18rem] sm:p-5"
+                    :class="i === 0 ? 'shadow-[0_14px_34px_rgba(57,77,100,0.10)]' : 'shadow-[0_6px_18px_rgba(57,77,100,0.05)]'"
+                    :style="{ '--i': i + 2 }"
+                  >
+                    <div class="flex flex-wrap gap-1.5">
+                      <span v-if="i === 0" class="inline-flex items-center gap-1 rounded-full bg-[#fdecec] px-2 py-0.5 text-[11px] font-semibold text-[#c4121a]">
+                        <svg viewBox="0 0 24 24" class="h-2.5 w-2.5" fill="currentColor" aria-hidden="true"><path d="M12 2.5l2.9 6 6.6.8-4.9 4.5 1.3 6.5L12 17l-5.9 3.3 1.3-6.5L2.5 9.3l6.6-.8z" /></svg>
+                        Top pick
+                      </span>
+                      <span class="rounded-full bg-[#f4f2ef] px-2 py-0.5 text-[11px] font-medium text-[#6c6862]">{{ IDEA_KIND[idea.kind] || 'Date' }}</span>
+                    </div>
+                    <h4 class="font-display mt-2.5 text-[1.15rem] leading-[1.2] text-[#393737] sm:text-[1.3rem]">{{ idea.title }}</h4>
+
+                    <!-- Collapsible middle: what to do and why it fits -->
+                    <button
+                      type="button"
+                      class="mt-2 inline-flex items-center gap-1 text-[13px] font-medium text-[#6c6862] transition-colors hover:text-[#393737] print:hidden"
+                      :aria-expanded="openIdeas.has(idea.id)"
+                      :aria-controls="`idea-${idea.id}`"
+                      @click="toggleIdea(idea.id)"
+                    >
+                      {{ openIdeas.has(idea.id) ? 'Less' : 'Why it fits' }}
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="h-3.5 w-3.5 transition-transform duration-200" :class="{ 'rotate-180': openIdeas.has(idea.id) }" aria-hidden="true"><path d="m6 9 6 6 6-6" /></svg>
+                    </button>
+                    <div :id="`idea-${idea.id}`" class="grid transition-[grid-template-rows] duration-300 ease-out print:!grid-rows-[1fr]" :class="openIdeas.has(idea.id) ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'">
+                      <div class="min-h-0 overflow-hidden" :inert="!openIdeas.has(idea.id)">
+                        <p class="pt-2 text-sm leading-relaxed text-[#6c6862]">{{ idea.desc }}</p>
+                        <ul class="mt-2.5 space-y-1">
+                          <li v-for="w in idea.why" :key="w" class="flex items-start gap-1.5 text-[13px] leading-snug text-[#393737]">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.75" stroke-linecap="round" stroke-linejoin="round" class="mt-[2px] h-3.5 w-3.5 shrink-0 text-[#ed1c24]" aria-hidden="true"><path d="M20 6 9 17l-5-5" /></svg>
+                            {{ w }}
+                          </li>
+                        </ul>
+                      </div>
+                    </div>
+                    <div class="min-h-3 flex-1" aria-hidden="true"></div>
+
+                    <div v-if="idea.when || idea.where" class="mt-auto space-y-1 border-t border-black/[0.06] pt-3 text-[13px] text-[#6c6862]">
+                      <p v-if="idea.when" class="flex items-center gap-1.5">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" class="h-3.5 w-3.5 shrink-0 text-[#9b9690]" aria-hidden="true"><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></svg>
+                        {{ idea.when }}
+                      </p>
+                      <p v-if="idea.where" class="flex min-w-0 items-center gap-1.5">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-3.5 w-3.5 shrink-0 text-[#9b9690]" aria-hidden="true"><path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21Z" /><circle cx="12" cy="9.5" r="2.5" /></svg>
+                        <span class="truncate">{{ idea.where }}</span>
                       </p>
                     </div>
                   </li>
@@ -353,7 +396,7 @@
         </NuxtLink>
         <NuxtLink to="/me" class="flex h-12 items-center justify-center gap-2 rounded-full text-[0.95rem] font-semibold text-[#6c6862] active:scale-[0.97]">
           <span class="h-7 w-7 shrink-0 overflow-hidden rounded-full bg-[#e7e4e0] shadow-[0_1px_4px_rgba(52,38,25,0.15)] ring-2 ring-white">
-                <img v-if="currentUser?.photo_url" :src="currentUser.photo_url" alt="" class="h-full w-full object-cover" />
+                <img v-if="currentUser?.photo_url" :src="avatarUrl(currentUser.photo_url, 96)" alt="" decoding="async" class="h-full w-full object-cover" />
                 <span v-else class="flex h-full w-full items-center justify-center text-xs font-semibold text-[#6c6862]">{{ currentUser?.display_name?.charAt(0) || '?' }}</span>
           </span>
           Profile
@@ -370,153 +413,106 @@
             <div class="relative flex h-14 shrink-0 items-center justify-end border-b border-[#f0ece7] px-3 sm:h-16 sm:px-4">
               <span class="absolute left-1/2 top-2 h-1 w-10 -translate-x-1/2 rounded-full bg-[#e7e3de] sm:hidden" aria-hidden="true"></span>
               <p class="font-display absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 pt-1 text-lg text-[#393737] sm:pt-0">{{ theirFirstName }}'s profile</p>
-              <button type="button" class="relative flex h-10 w-10 items-center justify-center rounded-full text-[#6c6862] transition-colors hover:bg-[#f4f3f1]" aria-label="Close" @click="showProfile = false">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" class="h-5 w-5" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12" /></svg>
+              <button type="button" class="relative flex h-10 w-10 items-center justify-center rounded-full bg-white text-[#393737] ring-1 ring-black/10 transition-colors hover:bg-[#fafafa] active:scale-95" aria-label="Close" @click="showProfile = false">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" class="h-4 w-4" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12" /></svg>
               </button>
             </div>
 
-            <div class="overflow-y-auto overscroll-contain px-6 pb-8 pt-6 text-center">
+            <div class="overflow-y-auto overscroll-contain bg-[#f7f7f7] px-5 pb-8 pt-7 text-center sm:px-6">
             <!-- Photo -->
-            <div class="relative inline-block mb-4">
-              <div 
-                class="mx-auto h-28 w-28 overflow-hidden rounded-full relative ring-4 ring-white shadow-[0_10px_30px_rgba(52,38,25,0.12)] sm:h-36 sm:w-36"
-                :style="{ backgroundColor: (match?.unlocked || match?.currentUserPaid) ? '#f5f5f4' : (personaData?.color || '#1a1a2e') }"
-              >
-                <!-- Photo: Unlocked or Paid -->
-                <img 
-                  v-if="(match?.unlocked || match?.currentUserPaid) && matchProfile?.photo_url" 
-                  :src="matchProfile.photo_url" 
+            <div class="relative mx-auto h-32 w-32 sm:h-36 sm:w-36">
+              <div class="h-full w-full overflow-hidden rounded-full bg-[#eef1f5] ring-[6px] ring-white shadow-[0_14px_36px_rgba(57,77,100,0.14)]">
+                <img
+                  v-if="isOpen && matchProfile?.photo_url"
+                  :src="avatarUrl(matchProfile.photo_url, 144)"
+                  decoding="async"
                   :alt="matchProfile.display_name"
-                  class="w-full h-full object-cover cursor-zoom-in hover:scale-110 transition-transform duration-500"
+                  class="h-full w-full cursor-zoom-in object-cover transition-transform duration-500 hover:scale-105"
                   @click="showImageZoom = true"
                 />
-                
-                <!-- Photo: Locked (Blurred Preview) -->
-                <template v-else>
-                  <img 
-                    v-if="matchProfile?.photo_url"
-                    :src="matchProfile.photo_url" 
-                    class="absolute inset-0 w-full h-full object-cover blur-[8px] scale-110 opacity-70" 
-                  />
-                  <!-- Fallback: Abstract Silhouette -->
-                  <div v-if="!matchProfile?.photo_url" class="absolute inset-0 flex items-center justify-center bg-stone-100">
-                    <svg class="w-1/2 h-1/2 text-stone-200" viewBox="0 0 24 24" fill="currentColor">
-                      <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
-                    </svg>
-                  </div>
-                </template>
-
-                <!-- Initial Fallback for unlocked but no photo -->
-                <div v-if="(match?.unlocked || match?.currentUserPaid) && !matchProfile?.photo_url" class="w-full h-full flex items-center justify-center font-display text-5xl text-[#393737]">
-                  {{ (matchProfile?.display_name || '?').charAt(0).toUpperCase() }}
-                </div>
-              </div>
-              
-              <!-- Member Badge -->
-              <div v-if="matchProfile?.is_verified" class="absolute -top-2 -right-4 z-10 animate-bounce-in">
-                 <div class="bg-stone-900 dark:bg-white text-white dark:text-stone-900 text-sm font-medium px-2 py-1 rounded-full border border-white dark:border-stone-900 shadow-md flex items-center gap-1 transform rotate-6 hover:rotate-0 transition-transform cursor-help" title="Verified Member">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="currentColor" class="text-yellow-400 dark:text-yellow-600"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
-                    Member
-                 </div>
-              </div>
-
-              <!-- Status Badge -->
-              <div
-                class="absolute -bottom-2 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full px-3 py-1 text-xs font-medium ring-2 ring-white"
-                :class="match?.unlocked ? 'bg-[#eef7f1] text-[#2f7a4d]' : 'bg-[#fff1f1] text-[#b4232a]'"
-              >
-                {{ match?.unlocked ? 'Connected' : 'Pending' }}
+                <img v-else-if="matchProfile?.photo_url" :src="avatarUrl(matchProfile.photo_url, 144)" alt="" decoding="async" class="h-full w-full scale-110 object-cover blur-[8px]" />
+                <span v-else class="font-display flex h-full w-full items-center justify-center text-5xl text-[#9b9690]">{{ isOpen ? (matchProfile?.display_name || '?').charAt(0).toUpperCase() : '?' }}</span>
               </div>
             </div>
 
-            <h2 class="font-display mb-1 mt-4 text-[1.75rem] text-[#393737] sm:text-3xl">
-              {{ (match?.unlocked || match?.currentUserPaid) ? matchProfile?.display_name : (personaData?.name || 'Your Match') }}
+            <h2 class="font-display mt-5 inline-flex items-center gap-2 text-[2rem] leading-tight text-[#393737] sm:text-[2.25rem]">
+              {{ isOpen ? matchProfile?.display_name : (personaData?.name || 'Your match') }}
+              <svg v-if="matchProfile?.is_verified" viewBox="0 0 24 24" class="h-5 w-5 shrink-0 text-[#3b82c4]" aria-label="Verified member" role="img"><path fill="currentColor" d="M12 2.5l2.4 1.8 3-.2.9 2.9 2.4 1.8-1 2.8 1 2.8-2.4 1.8-.9 2.9-3-.2L12 21.5l-2.4-1.8-3 .2-.9-2.9-2.4-1.8 1-2.8-1-2.8 2.4-1.8.9-2.9 3 .2z" /><path d="m8.5 12.2 2.3 2.3 4.7-4.8" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /></svg>
             </h2>
-            <p class="mb-6 text-base text-[#6c6862]">
-              {{ (match?.unlocked || match?.currentUserPaid) ? `${getAge(matchProfile?.birth_date)} years old` : 'Age hidden' }}
-              <span v-if="(match?.unlocked || match?.currentUserPaid) && matchProfile?.location">• {{ matchProfile.location }}</span>
+            <p class="mt-1 text-base text-[#6c6862]">
+              <template v-if="isOpen">{{ [getAge(matchProfile?.birth_date), formatPlace(matchProfile?.location)].filter(Boolean).join(' · ') }}</template>
+              <template v-else>Details unlock once you're connected</template>
             </p>
+            <span class="mt-3 inline-flex items-center gap-1.5 rounded-full bg-white px-3 py-1 text-xs font-medium text-[#6c6862] ring-1 ring-black/5">
+              <span class="h-1.5 w-1.5 rounded-full" :class="match?.unlocked ? 'bg-[#2f9e5b]' : 'bg-[#e0a03a]'" aria-hidden="true"></span>
+              {{ match?.unlocked ? 'Connected' : 'Waiting to connect' }}
+            </span>
 
-            <!-- Actions -->
-            <div class="space-y-4">
-              <div v-if="match?.unlocked && matchProfile" class="flex flex-col gap-3">
-                 <!-- Reveal according to preference -->
-                 <template v-if="matchProfile.preferred_contact_method === 'instagram'">
-                    <a 
-                      v-if="matchProfile.instagram_handle"
-                      :href="`https://instagram.com/${matchProfile.instagram_handle.replace('@', '')}`"
-                      target="_blank"
-                      class="flex flex-col items-center justify-center gap-1 w-full py-3 bg-gradient-to-tr from-yellow-400 via-rose-500 to-purple-600 text-white hover:opacity-90 rounded-2xl transition-all"
-                    >
-                      <span class="text-sm font-medium opacity-80">Instagram</span>
-                      <span class="font-mono font-bold text-sm truncate px-4 w-full text-center">@{{ matchProfile.instagram_handle.replace('@', '') }}</span>
-                    </a>
-                    <div v-else class="text-center py-4 border border-stone-200 dark:border-stone-700 text-stone-500 dark:text-stone-400 rounded-2xl text-sm font-medium">
-                       Instagram handle not provided.
-                    </div>
-                 </template>
-
-                 <template v-else-if="matchProfile.preferred_contact_method === 'snapchat'">
-                    <a 
-                      v-if="matchProfile.snapchat_handle"
-                      :href="`https://snapchat.com/add/${matchProfile.snapchat_handle}`"
-                      target="_blank"
-                      class="flex flex-col items-center justify-center gap-1 w-full py-3 bg-yellow-400 text-[#393737] hover:bg-yellow-300 rounded-2xl transition-all"
-                    >
-                      <span class="text-sm font-medium opacity-70">Snapchat</span>
-                      <span class="font-mono font-bold text-sm truncate px-4 w-full text-center">{{ matchProfile.snapchat_handle }}</span>
-                    </a>
-                    <div v-else class="text-center py-4 border border-stone-200 dark:border-stone-700 text-stone-500 dark:text-stone-400 rounded-2xl text-sm font-medium">
-                       Snapchat handle not provided.
-                    </div>
-                 </template>
-
-                 <template v-else>
-                    <div class="grid grid-cols-2 gap-4">
-                      <a 
-                        v-if="matchProfile.phone"
-                        :href="`https://wa.me/${matchProfile.phone?.replace(/\D/g, '')}`"
-                        target="_blank"
-                        class="flex flex-col items-center justify-center gap-1.5 rounded-2xl bg-[#25D366] p-3.5 text-white transition-opacity hover:opacity-90"
-                      >
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
-                        <span class="text-sm font-medium">WhatsApp</span>
-                      </a>
-                      <a 
-                        v-if="matchProfile.phone"
-                        :href="`tel:${matchProfile.phone}`"
-                        class="flex flex-col items-center justify-center gap-1.5 rounded-2xl bg-white p-3.5 text-[#393737] ring-1 ring-black/10 transition-colors hover:bg-[#fafafa]"
-                      >
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
-                        <span class="text-sm font-medium">Call</span>
-                      </a>
-                    </div>
-                 </template>
-              </div>
-
+            <!-- How to reach them -->
+            <div v-if="match?.unlocked && matchProfile" class="mt-7 overflow-hidden rounded-[1.5rem] bg-white text-left ring-1 ring-black/5">
+              <p class="px-5 pb-1 pt-4 text-sm text-[#9b9690]">Reach {{ theirFirstName }}</p>
+              <template v-if="matchProfile.preferred_contact_method === 'instagram' || matchProfile.preferred_contact_method === 'snapchat'">
+                <a
+                  v-if="contactHandle"
+                  :href="contactHref"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="flex items-center gap-4 px-5 py-3.5 transition-colors hover:bg-[#fafafa]"
+                >
+                  <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#f4f2ef] text-[#393737]" aria-hidden="true">
+                    <svg v-if="matchProfile.preferred_contact_method === 'instagram'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="h-5 w-5"><rect x="3" y="3" width="18" height="18" rx="5" /><circle cx="12" cy="12" r="4" /><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none" /></svg>
+                    <svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" class="h-5 w-5"><path d="M12 3c3 0 5 2.2 5 5.2v2.3l1.8-.6c.5-.1.9.5.4.9l-1.9 1.2c.6 1.7 2 2.9 3.4 3.3-.3.8-1.4 1-2.4 1.1-.3.6-.2 1.4-.9 1.4-1 0-2-.6-3.4.4-1.2.9-2.8.9-4 0-1.4-1-2.4-.4-3.4-.4-.7 0-.6-.8-.9-1.4-1-.1-2.1-.3-2.4-1.1 1.4-.4 2.8-1.6 3.4-3.3L2.8 10.8c-.5-.4-.1-1 .4-.9l1.8.6V8.2C5 5.2 7 3 12 3Z" /></svg>
+                  </span>
+                  <span class="min-w-0 flex-1">
+                    <span class="block text-base font-medium text-[#393737]">{{ matchProfile.preferred_contact_method === 'instagram' ? 'Instagram' : 'Snapchat' }}</span>
+                    <span class="block truncate text-sm text-[#9b9690]">@{{ contactHandle }}</span>
+                  </span>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4 shrink-0 text-[#b5b0aa]" aria-hidden="true"><path d="M7 17 17 7M8 7h9v9" /></svg>
+                </a>
+                <p v-else class="px-5 pb-4 pt-1 text-sm text-[#9b9690]">{{ theirFirstName }} hasn't added their {{ matchProfile.preferred_contact_method === 'instagram' ? 'Instagram handle' : 'Snapchat username' }} yet.</p>
+              </template>
+              <template v-else-if="matchProfile.phone">
+                <a :href="`https://wa.me/${matchProfile.phone.replace(/\D/g, '')}`" target="_blank" rel="noopener noreferrer" class="flex items-center gap-4 px-5 py-3.5 transition-colors hover:bg-[#fafafa]">
+                  <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#eaf6ef] text-[#1f8a4c]" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5"><path d="M3.5 20.5l1.3-4.2A8.5 8.5 0 1 1 8 19.4z" /><path d="M9 9.2c.2 2.6 2.6 5 5.2 5.4l1.2-1.2-1.8-.9-.7.7c-1-.4-2.1-1.4-2.5-2.5l.7-.7-.9-1.8z" /></svg>
+                  </span>
+                  <span class="min-w-0 flex-1">
+                    <span class="block text-base font-medium text-[#393737]">Message on WhatsApp</span>
+                    <span class="block truncate text-sm text-[#9b9690]">{{ matchProfile.phone }}</span>
+                  </span>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4 shrink-0 text-[#b5b0aa]" aria-hidden="true"><path d="M7 17 17 7M8 7h9v9" /></svg>
+                </a>
+                <a :href="`tel:${matchProfile.phone}`" class="flex items-center gap-4 border-t border-black/[0.06] px-5 py-3.5 transition-colors hover:bg-[#fafafa]">
+                  <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#f4f2ef] text-[#393737]" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8.1 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2z" /></svg>
+                  </span>
+                  <span class="flex-1 text-base font-medium text-[#393737]">Call</span>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4 shrink-0 text-[#b5b0aa]" aria-hidden="true"><path d="m9 18 6-6-6-6" /></svg>
+                </a>
+              </template>
             </div>
 
               <!-- Details -->
-              <dl class="mt-8 divide-y divide-[#f0ece7] border-y border-[#f0ece7] text-left">
-                <div v-for="row in profileFacts" :key="row.label" class="flex items-baseline justify-between gap-4 py-3">
-                  <dt class="text-sm text-[#9b9690]">{{ row.label }}</dt>
-                  <dd class="text-right text-base text-[#393737]">{{ row.value }}</dd>
+              <dl v-if="isOpen && profileFacts.length" class="mt-4 grid grid-cols-2 gap-2.5 text-left">
+                <div v-for="row in profileFacts" :key="row.label" class="rounded-[1.25rem] bg-white px-4 py-3.5 ring-1 ring-black/5">
+                  <dt class="text-xs text-[#9b9690]">{{ row.label }}</dt>
+                  <dd class="mt-0.5 truncate text-base font-medium text-[#393737]">{{ row.value }}</dd>
                 </div>
               </dl>
 
-              <div v-if="matchProfile.about_me" class="mt-7 text-left">
-                <p class="text-sm text-[#9b9690]">About {{ theirFirstName }}</p>
-                <p class="font-display mt-2 text-lg leading-relaxed">“{{ matchProfile.about_me }}”</p>
+              <div v-if="matchProfile.about_me" class="mt-4 rounded-[1.5rem] bg-white px-5 py-5 text-left ring-1 ring-black/5">
+                <p class="text-sm text-[#9b9690]">In {{ theirFirstName }}'s words</p>
+                <p class="font-display mt-2 text-xl leading-snug text-[#393737]">“{{ stripEmoji(matchProfile.about_me) }}”</p>
               </div>
 
-              <div v-if="matchProfile.interests?.length" class="mt-7 text-left">
-                <p class="text-sm text-[#9b9690]">Interests</p>
-                <div class="mt-2.5 flex flex-wrap gap-2">
-                  <span v-for="interest in matchProfile.interests" :key="interest" class="rounded-full bg-[#f4f3f1] px-3.5 py-1.5 text-sm">{{ getInterestLabel(interest) }}</span>
+              <div v-if="matchProfile.interests?.length" class="mt-4 rounded-[1.5rem] bg-white px-5 py-5 text-left ring-1 ring-black/5">
+                <p class="text-sm text-[#9b9690]">Into</p>
+                <div class="mt-3 flex flex-wrap gap-2">
+                  <span v-for="interest in matchProfile.interests" :key="interest" class="rounded-full bg-[#f4f2ef] px-3.5 py-1.5 text-sm text-[#393737]">{{ stripEmoji(getInterestLabel(interest)) }}</span>
                 </div>
               </div>
 
-              <div class="mt-9 flex items-center justify-center gap-6 border-t border-[#f0ece7] pt-5">
+              <div class="mt-8 flex items-center justify-center gap-6">
                 <button type="button" class="py-2 text-sm text-[#b4232a] transition-colors hover:text-[#8f1a20]" @click="handleReport">Report</button>
                 <span class="h-4 w-px bg-[#e7e3de]" aria-hidden="true"></span>
                 <button type="button" class="py-2 text-sm text-[#9b9690] transition-colors hover:text-[#393737]" @click="handleBlock">Block</button>
@@ -673,6 +669,7 @@ import { calculateCompatibility, getCompatibilityTier, COMPATIBILITY_MAP, normal
 import { VIBE_CHAPTERS, VALUES_KEY, getScaleQuestion, chapterForKey, labelForKey, parseScaleAnswer, parseValuesAnswer, scaleRelation } from '~/utils/vibeQuestions'
 import { useToast } from '~/composables/useToast'
 import type { M2MDatabase } from '~/types/database.types'
+import type { MatchBrief } from '~/composables/useMatchBrief'
 
 const toast = useToast()
 const route = useRoute()
@@ -709,46 +706,6 @@ const getAge = (birthDate: string | null) => {
   }
   return age
 }
-
-// Live countdown timer for connection page
-const liveNow = ref(Date.now())
-let connectionCountdownInterval: ReturnType<typeof setInterval> | null = null
-
-const formatTimeRemaining = (expiresAt: string) => {
-  if (!expiresAt) return '48h'
-  const diff = new Date(expiresAt).getTime() - liveNow.value
-  
-  if (diff <= 0) return 'Expired'
-  
-  const hours = Math.floor(diff / (1000 * 60 * 60))
-  const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60))
-  const seconds = Math.floor((diff % (1000 * 60)) / 1000)
-  
-  if (hours >= 24) {
-     const days = Math.floor(hours / 24)
-     const remainHours = hours % 24
-     return `${days}d ${remainHours}h ${String(minutes).padStart(2, '0')}m`
-  }
-  if (hours > 0) {
-    return `${hours}h ${String(minutes).padStart(2, '0')}m ${String(seconds).padStart(2, '0')}s`
-  }
-  return `${String(minutes).padStart(2, '0')}m ${String(seconds).padStart(2, '0')}s`
-}
-
-onMounted(() => {
-  // Start live countdown timer
-  connectionCountdownInterval = setInterval(() => {
-    liveNow.value = Date.now()
-  }, 1000)
-
-
-})
-
-onUnmounted(() => {
-  if (connectionCountdownInterval) {
-    clearInterval(connectionCountdownInterval)
-  }
-})
 
 
 const handleReport = () => {
@@ -887,23 +844,6 @@ const getInterestLabel = (id: string) => {
 }
 
 const currentUser = ref<any>(null)
-const subscription = ref<any>(null)
-
-const fetchSubscription = async (userId: string) => {
-  try {
-    const { data } = await supabase
-      .from('subscriptions')
-      .select('*')
-      .eq('user_id', userId)
-      .eq('status', 'active')
-      .gt('end_date', new Date().toISOString())
-      .maybeSingle()
-    
-    subscription.value = data
-  } catch (error) {
-    console.error('Error fetching subscription:', error)
-  }
-}
 
 const sharedInterests = computed(() => {
   if (!matchProfile.value?.interests || !currentUser.value?.interests) return []
@@ -1151,13 +1091,22 @@ const theirFirstName = computed(() => theirName.value === 'Them' ? 'Your match' 
 
 // Their profile lives in a side panel so the letter stays the focus
 const showProfile = ref(false)
+const isOpen = computed(() => !!(match.value?.unlocked || match.value?.currentUserPaid))
+// "accra, east legon" -> "Accra, East Legon"
+const formatPlace = (raw?: string | null) => String(raw || '').replace(/_/g, ' ').trim().toLowerCase().replace(/(^|[\s,(-])\p{L}/gu, c => c.toUpperCase())
+const contactHandle = computed(() => {
+  const p = matchProfile.value
+  const raw = p?.preferred_contact_method === 'instagram' ? p?.instagram_handle : p?.preferred_contact_method === 'snapchat' ? p?.snapchat_handle : ''
+  return String(raw || '').trim().replace(/^@+/, '').replace(/\s+/g, '')
+})
+const contactHref = computed(() => matchProfile.value?.preferred_contact_method === 'instagram'
+  ? `https://instagram.com/${encodeURIComponent(contactHandle.value)}`
+  : `https://snapchat.com/add/${encodeURIComponent(contactHandle.value)}`)
+// Age and city sit under the name, so the tiles carry the rest
 const profileFacts = computed(() => {
   const p = matchProfile.value
   if (!p) return []
-  const age = p.birth_date ? getAge(p.birth_date) : null
   return [
-    { label: 'Age', value: age ? `${age}` : '' },
-    { label: 'Lives in', value: p.location || '' },
     { label: 'Works as', value: p.occupation || '' },
     { label: 'Faith', value: p.religion ? p.religion.charAt(0).toUpperCase() + p.religion.slice(1) : '' },
     { label: 'Height', value: p.height_cm ? `${p.height_cm} cm` : '' },
@@ -1268,70 +1217,31 @@ const tldr = computed(() => {
   return lines
 })
 
-// Date ideas, tailored to the pair. Each says why it fits and when you're both free.
-const DATE_CATALOG = [
-  { id: 'cafe', title: 'Bookstore café afternoon', desc: 'Find a cosy corner, order something warm and swap book, show or podcast recommendations.', tags: ['reading', 'art', 'tech', 'entrepreneurship'], energy: 'quiet', slot: 'afternoon' },
-  { id: 'food', title: 'Food crawl', desc: 'Three stops: small chops, a main and dessert. Take turns choosing the spot.', tags: ['food', 'cooking', 'travel'], energy: 'social', slot: 'evening' },
-  { id: 'cook', title: 'Cook-off for two', desc: 'Pick a dish neither of you has made, shop for it together and cook it.', tags: ['cooking', 'food'], energy: 'quiet', slot: 'evening' },
-  { id: 'music', title: 'Live music night', desc: 'Find a live band or highlife night and let the music do some of the talking.', tags: ['music', 'dancing'], energy: 'social', slot: 'night' },
-  { id: 'dance', title: 'Beginner dance class', desc: 'Try a salsa or afrobeats class. Laughing at yourselves is half the fun.', tags: ['dancing', 'music', 'fitness'], energy: 'social', slot: 'evening' },
-  { id: 'gallery', title: 'Gallery hop', desc: 'Walk through a local exhibition, then debate your favourite piece over a drink.', tags: ['art', 'photography', 'fashion'], energy: 'any', slot: 'afternoon' },
-  { id: 'walk', title: 'Morning walk and breakfast', desc: 'Pick a scenic route, go at an easy pace and grab breakfast after.', tags: ['fitness', 'nature', 'sports'], energy: 'any', slot: 'morning' },
-  { id: 'picnic', title: 'Sunset picnic', desc: 'Pack snacks, find a spot with a view and watch the sun go down together.', tags: ['nature', 'photography', 'travel'], energy: 'quiet', slot: 'evening' },
-  { id: 'movie', title: 'Movie, then a debrief', desc: 'Catch a film, then compare reviews over dessert.', tags: ['movies'], energy: 'quiet', slot: 'evening' },
-  { id: 'games', title: 'Board game café', desc: 'A little friendly competition is one of the easiest ways to break the ice.', tags: ['gaming', 'tech'], energy: 'any', slot: 'afternoon' },
-  { id: 'match', title: 'Watch a match together', desc: 'Pick a game, find a lively spot and pick opposite teams for fun.', tags: ['sports'], energy: 'social', slot: 'evening' },
-  { id: 'dinner', title: 'Classic dinner date', desc: 'Choose a place with good ambience and take your time getting to know each other.', tags: [], energy: 'any', slot: 'evening' },
-]
-
-const socialEnergyOf = (answer?: string) => {
-  const a = (answer || '').toLowerCase()
-  if (a.includes('homebody') || a.includes('introverted')) return 'quiet'
-  if (a.includes('extroverted') || a.includes('party')) return 'social'
-  return 'any'
+// Date ideas: a wide catalogue (utils/dateIdeas) scored on shared interests, their city and how they
+// like to spend time; the brief shows the best three, each with why it fits and when they're both free
+// Each kind of date gets a label; each card's details open on tap
+const IDEA_KIND: Record<string, string> = { food: 'Food', outdoors: 'Outdoors', culture: 'Culture', active: 'Get moving', nightlife: 'Night out', cosy: 'Low-key', adventure: 'Day out' }
+const openIdeas = ref(new Set<string>())
+const toggleIdea = (id: string) => {
+  const next = new Set(openIdeas.value)
+  if (next.has(id)) next.delete(id)
+  else next.add(id)
+  openIdeas.value = next
 }
-
 const dateIdeas = computed(() => {
   const me = currentUser.value
   const them = matchProfile.value
   if (!me || !them) return []
-  const shared: string[] = sharedInterests.value
-  const either = new Set<string>([...(me.interests || []), ...(them.interests || [])])
-  const mine = new Map(myAnswers.value.map(a => [a.question_key, String(a.answer_value ?? '')]))
-  const theirs = new Map((them.vibeAnswers || []).map((a: any) => [a.question_key, String(a.answer_value ?? '')]))
-  const e1 = socialEnergyOf(mine.get('social_energy'))
-  const e2 = socialEnergyOf(theirs.get('social_energy') as string)
-  const pairEnergy = e1 === e2 ? e1 : 'any'
-  const loveLangs = [mine.get('love_language'), theirs.get('love_language')].join(' ').toLowerCase()
-
-  const scored = DATE_CATALOG.map(idea => {
-    let score = 0
-    const why: string[] = []
-    const sharedHits = idea.tags.filter(t => shared.includes(t))
-    const eitherHits = idea.tags.filter(t => either.has(t) && !shared.includes(t))
-    if (sharedHits.length) { score += 6 * sharedHits.length; why.push(`You both love ${joinList(sharedHits.map(t => getInterestLabel(t)))}`) }
-    else if (eitherHits.length) { score += 2; why.push(`Built around ${getInterestLabel(eitherHits[0])}`) }
-    if (pairEnergy !== 'any' && idea.energy === pairEnergy) { score += 3; why.push(pairEnergy === 'quiet' ? 'Suits two people who like it low-key' : 'Suits two people who love being out') }
-    if (loveLangs.includes('quality time') && idea.energy === 'quiet') { score += 1; if (why.length < 2) why.push('Plenty of one-on-one time to talk') }
-    if (idea.id === 'dinner') score += 0.5
-    return { ...idea, score, why: why.slice(0, 2) }
-  }).sort((a, b) => b.score - a.score)
-
-  // Suggest a time from overlapping availability, matched to the idea's time of day where possible
-  const windows = mutualAvailability.value
-  const whenFor = (slot: string) => {
-    const w = windows.find(x => x.slots.includes(slot)) || windows[0]
-    if (!w) return ''
-    const s = w.slots.includes(slot) ? slot : w.slots[0]
-    return `${w.day} ${s}`.toLowerCase().replace(/^\w/, c => c.toUpperCase())
-  }
-
-  return scored.slice(0, 3).map(i => ({
-    ...i,
-    why: i.why.length ? i.why : ['An easy, low-pressure way to meet'],
-    when: whenFor(i.slot),
-    where: them.location || me.location || '',
-  }))
+  return pickDateIdeas({
+    shared: sharedInterests.value,
+    either: [...new Set<string>([...(me.interests || []), ...(them.interests || [])])],
+    city: normalizeCity(them.location) || normalizeCity(me.location),
+    mine: new Map(myAnswers.value.map((a: any) => [a.question_key, String(a.answer_value ?? '')])),
+    theirs: new Map((them.vibeAnswers || []).map((a: any) => [a.question_key, String(a.answer_value ?? '')])),
+    intents: [me.intent, them.intent].filter(Boolean),
+    windows: mutualAvailability.value,
+    interestLabel: (id: string) => stripEmoji(getInterestLabel(id)),
+  })
 })
 
 const openContactMethod = () => {
@@ -1346,85 +1256,41 @@ const openContactMethod = () => {
    }
 }
 
-// Fetch match data
+// Load the brief in one request (/api/matches/brief/:id). If /matches already prefetched it, or you've
+// opened it before, it shows instantly and a fresh copy replaces it quietly.
+const { briefs, loadBrief } = useMatchBrief()
+const applyBrief = (data: MatchBrief) => {
+  const userId = data.me?.id
+  const m = data.match
+  currentUser.value = data.me
+  myAnswers.value = (data.myAnswers as any[]) || []
+  match.value = {
+    ...m,
+    // Matching needs no acceptance: every match is open from the start
+    unlocked: true,
+    currentUserPaid: m.user_1_id === userId ? m.user_1_paid : m.user_2_paid,
+    unlock_price: m.unlock_price || 10,
+  }
+  matchProfile.value = data.partner
+}
 const loadMatchData = async () => {
-  loading.value = true
+  const id = matchId.value
+  const cached = briefs.value[id]
+  if (cached) {
+    applyBrief(cached)
+    loading.value = false
+  } else {
+    loading.value = true
+  }
   try {
-    const { data: { session } } = await supabase.auth.getSession()
-    
-    if (!session?.user) {
-      router.push('/login')
-      return
-    }
-
-    const userId = session.user.id
-
-    // Fetch CURRENT USER details (for comparison)
-    const { data: myProfile } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', userId)
-      .single()
-      
-      
-    currentUser.value = myProfile
-
-    // My Vibe Check answers, to compare side by side with theirs
-    const { data: myVibes } = await supabase
-      .from('vibe_answers')
-      .select('question_key, answer_value')
-      .eq('user_id', userId)
-    myAnswers.value = (myVibes as any[]) || []
-    if (userId) {
-      await fetchSubscription(userId)
-    }
-
-    // Fetch match details
-    const { data: matchData, error: matchError } = await supabase
-      .from('matches')
-      .select('*')
-      .eq('id', matchId.value)
-      .single()
-
-    if (matchError || !matchData) {
-      console.error('Match fetch error:', matchError)
-      error.value = 'Match not found'
-      loading.value = false
-      return
-    }
-
-    const matchRecord = matchData as any
-
-    // Determine which user is the match
-    const isUser1 = matchRecord.user_1_id === userId
-    const matchedUserId = isUser1 ? matchRecord.user_2_id : matchRecord.user_1_id
-    const currentUserPaid = isUser1 ? matchRecord.user_1_paid : matchRecord.user_2_paid
-
-    // Fetch matched user's profile using server-side API (bypasses RLS)
-    let profileData = null
-    try {
-      const enrichedProfiles = await $fetch<Record<string, any>>('/api/enrich_matches', {
-        method: 'POST',
-        body: { matchUserIds: [matchedUserId] }
-      })
-      profileData = enrichedProfiles[matchedUserId] || null
-    } catch (e) {
-      console.error('Failed to enrich profile:', e)
-    }
-
-    match.value = {
-      ...matchRecord,
-      // Matching needs no acceptance: every match is open from the start
-      unlocked: true,
-      currentUserPaid,
-      unlock_price: matchRecord.unlock_price || 10
-    }
-
-    matchProfile.value = profileData
-
+    applyBrief(await loadBrief(id))
+    error.value = null
   } catch (err: any) {
+    const status = err?.statusCode || err?.response?.status
+    if (status === 401) return router.push('/login')
+    // Keep showing a cached copy if the refresh fails
+    if (!cached) error.value = status === 404 ? 'Match not found' : 'Failed to load connection'
     console.error('Connection page error:', err)
-    error.value = err.message || 'Failed to load connection'
   } finally {
     loading.value = false
   }

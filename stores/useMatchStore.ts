@@ -9,7 +9,8 @@ export const useMatchStore = defineStore('matches', () => {
     const initialized = ref(false)
 
     const fetchMatches = async (userId: string) => {
-        loadingMatches.value = true
+        // Already have matches from earlier: keep showing them and refresh quietly
+        loadingMatches.value = !initialized.value
         if (!userId || userId === 'undefined') {
             loadingMatches.value = false
             return
@@ -17,11 +18,8 @@ export const useMatchStore = defineStore('matches', () => {
         try {
             const { data } = await supabase
                 .from('matches')
-                .select(`
-                    *,
-                    user_1:profiles!matches_user_1_id_fkey(*),
-                    user_2:profiles!matches_user_2_id_fkey(*)
-                `)
+                // Profiles come from enrichMatches below (one call for all partners)
+                .select('*')
                 .or(`user_1_id.eq.${userId},user_2_id.eq.${userId}`)
                 .in('status', ['pending_payment', 'partial_payment', 'unlocked'])
                 .order('created_at', { ascending: false })
@@ -35,8 +33,7 @@ export const useMatchStore = defineStore('matches', () => {
                 matches.value = data.map((match: any) => {
                     const isUser1 = match.user_1_id === userId
                     const partnerId = isUser1 ? match.user_2_id : match.user_1_id
-                    const basicProfile = isUser1 ? match.user_2 : match.user_1
-                    const fullProfile = enrichedProfiles[partnerId] || basicProfile
+                    const fullProfile = enrichedProfiles[partnerId] || null
                     return {
                         ...match,
                         matchedProfile: fullProfile,
@@ -45,7 +42,7 @@ export const useMatchStore = defineStore('matches', () => {
                         otherUserPaid: isUser1 ? match.user_2_paid : match.user_1_paid,
                         nudged: isUser1 ? match.user_1_contacted : match.user_2_contacted
                     }
-                }).filter((m: any) => m.matchedProfile?.is_active !== false)
+                }).filter((m: any) => m.matchedProfile && m.matchedProfile.is_active !== false)
             } else {
                 matches.value = []
             }

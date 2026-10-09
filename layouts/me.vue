@@ -27,7 +27,7 @@
               :class="isActiveTab(t.to) ? 'bg-[#393737] text-white shadow-[0_4px_12px_rgba(57,55,55,0.18)]' : 'text-[#6c6862] hover:text-[#393737]'"
             >
               <span v-if="t.to === '/me'" class="h-6 w-6 shrink-0 overflow-hidden rounded-full bg-[#e7e4e0] ring-2" :class="isActiveTab(t.to) ? 'ring-white/80' : 'ring-white'">
-                <img v-if="profile?.photo_url" :src="profile.photo_url" alt="" class="h-full w-full object-cover" />
+                <img v-if="profile?.photo_url" :src="avatarUrl(profile.photo_url, 32)" alt="" decoding="async" class="h-full w-full object-cover" />
                 <span v-else class="flex h-full w-full items-center justify-center text-[11px] font-semibold text-[#6c6862]">{{ profile?.display_name?.charAt(0) || '?' }}</span>
               </span>
               <svg v-else viewBox="0 0 24 24" :fill="isActiveTab(t.to) ? 'currentColor' : 'none'" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4" aria-hidden="true"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
@@ -102,7 +102,7 @@
           >
             <svg v-if="t.to === '/matches'" viewBox="0 0 24 24" :fill="isActiveTab(t.to) ? 'currentColor' : 'none'" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="h-[18px] w-[18px]" aria-hidden="true"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
             <span v-else class="h-7 w-7 shrink-0 overflow-hidden rounded-full bg-[#e7e4e0] ring-2" :class="isActiveTab(t.to) ? 'ring-white/80' : 'ring-white shadow-[0_1px_4px_rgba(52,38,25,0.15)]'">
-              <img v-if="profile?.photo_url" :src="profile.photo_url" alt="" class="h-full w-full object-cover" />
+              <img v-if="profile?.photo_url" :src="avatarUrl(profile.photo_url, 32)" alt="" decoding="async" class="h-full w-full object-cover" />
               <span v-else class="flex h-full w-full items-center justify-center text-xs font-semibold text-[#6c6862]">{{ profile?.display_name?.charAt(0) || '?' }}</span>
             </span>
             {{ t.label }}

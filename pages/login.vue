@@ -65,30 +65,30 @@
           </div>
 
           <form class="space-y-3" @submit.prevent="isValidPhone && sendOtp()">
-            <label for="login-phone" class="sr-only">Phone number</label>
-            <div class="relative flex w-full items-center rounded-full border border-[#ded9d2] bg-white px-3 shadow-[0_8px_28px_rgba(52,38,25,0.06)] transition-[border-color,box-shadow] focus-within:border-[#ed1c24] focus-within:ring-4 focus-within:ring-[#ed1c24]/10 xs:px-4">
-              <label class="flex shrink-0 items-center border-r border-[#e8e2da] pr-2">
-                <span class="sr-only">Country code</span>
-                <select v-model="phoneCountry" aria-label="Country code" class="h-14 cursor-pointer bg-transparent pr-1 text-sm font-semibold text-[#393737] outline-none sm:text-base">
-                  <option v-for="c in PHONE_COUNTRIES" :key="c.code" :value="c.code">{{ c.flag }} {{ c.code }}</option>
-                </select>
-              </label>
-              <input
-                id="login-phone"
-                v-model="formattedPhone"
-                type="tel"
-                inputmode="numeric"
-                :placeholder="getPhoneCountry(phoneCountry).example"
-                autocomplete="username webauthn"
-                maxlength="20"
-                :aria-invalid="showPhoneHint"
-                aria-describedby="login-phone-hint"
-                class="no-spin min-w-0 w-full bg-transparent px-2.5 py-4 text-base xs:px-3 text-[#393737] outline-none placeholder:text-[#9b9690] sm:text-lg"
-                :class="contactPickerSupported ? 'pr-10' : ''"
-              />
-              <button v-if="contactPickerSupported" type="button" class="absolute right-3 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full text-[#9b9690] transition-colors hover:bg-[#f6f5f4] hover:text-[#ed1c24]" title="Choose from contacts" aria-label="Choose from contacts" @click.prevent="pickLoginContact">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5" aria-hidden="true"><path d="M16 2v2M8 2v2" /><rect x="3" y="4" width="18" height="18" rx="2" /><circle cx="12" cy="11" r="3" /><path d="M7 19a5 5 0 0 1 10 0" /></svg>
-              </button>
+            <div class="space-y-5 rounded-[1.75rem] bg-white p-5 text-left shadow-[0_12px_36px_rgba(57,55,55,0.06)] ring-1 ring-black/5 sm:p-6">
+              <SegmentedControl v-model="phoneCountry" label="Country" :options="COUNTRY_OPTIONS" size="sm" />
+              <div>
+                <label for="login-phone" class="mb-2 block text-sm text-[#6c6862]">Phone number</label>
+                <div class="relative">
+                  <span class="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-lg text-[#9b9690]" aria-hidden="true">{{ phoneCountry }}</span>
+                  <input
+                    id="login-phone"
+                    v-model="formattedPhone"
+                    type="tel"
+                    inputmode="numeric"
+                    :placeholder="getPhoneCountry(phoneCountry).example"
+                    autocomplete="username webauthn"
+                    maxlength="20"
+                    :aria-invalid="showPhoneHint"
+                    aria-describedby="login-phone-hint"
+                    class="no-spin h-14 w-full rounded-2xl border border-[#e5e2dd] bg-[#fbfaf9] pl-[4.75rem] pr-4 text-lg text-[#393737] outline-none transition-[border-color,box-shadow,background-color] placeholder:text-[#a8a39d] hover:border-[#cfc9c1] focus:border-[#393737] focus:bg-white focus:ring-4 focus:ring-black/5"
+                    :class="contactPickerSupported ? 'pr-12' : ''"
+                  />
+                  <button v-if="contactPickerSupported" type="button" class="absolute right-2.5 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full text-[#9b9690] transition-colors hover:bg-[#f6f5f4] hover:text-[#393737]" title="Choose from contacts" aria-label="Choose from contacts" @click.prevent="pickLoginContact">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5" aria-hidden="true"><path d="M16 2v2M8 2v2" /><rect x="3" y="4" width="18" height="18" rx="2" /><circle cx="12" cy="11" r="3" /><path d="M7 19a5 5 0 0 1 10 0" /></svg>
+                  </button>
+                </div>
+              </div>
             </div>
 
             <p v-if="showPhoneHint" id="login-phone-hint" class="px-4 text-sm text-[#b4232a]">
@@ -161,8 +161,8 @@
 
       <footer class="rise rise-3 mt-auto pt-12 text-center">
         <div class="flex items-center justify-center gap-2 text-xs font-medium text-[#66615d]">
-          <span class="inline-flex items-center gap-1.5 rounded-full bg-white px-3 py-1.5 ring-1 ring-black/5"><span aria-hidden="true">🇬🇭</span> Accra</span>
-          <span class="inline-flex items-center gap-1.5 rounded-full bg-white px-3 py-1.5 ring-1 ring-black/5"><span aria-hidden="true">🇰🇪</span> Nairobi</span>
+          <span class="inline-flex items-center gap-1.5 rounded-full bg-white px-3 py-1.5 ring-1 ring-black/5"><CountryFlag code="gh" shape="circle" class="h-4 w-4" /> Accra</span>
+          <span class="inline-flex items-center gap-1.5 rounded-full bg-white px-3 py-1.5 ring-1 ring-black/5"><CountryFlag code="ke" shape="circle" class="h-4 w-4" /> Nairobi</span>
         </div>
         <nav aria-label="Help and legal" class="mt-5 flex items-center justify-center gap-5 text-sm text-[#6c6862]">
           <a href="mailto:hello@minutes2match.com" class="transition-colors hover:text-[#393737]">Help</a>
@@ -204,6 +204,7 @@ const isLoggingIn = ref(false)
 
 const phone = ref('')
 const phoneCountry = ref<PhoneCountryCode>('+233')
+const COUNTRY_OPTIONS = [{ value: '+233', label: 'Ghana +233', flag: 'gh' as const }, { value: '+254', label: 'Kenya +254', flag: 'ke' as const }]
 
 // Typing or pasting +233… / +254… switches the country automatically
 const setPhoneInput = (raw: string) => {

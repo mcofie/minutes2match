@@ -107,43 +107,37 @@
 
         <h1 class="font-display text-center text-[2.4rem] leading-[1.05] tracking-tight text-balance sm:text-5xl">3 minutes to your next great match.</h1>
 
-        <div class="mt-9 space-y-4">
+        <!-- About you: one card, name then two segmented choices -->
+        <div class="mt-8 space-y-6 rounded-[1.75rem] bg-white p-5 shadow-[0_12px_36px_rgba(57,55,55,0.06)] ring-1 ring-black/5 sm:p-6">
           <div>
-            <label for="vc-name" class="sr-only">First name</label>
-            <input
-              id="vc-name"
-              v-model="form.displayName"
-              type="text"
-              placeholder="First name"
-              autocomplete="given-name"
-              maxlength="20"
-              class="h-14 w-full rounded-[1.25rem] border border-[#e5e2dd] bg-white px-5 text-lg text-[#393737] outline-none transition-[border-color,box-shadow] placeholder:text-[#8a857f] hover:border-[#cfc9c1] focus:border-[#393737] focus:ring-4 focus:ring-black/5"
-              @keyup.enter="canProceedStep1 && nextStep()"
-            />
+            <label for="vc-name" class="mb-2 block text-sm text-[#6c6862]">Your first name</label>
+            <div class="relative">
+              <input
+                id="vc-name"
+                v-model="form.displayName"
+                type="text"
+                placeholder="e.g. Ama"
+                autocomplete="given-name"
+                autocapitalize="words"
+                maxlength="20"
+                class="h-14 w-full rounded-2xl border border-[#e5e2dd] bg-[#fbfaf9] px-4 pr-12 text-lg text-[#393737] outline-none transition-[border-color,box-shadow,background-color] placeholder:text-[#a8a39d] hover:border-[#cfc9c1] focus:border-[#393737] focus:bg-white focus:ring-4 focus:ring-black/5"
+                @keyup.enter="canProceedStep1 && nextStep()"
+              />
+              <span v-if="form.displayName.trim().length >= 2" class="absolute right-4 top-1/2 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-full bg-[#393737] text-white" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" class="h-3 w-3"><path d="M20 6 9 17l-5-5" /></svg>
+              </span>
+            </div>
+            <p class="mt-2 text-xs text-[#9b9690]">This is the name your matches will see.</p>
           </div>
 
-          <fieldset class="space-y-2">
-            <legend class="mb-2 px-1 text-sm text-[#6c6862]">I am</legend>
-            <div class="grid grid-cols-2 gap-3">
-              <VibeCard text="A man" icon="🙋‍♂️" size="sm" :selected="form.gender === 'male'" @select="selectGender('male')" />
-              <VibeCard text="A woman" icon="🙋‍♀️" size="sm" :selected="form.gender === 'female'" @select="selectGender('female')" />
-            </div>
-          </fieldset>
-
-          <fieldset class="space-y-2">
-            <legend class="mb-2 px-1 text-sm text-[#6c6862]">Looking for</legend>
-            <div class="grid grid-cols-3 gap-2.5">
-              <VibeCard text="Men" size="sm" :selected="form.interestedIn === 'male'" @select="selectInterest('male')" />
-              <VibeCard text="Women" size="sm" :selected="form.interestedIn === 'female'" @select="selectInterest('female')" />
-              <VibeCard text="Everyone" size="sm" :selected="form.interestedIn === 'everyone'" @select="selectInterest('everyone')" />
-            </div>
-          </fieldset>
+          <SegmentedControl v-model="form.gender" label="I'm a" :options="GENDER_OPTIONS" />
+          <SegmentedControl v-model="form.interestedIn" label="Interested in" :options="INTERESTED_OPTIONS" />
         </div>
 
         <div class="mt-10 flex flex-col items-center gap-5">
           <button type="button" class="btn-next" :disabled="!canProceedStep1" @click="nextStep">Next</button>
           <p class="text-base text-[#6c6862]">Already signed up? <NuxtLink to="/login" class="font-medium text-[#393737] underline-offset-4 hover:underline">Log in</NuxtLink></p>
-          <NuxtLink to="/how-it-works" class="text-sm text-[#9b9690] underline-offset-4 hover:text-[#393737] hover:underline">How does it work?</NuxtLink>
+          <NuxtLink to="/#how-it-works" class="text-sm text-[#9b9690] underline-offset-4 hover:text-[#393737] hover:underline">How does it work?</NuxtLink>
         </div>
       </div>
 
@@ -152,91 +146,71 @@
         <h1 class="font-display text-center text-[2.25rem] leading-[1.05] tracking-tight text-balance sm:text-[2.75rem]">Nice to meet you, {{ form.displayName }}.</h1>
         <p class="mt-3 text-center text-lg text-[#6c6862]">A few quick details first.</p>
 
-        <div class="mt-9 space-y-4">
-          <fieldset class="space-y-2">
-            <legend class="mb-2 px-1 text-sm text-[#6c6862]">What are you looking for?</legend>
-            <div class="grid grid-cols-2 gap-3">
-              <VibeCard text="Marriage" icon="💍" size="sm" :selected="form.intent === 'marriage'" @select="form.intent = 'marriage'" />
-              <VibeCard text="Relationship" icon="❤️" size="sm" :selected="form.intent === 'serious'" @select="form.intent = 'serious'" />
-              <VibeCard text="Casual" icon="🥂" size="sm" :selected="form.intent === 'casual'" @select="form.intent = 'casual'" />
-              <VibeCard text="Friendship" icon="👋" size="sm" :selected="form.intent === 'friendship'" @select="form.intent = 'friendship'" />
-            </div>
-          </fieldset>
+        <div class="mt-8 space-y-4">
+          <div class="space-y-6 rounded-[1.75rem] bg-white p-5 shadow-[0_12px_36px_rgba(57,55,55,0.06)] ring-1 ring-black/5 sm:p-6">
+            <fieldset>
+              <legend class="mb-2 text-sm text-[#6c6862]">What are you looking for?</legend>
+              <ChoiceChips v-model="form.intent" :options="INTENT_OPTIONS" layout="grid-2" :clearable="false" />
+            </fieldset>
 
-          <div>
-            <span class="sr-only">Birthday</span>
-            <UiDatePicker v-model="form.birthDate" placeholder="Birthday" variant="soft" forBirthday />
-          </div>
-          <div>
-            <label for="vc-city" class="sr-only">City</label>
-            <div class="relative">
-              <select id="vc-city" v-model="form.location" class="h-14 w-full rounded-[1.25rem] border border-[#e5e2dd] bg-white px-5 text-lg text-[#393737] outline-none transition-[border-color,box-shadow] placeholder:text-[#8a857f] hover:border-[#cfc9c1] focus:border-[#393737] focus:ring-4 focus:ring-black/5 appearance-none pr-12" :class="form.location ? '' : 'text-[#8a857f]'">
-                  <option value="" disabled>City</option>
-                  <option value="accra">Accra</option>
-                  <option value="kumasi">Kumasi</option>
-                  <option value="tamale">Tamale</option>
-                  <option value="takoradi">Takoradi</option>
-                  <option value="tema">Tema</option>
-                  <option value="cape_coast">Cape Coast</option>
-                  <option value="sekondi">Sekondi</option>
-                  <option value="koforidua">Koforidua</option>
-                  <option value="sunyani">Sunyani</option>
-                  <option value="wa">Wa</option>
-                  <option value="ho">Ho</option>
-                  <option value="bolgatanga">Bolgatanga</option>
-                  <option value="techiman">Techiman</option>
-                  <option value="obuasi">Obuasi</option>
-                  <option value="tarkwa">Tarkwa</option>
-                  <option value="other">Other</option>
-              </select>
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="pointer-events-none absolute right-5 top-1/2 h-5 w-5 -translate-y-1/2 text-[#6c6862]" aria-hidden="true"><path d="m6 9 6 6 6-6" /></svg>
+            <div>
+              <p class="mb-2 text-sm text-[#6c6862]">Your birthday</p>
+              <UiDatePicker v-model="form.birthDate" placeholder="Pick a date" variant="soft" forBirthday />
             </div>
+
+            <!-- Where you are: Accra or Nairobi, then (optionally) which part -->
+            <fieldset>
+              <legend class="mb-2 text-sm text-[#6c6862]">Where are you based?</legend>
+              <CityPicker v-model="form.location" />
+            </fieldset>
           </div>
 
-          <!-- Collapsible extras -->
-          <div class="rounded-[1.25rem] border border-[#e5e2dd] bg-white">
-            <button class="flex w-full items-center justify-between gap-3 px-5 py-4 text-sm font-medium text-[#393737]" :aria-expanded="showExtras" @click="showExtras = !showExtras">
-              <span>Optional details <span class="font-normal text-[#9b9690]">· helps us match better</span></span>
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4 text-[#9b9690] transition-transform" :class="{ 'rotate-180': showExtras }" aria-hidden="true"><path d="m6 9 6 6 6-6" /></svg>
+          <!-- Optional extras: a calm panel that opens in place -->
+          <section class="overflow-hidden rounded-[1.5rem] bg-white ring-1 transition-shadow" :class="showExtras ? 'ring-[#393737]/15 shadow-[0_12px_32px_rgba(57,55,55,0.07)]' : 'ring-[#e5e2dd]'">
+            <button type="button" class="flex w-full items-center gap-4 px-5 py-4 text-left" :aria-expanded="showExtras" aria-controls="vc-extras" @click="showExtras = !showExtras">
+              <!-- Ring fills as details are added -->
+              <span class="relative flex h-11 w-11 shrink-0 items-center justify-center" aria-hidden="true">
+                <svg viewBox="0 0 44 44" class="absolute inset-0 h-full w-full -rotate-90">
+                  <circle cx="22" cy="22" r="19" fill="none" stroke="#efece8" stroke-width="3" />
+                  <circle cx="22" cy="22" r="19" fill="none" stroke="#ed1c24" stroke-width="3" stroke-linecap="round" :stroke-dasharray="`${(extrasFilled / 4) * 119.4} 119.4`" class="transition-[stroke-dasharray] duration-500" />
+                </svg>
+                <span class="text-sm font-semibold text-[#393737]">{{ extrasFilled }}/4</span>
+              </span>
+              <span class="min-w-0 flex-1">
+                <span class="block text-base font-semibold text-[#393737]">A little more about you</span>
+                <span class="block text-sm text-[#9b9690]">{{ extrasFilled === 4 ? 'All added. Thank you!' : 'Optional, but helpful' }}</span>
+              </span>
+              <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#f4f2ef] text-[#6c6862] transition-transform duration-300" :class="{ 'rotate-180': showExtras }" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4"><path d="m6 9 6 6 6-6" /></svg>
+              </span>
             </button>
-            <Transition
-              enter-active-class="transition duration-200 ease-out"
-              enter-from-class="opacity-0 -translate-y-1"
-              leave-active-class="transition duration-150 ease-in"
-              leave-to-class="opacity-0 -translate-y-1"
-            >
-              <div v-if="showExtras" class="grid grid-cols-2 gap-3 px-5 pb-5">
-                <div class="space-y-1.5">
-                  <label for="vc-genotype" class="block text-xs font-medium text-[#9b9690]">Genotype</label>
-                  <select id="vc-genotype" v-model="form.genotype" class="h-11 w-full rounded-xl border border-[#e8e2da] bg-white px-3 text-sm text-[#393737] outline-none focus:border-[#ed1c24]">
-                    <option value="">Skip</option>
-                    <option value="AA">AA</option>
-                    <option value="AS">AS</option>
-                    <option value="SS">SS</option>
-                    <option value="AC">AC</option>
-                  </select>
-                </div>
-                <div class="space-y-1.5">
-                  <label for="vc-religion" class="block text-xs font-medium text-[#9b9690]">Religion</label>
-                  <select id="vc-religion" v-model="form.religion" class="h-11 w-full rounded-xl border border-[#e8e2da] bg-white px-3 text-sm text-[#393737] outline-none focus:border-[#ed1c24]">
-                    <option value="">Skip</option>
-                    <option value="Christian">Christian</option>
-                    <option value="Muslim">Muslim</option>
-                    <option value="Traditional">Traditional</option>
-                    <option value="Other">Other</option>
-                  </select>
-                </div>
-                <div class="space-y-1.5">
-                  <label for="vc-height" class="block text-xs font-medium text-[#9b9690]">Height (cm)</label>
-                  <input id="vc-height" v-model.number="form.height" type="number" inputmode="numeric" placeholder="175" class="h-11 w-full rounded-xl border border-[#e8e2da] bg-white px-3 text-sm text-[#393737] outline-none placeholder:text-[#b5b0aa] focus:border-[#ed1c24]" />
-                </div>
-                <div class="space-y-1.5">
-                  <label for="vc-occupation" class="block text-xs font-medium text-[#9b9690]">Occupation</label>
-                  <input id="vc-occupation" v-model="form.occupation" type="text" placeholder="Engineer" class="h-11 w-full rounded-xl border border-[#e8e2da] bg-white px-3 text-sm text-[#393737] outline-none placeholder:text-[#b5b0aa] focus:border-[#ed1c24]" />
+
+            <div id="vc-extras" class="grid transition-[grid-template-rows] duration-300 ease-out" :class="showExtras ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'">
+              <div class="min-h-0 overflow-hidden" :inert="!showExtras">
+                <div class="space-y-6 border-t border-black/[0.06] px-5 pb-6 pt-5">
+                  <!-- Work -->
+                  <div>
+                    <label for="vc-occupation" class="mb-2 block text-sm text-[#6c6862]">What do you do?</label>
+                    <input id="vc-occupation" v-model="form.occupation" type="text" autocomplete="organization-title" maxlength="60" placeholder="e.g. Nurse, designer, student" class="h-12 w-full rounded-2xl border border-[#e5e2dd] bg-[#fbfaf9] px-4 text-base text-[#393737] outline-none transition-[border-color,box-shadow,background-color] placeholder:text-[#a8a39d] hover:border-[#cfc9c1] focus:border-[#393737] focus:bg-white focus:ring-4 focus:ring-black/5" />
+                  </div>
+
+                  <!-- Faith -->
+                  <fieldset>
+                    <legend class="mb-2 text-sm text-[#6c6862]">Faith</legend>
+                    <ChoiceChips v-model="form.religion" :options="RELIGIONS" />
+                  </fieldset>
+
+                  <HeightSlider v-model="form.height" />
+
+                  <!-- Genotype -->
+                  <fieldset>
+                    <legend class="mb-2 text-sm text-[#6c6862]">Genotype <span class="text-[#9b9690]">· only if you're comfortable sharing</span></legend>
+                    <ChoiceChips v-model="form.genotype" :options="GENOTYPES" layout="grid-4" />
+                  </fieldset>
                 </div>
               </div>
-            </Transition>
-          </div>
+            </div>
+          </section>
 
         </div>
 
@@ -340,31 +314,28 @@
         </div>
 
         <div v-if="!otpSent" class="space-y-3">
-          <div class="grid grid-cols-[8.5rem_minmax(0,1fr)] gap-3">
-            <div class="relative">
-              <label for="vc-country" class="sr-only">Country code</label>
-              <select id="vc-country" v-model="phoneCountry" class="h-14 w-full rounded-[1.25rem] border border-[#e5e2dd] bg-white px-4 text-lg text-[#393737] outline-none transition-[border-color,box-shadow] placeholder:text-[#8a857f] hover:border-[#cfc9c1] focus:border-[#393737] focus:ring-4 focus:ring-black/5 appearance-none pr-8">
-                <option value="+233">🇬🇭 +233</option>
-                <option value="+254">🇰🇪 +254</option>
-              </select>
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="pointer-events-none absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2 text-[#6c6862]" aria-hidden="true"><path d="m6 9 6 6 6-6" /></svg>
-            </div>
-            <div class="relative">
-              <label for="vc-phone" class="sr-only">Phone number</label>
-              <input
-                id="vc-phone"
-                v-model="form.phone"
-                type="tel"
-                inputmode="numeric"
-                autocomplete="tel-national"
-                placeholder="Number"
-                maxlength="15"
-                class="h-14 w-full rounded-[1.25rem] border border-[#e5e2dd] bg-white px-5 text-lg text-[#393737] outline-none transition-[border-color,box-shadow] placeholder:text-[#8a857f] hover:border-[#cfc9c1] focus:border-[#393737] focus:ring-4 focus:ring-black/5 no-spin"
-                :class="contactPickerSupported ? 'pr-12' : ''"
-              />
-              <button v-if="contactPickerSupported" type="button" class="absolute right-2.5 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full text-[#9b9690] transition-colors hover:bg-[#f6f5f4] hover:text-[#393737]" title="Choose from contacts" aria-label="Choose from contacts" @click.prevent="pickVibeContact">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5" aria-hidden="true"><path d="M16 2v2M8 2v2" /><rect x="3" y="4" width="18" height="18" rx="2" /><circle cx="12" cy="11" r="3" /><path d="M7 19a5 5 0 0 1 10 0" /></svg>
-              </button>
+          <div class="space-y-5 rounded-[1.75rem] bg-white p-5 shadow-[0_12px_36px_rgba(57,55,55,0.06)] ring-1 ring-black/5 sm:p-6">
+            <SegmentedControl v-model="phoneCountry" label="Country" :options="COUNTRY_OPTIONS" size="sm" />
+            <div>
+              <label for="vc-phone" class="mb-2 block text-sm text-[#6c6862]">Phone number</label>
+              <div class="relative">
+                <span class="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-lg text-[#9b9690]" aria-hidden="true">{{ phoneCountry }}</span>
+                <input
+                  id="vc-phone"
+                  v-model="form.phone"
+                  type="tel"
+                  inputmode="numeric"
+                  autocomplete="tel-national"
+                  :placeholder="getPhoneCountry(phoneCountry as any).example"
+                  maxlength="15"
+                  class="h-14 w-full rounded-2xl border border-[#e5e2dd] bg-[#fbfaf9] px-4 text-lg text-[#393737] outline-none transition-[border-color,box-shadow,background-color] placeholder:text-[#a8a39d] hover:border-[#cfc9c1] focus:border-[#393737] focus:bg-white focus:ring-4 focus:ring-black/5 no-spin pl-[4.75rem]"
+                  :class="contactPickerSupported ? 'pr-12' : ''"
+                />
+                <button v-if="contactPickerSupported" type="button" class="absolute right-2.5 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full text-[#9b9690] transition-colors hover:bg-[#f6f5f4] hover:text-[#393737]" title="Choose from contacts" aria-label="Choose from contacts" @click.prevent="pickVibeContact">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5" aria-hidden="true"><path d="M16 2v2M8 2v2" /><rect x="3" y="4" width="18" height="18" rx="2" /><circle cx="12" cy="11" r="3" /><path d="M7 19a5 5 0 0 1 10 0" /></svg>
+                </button>
+              </div>
+              <p class="mt-2 text-xs text-[#9b9690]">We'll send a 6-digit code to confirm it's you.</p>
             </div>
           </div>
           <div class="flex justify-center pt-6">
@@ -486,14 +457,15 @@ const toast = useToast()
 const { isTMA: isTMARaw, tgUser, hapticFeedback } = useTelegram()
 const { personas } = usePersona()
 const isMounted = ref(false)
+
 const isTMA = computed(() => isMounted.value && isTMARaw.value)
 
 useSeoMeta({
   title: 'Vibe Check | Minutes 2 Match',
-  ogTitle: 'What is your dating persona? 🧬',
-  description: 'Take our 90-second intentionality assessment to discover your dating persona and find 90%+ compatible matches in Accra.',
-  ogDescription: 'Take our 90-second intentionality assessment to discover your dating persona and find 90%+ compatible matches in Accra.',
-  ogImage: '/og-vibe.png',
+  ogTitle: 'What is your dating persona?',
+  description: 'Take our 90-second intentionality assessment to discover your dating persona and find compatible matches in Accra and Nairobi.',
+  ogDescription: 'Take our 90-second intentionality assessment to discover your dating persona and find compatible matches in Accra and Nairobi.',
+  ogImage: 'https://minutes2match.com/og-vibe.png',
   twitterCard: 'summary_large_image',
 })
 
@@ -511,7 +483,9 @@ const isReturningUser = ref(false) // User who logged in but hasn't completed vi
 // Retake or "finish your Vibe Check": a signed-in member, so no sign-up steps
 const isMemberFlow = computed(() => isRetakeMode.value || isReturningUser.value)
 // On those links, wait until we know who you are, so the sign-up intro never flashes behind the dialog
-const holdContent = computed(() => (route.query.retake === 'true' || route.query.returnUser === 'true') && (isCheckingAuth.value || showRetakeModal.value))
+// and keep holding while their saved details load, so the name screen never flashes before the first question
+const resumingProfile = ref(false)
+const holdContent = computed(() => (route.query.retake === 'true' || route.query.returnUser === 'true') && (isCheckingAuth.value || showRetakeModal.value || resumingProfile.value))
 
 // Check if user is already logged in
 onMounted(async () => {
@@ -519,7 +493,10 @@ onMounted(async () => {
   const isRetakeRequest = route.query.retake === 'true'
   const isReturnUser = route.query.returnUser === 'true'
   
-  if (user.value) {
+  // The session may still be restoring on a fresh load; on member links ask for it directly
+  const signedIn = !!user.value || ((isRetakeRequest || isReturnUser) && !!(await getSignedInUserId().catch(() => null)))
+
+  if (signedIn) {
     if (isReturnUser) {
       // User is logged in but needs to complete vibe check
       // Let them proceed without modal
@@ -568,10 +545,15 @@ onMounted(async () => {
 })
 
 const confirmRetake = async () => {
+  resumingProfile.value = true // hold the page until we know which step to open on
   showRetakeModal.value = false
   isRetakeMode.value = true
   isReturningUser.value = true // save answers to the existing profile; no phone / photo steps
-  await resumeFromExistingProfile()
+  try {
+    await resumeFromExistingProfile()
+  } finally {
+    resumingProfile.value = false
+  }
 }
 
 // Signed-in members (retake or finishing the check) already gave us these details:
@@ -594,8 +576,9 @@ const resumeFromExistingProfile = async () => {
   form.intent = p.intent || form.intent
   form.birthDate = p.birth_date || form.birthDate
   form.location = p.location || form.location
-  form.genotype = p.genotype || form.genotype
-  form.religion = p.religion || form.religion
+  // Saved values may differ in case ("christian"); line them up with the chips
+  form.genotype = GENOTYPES.find(g => g === String(p.genotype || '').toUpperCase()) || p.genotype || form.genotype
+  form.religion = RELIGIONS.find(r => r.toLowerCase() === String(p.religion || '').toLowerCase()) || p.religion || form.religion
   form.height = p.height_cm ?? form.height
   form.occupation = p.occupation || form.occupation
   if (p.photo_url) uploadedPhotoUrl.value = p.photo_url
@@ -656,6 +639,9 @@ const successStep = computed(() => lastQuestionStep.value + 2)
 const doneStep = computed(() => lastQuestionStep.value + 3)
 const totalSteps = computed(() => doneStep.value)
 const showExtras = ref(false)
+const RELIGIONS = ['Christian', 'Muslim', 'Traditional', 'Other']
+const GENOTYPES = ['AA', 'AS', 'AC', 'SS']
+const extrasFilled = computed(() => [form.occupation.trim(), form.religion, form.height, form.genotype].filter(Boolean).length)
 
 // Questions from database
 interface VibeQuestion {
@@ -896,13 +882,12 @@ const canProceedStep2 = computed(() => {
 })
 
 // Methods
-const selectGender = (gender: 'male' | 'female') => {
-  form.gender = gender
-}
+// Step 1 and 2 choices
+const GENDER_OPTIONS = [{ value: 'male', label: 'Man' }, { value: 'female', label: 'Woman' }]
+const INTERESTED_OPTIONS = [{ value: 'male', label: 'Men' }, { value: 'female', label: 'Women' }, { value: 'everyone', label: 'Everyone' }]
+const INTENT_OPTIONS = [{ value: 'marriage', label: 'Marriage' }, { value: 'serious', label: 'A relationship' }, { value: 'casual', label: 'Something casual' }, { value: 'friendship', label: 'Friendship' }]
+const COUNTRY_OPTIONS = [{ value: '+233', label: 'Ghana +233', flag: 'gh' as const }, { value: '+254', label: 'Kenya +254', flag: 'ke' as const }]
 
-const selectInterest = (interest: 'male' | 'female' | 'everyone') => {
-  form.interestedIn = interest
-}
 
 const nextStep = async () => {
   if (currentStep.value < totalSteps.value) {

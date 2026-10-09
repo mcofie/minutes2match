@@ -282,7 +282,7 @@ useSeoMeta({
   ogTitle: 'Vouch for Two Friends 🤝 | Minutes 2 Match',
   description: 'Know two people who\'d be perfect together? Vouch for them on Minutes 2 Match and we\'ll set up a mystery meeting. Completely free.',
   ogDescription: 'Know two people who\'d be perfect together? Vouch for them on Minutes 2 Match and we\'ll set up a mystery meeting. Completely free.',
-  ogImage: '/og-vouch.png',
+  ogImage: 'https://minutes2match.com/og-vouch.png',
   ogType: 'website',
   twitterCard: 'summary_large_image',
 })

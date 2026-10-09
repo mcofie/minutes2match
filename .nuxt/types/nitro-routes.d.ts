@@ -286,6 +286,9 @@ declare module "nitropack/types" {
     '/api/matches': {
       'get': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/matches.get').default>>>>
     }
+    '/api/matches/brief/:id': {
+      'get': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/matches/brief/[id].get').default>>>>
+    }
     '/api/matches/nudge': {
       'post': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/matches/nudge.post').default>>>>
     }

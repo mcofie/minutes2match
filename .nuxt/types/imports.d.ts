@@ -2,6 +2,7 @@
 export {}
 declare global {
   const COMPATIBILITY_MAP: typeof import('../../utils/compatibility').COMPATIBILITY_MAP
+  const DATE_CATALOG: typeof import('../../utils/dateIdeas').DATE_CATALOG
   const LEGACY_DIMENSION_CHAPTER: typeof import('../../utils/vibeQuestions').LEGACY_DIMENSION_CHAPTER
   const LEGACY_KEY_LABELS: typeof import('../../utils/vibeQuestions').LEGACY_KEY_LABELS
   const MIN_CONFIDENCE: typeof import('../../utils/compatibility').MIN_CONFIDENCE
@@ -16,6 +17,7 @@ declare global {
   const abortNavigation: typeof import('../../node_modules/nuxt/dist/app/composables/router').abortNavigation
   const acceptHMRUpdate: typeof import('../../node_modules/@pinia/nuxt/dist/runtime/composables').acceptHMRUpdate
   const addRouteMiddleware: typeof import('../../node_modules/nuxt/dist/app/composables/router').addRouteMiddleware
+  const avatarUrl: typeof import('../../utils/avatarUrl').avatarUrl
   const badges: typeof import('../../composables/useBadges').badges
   const calculateAge: typeof import('../../utils/compatibility').calculateAge
   const calculateCompatibility: typeof import('../../utils/compatibility').calculateCompatibility
@@ -100,6 +102,7 @@ declare global {
   const parseScaleAnswer: typeof import('../../utils/vibeQuestions').parseScaleAnswer
   const parseValuesAnswer: typeof import('../../utils/vibeQuestions').parseValuesAnswer
   const personas: typeof import('../../composables/usePersona').personas
+  const pickDateIdeas: typeof import('../../utils/dateIdeas').pickDateIdeas
   const prefetchComponents: typeof import('../../node_modules/nuxt/dist/app/composables/preload').prefetchComponents
   const preloadComponents: typeof import('../../node_modules/nuxt/dist/app/composables/preload').preloadComponents
   const preloadPayload: typeof import('../../node_modules/nuxt/dist/app/composables/payload').preloadPayload
@@ -171,6 +174,7 @@ declare global {
   const useLink: typeof import('vue-router').useLink
   const useLoadingIndicator: typeof import('../../node_modules/nuxt/dist/app/composables/loading-indicator').useLoadingIndicator
   const useMaskablePwaIcon: typeof import('../../node_modules/@vite-pwa/nuxt/dist/runtime/composables/index').useMaskablePwaIcon
+  const useMatchBrief: typeof import('../../composables/useMatchBrief').useMatchBrief
   const useMatchStore: typeof import('../../stores/useMatchStore').useMatchStore
   const useModel: typeof import('vue').useModel
   const useNotifications: typeof import('../../composables/useNotifications').useNotifications
@@ -282,6 +286,9 @@ declare global {
   export type { ValidationRule, FieldConfig, FieldState } from '../../composables/useFormValidation'
   import('../../composables/useFormValidation')
   // @ts-ignore
+  export type { MatchBrief } from '../../composables/useMatchBrief'
+  import('../../composables/useMatchBrief')
+  // @ts-ignore
   export type { PaymentMetadata } from '../../composables/usePaystack'
   import('../../composables/usePaystack')
   // @ts-ignore
@@ -300,6 +307,9 @@ declare global {
   export type { VibeAnswer, UserProfile, CompatibilitySignalCategory, CompatibilitySignal, CompatibilityResult } from '../../utils/compatibility'
   import('../../utils/compatibility')
   // @ts-ignore
+  export type { Slot, DateIdea, DateIdeaInput, PickedIdea } from '../../utils/dateIdeas'
+  import('../../utils/dateIdeas')
+  // @ts-ignore
   export type { PhoneCountryCode, PhoneCountry } from '../../utils/phoneNumbers'
   import('../../utils/phoneNumbers')
   // @ts-ignore
@@ -311,6 +321,7 @@ import { UnwrapRef } from 'vue'
 declare module 'vue' {
   interface ComponentCustomProperties {
     readonly COMPATIBILITY_MAP: UnwrapRef<typeof import('../../utils/compatibility')['COMPATIBILITY_MAP']>
+    readonly DATE_CATALOG: UnwrapRef<typeof import('../../utils/dateIdeas')['DATE_CATALOG']>
     readonly LEGACY_DIMENSION_CHAPTER: UnwrapRef<typeof import('../../utils/vibeQuestions')['LEGACY_DIMENSION_CHAPTER']>
     readonly LEGACY_KEY_LABELS: UnwrapRef<typeof import('../../utils/vibeQuestions')['LEGACY_KEY_LABELS']>
     readonly MIN_CONFIDENCE: UnwrapRef<typeof import('../../utils/compatibility')['MIN_CONFIDENCE']>
@@ -325,6 +336,7 @@ declare module 'vue' {
     readonly abortNavigation: UnwrapRef<typeof import('../../node_modules/nuxt/dist/app/composables/router')['abortNavigation']>
     readonly acceptHMRUpdate: UnwrapRef<typeof import('../../node_modules/@pinia/nuxt/dist/runtime/composables')['acceptHMRUpdate']>
     readonly addRouteMiddleware: UnwrapRef<typeof import('../../node_modules/nuxt/dist/app/composables/router')['addRouteMiddleware']>
+    readonly avatarUrl: UnwrapRef<typeof import('../../utils/avatarUrl')['avatarUrl']>
     readonly badges: UnwrapRef<typeof import('../../composables/useBadges')['badges']>
     readonly calculateAge: UnwrapRef<typeof import('../../utils/compatibility')['calculateAge']>
     readonly calculateCompatibility: UnwrapRef<typeof import('../../utils/compatibility')['calculateCompatibility']>
@@ -409,6 +421,7 @@ declare module 'vue' {
     readonly parseScaleAnswer: UnwrapRef<typeof import('../../utils/vibeQuestions')['parseScaleAnswer']>
     readonly parseValuesAnswer: UnwrapRef<typeof import('../../utils/vibeQuestions')['parseValuesAnswer']>
     readonly personas: UnwrapRef<typeof import('../../composables/usePersona')['personas']>
+    readonly pickDateIdeas: UnwrapRef<typeof import('../../utils/dateIdeas')['pickDateIdeas']>
     readonly prefetchComponents: UnwrapRef<typeof import('../../node_modules/nuxt/dist/app/composables/preload')['prefetchComponents']>
     readonly preloadComponents: UnwrapRef<typeof import('../../node_modules/nuxt/dist/app/composables/preload')['preloadComponents']>
     readonly preloadPayload: UnwrapRef<typeof import('../../node_modules/nuxt/dist/app/composables/payload')['preloadPayload']>
@@ -480,6 +493,7 @@ declare module 'vue' {
     readonly useLink: UnwrapRef<typeof import('vue-router')['useLink']>
     readonly useLoadingIndicator: UnwrapRef<typeof import('../../node_modules/nuxt/dist/app/composables/loading-indicator')['useLoadingIndicator']>
     readonly useMaskablePwaIcon: UnwrapRef<typeof import('../../node_modules/@vite-pwa/nuxt/dist/runtime/composables/index')['useMaskablePwaIcon']>
+    readonly useMatchBrief: UnwrapRef<typeof import('../../composables/useMatchBrief')['useMatchBrief']>
     readonly useMatchStore: UnwrapRef<typeof import('../../stores/useMatchStore')['useMatchStore']>
     readonly useModel: UnwrapRef<typeof import('vue')['useModel']>
     readonly useNotifications: UnwrapRef<typeof import('../../composables/useNotifications')['useNotifications']>

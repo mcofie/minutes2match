@@ -34,12 +34,12 @@
       <!-- A fan of cards: you, them, and what you share -->
       <NuxtLink :to="briefLink(featured)" class="relative z-10 mt-8 flex items-start justify-center sm:mt-12" :aria-label="`Open your match brief with ${featuredName}`">
         <div class="fan-card fan-back relative -mr-14 mt-8 h-[12rem] w-[8rem] shrink-0 overflow-hidden rounded-[1.1rem] bg-[#eceae6] shadow-[0_10px_30px_rgba(52,38,25,0.10)] sm:-mr-14 sm:h-[18rem] sm:w-48" style="--r: -8deg">
-          <img v-if="profile?.photo_url" :src="profile.photo_url" alt="" class="h-full w-full object-cover" />
+          <img v-if="profile?.photo_url" :src="avatarUrl(profile.photo_url, 220)" alt="" decoding="async" class="h-full w-full object-cover" />
           <span v-else class="font-display flex h-full w-full items-center justify-center text-5xl text-[#b9c3cf]">{{ (profile?.display_name || 'You').charAt(0) }}</span>
           <span class="absolute bottom-2.5 left-2.5 rounded-full bg-white/90 px-2.5 py-0.5 text-xs font-semibold text-[#393737] backdrop-blur">You</span>
         </div>
         <div class="fan-card relative z-10 h-[17rem] w-[11.5rem] shrink-0 overflow-hidden rounded-[1.25rem] bg-[#e9eff5] shadow-[0_28px_60px_rgba(52,38,25,0.26)] ring-[3px] ring-white sm:h-[23rem] sm:w-[15.5rem]" style="--r: 0deg">
-          <NuxtImg v-if="featured.matchedProfile?.photo_url" :src="featured.matchedProfile.photo_url" :alt="featuredName" width="520" height="740" class="h-full w-full object-cover" />
+          <img v-if="featured.matchedProfile?.photo_url" :src="avatarUrl(featured.matchedProfile.photo_url, 260, 370)" :alt="featuredName" width="520" height="740" decoding="async" fetchpriority="high" class="h-full w-full object-cover" />
           <span v-else class="font-display flex h-full w-full items-center justify-center text-7xl text-[#b9c3cf]">{{ featuredName.charAt(0) }}</span>
           <span class="absolute bottom-3 left-3 rounded-full bg-white/90 px-2.5 py-0.5 text-xs font-semibold text-[#393737] backdrop-blur">{{ featuredName }}</span>
         </div>
@@ -67,7 +67,7 @@
           </li>
         </ul>
         <div class="mt-5 flex justify-center">
-          <NuxtLink :to="briefLink(featured)" class="inline-flex items-center justify-center gap-2 rounded-full bg-[#ed1c24] px-6 py-3 text-base font-semibold text-white shadow-[0_8px_24px_rgba(237,28,36,0.18)] transition-colors hover:bg-[#d71920] w-full sm:w-auto">Read your match brief</NuxtLink>
+          <NuxtLink :to="briefLink(featured)" @pointerenter="prefetchBrief(featured.id)" class="inline-flex items-center justify-center gap-2 rounded-full bg-[#ed1c24] px-6 py-3 text-base font-semibold text-white shadow-[0_8px_24px_rgba(237,28,36,0.18)] transition-colors hover:bg-[#d71920] w-full sm:w-auto">Read your match brief</NuxtLink>
         </div>
       </div>
 
@@ -90,9 +90,9 @@
         </summary>
         <ul class="mt-2 space-y-2">
           <li v-for="m in pastMatches" :key="m.id">
-            <NuxtLink :to="briefLink(m)" class="flex items-center gap-3.5 rounded-2xl bg-white px-4 py-3 ring-1 ring-black/[0.05] transition-colors hover:bg-[#fcfbfa]">
+            <NuxtLink :to="briefLink(m)" @pointerenter="prefetchBrief(m.id)" @touchstart.passive="prefetchBrief(m.id)" class="flex items-center gap-3.5 rounded-2xl bg-white px-4 py-3 ring-1 ring-black/[0.05] transition-colors hover:bg-[#fcfbfa]">
               <span class="h-11 w-11 shrink-0 overflow-hidden rounded-xl bg-[#eceae6]">
-                <img v-if="m.matchedProfile?.photo_url" :src="m.matchedProfile.photo_url" alt="" class="h-full w-full object-cover" loading="lazy" />
+                <img v-if="m.matchedProfile?.photo_url" :src="avatarUrl(m.matchedProfile.photo_url, 48)" alt="" decoding="async" class="h-full w-full object-cover" loading="lazy" />
                 <span v-else class="font-display flex h-full w-full items-center justify-center text-lg text-[#9b9690]">{{ nameOf(m).charAt(0) }}</span>
               </span>
               <span class="min-w-0 flex-1">
@@ -261,29 +261,24 @@ const matchedWhen = (iso?: string) => {
   return `on ${new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'long' })}`
 }
 
+// Load the dashboard and matches side by side (not one after the other), then warm the newest brief
+const { initDashboard, currentUserId } = useDashboard()
+const supaUser = useSupabaseUser()
+const { prefetchBrief } = useMatchBrief()
 onMounted(async () => {
-    const { initDashboard, currentUserId } = useDashboard()
-    let success = await initDashboard()
-    
-    if (success && currentUserId.value) {
-        await fetchMatches(currentUserId.value)
-    } else {
-        // Fallback: try to get userId directly if initDashboard couldn't resolve
-        try {
-            const supabaseClient = useSupabaseClient()
-            const { data: { session } } = await supabaseClient.auth.getSession()
-            const fallbackId = session?.user?.id
-            if (fallbackId) {
-                console.log('[Matches] Using fallback userId:', fallbackId)
-                await initDashboard(true) // Force re-init
-                await fetchMatches(fallbackId)
-                    } else {
-                loadingMatches.value = false
-            }
-        } catch {
+    const fastId = (supaUser.value as any)?.sub || (supaUser.value as any)?.id || currentUserId.value
+    try {
+        if (fastId) {
+            await Promise.all([initDashboard(), fetchMatches(fastId)])
+        } else if (await initDashboard() && currentUserId.value) {
+            await fetchMatches(currentUserId.value)
+        } else {
             loadingMatches.value = false
         }
+    } catch {
+        loadingMatches.value = false
     }
+    prefetchBrief(featured.value?.id)
 })
 </script>
 
