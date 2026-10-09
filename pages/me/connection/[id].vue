@@ -149,15 +149,31 @@
                   <p class="text-base text-[#393737] sm:text-2xl">By the numbers</p>
                   <h3 class="font-display mt-1.5 text-[2rem] leading-[1.05] tracking-tight text-[#393737] sm:text-[4rem]">Where you line up</h3>
                 </div>
-                <p class="rv-item mx-auto mt-2.5 max-w-xl text-center sm:mt-4 text-base leading-[1.65] text-[#6c6862] sm:text-xl sm:leading-[1.6]" style="--i: 1">Your score is made of six parts. Here's what each one earned.</p>
-                <dl class="mt-6 space-y-4">
-                  <div v-for="(bar, i) in evidenceBars" :key="bar.label" class="rv-item" :style="{ '--i': i + 2 }">
-                    <div class="flex items-baseline justify-between gap-4">
-                      <dt class="text-base">{{ bar.label }} <span class="hidden text-sm text-[#9b9690] sm:inline">· {{ bar.hint }}</span></dt>
-                      <dd class="text-base tabular-nums">{{ bar.value }}<span class="text-[#b5b0aa]">/{{ bar.max }}</span></dd>
-                    </div>
-                    <div class="mt-1.5 h-[3px] rounded-full bg-[#e5e2de]">
-                      <div class="bar-fill h-full rounded-full bg-[#c4121a]" :style="{ width: `${(bar.value / bar.max) * 100}%` }"></div>
+                <p class="rv-item mx-auto mt-2.5 max-w-xl text-center sm:mt-4 text-base leading-[1.65] text-[#6c6862] sm:text-xl sm:leading-[1.6]" style="--i: 1">Your {{ matchScoreValue }}% is made of six parts. Here's what each one earned.</p>
+
+                <!-- at a glance -->
+                <div v-if="lineupHighlights" class="rv-item mt-5 flex flex-wrap justify-center gap-2" style="--i: 2">
+                  <span class="inline-flex items-center gap-1.5 rounded-full bg-[#eaf6ef] px-3 py-1.5 text-sm text-[#2f7a4d]"><span class="font-medium">Strongest</span> · {{ lineupHighlights.best }}</span>
+                  <span v-if="lineupHighlights.grow" class="inline-flex items-center gap-1.5 rounded-full bg-[#fbf2e3] px-3 py-1.5 text-sm text-[#a8701a]"><span class="font-medium">Room to grow</span> · {{ lineupHighlights.grow }}</span>
+                </div>
+
+                <!-- one row per part: name and why, score, and a thick track like the Vibe Check sliders -->
+                <dl class="mt-7 border-t border-[#393737] text-left sm:mt-9">
+                  <div v-for="(bar, i) in evidenceBars" :key="bar.label" class="rv-item border-b border-black/[0.08] py-4 sm:py-5" :style="{ '--i': i + 3 }">
+                    <div>
+                      <div class="flex items-start justify-between gap-3">
+                        <dt class="min-w-0">
+                          <span class="block text-[15px] font-medium leading-snug text-[#393737]">{{ bar.label }}</span>
+                          <span class="block text-xs leading-snug text-[#9b9690]">{{ bar.hint }}</span>
+                        </dt>
+                        <dd class="flex shrink-0 items-center gap-2">
+                          <span class="rounded-full px-2 py-0.5 text-[11px] font-medium" :class="RELATION_PILL[barTone(bar)]">{{ BAR_WORD[barTone(bar)] }}</span>
+                          <span class="text-[15px] font-semibold tabular-nums text-[#393737]">{{ bar.value }}<span class="font-normal text-[#b5b0aa]">/{{ bar.max }}</span></span>
+                        </dd>
+                      </div>
+                      <div class="mt-2.5 h-2 overflow-hidden rounded-full bg-[#e9e6e2]" role="meter" :aria-valuenow="bar.value" aria-valuemin="0" :aria-valuemax="bar.max" :aria-label="bar.label">
+                        <div class="bar-fill h-full rounded-full bg-[#393737]" :style="{ width: `${(bar.value / bar.max) * 100}%`, '--i': i + 3 }"></div>
+                      </div>
                     </div>
                   </div>
                 </dl>
@@ -185,62 +201,74 @@
                 <p class="rv-item mx-auto mt-2.5 max-w-xl text-center sm:mt-4 text-base leading-[1.65] text-[#6c6862] sm:text-xl sm:leading-[1.6]" style="--i: 1">
                   You both answered the same Vibe Check. {{ answerSummary.aligned }} of {{ answerSummary.total }} answers line up or complement each other.
                 </p>
-                <!-- The comparison table -->
-                <div class="rv-item mt-10" style="--i: 2">
-                  <div class="flex items-center justify-end gap-4 pb-2 text-xs text-[#6c6862]">
-                    <span class="inline-flex items-center gap-1.5"><span class="h-2.5 w-2.5 rounded-full bg-[#393737]"></span>You</span>
-                    <span class="inline-flex items-center gap-1.5"><span class="h-2.5 w-2.5 rounded-full bg-[#c4121a]"></span>{{ theirFirstName }}</span>
-                  </div>
-                </div>
-
-                <div v-for="chapter in answerChapters" :key="chapter.id" v-reveal class="answers-table">
-                  <div class="rv-item flex items-baseline justify-between gap-4 border-b border-[#393737] pb-2 pt-6">
-                    <h4 class="text-xs font-semibold uppercase tracking-[0.12em] text-[#393737]">{{ chapter.title }}</h4>
-                    <p class="text-xs tabular-nums text-[#6c6862]">{{ chapter.aligned }}/{{ chapter.pairs.length }} in sync</p>
-                  </div>
-
-                  <div
-                    v-for="(pair, i) in chapter.pairs"
-                    :key="pair.key"
-                    class="rv-item grid grid-cols-[1fr_auto] items-center gap-x-4 gap-y-2.5 border-b border-[#e5e2de] py-4 sm:grid-cols-[13rem_1fr_5.5rem] sm:gap-x-6"
-                    :style="{ '--i': i + 1 }"
-                  >
-                    <!-- topic -->
-                    <div class="min-w-0">
-                      <p class="text-[0.95rem] leading-tight text-[#393737]">{{ pair.label }}</p>
-                      <p v-if="pair.question" class="mt-0.5 text-xs leading-snug text-[#9b9690]">{{ pair.question }}</p>
+                <!-- Side by side, as a table on the page: one block per chapter, a row per topic.
+                     Desktop: Topic | You | Them | Verdict columns. Phones: each row stacks. -->
+                <div class="mt-8 space-y-10 sm:mt-12 sm:space-y-12">
+                  <div v-for="chapter in answerChapters" :key="chapter.id" v-reveal class="answers-table text-left">
+                    <!-- chapter title -->
+                    <div class="rv-item flex items-center justify-between gap-4 border-b border-[#393737] pb-3">
+                      <h4 class="font-display text-[1.35rem] leading-tight text-[#393737] sm:text-[1.6rem]">{{ chapter.title }}</h4>
+                      <span class="shrink-0 rounded-full bg-white px-2.5 py-1 text-xs tabular-nums text-[#6c6862] ring-1 ring-black/5">{{ chapter.aligned }} of {{ chapter.pairs.length }} in sync</span>
                     </div>
 
-                    <!-- verdict (top right on phones, last column on desktop) -->
-                    <p class="flex items-center justify-end gap-1.5 text-xs font-medium sm:order-last" :class="RELATION_TEXT[pair.relation]">
-                      <span class="h-1.5 w-1.5 rounded-full bg-current"></span>{{ relationLabel(pair) }}
-                    </p>
-
-                    <!-- the two answers -->
-                    <div class="col-span-2 sm:col-span-1">
-                      <template v-if="pair.type === 'scale'">
-                        <div class="relative h-4">
-                          <div class="absolute inset-x-[7px] top-1/2 h-px -translate-y-1/2 bg-[#dcd8d3]"></div>
-                          <span v-for="n in 7" :key="n" class="absolute top-1/2 h-1 w-1 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#cfcac4]" :style="{ left: scaleLeft(n) }"></span>
-                          <span class="bar-fill absolute top-1/2 h-[3px] -translate-y-1/2 rounded-full bg-[#c4121a]/25" :style="{ left: scaleLeft(Math.min(pair.a!, pair.b!)), width: scaleSpan(pair), '--i': i + 1 }"></span>
-                          <template v-if="pair.a === pair.b">
-                            <span class="dot-pop absolute top-1/2 h-3.5 w-3.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[linear-gradient(90deg,#393737_50%,#c4121a_50%)] ring-2 ring-[#f7f7f7]" :style="{ left: scaleLeft(pair.a!) }" :title="`Both of you: ${pair.a} of 7`"></span>
-                          </template>
-                          <template v-else>
-                            <span class="dot-pop absolute top-1/2 h-3.5 w-3.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#393737] ring-2 ring-[#f7f7f7]" :style="{ left: scaleLeft(pair.a!) }" :title="`You: ${pair.a} of 7`"></span>
-                            <span class="dot-pop absolute top-1/2 h-3.5 w-3.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#c4121a] ring-2 ring-[#f7f7f7]" :style="{ left: scaleLeft(pair.b!) }" :title="`${theirFirstName}: ${pair.b} of 7`"></span>
-                          </template>
-                        </div>
-                        <div class="mt-1 flex justify-between gap-4 text-[11px] leading-tight text-[#9b9690]">
-                          <span>{{ pair.minLabel }}</span>
-                          <span class="text-right">{{ pair.maxLabel }}</span>
-                        </div>
-                      </template>
-                      <div v-else class="flex flex-wrap gap-x-4 gap-y-1.5 text-sm">
-                        <span class="inline-flex items-center gap-1.5"><span class="h-2.5 w-2.5 shrink-0 rounded-full bg-[#393737]"></span>{{ pair.mine }}</span>
-                        <span class="inline-flex items-center gap-1.5"><span class="h-2.5 w-2.5 shrink-0 rounded-full bg-[#c4121a]"></span>{{ pair.theirs }}</span>
-                      </div>
+                    <!-- column headings (desktop) -->
+                    <div class="hidden grid-cols-[minmax(0,15rem)_minmax(0,1fr)_minmax(0,1fr)_5.5rem] items-center gap-4 border-b border-black/[0.08] py-2.5 text-[11px] font-medium uppercase tracking-[0.08em] text-[#9b9690] sm:grid" aria-hidden="true">
+                      <span>Topic</span>
+                      <span class="flex items-center gap-1.5"><span class="block h-[18px] w-[18px] shrink-0 overflow-hidden rounded-full bg-[#393737] ring-2 ring-[#f7f7f7]" aria-hidden="true"><img v-if="currentUser?.photo_url" :src="avatarUrl(currentUser.photo_url, 18)" alt="" decoding="async" class="h-full w-full object-cover" /></span>You</span>
+                      <span class="flex items-center gap-1.5"><span class="block h-[18px] w-[18px] shrink-0 overflow-hidden rounded-full bg-[#ed1c24] ring-2 ring-[#f7f7f7]" aria-hidden="true"><img v-if="matchProfile?.photo_url" :src="avatarUrl(matchProfile.photo_url, 18)" alt="" decoding="async" class="h-full w-full object-cover" /></span>{{ theirFirstName }}</span>
+                      <span class="text-right">Verdict</span>
                     </div>
+
+                    <ul>
+                      <li
+                        v-for="(pair, i) in chapter.pairs"
+                        :key="pair.key"
+                        class="rv-item border-t border-black/[0.08] py-3.5 sm:grid sm:grid-cols-[minmax(0,15rem)_minmax(0,1fr)_minmax(0,1fr)_5.5rem] sm:items-center sm:gap-4"
+                        :class="i === 0 ? 'border-t-0' : ''"
+                        :style="{ '--i': i + 1 }"
+                      >
+                        <!-- topic: icon tile + name (+ verdict on phones) -->
+                        <div class="flex items-center gap-3">
+                          <p class="min-w-0 flex-1 text-[15px] font-medium leading-snug text-[#393737]">{{ pair.label }}</p>
+                          <span class="shrink-0 rounded-full px-2 py-0.5 text-[11px] font-medium sm:hidden" :class="RELATION_PILL[pair.relation]">{{ relationLabel(pair) }}</span>
+                        </div>
+
+                        <!-- scale: one track across both answer columns -->
+                        <div v-if="pair.type === 'scale'" class="mt-3 sm:col-span-2 sm:mt-0">
+                          <div class="relative h-5">
+                            <div class="absolute inset-x-[9px] top-1/2 h-[3px] -translate-y-1/2 rounded-full bg-[#efece8]"></div>
+                            <span class="bar-fill absolute top-1/2 h-[3px] -translate-y-1/2 rounded-full bg-[#ed1c24]/25" :style="{ left: scaleLeft(Math.min(pair.a!, pair.b!)), width: scaleSpan(pair), '--i': i + 1 }"></span>
+                            <span v-if="pair.a !== pair.b" class="dot-pop absolute top-1/2 -translate-x-1/2 -translate-y-1/2" :style="{ left: scaleLeft(pair.a!) }" :title="`You: ${pair.a} of 7`"><span class="block h-[18px] w-[18px] shrink-0 overflow-hidden rounded-full bg-[#393737] ring-2 ring-[#f7f7f7]" aria-hidden="true"><img v-if="currentUser?.photo_url" :src="avatarUrl(currentUser.photo_url, 18)" alt="" decoding="async" class="h-full w-full object-cover" /></span></span>
+                            <span class="dot-pop absolute top-1/2 -translate-x-1/2 -translate-y-1/2" :style="{ left: scaleLeft(pair.b!) }" :title="pair.a === pair.b ? `Both of you: ${pair.a} of 7` : `${theirFirstName}: ${pair.b} of 7`"><span class="block h-[18px] w-[18px] shrink-0 overflow-hidden rounded-full bg-[#ed1c24] ring-2 ring-[#f7f7f7]" aria-hidden="true"><img v-if="matchProfile?.photo_url" :src="avatarUrl(matchProfile.photo_url, 18)" alt="" decoding="async" class="h-full w-full object-cover" /></span></span>
+                          </div>
+                          <div class="mt-1 flex justify-between gap-3 text-[11px] leading-tight text-[#9b9690]">
+                            <span>{{ pair.minLabel }}</span>
+                            <span class="text-right">{{ pair.maxLabel }}</span>
+                          </div>
+                        </div>
+
+                        <!-- same answer: across both columns, said once -->
+                        <p v-else-if="pair.mine === pair.theirs" class="mt-2 flex items-center gap-2 text-sm leading-snug text-[#393737] sm:col-span-2 sm:mt-0">
+                          <span class="flex shrink-0 -space-x-1"><span class="block h-[18px] w-[18px] shrink-0 overflow-hidden rounded-full bg-[#393737] ring-2 ring-[#f7f7f7]" aria-hidden="true"><img v-if="currentUser?.photo_url" :src="avatarUrl(currentUser.photo_url, 18)" alt="" decoding="async" class="h-full w-full object-cover" /></span><span class="block h-[18px] w-[18px] shrink-0 overflow-hidden rounded-full bg-[#ed1c24] ring-2 ring-[#f7f7f7]" aria-hidden="true"><img v-if="matchProfile?.photo_url" :src="avatarUrl(matchProfile.photo_url, 18)" alt="" decoding="async" class="h-full w-full object-cover" /></span></span>
+                          <span class="min-w-0"><span class="text-[#9b9690]">Both · </span>{{ pair.mine }}</span>
+                        </p>
+
+                        <!-- different answers: one per column -->
+                        <template v-else>
+                          <p class="mt-2 flex items-start gap-2 text-sm leading-snug text-[#393737] sm:mt-0">
+                            <span class="sm:hidden"><span class="block h-[18px] w-[18px] shrink-0 overflow-hidden rounded-full bg-[#393737] ring-2 ring-[#f7f7f7]" aria-hidden="true"><img v-if="currentUser?.photo_url" :src="avatarUrl(currentUser.photo_url, 18)" alt="" decoding="async" class="h-full w-full object-cover" /></span></span>
+                            <span class="min-w-0"><span class="sr-only">You: </span>{{ pair.mine }}</span>
+                          </p>
+                          <p class="mt-1.5 flex items-start gap-2 text-sm leading-snug text-[#393737] sm:mt-0">
+                            <span class="sm:hidden"><span class="block h-[18px] w-[18px] shrink-0 overflow-hidden rounded-full bg-[#ed1c24] ring-2 ring-[#f7f7f7]" aria-hidden="true"><img v-if="matchProfile?.photo_url" :src="avatarUrl(matchProfile.photo_url, 18)" alt="" decoding="async" class="h-full w-full object-cover" /></span></span>
+                            <span class="min-w-0"><span class="sr-only">{{ theirFirstName }}: </span>{{ pair.theirs }}</span>
+                          </p>
+                        </template>
+
+                        <!-- verdict (desktop column) -->
+                        <span class="hidden justify-self-end rounded-full px-2 py-0.5 text-[11px] font-medium sm:inline-flex" :class="RELATION_PILL[pair.relation]">{{ relationLabel(pair) }}</span>
+                      </li>
+                    </ul>
                   </div>
                 </div>
               </section>
@@ -935,6 +963,22 @@ const evidenceBars = computed(() => {
     { label: 'Personality', value: b.aiSynergy || 0, max: 10, hint: 'What you each wrote about yourselves' },
   ].map(x => ({ ...x, value: Math.max(0, Math.min(x.max, Math.round(x.value))) }))
 })
+// Each part's strength, in the same three tones as the answers table
+type BarTone = 'same' | 'complementary' | 'different'
+const barTone = (bar: { value: number; max: number }): BarTone => {
+  const r = bar.max ? bar.value / bar.max : 0
+  return r >= 0.7 ? 'same' : r >= 0.4 ? 'complementary' : 'different'
+}
+const BAR_WORD: Record<BarTone, string> = { same: 'Strong', complementary: 'Good', different: 'Room to grow' }
+const lineupHighlights = computed(() => {
+  const bars = evidenceBars.value
+  if (!bars.length) return null
+  const ratio = (x: { value: number; max: number }) => x.value / x.max
+  const sorted = [...bars].sort((a, b) => ratio(b) - ratio(a))
+  const best = sorted[0]
+  const worst = sorted[sorted.length - 1]
+  return { best: best.label, grow: worst !== best && ratio(worst) < 0.4 ? worst.label : '' }
+})
 
 const INTENT_LABELS: Record<string, string> = { marriage: 'marriage', serious: 'something serious', casual: 'something casual', friendship: 'friendship' }
 
@@ -1024,18 +1068,18 @@ const answerChapters = computed(() =>
     .filter(c => c.pairs.length)
 )
 
-const RELATION_TEXT: Record<AnswerPair['relation'], string> = {
-  same: 'text-[#2f7a4d]',
-  complementary: 'text-[#2f5b85]',
-  different: 'text-[#a8701a]',
+const RELATION_PILL: Record<AnswerPair['relation'], string> = {
+  same: 'bg-[#eaf6ef] text-[#2f7a4d]',
+  complementary: 'bg-[#eaf1f8] text-[#2f5b85]',
+  different: 'bg-[#fbf2e3] text-[#a8701a]',
 }
 const relationLabel = (pair: AnswerPair) => pair.type === 'scale'
   ? { same: 'In sync', complementary: 'Close', different: 'Far apart' }[pair.relation]
   : { same: 'Same', complementary: 'Compatible', different: 'Different' }[pair.relation]
 
-// Position on the 1–7 track (inset 7px each side so the end dots don't clip)
-const scaleLeft = (n: number) => `calc(7px + (100% - 14px) * ${(n - 1) / 6})`
-const scaleSpan = (pair: AnswerPair) => `calc((100% - 14px) * ${Math.abs(pair.a! - pair.b!) / 6})`
+// Position on the 1–7 track (inset 9px each side so the end avatars don't clip)
+const scaleLeft = (n: number) => `calc(9px + (100% - 18px) * ${(n - 1) / 6})`
+const scaleSpan = (pair: AnswerPair) => `calc((100% - 18px) * ${Math.abs(pair.a! - pair.b!) / 6})`
 
 const answerSummary = computed(() => {
   const total = answerPairs.value.length
