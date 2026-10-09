@@ -153,12 +153,12 @@
 
                 <!-- at a glance -->
                 <div v-if="lineupHighlights" class="rv-item mt-5 flex flex-wrap justify-center gap-2" style="--i: 2">
-                  <span class="inline-flex items-center gap-1.5 rounded-full bg-[#eaf6ef] px-3 py-1.5 text-sm text-[#2f7a4d]"><span class="font-medium">Strongest</span> · {{ lineupHighlights.best }}</span>
-                  <span v-if="lineupHighlights.grow" class="inline-flex items-center gap-1.5 rounded-full bg-[#fbf2e3] px-3 py-1.5 text-sm text-[#a8701a]"><span class="font-medium">Room to grow</span> · {{ lineupHighlights.grow }}</span>
+                  <span class="inline-flex items-center gap-1.5 rounded-full bg-[#efece8] px-3 py-1.5 text-sm text-[#6c6862]"><span class="font-medium text-[#393737]">Strongest</span> · {{ lineupHighlights.best }}</span>
+                  <span v-if="lineupHighlights.grow" class="inline-flex items-center gap-1.5 rounded-full bg-[#efece8] px-3 py-1.5 text-sm text-[#6c6862]"><span class="font-medium text-[#393737]">Room to grow</span> · {{ lineupHighlights.grow }}</span>
                 </div>
 
                 <!-- one row per part: name and why, score, and a thick track like the Vibe Check sliders -->
-                <dl class="mt-7 border-t border-[#393737] text-left sm:mt-9">
+                <dl class="mt-5 text-left sm:mt-7">
                   <div v-for="(bar, i) in evidenceBars" :key="bar.label" class="rv-item border-b border-black/[0.08] py-4 sm:py-5" :style="{ '--i': i + 3 }">
                     <div>
                       <div class="flex items-start justify-between gap-3">
@@ -167,7 +167,7 @@
                           <span class="block text-xs leading-snug text-[#9b9690]">{{ bar.hint }}</span>
                         </dt>
                         <dd class="flex shrink-0 items-center gap-2">
-                          <span class="rounded-full px-2 py-0.5 text-[11px] font-medium" :class="RELATION_PILL[barTone(bar)]">{{ BAR_WORD[barTone(bar)] }}</span>
+                          <span class="rounded-full bg-[#efece8] px-2 py-0.5 text-[11px] font-medium text-[#6c6862]">{{ BAR_WORD[barTone(bar)] }}</span>
                           <span class="text-[15px] font-semibold tabular-nums text-[#393737]">{{ bar.value }}<span class="font-normal text-[#b5b0aa]">/{{ bar.max }}</span></span>
                         </dd>
                       </div>
@@ -201,36 +201,41 @@
                 <p class="rv-item mx-auto mt-2.5 max-w-xl text-center sm:mt-4 text-base leading-[1.65] text-[#6c6862] sm:text-xl sm:leading-[1.6]" style="--i: 1">
                   You both answered the same Vibe Check. {{ answerSummary.aligned }} of {{ answerSummary.total }} answers line up or complement each other.
                 </p>
+                <!-- key for the verdict icons -->
+                <ul class="rv-item mt-5 flex flex-wrap justify-center gap-x-5 gap-y-2 text-sm text-[#6c6862]" style="--i: 2" aria-label="What the icons mean">
+                  <li v-for="k in RELATION_KEY" :key="k.id" class="inline-flex items-center gap-1.5">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="h-[18px] w-[18px] text-[#9b9690]" aria-hidden="true" v-html="RELATION_ICON[k.id]"></svg>{{ k.label }}
+                  </li>
+                </ul>
                 <!-- Side by side, as a table on the page: one block per chapter, a row per topic.
                      Desktop: Topic | You | Them | Verdict columns. Phones: each row stacks. -->
                 <div class="mt-8 space-y-10 sm:mt-12 sm:space-y-12">
                   <div v-for="chapter in answerChapters" :key="chapter.id" v-reveal class="answers-table text-left">
                     <!-- chapter title -->
-                    <div class="rv-item flex items-center justify-between gap-4 border-b border-[#393737] pb-3">
+                    <div class="rv-item flex items-center justify-between gap-4 pb-3">
                       <h4 class="font-display text-[1.35rem] leading-tight text-[#393737] sm:text-[1.6rem]">{{ chapter.title }}</h4>
-                      <span class="shrink-0 rounded-full bg-white px-2.5 py-1 text-xs tabular-nums text-[#6c6862] ring-1 ring-black/5">{{ chapter.aligned }} of {{ chapter.pairs.length }} in sync</span>
                     </div>
 
                     <!-- column headings (desktop) -->
-                    <div class="hidden grid-cols-[minmax(0,15rem)_minmax(0,1fr)_minmax(0,1fr)_5.5rem] items-center gap-4 border-b border-black/[0.08] py-2.5 text-[11px] font-medium uppercase tracking-[0.08em] text-[#9b9690] sm:grid" aria-hidden="true">
+                    <div class="hidden grid-cols-[minmax(0,15rem)_minmax(0,1fr)_minmax(0,1fr)_3rem] items-center gap-4 border-b border-black/[0.08] py-2.5 text-[11px] font-medium uppercase tracking-[0.08em] text-[#9b9690] sm:grid" aria-hidden="true">
                       <span>Topic</span>
                       <span class="flex items-center gap-1.5"><span class="block h-[18px] w-[18px] shrink-0 overflow-hidden rounded-full bg-[#393737] ring-2 ring-[#f7f7f7]" aria-hidden="true"><img v-if="currentUser?.photo_url" :src="avatarUrl(currentUser.photo_url, 18)" alt="" decoding="async" class="h-full w-full object-cover" /></span>You</span>
                       <span class="flex items-center gap-1.5"><span class="block h-[18px] w-[18px] shrink-0 overflow-hidden rounded-full bg-[#ed1c24] ring-2 ring-[#f7f7f7]" aria-hidden="true"><img v-if="matchProfile?.photo_url" :src="avatarUrl(matchProfile.photo_url, 18)" alt="" decoding="async" class="h-full w-full object-cover" /></span>{{ theirFirstName }}</span>
-                      <span class="text-right">Verdict</span>
+                      <span class="sr-only">Verdict</span>
                     </div>
 
                     <ul>
                       <li
                         v-for="(pair, i) in chapter.pairs"
                         :key="pair.key"
-                        class="rv-item border-t border-black/[0.08] py-3.5 sm:grid sm:grid-cols-[minmax(0,15rem)_minmax(0,1fr)_minmax(0,1fr)_5.5rem] sm:items-center sm:gap-4"
+                        class="rv-item border-t border-black/[0.08] py-3.5 sm:grid sm:grid-cols-[minmax(0,15rem)_minmax(0,1fr)_minmax(0,1fr)_3rem] sm:items-center sm:gap-4"
                         :class="i === 0 ? 'border-t-0' : ''"
                         :style="{ '--i': i + 1 }"
                       >
                         <!-- topic: icon tile + name (+ verdict on phones) -->
                         <div class="flex items-center gap-3">
                           <p class="min-w-0 flex-1 text-[15px] font-medium leading-snug text-[#393737]">{{ pair.label }}</p>
-                          <span class="shrink-0 rounded-full px-2 py-0.5 text-[11px] font-medium sm:hidden" :class="RELATION_PILL[pair.relation]">{{ relationLabel(pair) }}</span>
+                          <span class="shrink-0 text-[#9b9690] sm:hidden" :title="relationLabel(pair)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5" aria-hidden="true" v-html="RELATION_ICON[pair.relation]"></svg><span class="sr-only">{{ relationLabel(pair) }}</span></span>
                         </div>
 
                         <!-- scale: one track across both answer columns -->
@@ -266,7 +271,7 @@
                         </template>
 
                         <!-- verdict (desktop column) -->
-                        <span class="hidden justify-self-end rounded-full px-2 py-0.5 text-[11px] font-medium sm:inline-flex" :class="RELATION_PILL[pair.relation]">{{ relationLabel(pair) }}</span>
+                        <span class="hidden justify-self-end text-[#9b9690] sm:inline-flex" :title="relationLabel(pair)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5" aria-hidden="true" v-html="RELATION_ICON[pair.relation]"></svg><span class="sr-only">{{ relationLabel(pair) }}</span></span>
                       </li>
                     </ul>
                   </div>
@@ -1068,11 +1073,17 @@ const answerChapters = computed(() =>
     .filter(c => c.pairs.length)
 )
 
-const RELATION_PILL: Record<AnswerPair['relation'], string> = {
-  same: 'bg-[#eaf6ef] text-[#2f7a4d]',
-  complementary: 'bg-[#eaf1f8] text-[#2f5b85]',
-  different: 'bg-[#fbf2e3] text-[#a8701a]',
+// Verdicts as flat line icons: same (tick), compatible (overlapping circles), different (arrows apart)
+const RELATION_ICON: Record<AnswerPair['relation'], string> = {
+  same: '<circle cx="12" cy="12" r="9"/><path d="m8.5 12.5 2.5 2.5 4.5-5"/>',
+  complementary: '<circle cx="9" cy="12" r="6"/><circle cx="15" cy="12" r="6"/>',
+  different: '<path d="M3 12h18M7 8l-4 4 4 4M17 8l4 4-4 4"/>',
 }
+const RELATION_KEY: { id: AnswerPair['relation']; label: string }[] = [
+  { id: 'same', label: 'Same' },
+  { id: 'complementary', label: 'Compatible' },
+  { id: 'different', label: 'Different' },
+]
 const relationLabel = (pair: AnswerPair) => pair.type === 'scale'
   ? { same: 'In sync', complementary: 'Close', different: 'Far apart' }[pair.relation]
   : { same: 'Same', complementary: 'Compatible', different: 'Different' }[pair.relation]
