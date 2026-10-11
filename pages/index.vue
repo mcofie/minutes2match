@@ -4,6 +4,26 @@
     <section class="relative z-10 min-h-0 overflow-hidden bg-gradient-to-b from-white via-white to-[#f7f7f7] sm:min-h-[640px]">
       <div aria-hidden="true" class="pointer-events-none absolute left-1/2 top-24 h-80 w-80 -translate-x-1/2 rounded-full bg-[#ed1c24]/[0.045] blur-3xl"></div>
       <div aria-hidden="true" class="pointer-events-none absolute -right-32 top-48 h-72 w-72 rounded-full bg-[#f3c7bd]/25 blur-3xl"></div>
+      <svg aria-hidden="true" viewBox="0 0 440 230" class="cloud-drift pointer-events-none absolute -left-20 top-14 z-[2] w-[250px] opacity-55 sm:-left-16 sm:top-16 sm:w-[370px]">
+        <defs>
+          <linearGradient id="hero-cloud-left-tint" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff"/><stop offset="1" stop-color="#f9dfe0"/></linearGradient>
+          <filter id="hero-cloud-left-soft" x="-15%" y="-25%" width="130%" height="160%"><feGaussianBlur stdDeviation="8" /></filter>
+        </defs>
+        <g fill="url(#hero-cloud-left-tint)" filter="url(#hero-cloud-left-soft)">
+          <ellipse cx="185" cy="157" rx="165" ry="53" /><circle cx="91" cy="133" r="56" /><circle cx="151" cy="91" r="76" />
+          <circle cx="227" cy="82" r="84" /><circle cx="302" cy="112" r="67" /><circle cx="352" cy="144" r="47" />
+        </g>
+      </svg>
+      <svg aria-hidden="true" viewBox="0 0 500 250" class="cloud-drift cloud-drift-reverse pointer-events-none absolute -right-24 top-16 z-[2] w-[270px] opacity-50 sm:-right-16 sm:top-20 sm:w-[410px]">
+        <defs>
+          <linearGradient id="hero-cloud-right-tint" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff"/><stop offset="1" stop-color="#f5e5df"/></linearGradient>
+          <filter id="hero-cloud-right-soft" x="-15%" y="-25%" width="130%" height="160%"><feGaussianBlur stdDeviation="9" /></filter>
+        </defs>
+        <g fill="url(#hero-cloud-right-tint)" filter="url(#hero-cloud-right-soft)">
+          <ellipse cx="258" cy="173" rx="206" ry="57" /><circle cx="137" cy="144" r="59" /><circle cx="203" cy="105" r="82" />
+          <circle cx="291" cy="85" r="91" /><circle cx="378" cy="113" r="80" /><circle cx="432" cy="151" r="57" />
+        </g>
+      </svg>
       <div class="pointer-events-none absolute inset-x-0 bottom-0 z-[1] h-28 bg-gradient-to-t from-[#f7f7f7] to-transparent"></div>
 
       <!-- Header -->
@@ -81,14 +101,14 @@
           <p class="mx-auto mt-4 max-w-2xl text-base leading-relaxed text-[#737373] sm:mt-5 sm:text-lg">Get started in 5 minutes.<br>Meet thoughtful matches in Accra and Nairobi.</p>
         </div>
 
-        <div class="grid gap-5 md:grid-cols-3 md:gap-6">
-          <article v-for="(step, index) in howItWorksSteps" :key="step.title" class="hiw-card group flex min-h-0 flex-col items-center overflow-hidden rounded-[1.65rem] bg-gradient-to-b from-[#e9eef3] to-[#f2f4f6] px-5 pb-7 pt-6 text-center sm:px-7 sm:pt-8">
+        <div class="grid gap-4 md:grid-cols-3 md:gap-5">
+          <article v-for="(step, index) in howItWorksSteps" :key="step.title" class="hiw-card group relative flex min-h-[420px] flex-col items-center overflow-hidden rounded-[1.8rem] bg-gradient-to-b from-[#e9eef4] via-[#edf1f5] to-[#f3f4f6] px-5 pb-7 pt-6 text-center ring-1 ring-inset ring-white/80 sm:min-h-[450px] sm:px-6 sm:pt-7">
             <!-- Same-height stage for every step, so the titles below line up -->
-            <div class="hiw-stage relative mb-4 flex h-[230px] w-full items-center justify-center sm:mb-6" aria-hidden="true">
+            <div class="hiw-stage relative mb-4 flex h-[230px] w-full items-center justify-center sm:mb-5 sm:h-[250px]" aria-hidden="true">
               <!-- 1. Tell us about you: a Vibe Check question -->
               <template v-if="index === 0">
-                <div class="hiw-back absolute h-[176px] w-[196px] -translate-x-4 translate-y-2 -rotate-6 rounded-[1.25rem] bg-gradient-to-b from-[#dbe4ee] to-[#e8edf2] ring-1 ring-white/70"></div>
-                <div class="hiw-front relative w-[214px] rounded-[1.25rem] bg-white p-4 text-left shadow-[0_14px_36px_rgba(52,38,25,0.10)]">
+                <div class="hiw-back absolute h-[184px] w-[208px] -translate-x-4 translate-y-2 -rotate-6 rounded-[1.3rem] bg-gradient-to-b from-[#dbe4ee] to-[#e8edf2] ring-1 ring-white/70"></div>
+                <div class="hiw-front relative w-[226px] rounded-[1.3rem] bg-white p-4 text-left shadow-[0_14px_36px_rgba(52,38,25,0.10)]">
                   <p class="text-[0.6rem] font-semibold uppercase tracking-[0.14em] text-[#9b9690]">Part 1 of 4</p>
                   <p class="font-display mt-0.5 text-[0.95rem] leading-tight text-[#393737]">What you want</p>
                   <div class="mt-1.5 flex gap-1"><span class="h-1 w-1 rounded-full bg-[#393737]"></span><span class="h-1 w-4 rounded-full bg-[#ed1c24]"></span><span class="h-1 w-1 rounded-full bg-[#dcd8d3]"></span><span class="h-1 w-1 rounded-full bg-[#dcd8d3]"></span></div>
@@ -103,10 +123,10 @@
               <!-- 2. Get matched: two people, one score -->
               <template v-else-if="index === 1">
                 <div class="relative flex items-start">
-                  <div class="hiw-left relative -mr-6 mt-4 h-[156px] w-[112px] -rotate-6 overflow-hidden rounded-[1.1rem] bg-[#eceae6] shadow-[0_12px_30px_rgba(52,38,25,0.14)] ring-[3px] ring-white">
+                  <div class="hiw-left relative -mr-6 mt-4 h-[166px] w-[120px] -rotate-6 overflow-hidden rounded-[1.1rem] bg-[#eceae6] shadow-[0_12px_30px_rgba(52,38,25,0.14)] ring-[3px] ring-white">
                     <img src="/kwame_profile.png" alt="" class="h-full w-full object-cover" loading="lazy" />
                   </div>
-                  <div class="hiw-right relative z-10 h-[156px] w-[112px] rotate-6 overflow-hidden rounded-[1.1rem] bg-[#eceae6] shadow-[0_16px_36px_rgba(52,38,25,0.18)] ring-[3px] ring-white">
+                  <div class="hiw-right relative z-10 h-[166px] w-[120px] rotate-6 overflow-hidden rounded-[1.1rem] bg-[#eceae6] shadow-[0_16px_36px_rgba(52,38,25,0.18)] ring-[3px] ring-white">
                     <img src="/ama_profile.png" alt="" class="h-full w-full object-cover" loading="lazy" />
                   </div>
                   <span class="absolute left-1/2 top-[52%] z-20 flex -translate-x-1/2 -translate-y-1/2 items-center gap-1.5 whitespace-nowrap rounded-full bg-white px-3 py-1.5 text-[0.72rem] font-semibold text-[#393737] shadow-[0_8px_20px_rgba(52,38,25,0.14)]">
@@ -118,8 +138,8 @@
 
               <!-- 3. Go on a date: an idea picked for the pair -->
               <template v-else>
-                <div class="hiw-back absolute h-[176px] w-[196px] translate-x-4 translate-y-2 rotate-6 rounded-[1.25rem] bg-gradient-to-b from-[#f4e2d6] to-[#f3ece6] ring-1 ring-white/70"></div>
-                <div class="hiw-front relative w-[214px] overflow-hidden rounded-[1.25rem] bg-white text-left shadow-[0_14px_36px_rgba(52,38,25,0.10)]">
+                <div class="hiw-back absolute h-[184px] w-[208px] translate-x-4 translate-y-2 rotate-6 rounded-[1.3rem] bg-gradient-to-b from-[#f4e2d6] to-[#f3ece6] ring-1 ring-white/70"></div>
+                <div class="hiw-front relative w-[226px] overflow-hidden rounded-[1.3rem] bg-white text-left shadow-[0_14px_36px_rgba(52,38,25,0.10)]">
                   <div class="relative h-[86px] overflow-hidden bg-gradient-to-b from-[#e7ebf4] via-[#f6e6e6] to-[#f9dcc4]">
                     <LetterVignette scene="sunset" class="absolute -top-6 left-1/2 w-28 -translate-x-1/2" />
                     <span class="absolute left-2.5 top-2.5 rounded-full bg-white/90 px-2 py-0.5 text-[0.58rem] font-semibold text-[#393737]">Picked for you both</span>
@@ -135,8 +155,8 @@
                 </div>
               </template>
             </div>
-            <h3 class="font-display mb-1.5 text-2xl font-normal tracking-tight text-[#393737] sm:text-3xl">{{ step.title }}</h3>
-            <p class="max-w-[19rem] text-base leading-relaxed text-[#74777a]">{{ step.description }}</p>
+            <h3 class="font-display mb-2 text-[1.65rem] font-normal leading-tight tracking-tight text-[#393737] sm:text-[1.8rem]">{{ step.title }}</h3>
+            <p class="max-w-[18rem] text-[0.95rem] leading-[1.65] text-[#74777a] sm:text-base">{{ step.description }}</p>
           </article>
         </div>
 
@@ -172,8 +192,14 @@
         </h2>
         <p class="mx-auto mt-3 max-w-xl text-center text-base leading-relaxed text-[#737373] sm:text-lg">Thoughtful introductions begin with what matters most to you.</p>
 
-        <!-- The same soft painted vignette as the match letter, blending into the page -->
-        <LetterVignette scene="meet" class="story-art mx-auto mt-8 w-56 sm:mt-10 sm:w-72" />
+        <figure class="story-art mx-auto mt-7 w-[min(82vw,27rem)] sm:mt-9 sm:w-[30rem]">
+          <NuxtImg
+            src="/manifesto_connection.png"
+            alt="Two people sharing a warm conversation over coffee"
+            class="block aspect-square w-full object-cover object-[center_38%] opacity-90"
+            loading="lazy"
+          />
+        </figure>
       </div>
     </section>
 
@@ -371,7 +397,7 @@
             <div class="mt-6">
               <p class="text-xs font-semibold uppercase tracking-[0.14em] text-[#9a9692]">Now matching in</p>
               <ul class="mt-3 flex flex-wrap gap-2.5">
-                <li v-for="c in footerCities" :key="c.city" class="flex items-center gap-3 rounded-2xl bg-white py-2.5 pl-2.5 pr-4 ring-1 ring-black/5 shadow-[0_4px_14px_rgba(57,55,55,0.05)]">
+                <li v-for="c in footerCities" :key="c.city" class="flex items-center gap-3 py-1.5">
                   <CountryFlag :code="c.flag" class="h-7 w-[2.625rem]" />
                   <span class="leading-tight">
                     <span class="block text-[15px] font-semibold text-[#393737]">{{ c.city }}</span>
@@ -556,11 +582,21 @@ onBeforeUnmount(() => {
 </script>
 
 <style scoped>
+.story-art :deep(img) {
+  -webkit-mask-image: radial-gradient(ellipse 72% 72% at 50% 48%, #000 38%, rgba(0, 0, 0, 0.78) 52%, rgba(0, 0, 0, 0.3) 62%, transparent 72%);
+  mask-image: radial-gradient(ellipse 72% 72% at 50% 48%, #000 38%, rgba(0, 0, 0, 0.78) 52%, rgba(0, 0, 0, 0.3) 62%, transparent 72%);
+  filter: saturate(0.62) contrast(0.94) brightness(1.05);
+}
 /* "A better way to meet" step graphics: a little life on hover */
+.hiw-card {
+  box-shadow: 0 10px 30px rgba(57, 55, 55, 0.035);
+  transition: box-shadow 0.45s cubic-bezier(0.22, 1, 0.36, 1), translate 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+}
 .hiw-front, .hiw-back, .hiw-left, .hiw-right {
   transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1), rotate 0.5s cubic-bezier(0.22, 1, 0.36, 1), translate 0.5s cubic-bezier(0.22, 1, 0.36, 1);
 }
 @media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .hiw-card:hover { translate: 0 -4px; box-shadow: 0 18px 42px rgba(57, 55, 55, 0.09); }
   .hiw-card:hover .hiw-front { translate: 0 -6px; }
   .hiw-card:hover .hiw-back { rotate: -10deg; }
   .hiw-card:hover .hiw-back.rotate-6 { rotate: 10deg; }

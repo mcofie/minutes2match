@@ -71,6 +71,28 @@
           <article v-if="matchProfile" class="love-letter letter-flow relative text-[#393737]">
             <!-- Sky header -->
             <header class="relative isolate mx-[calc(50%-50vw)] overflow-hidden bg-gradient-to-b from-[#f7f7f7] via-[#e9eff5] to-[#dde7f1] px-5 pb-16 pt-6 text-center sm:px-6 sm:pb-32 sm:pt-16 print:mx-0">
+              <div aria-hidden="true" class="pointer-events-none absolute inset-x-0 top-0 z-0 print:hidden">
+                <svg viewBox="0 0 440 230" class="connection-cloud-drift absolute -left-24 -top-24 w-[270px] opacity-75 sm:-left-16 sm:-top-32 sm:w-[390px]">
+                  <defs>
+                    <filter id="brief-cloud-left-soft" x="-15%" y="-25%" width="130%" height="160%"><feGaussianBlur stdDeviation="8"/></filter>
+                  </defs>
+                  <g fill="#fff" filter="url(#brief-cloud-left-soft)">
+                    <ellipse cx="185" cy="157" rx="165" ry="53"/><circle cx="91" cy="133" r="56"/><circle cx="151" cy="91" r="76"/>
+                    <circle cx="227" cy="82" r="84"/><circle cx="302" cy="112" r="67"/><circle cx="352" cy="144" r="47"/>
+                  </g>
+                </svg>
+                <svg viewBox="0 0 500 250" class="connection-cloud-drift connection-cloud-drift-reverse absolute -right-28 -top-20 w-[300px] opacity-70 sm:-right-20 sm:-top-28 sm:w-[430px]">
+                  <defs>
+                    <filter id="brief-cloud-right-soft" x="-15%" y="-25%" width="130%" height="160%"><feGaussianBlur stdDeviation="9"/></filter>
+                  </defs>
+                  <g fill="#fff" filter="url(#brief-cloud-right-soft)">
+                    <ellipse cx="258" cy="173" rx="206" ry="57"/><circle cx="137" cy="144" r="59"/><circle cx="203" cy="105" r="82"/>
+                    <circle cx="291" cy="85" r="91"/><circle cx="378" cy="113" r="80"/><circle cx="432" cy="151" r="57"/>
+                  </g>
+                </svg>
+              </div>
+
+              <div class="relative z-10">
               <span class="inline-flex rounded-full bg-white/80 px-4 py-1.5 text-sm font-medium text-[#393737] shadow-[0_4px_14px_rgba(57,77,100,0.08)] backdrop-blur">Your match brief</span>
 
               <div class="mt-6 flex items-center justify-center sm:mt-8" aria-hidden="true">
@@ -91,6 +113,7 @@
               <p class="mt-3 text-sm text-[#9b9690]">
                 <template v-if="matchedOn">Matched on {{ matchedOn }} · </template>For {{ myFirstName }}
               </p>
+              </div>
 
               <!-- clouds, in the letter's paper colour -->
               <svg viewBox="0 0 1440 220" preserveAspectRatio="none" class="pointer-events-none absolute inset-x-0 -bottom-1 -z-10 h-14 w-full sm:h-32" aria-hidden="true">
@@ -150,12 +173,11 @@
                   <h3 class="font-display mt-1.5 text-[2rem] leading-[1.05] tracking-tight text-[#393737] sm:text-[4rem]">Where you line up</h3>
                 </div>
                 <p class="rv-item mx-auto mt-2.5 max-w-xl text-center sm:mt-4 text-base leading-[1.65] text-[#6c6862] sm:text-xl sm:leading-[1.6]" style="--i: 1">Your {{ matchScoreValue }}% is made of six parts. Here's what each one earned.</p>
-
-                <!-- at a glance -->
-                <div v-if="lineupHighlights" class="rv-item mt-5 flex flex-wrap justify-center gap-2" style="--i: 2">
-                  <span class="inline-flex items-center gap-1.5 rounded-full bg-[#efece8] px-3 py-1.5 text-sm text-[#6c6862]"><span class="font-medium text-[#393737]">Strongest</span> · {{ lineupHighlights.best }}</span>
-                  <span v-if="lineupHighlights.grow" class="inline-flex items-center gap-1.5 rounded-full bg-[#efece8] px-3 py-1.5 text-sm text-[#6c6862]"><span class="font-medium text-[#393737]">Room to grow</span> · {{ lineupHighlights.grow }}</span>
-                </div>
+                <ul class="rv-item mt-5 flex flex-wrap justify-center gap-x-5 gap-y-2 text-sm text-[#6c6862]" style="--i: 2" aria-label="What the score icons mean">
+                  <li v-for="k in BAR_KEY" :key="k.id" class="inline-flex items-center gap-1.5">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="h-[18px] w-[18px] text-[#9b9690]" aria-hidden="true" v-html="RELATION_ICON[k.id]"></svg>{{ k.label }}
+                  </li>
+                </ul>
 
                 <!-- one row per part: name and why, score, and a thick track like the Vibe Check sliders -->
                 <dl class="mt-5 text-left sm:mt-7">
@@ -167,7 +189,9 @@
                           <span class="block text-xs leading-snug text-[#9b9690]">{{ bar.hint }}</span>
                         </dt>
                         <dd class="flex shrink-0 items-center gap-2">
-                          <span class="rounded-full bg-[#efece8] px-2 py-0.5 text-[11px] font-medium text-[#6c6862]">{{ BAR_WORD[barTone(bar)] }}</span>
+                          <span class="text-[#9b9690]" :title="BAR_WORD[barTone(bar)]" :aria-label="BAR_WORD[barTone(bar)]">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5" aria-hidden="true" v-html="RELATION_ICON[barTone(bar)]"></svg>
+                          </span>
                           <span class="text-[15px] font-semibold tabular-nums text-[#393737]">{{ bar.value }}<span class="font-normal text-[#b5b0aa]">/{{ bar.max }}</span></span>
                         </dd>
                       </div>
@@ -975,15 +999,11 @@ const barTone = (bar: { value: number; max: number }): BarTone => {
   return r >= 0.7 ? 'same' : r >= 0.4 ? 'complementary' : 'different'
 }
 const BAR_WORD: Record<BarTone, string> = { same: 'Strong', complementary: 'Good', different: 'Room to grow' }
-const lineupHighlights = computed(() => {
-  const bars = evidenceBars.value
-  if (!bars.length) return null
-  const ratio = (x: { value: number; max: number }) => x.value / x.max
-  const sorted = [...bars].sort((a, b) => ratio(b) - ratio(a))
-  const best = sorted[0]
-  const worst = sorted[sorted.length - 1]
-  return { best: best.label, grow: worst !== best && ratio(worst) < 0.4 ? worst.label : '' }
-})
+const BAR_KEY: { id: BarTone; label: string }[] = [
+  { id: 'same', label: 'Strong' },
+  { id: 'complementary', label: 'Good' },
+  { id: 'different', label: 'Room to grow' },
+]
 
 const INTENT_LABELS: Record<string, string> = { marriage: 'marriage', serious: 'something serious', casual: 'something casual', friendship: 'friendship' }
 
@@ -1357,3 +1377,21 @@ useHead({
   title: 'Your Connection - Minutes 2 Match'
 })
 </script>
+
+<style scoped>
+.connection-cloud-drift {
+  animation: connection-cloud-drift 38s ease-in-out infinite alternate;
+  will-change: transform;
+}
+.connection-cloud-drift-reverse {
+  animation-duration: 46s;
+  animation-direction: alternate-reverse;
+}
+@keyframes connection-cloud-drift {
+  from { transform: translate3d(-0.75rem, 0, 0) scale(0.98); }
+  to { transform: translate3d(1rem, 0.5rem, 0) scale(1.02); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .connection-cloud-drift { animation: none; }
+}
+</style>
