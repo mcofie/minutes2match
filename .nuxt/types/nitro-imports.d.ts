@@ -4,6 +4,7 @@ declare global {
   const FLASH_LOBBY_RESPONSE_WINDOW_HOURS: typeof import('../../server/utils/flashLobby').FLASH_LOBBY_RESPONSE_WINDOW_HOURS
   const H3Error: typeof import('../../node_modules/h3').H3Error
   const H3Event: typeof import('../../node_modules/h3').H3Event
+  const MAX_OTP_ATTEMPTS: typeof import('../../server/utils/otpCheck').MAX_OTP_ATTEMPTS
   const SENDER_ID: typeof import('../../server/utils/zend').SENDER_ID
   const ZEND_BASE_URL: typeof import('../../server/utils/zend').ZEND_BASE_URL
   const __buildAssetsURL: typeof import('../../node_modules/@nuxt/nitro-server/dist/runtime/utils/paths').buildAssetsURL
@@ -29,6 +30,7 @@ declare global {
   const cleanupInactiveFlashLobbySessions: typeof import('../../server/utils/flashLobby').cleanupInactiveFlashLobbySessions
   const clearResponseHeaders: typeof import('../../node_modules/h3').clearResponseHeaders
   const clearSession: typeof import('../../node_modules/h3').clearSession
+  const consumeOtp: typeof import('../../server/utils/otpCheck').consumeOtp
   const createApp: typeof import('../../node_modules/h3').createApp
   const createAppEventHandler: typeof import('../../node_modules/h3').createAppEventHandler
   const createError: typeof import('../../node_modules/h3').createError
@@ -295,6 +297,7 @@ export { runTargetedMatching } from '/Users/maxwellcofie/WebstormProjects/minute
 export { createInAppNotification, notifyFlashLobbySparkReceived, notifyFlashLobbyMutualUnlocked, notifyFlashLobbyResolved, notifyFlashLobbyLive, notifyEventWaitlistPromoted } from '/Users/maxwellcofie/WebstormProjects/minutes2match/server/utils/notifications';
 export { notifyUser } from '/Users/maxwellcofie/WebstormProjects/minutes2match/server/utils/notify';
 export { handleSparkDeckOrder, calculateDeliveryDate } from '/Users/maxwellcofie/WebstormProjects/minutes2match/server/utils/order';
+export { MAX_OTP_ATTEMPTS, consumeOtp } from '/Users/maxwellcofie/WebstormProjects/minutes2match/server/utils/otpCheck';
 export { usePasskeyUtils } from '/Users/maxwellcofie/WebstormProjects/minutes2match/server/utils/passkeys';
 export { personas, calculatePersona } from '/Users/maxwellcofie/WebstormProjects/minutes2match/server/utils/personas';
 export { normalizeGhanaPhone, isSamePhone } from '/Users/maxwellcofie/WebstormProjects/minutes2match/server/utils/phone';

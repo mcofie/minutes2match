@@ -6,6 +6,7 @@
  */
 
 import { createClient } from '@supabase/supabase-js'
+import { consumeOtp } from '~/server/utils/otpCheck'
 
 export default defineEventHandler(async (event) => {
     // Rate limit: 5 verify attempts per minute per IP
@@ -32,44 +33,13 @@ export default defineEventHandler(async (event) => {
         { auth: { persistSession: false } }
     )
 
+    // Look up which phone this code was sent to, then check it with the shared attempt-limited check
+    const { data: sent } = await supabaseAdmin.schema('m2m').from('otp_codes').select('phone').eq('id', otpId).maybeSingle()
+    if (!sent?.phone) return { valid: false, error: 'That code has expired. Request a new one.' }
     try {
-        // Verify against Supabase m2m.otp_codes table
-        // Use maybeSingle to gracefully handle 0 or 1 result (no throw on 0)
-        const { data: otpData, error: otpError } = await supabaseAdmin
-            .schema('m2m')
-            .from('otp_codes')
-            .select('*')
-            .eq('id', otpId)
-            .eq('code', code)
-            .eq('used', false)
-            .gt('expires_at', new Date().toISOString())
-            .maybeSingle()
-
-        if (otpError || !otpData) {
-            console.error(`[OTP] Verification failed for ${otpId}:`, otpError?.message)
-            return {
-                valid: false,
-                error: 'Invalid or expired code'
-            }
-        }
-
-        // Mark ALL OTPs for this phone as used (cleanup)
-        await supabaseAdmin
-            .schema('m2m')
-            .from('otp_codes')
-            .update({ used: true })
-            .eq('phone', otpData.phone)
-
-        console.log(`[OTP] Verified successfully for ${otpId}`)
-        return {
-            valid: true,
-            message: 'OTP verified successfully'
-        }
+        await consumeOtp(supabaseAdmin, sent.phone, String(code))
+        return { valid: true, message: 'OTP verified successfully' }
     } catch (error: any) {
-        console.error(`[OTP] Error during verification for ${otpId}:`, error?.message)
-        return {
-            valid: false,
-            error: 'Verification failed'
-        }
+        return { valid: false, error: error?.message || 'Verification failed' }
     }
 })

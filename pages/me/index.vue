@@ -4,7 +4,20 @@
       <Title>Your account | Minutes 2 Match</Title>
     </Head>
 
-    <template v-if="showSkeleton">
+    <!-- Signed in, but this account has no member profile (e.g. an admin login, or sign-up never finished) -->
+    <section v-if="profileMissing" class="rounded-[1.75rem] bg-white p-6 text-center shadow-[0_10px_30px_rgba(52,38,25,0.07)] ring-1 ring-black/5 sm:p-8">
+      <h2 class="font-display text-[1.9rem] leading-tight text-[#393737]">No member profile yet</h2>
+      <p class="mx-auto mt-2 max-w-sm text-base leading-relaxed text-[#6c6862]">
+        <template v-if="isAdmin">You're signed in with an admin account. To see the member side, log out and sign in with a member's phone number.</template>
+        <template v-else>You're signed in, but this account doesn't have a profile. Log out, then sign in with the phone number you used for the Vibe Check.</template>
+      </p>
+      <div class="mt-6 flex flex-col items-center gap-3">
+        <NuxtLink v-if="isAdmin" to="/admin" class="btn-solid grain w-full max-w-xs px-6 py-3.5 text-base">Go to admin</NuxtLink>
+        <button type="button" :disabled="loggingOut" class="w-full max-w-xs rounded-full bg-white px-6 py-3.5 text-base font-medium text-[#393737] ring-1 ring-black/10 hover:bg-[#fafafa] disabled:opacity-60" @click="handleLogout">{{ loggingOut ? 'Logging out…' : 'Log out' }}</button>
+      </div>
+    </section>
+
+    <template v-else-if="showSkeleton">
       <SkeletonMePage />
       <p class="sr-only" role="status">Loading your account…</p>
     </template>
@@ -62,12 +75,12 @@
 
     <!-- Your personality type, from the Vibe Check -->
     <section v-if="myPersona" class="relative overflow-hidden rounded-[1.75rem] p-5 shadow-[0_10px_30px_rgba(52,38,25,0.07)] ring-1 ring-black/5 sm:p-6" :style="{ background: myPersona.tint }">
-      <LetterVignette :scene="myPersona.scene" class="pointer-events-none absolute -right-5 -top-8 w-28 opacity-90 sm:-right-3 sm:-top-6 sm:w-32" />
-      <div class="relative pr-24 sm:pr-28">
+      <PersonaBird :type="myPersona.id" class="pointer-events-none absolute -right-1 top-1 w-32 sm:right-0 sm:top-2 sm:w-36" />
+      <div class="relative pr-28 sm:pr-36">
         <p class="text-sm font-medium text-[#6c6862]">Your personality type</p>
         <h3 class="font-display mt-1 text-[1.75rem] leading-[1.1] tracking-tight text-[#393737]">{{ myPersona.name }}</h3>
       </div>
-      <p class="relative mt-2.5 pr-12 text-base leading-relaxed text-[#4c4a4a] sm:pr-16">{{ myPersona.description }}</p>
+      <p class="relative mt-2.5 pr-28 text-base leading-relaxed text-[#4c4a4a] sm:pr-36">{{ myPersona.description }}</p>
       <ul class="relative mt-4 flex flex-wrap gap-1.5">
         <li v-for="word in myPersona.keywords" :key="word" class="rounded-full bg-white/75 px-3 py-1 text-sm capitalize text-[#393737] ring-1 ring-black/[0.04]">{{ word }}</li>
       </ul>
@@ -782,6 +795,9 @@ const cancelDeletionRequest = async () => {
 // Skeleton until everything the page draws is here, so nothing appears and then changes.
 // After the first visit it's all in shared state, so switching tabs shows the full page at once.
 const showSkeleton = computed(() => !profile.value || myVibeKeys.value === null)
+// Loaded, signed in, and still no profile row: say so instead of loading forever
+const profileMissing = ref(false)
+const isAdmin = ref(false)
 
 // Everything loads side by side; cached values are already on screen and refresh quietly
 const supaUser = useSupabaseUser()
@@ -789,5 +805,10 @@ onMounted(async () => {
   const fastId = (supaUser.value as any)?.sub || (supaUser.value as any)?.id || currentUserId.value
   await Promise.all([initDashboard(), fastId ? fetchMyVibeKeys(fastId) : null, fetchDeletionRequest()])
   if (!fastId) await fetchMyVibeKeys()
+  if (currentUserId.value && !profile.value) {
+    profileMissing.value = true
+    const { data } = await supabase.schema('m2m').from('admins').select('id').eq('id', currentUserId.value).maybeSingle()
+    isAdmin.value = !!data
+  }
 })
 </script>

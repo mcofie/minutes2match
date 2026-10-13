@@ -24,7 +24,7 @@ export const useDashboard = () => {
         try {
             // Profile and passkey count side by side
             const [{ data }, { count: passkeyCount }] = await Promise.all([
-                supabase.schema('m2m').from('profiles').select('*').eq('id', userId).single(),
+                supabase.schema('m2m').from('profiles').select('*').eq('id', userId).maybeSingle(), // no row → null, not a 406
                 supabase.schema('m2m').from('user_passkeys').select('id', { count: 'exact', head: true }).eq('user_id', userId),
             ]) as [{ data: any }, { count: number | null }]
 

@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
+import { consumeOtp } from '~/server/utils/otpCheck'
 
 export default defineEventHandler(async (event) => {
     // Rate limit: 5 login attempts per minute per IP
@@ -30,53 +31,8 @@ export default defineEventHandler(async (event) => {
     )
 
     try {
-        // 1. Verify OTP: Accept ANY valid, unused, unexpired code for this phone.
-        // This handles the race condition where auto-failover sends a backup code,
-        // but the user enters the code from the first SMS.
-        const query = supabaseAdmin
-            .schema('m2m')
-            .from('otp_codes')
-            .select('*')
-            .eq('phone', normalizedPhone)
-            .eq('code', code)
-            .eq('used', false)
-            .gt('expires_at', new Date().toISOString())
-
-        if (otpId) {
-            query.eq('id', otpId)
-        }
-
-        const { data: otpData, error: otpError } = await query.maybeSingle()
-
-        // If not found by otpId, try without otpId constraint (fallback code scenario)
-        let validOtp = otpData
-        if (!validOtp && otpId) {
-            const { data: fallbackOtp } = await supabaseAdmin
-                .schema('m2m')
-                .from('otp_codes')
-                .select('*')
-                .eq('phone', normalizedPhone)
-                .eq('code', code)
-                .eq('used', false)
-                .gt('expires_at', new Date().toISOString())
-                .maybeSingle()
-            validOtp = fallbackOtp
-        }
-
-        if (!validOtp) {
-            console.error('[Login] OTP verification failed:', otpError?.message || 'No matching code')
-            throw createError({
-                statusCode: 401,
-                statusMessage: 'Invalid or expired code'
-            })
-        }
-
-        // Mark ALL OTP codes for this phone as used (cleanup)
-        await supabaseAdmin
-            .schema('m2m')
-            .from('otp_codes')
-            .update({ used: true })
-            .eq('phone', normalizedPhone)
+        // 1. The code: attempt-limited per code in the database, single use
+        await consumeOtp(supabaseAdmin, normalizedPhone, String(code))
 
         // 3. Find profile by phone (fetch key fields to check vibe check completion)
         const { data: profile, error: profileError } = await supabaseAdmin

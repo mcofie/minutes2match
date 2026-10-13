@@ -1,10 +1,10 @@
 import { createClient } from '@supabase/supabase-js'
+import { consumeOtp } from '~/server/utils/otpCheck'
 
 export default defineEventHandler(async (event) => {
     const body = await readBody(event)
     const config = useRuntimeConfig()
     const { phone, code } = body
-    console.log('🔍 Admin Login Request:', { phone, code })
 
     const normalizedPhone = normalizeGhanaPhone(phone)
 
@@ -23,26 +23,9 @@ export default defineEventHandler(async (event) => {
         auth: { persistSession: false }
     })
 
-    // 1. Verify OTP
-    let isValid = false
-    const { data: otp } = await supabase
-        .from('otp_codes')
-        .select('*')
-        .eq('phone', normalizedPhone)
-        .eq('code', code)
-        .eq('used', false)
-        .gt('expires_at', new Date().toISOString())
-        .maybeSingle()
-
-    if (otp) {
-        isValid = true
-        // Mark as used
-        await supabase.from('otp_codes').update({ used: true }).eq('id', otp.id)
-    }
-
-    if (!isValid) {
-        throw createError({ statusCode: 400, message: 'Invalid verification code' })
-    }
+    // 1. The code: attempt-limited per code in the database, single use
+    if (!phone || !code) throw createError({ statusCode: 400, message: 'Phone and code are required' })
+    await consumeOtp(createClient(supabaseUrl, supabaseKey, { auth: { persistSession: false } }), normalizedPhone, String(code))
 
     // 2. Validate User Profile
     const { data: profile } = await supabase

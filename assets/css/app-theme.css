@@ -266,3 +266,15 @@
 @media print {
   .m2m-app .letter-section { content-visibility: visible; }
 }
+
+/* Match letter "meet" moment: the lovebirds painting, its paper melted into the page */
+.m2m-app .meet-art img {
+  mix-blend-mode: multiply;
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, #000 12%, #000 72%, transparent 100%), linear-gradient(to right, transparent 0%, #000 12%, #000 88%, transparent 100%);
+  -webkit-mask-composite: source-in;
+  mask-image: linear-gradient(to bottom, transparent 0%, #000 12%, #000 72%, transparent 100%), linear-gradient(to right, transparent 0%, #000 12%, #000 88%, transparent 100%);
+  mask-composite: intersect;
+  transition: transform 1.1s cubic-bezier(0.22, 1, 0.36, 1), opacity 1.1s ease;
+}
+.m2m-app .rv:not(.rv-in) .meet-art img { transform: scale(0.94) translateY(10px); opacity: 0; }
+@media (prefers-reduced-motion: reduce) { .m2m-app .meet-art img { transition: none; } }

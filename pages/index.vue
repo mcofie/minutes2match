@@ -192,11 +192,13 @@
         </h2>
         <p class="mx-auto mt-3 max-w-xl text-center text-base leading-relaxed text-[#737373] sm:text-lg">Thoughtful introductions begin with what matters most to you.</p>
 
-        <figure class="story-art mx-auto mt-7 w-[min(82vw,27rem)] sm:mt-9 sm:w-[30rem]">
+        <figure class="story-art mx-auto mt-7 w-[min(84vw,26rem)] sm:mt-9 sm:w-[30rem]">
           <NuxtImg
-            src="/manifesto_connection.png"
-            alt="Two people sharing a warm conversation over coffee"
-            class="block aspect-square w-full object-cover object-[center_38%] opacity-90"
+            src="/lovebirds.webp"
+            alt="Two lovebirds on a branch, beak to beak, with soft pink hearts around them"
+            width="994"
+            height="975"
+            class="block h-auto w-full"
             loading="lazy"
           />
         </figure>
@@ -214,10 +216,10 @@
           <article class="flex h-[540px] flex-col items-center overflow-hidden rounded-[2.25rem] bg-gradient-to-b from-[#e9ecf1] to-[#f3f4f6] px-5 pt-10 text-center sm:h-[680px] sm:px-6 sm:rounded-[3rem] sm:pt-16">
             <h3 class="font-display text-[2.75rem] leading-none tracking-tight text-[#393737] sm:text-5xl lg:text-6xl">Matches</h3>
             <p class="mt-3 text-base text-[#6c6b6b] xs:text-lg sm:mt-4 sm:text-xl">Weekly introductions, values first</p>
-            <NuxtLink to="/how-it-works" class="group mt-4 inline-flex items-center gap-2.5 sm:mt-6 text-base font-semibold tracking-tight text-[#393737] sm:text-lg">
+            <a href="#how-it-works" class="group mt-4 inline-flex items-center gap-2.5 sm:mt-6 text-base font-semibold tracking-tight text-[#393737] sm:text-lg" @click.prevent="scrollToSection('how-it-works')">
               Learn more
               <span class="flex h-5 w-5 items-center justify-center rounded-full bg-[#393737] text-white transition-transform group-hover:translate-x-0.5" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" class="h-3 w-3"><path d="m9 18 6-6-6-6" /></svg></span>
-            </NuxtLink>
+            </a>
 
             <div class="device mt-auto" aria-hidden="true">
               <div class="device-screen px-4 pt-7 sm:px-5">
@@ -315,7 +317,7 @@
                 @click="openFaq = openFaq === i ? null : i"
               >
                 {{ f.q }}
-                <span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#f0f0f0] text-white">
+                <span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#f0f0f0] text-[#393737] transition-colors" :class="openFaq === i ? 'bg-[#393737] text-white' : ''">
                   <svg width="15" height="15" viewBox="0 0 15 15" fill="none" class="h-4 w-4 transition-transform duration-200" :class="openFaq === i ? 'rotate-180' : ''">
                     <path d="M3.13523 6.15803C3.3241 5.95657 3.64052 5.94637 3.84197 6.13523L7.5 9.56464L11.158 6.13523C11.3595 5.94637 11.6759 5.95637 11.8648 6.15803C12.0536 6.35949 12.0434 6.67591 11.842 6.86477L7.84197 10.6148C7.64964 10.7951 7.35036 10.7951 7.15803 10.6148L3.15803 6.86477C2.95657 6.67591 2.94637 6.35949 3.13523 6.15803Z" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" />
                   </svg>
@@ -583,9 +585,12 @@ onBeforeUnmount(() => {
 
 <style scoped>
 .story-art :deep(img) {
-  -webkit-mask-image: radial-gradient(ellipse 72% 72% at 50% 48%, #000 38%, rgba(0, 0, 0, 0.78) 52%, rgba(0, 0, 0, 0.3) 62%, transparent 72%);
-  mask-image: radial-gradient(ellipse 72% 72% at 50% 48%, #000 38%, rgba(0, 0, 0, 0.78) 52%, rgba(0, 0, 0, 0.3) 62%, transparent 72%);
-  filter: saturate(0.62) contrast(0.94) brightness(1.05);
+  /* the paper melts into the sky gradient; only the ink and watercolour stay */
+  mix-blend-mode: multiply;
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, #000 12%, #000 72%, transparent 100%), linear-gradient(to right, transparent 0%, #000 12%, #000 88%, transparent 100%);
+  -webkit-mask-composite: source-in;
+  mask-image: linear-gradient(to bottom, transparent 0%, #000 12%, #000 72%, transparent 100%), linear-gradient(to right, transparent 0%, #000 12%, #000 88%, transparent 100%);
+  mask-composite: intersect;
 }
 /* "A better way to meet" step graphics: a little life on hover */
 .hiw-card {

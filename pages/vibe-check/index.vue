@@ -369,8 +369,10 @@
 
           <p class="h-4 text-center text-xs text-[#9b9690]" aria-live="polite">
             <template v-if="fallbackTimer > 0">Sending a backup code in {{ fallbackTimer }}s</template>
-            <template v-else-if="fallbackTriggered">Backup code sent 📨</template>
+            <template v-else-if="fallbackTriggered">Backup code sent</template>
           </p>
+
+          <button v-if="fallbackTimer === 0" type="button" :disabled="sendingOtp" class="w-full rounded-full py-2 text-sm font-medium text-[#393737] underline-offset-4 hover:underline disabled:opacity-50" @click="resendCode">{{ sendingOtp ? 'Sending…' : 'Resend code' }}</button>
 
           <button class="w-full rounded-full py-2 text-sm font-medium text-[#6c6862] transition-colors hover:text-[#393737]" @click="resetPhone">← Change number</button>
         </div>
@@ -438,6 +440,7 @@
 import UiButton from '~/components/ui/Button.vue'
 import VibeCard from '~/components/VibeCard.vue'
 import { PhotoError } from '~/composables/usePhotoUpload'
+import { isValidLocalPhone, toE164, type PhoneCountryCode } from '~/utils/phoneNumbers'
 import { usePersona, type Persona } from '~/composables/usePersona'
 import { createClient } from '@supabase/supabase-js'
 import type { M2MDatabase } from '~/types/database.types'
@@ -515,6 +518,7 @@ onMounted(async () => {
       return
     }
   } else {
+    restoreProgress()
     isCheckingAuth.value = false
   }
 
@@ -715,6 +719,7 @@ const fetchVibeQuestions = async () => {
 
       // 3. Tell the story chapter by chapter: want → relate → live → believe
       activeQuestions.value = orderByChapter(finalQuestions)
+      resumeSavedQuestions([...data, ...v2QuestionsFromUtil()])
     }
   } catch (err) {
     console.error('Failed to fetch questions:', err)
@@ -729,10 +734,62 @@ const fetchVibeQuestions = async () => {
       // Vibe Check v2
       ...v2QuestionsFromUtil(),
     ])
+    resumeSavedQuestions(activeQuestions.value)
   } finally {
     loadingQuestions.value = false
   }
 }
+// ===== Save progress in this browser, so a refresh or a closed tab doesn't lose the answers =====
+// (new sign-ups only; members' answers already live on their profile. The phone number isn't stored.)
+const SAVE_KEY = 'm2m_vibe_check_progress_v1'
+const SAVE_MAX_AGE = 48 * 60 * 60 * 1000
+let pendingResume: { step: number; keys: string[] } | null = null
+
+const restoreProgress = () => {
+  try {
+    const saved = JSON.parse(localStorage.getItem(SAVE_KEY) || 'null')
+    if (!saved || Date.now() - saved.at > SAVE_MAX_AGE) return
+    const { phone: _ignored, ...savedForm } = saved.form || {}
+    Object.assign(form, savedForm)
+    Object.assign(vibeAnswers, saved.answers || {})
+    Object.assign(vibeDimensions, saved.dimensions || {})
+    if (saved.country === '+233' || saved.country === '+254') phoneCountry.value = saved.country
+    if (saved.step > 1) pendingResume = { step: saved.step, keys: saved.keys || [] }
+  } catch { /* storage blocked or bad data: start fresh */ }
+}
+
+// Put the same questions back in the same order, then return to the step they were on
+const resumeSavedQuestions = (pool: any[]) => {
+  if (!pendingResume) return
+  const { step, keys } = pendingResume
+  pendingResume = null
+  if (keys.length) {
+    const byKey = new Map(pool.map((q: any) => [q.key, q]))
+    const restored = keys.map(k => byKey.get(k)).filter(Boolean)
+    if (restored.length === keys.length) activeQuestions.value = restored as any[]
+  }
+  currentStep.value = Math.min(step, phoneStep.value)
+  toast.info('Welcome back', 'We kept your answers. Pick up where you left off.')
+}
+
+const saveProgress = () => {
+  if (isMemberFlow.value || currentStep.value < 1 || currentStep.value > phoneStep.value) return
+  try {
+    const { phone: _skip, ...safeForm } = form
+    localStorage.setItem(SAVE_KEY, JSON.stringify({
+      at: Date.now(),
+      step: currentStep.value,
+      keys: activeQuestions.value.map((q: any) => q.key),
+      form: safeForm,
+      answers: { ...vibeAnswers },
+      dimensions: { ...vibeDimensions },
+      country: phoneCountry.value,
+    }))
+  } catch { /* private mode / full storage: nothing to do */ }
+}
+const clearSavedProgress = () => { try { localStorage.removeItem(SAVE_KEY) } catch { /* ignore */ } }
+watch([() => currentStep.value, () => ({ ...form }), () => ({ ...vibeAnswers })], saveProgress, { deep: true })
+
 // OTP state
 const otpSent = ref(false)
 const otpCode = ref('')
@@ -846,15 +903,19 @@ const maxBirthDate = computed(() => {
   return date.toISOString().split('T')[0]
 })
 
-const isValidPhone = computed(() => {
-  const cleaned = form.phone.replace(/\D/g, '')
-  // Handles 201234567 (9), 0201234567 (10), or 233201234567 (12)
-  return cleaned.length >= 9 && cleaned.length <= 15
+// Same rules as login: a real Ghana (+233 2x/5x) or Kenya (+254 7x/1x) mobile number
+const localDigits = computed(() => {
+  const d = form.phone.replace(/\D/g, '')
+  // Pasted with the country code? Keep just the local part
+  return d.startsWith('233') || d.startsWith('254') ? d.slice(3) : d
 })
-
-const fullPhone = computed(() => {
-  const cleaned = form.phone.replace(/\D/g, '').replace(/^0+/, '')
-  return cleaned.startsWith('233') || cleaned.startsWith('254') ? '+' + cleaned : phoneCountry.value + cleaned
+const isValidPhone = computed(() => isValidLocalPhone(localDigits.value, phoneCountry.value as PhoneCountryCode))
+const fullPhone = computed(() => toE164(localDigits.value, phoneCountry.value as PhoneCountryCode))
+// Typing or pasting +254… / 233… switches the country to match
+watch(() => form.phone, v => {
+  const d = v.replace(/\D/g, '')
+  if (d.startsWith('254') && d.length > 9) phoneCountry.value = '+254'
+  else if (d.startsWith('233') && d.length > 9) phoneCountry.value = '+233'
 })
 
 const canProceedStep1 = computed(() => form.displayName.trim().length >= 2 && !!form.gender && !!form.interestedIn)
@@ -975,13 +1036,36 @@ const handleVerifyOtp = async () => {
     
     // Fetch profile photo (e.g. from Telegram pre-fills or existing seeds)
     await fetchUserProfilePhoto()
+    clearSavedProgress()
     
     currentStep.value = successStep.value
-  } catch (error) {
-    otpError.value = 'Verification failed. Please try again.'
+  } catch (error: any) {
+    const status = error?.statusCode || error?.response?.status
+    if (error instanceof SignInPendingError) {
+      otpError.value = error.message
+    } else if (status === 410 || status === 429) {
+      // Expired or burned: the old code can't work any more, so clear it and let them resend
+      otpError.value = error?.data?.message || 'That code can no longer be used. Tap “Resend code”.'
+      otpCode.value = ''
+      fallbackTimer.value = 0
+      if (fallbackInterval) clearInterval(fallbackInterval)
+    } else if (status === 400 || status === 401) {
+      otpError.value = error?.data?.message || "That code isn't right. Please check it and try again."
+      otpCode.value = ''
+    } else if (!status) {
+      otpError.value = "We couldn't reach the server. Check your connection and try again."
+    } else {
+      otpError.value = error?.data?.message || 'Something went wrong on our side. Please try again.'
+    }
   } finally {
     verifyingOtp.value = false
   }
+}
+
+const resendCode = async () => {
+  otpCode.value = ''
+  otpError.value = ''
+  await handleSendOtp()
 }
 
 const resetPhone = () => {
@@ -1089,6 +1173,11 @@ const updateUserProfile = async (explicitUserId?: string) => {
   }
 }
 
+// The account was created but this browser couldn't sign in: the fix is simply to log in
+class SignInPendingError extends Error {
+  constructor() { super('Your account is ready, but we couldn\'t sign you in here. Please log in with your phone number to continue.') }
+}
+
 const createUserProfile = async (verificationCode: string, verificationOtpId: string) => {
   if (isCreatingProfile.value) return
   isCreatingProfile.value = true
@@ -1117,18 +1206,25 @@ const createUserProfile = async (verificationCode: string, verificationOtpId: st
         vibeAnswers,
         vibeDimensions,
         telegramId: (isTMA.value && tgUser.value) ? tgUser.value.id.toString() : undefined,
-        photoUrl: (isTMA.value && tgUser.value?.photo_url) ? tgUser.value.photo_url : undefined
+        photoUrl: (isTMA.value && tgUser.value?.photo_url) ? tgUser.value.photo_url : undefined,
+        referralCode: typeof route.query.ref === 'string' ? route.query.ref : undefined,
       }
     })
 
     if (result.success && result.email && result.password) {
-      // Sign in with the returned credentials
-      const { error: signInError } = await supabase.auth.signInWithPassword({
-        email: result.email,
-        password: result.password
-      })
+      // Sign in with the returned credentials; one retry for a flaky connection
+      let signInError: any = null
+      for (let attempt = 0; attempt < 2; attempt++) {
+        const res = await supabase.auth.signInWithPassword({ email: result.email, password: result.password })
+        signInError = res.error
+        if (!signInError) break
+        await new Promise(r => setTimeout(r, 800))
+      }
+      // The account is saved either way; if this browser couldn't sign in, logging in fixes it
+      if (signInError) throw new SignInPendingError()
 
-      if (signInError) throw signInError
+      // Matching, the welcome message and the admin ping run in their own request
+      $fetch('/api/auth/welcome', { method: 'POST' }).catch(err => console.error('[VibeCheck] Welcome step failed:', err))
     }
   } catch (error: any) {
     console.error('Profile creation error:', error)

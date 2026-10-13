@@ -148,6 +148,9 @@ declare module "nitropack/types" {
     '/api/auth/telegram': {
       'post': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/auth/telegram.post').default>>>>
     }
+    '/api/auth/welcome': {
+      'post': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/auth/welcome.post').default>>>>
+    }
     '/api/credits': {
       'get': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/credits.get').default>>>>
     }

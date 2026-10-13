@@ -153,7 +153,7 @@
               <!-- I. Why we think it works -->
               <section v-if="briefNum('why')" v-reveal class="letter-section mt-14 sm:mt-28">
                 <div class="rv-item text-center">
-                  <LetterVignette scene="dawn" class="section-art mx-auto mb-3 w-36 sm:mb-8 sm:w-72 print:hidden" />
+                  <LoveBirds scene="why" class="section-art mx-auto mb-2 w-56 sm:mb-6 sm:w-96 print:hidden" />
                   <p class="text-base text-[#393737] sm:text-2xl">The short version</p>
                   <h3 class="font-display mt-1.5 text-[2rem] leading-[1.05] tracking-tight text-[#393737] sm:text-[4rem]">Why we think it works</h3>
                 </div>
@@ -168,7 +168,7 @@
               <!-- II. Where you line up -->
               <section v-if="briefNum('lineup')" v-reveal class="letter-section mt-14 sm:mt-28">
                 <div class="rv-item text-center">
-                  <LetterVignette scene="meadow" class="section-art mx-auto mb-3 w-36 sm:mb-8 sm:w-72 print:hidden" />
+                  <LoveBirds scene="lineup" class="section-art mx-auto mb-2 w-56 sm:mb-6 sm:w-96 print:hidden" />
                   <p class="text-base text-[#393737] sm:text-2xl">By the numbers</p>
                   <h3 class="font-display mt-1.5 text-[2rem] leading-[1.05] tracking-tight text-[#393737] sm:text-[4rem]">Where you line up</h3>
                 </div>
@@ -206,7 +206,7 @@
               <!-- III. What you share -->
               <section v-if="briefNum('share')" v-reveal class="letter-section mt-14 sm:mt-28">
                 <div class="rv-item text-center">
-                  <LetterVignette scene="tree" class="section-art mx-auto mb-3 w-36 sm:mb-8 sm:w-72 print:hidden" />
+                  <LoveBirds scene="share" class="section-art mx-auto mb-2 w-56 sm:mb-6 sm:w-96 print:hidden" />
                   <p class="text-base text-[#393737] sm:text-2xl">Common ground</p>
                   <h3 class="font-display mt-1.5 text-[2rem] leading-[1.05] tracking-tight text-[#393737] sm:text-[4rem]">What you share</h3>
                 </div>
@@ -218,7 +218,7 @@
               <!-- IV. In your own words -->
               <section v-if="briefNum('words')" v-reveal class="letter-section mt-14 sm:mt-28">
                 <div class="rv-item text-center">
-                  <LetterVignette scene="night" class="section-art mx-auto mb-3 w-36 sm:mb-8 sm:w-72 print:hidden" />
+                  <LoveBirds scene="words" class="section-art mx-auto mb-2 w-56 sm:mb-6 sm:w-96 print:hidden" />
                   <p class="text-base text-[#393737] sm:text-2xl">Side by side</p>
                   <h3 class="font-display mt-1.5 text-[2rem] leading-[1.05] tracking-tight text-[#393737] sm:text-[4rem]">In your own words</h3>
                 </div>
@@ -305,7 +305,7 @@
               <!-- V. Worth talking about -->
               <section v-if="briefNum('talk')" v-reveal class="letter-section mt-14 sm:mt-28">
                 <div class="rv-item text-center">
-                  <LetterVignette scene="sunset" class="section-art mx-auto mb-3 w-36 sm:mb-8 sm:w-72 print:hidden" />
+                  <LoveBirds scene="talk" class="section-art mx-auto mb-2 w-56 sm:mb-6 sm:w-96 print:hidden" />
                   <p class="text-base text-[#393737] sm:text-2xl">Room to grow</p>
                   <h3 class="font-display mt-1.5 text-[2rem] leading-[1.05] tracking-tight text-[#393737] sm:text-[4rem]">Worth talking about</h3>
                 </div>
@@ -315,7 +315,7 @@
 
               <!-- Interlude, like Popcorn's "That's why we built" -->
               <div v-if="briefNum('dates')" v-reveal class="mt-16 text-center sm:mt-32">
-                <LetterVignette scene="meet" class="rv-item section-art mx-auto w-36 sm:w-72" />
+                <figure class="rv-item section-art meet-art mx-auto w-60 sm:w-[26rem]"><img src="/lovebirds.webp" alt="" width="994" height="975" loading="lazy" decoding="async" class="block h-auto w-full" /></figure>
                 <p class="rv-item mt-4 text-base text-[#393737] sm:mt-8 sm:text-2xl" style="--i: 1">That's why we think you two should</p>
                 <p class="rv-item mt-1 text-[3rem] font-semibold leading-none tracking-[-0.05em] text-[#393737] sm:text-[4.5rem]" style="--i: 2">meet.</p>
               </div>

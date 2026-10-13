@@ -32,9 +32,11 @@ export const HeightSlider: typeof import("../components/HeightSlider.vue")['defa
 export const LegalPage: typeof import("../components/LegalPage.vue")['default']
 export const LetterVignette: typeof import("../components/LetterVignette.vue")['default']
 export const LivePulse: typeof import("../components/LivePulse.vue")['default']
+export const LoveBirds: typeof import("../components/LoveBirds.vue")['default']
 export const PWAInstallPrompt: typeof import("../components/PWAInstallPrompt.vue")['default']
 export const Pagination: typeof import("../components/Pagination.vue")['default']
 export const PartnerVenueCard: typeof import("../components/PartnerVenueCard.vue")['default']
+export const PersonaBird: typeof import("../components/PersonaBird.vue")['default']
 export const ProfileBadges: typeof import("../components/ProfileBadges.vue")['default']
 export const ReferralCard: typeof import("../components/ReferralCard.vue")['default']
 export const SegmentedControl: typeof import("../components/SegmentedControl.vue")['default']
@@ -137,9 +139,11 @@ export const LazyHeightSlider: LazyComponent<typeof import("../components/Height
 export const LazyLegalPage: LazyComponent<typeof import("../components/LegalPage.vue")['default']>
 export const LazyLetterVignette: LazyComponent<typeof import("../components/LetterVignette.vue")['default']>
 export const LazyLivePulse: LazyComponent<typeof import("../components/LivePulse.vue")['default']>
+export const LazyLoveBirds: LazyComponent<typeof import("../components/LoveBirds.vue")['default']>
 export const LazyPWAInstallPrompt: LazyComponent<typeof import("../components/PWAInstallPrompt.vue")['default']>
 export const LazyPagination: LazyComponent<typeof import("../components/Pagination.vue")['default']>
 export const LazyPartnerVenueCard: LazyComponent<typeof import("../components/PartnerVenueCard.vue")['default']>
+export const LazyPersonaBird: LazyComponent<typeof import("../components/PersonaBird.vue")['default']>
 export const LazyProfileBadges: LazyComponent<typeof import("../components/ProfileBadges.vue")['default']>
 export const LazyReferralCard: LazyComponent<typeof import("../components/ReferralCard.vue")['default']>
 export const LazySegmentedControl: LazyComponent<typeof import("../components/SegmentedControl.vue")['default']>

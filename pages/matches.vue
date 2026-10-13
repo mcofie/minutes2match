@@ -16,7 +16,7 @@
       </p>
       <div class="mt-7 flex flex-col items-center gap-4">
         <NuxtLink v-if="!optedInThisWeek" to="/me" class="inline-flex items-center justify-center gap-2 rounded-full bg-[#ed1c24] px-6 py-3 text-base font-semibold text-white shadow-[0_8px_24px_rgba(237,28,36,0.18)] transition-colors hover:bg-[#d71920]">Opt in for this week</NuxtLink>
-        <NuxtLink to="/how-it-works" class="text-base font-semibold text-[#393737] underline-offset-4 hover:underline">How matching works</NuxtLink>
+        <NuxtLink to="/#how-it-works" class="text-base font-semibold text-[#393737] underline-offset-4 hover:underline">How matching works</NuxtLink>
       </div>
     </section>
 

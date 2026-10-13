@@ -28,6 +28,8 @@ export default defineNuxtConfig({
         ],
     },
     routeRules: {
+        // The old How it works page now lives as a section on the landing page
+        '/how-it-works': { redirect: { to: '/#how-it-works', statusCode: 301 } },
         '/login': { ssr: false },
         '/vibe-check': { ssr: false },
         '/me': { ssr: false },
