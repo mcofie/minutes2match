@@ -46,6 +46,7 @@ export { personas, usePersona, Persona } from '../composables/usePersona';
 export { PhotoError, preparePhoto, usePhotoUpload } from '../composables/usePhotoUpload';
 export { useScrollAnimation, vScrollAnimate, ScrollAnimationOptions } from '../composables/useScrollAnimation';
 export { useSeo, useEventSeo } from '../composables/useSeo';
+export { renderPersonaCard, ShareCardInput } from '../composables/useShareCard';
 export { getRandomQuestions, useShotHints, ShotQuestion } from '../composables/useShotHints';
 export { useTelegram } from '../composables/useTelegram';
 export { useToast, Toast } from '../composables/useToast';

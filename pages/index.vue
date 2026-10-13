@@ -192,7 +192,7 @@
         </h2>
         <p class="mx-auto mt-3 max-w-xl text-center text-base leading-relaxed text-[#737373] sm:text-lg">Thoughtful introductions begin with what matters most to you.</p>
 
-        <figure class="story-art mx-auto mt-7 w-[min(84vw,26rem)] sm:mt-9 sm:w-[30rem]">
+        <figure class="story-art mx-auto mt-6 w-[min(66vw,17rem)] sm:mt-9 sm:w-[30rem]">
           <NuxtImg
             src="/lovebirds.webp"
             alt="Two lovebirds on a branch, beak to beak, with soft pink hearts around them"

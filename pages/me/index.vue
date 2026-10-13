@@ -84,10 +84,17 @@
       <ul class="relative mt-4 flex flex-wrap gap-1.5">
         <li v-for="word in myPersona.keywords" :key="word" class="rounded-full bg-white/75 px-3 py-1 text-sm capitalize text-[#393737] ring-1 ring-black/[0.04]">{{ word }}</li>
       </ul>
-      <NuxtLink to="/vibe-check?retake=true" class="relative mt-4 inline-flex items-center gap-1.5 text-sm font-medium text-[#6c6862] transition-colors hover:text-[#393737]">
-        Not quite you? Retake the Vibe Check <span aria-hidden="true">→</span>
-      </NuxtLink>
+      <div class="relative mt-5 flex flex-wrap items-center gap-x-5 gap-y-3">
+        <button type="button" :disabled="makingShareCard" class="inline-flex items-center gap-2 rounded-full bg-[#393737] px-5 py-2.5 text-sm font-semibold text-white shadow-[0_6px_16px_rgba(57,55,55,0.18)] transition-transform active:scale-[0.98] disabled:opacity-60" @click="openShareCard">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4" aria-hidden="true"><path d="M4 12v7a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7" /><path d="m16 6-4-4-4 4" /><path d="M12 2v13" /></svg>
+          {{ makingShareCard ? 'Making your card…' : 'Share my type' }}
+        </button>
+        <NuxtLink to="/vibe-check?retake=true" class="inline-flex items-center gap-1.5 text-sm font-medium text-[#6c6862] transition-colors hover:text-[#393737]">
+          Not quite you? Retake <span aria-hidden="true">→</span>
+        </NuxtLink>
+      </div>
     </section>
+
     <NuxtLink v-else to="/vibe-check?retake=true" class="flex items-center gap-4 rounded-[1.5rem] bg-white p-4 shadow-[0_6px_20px_rgba(52,38,25,0.05)] ring-1 ring-black/5">
       <LetterVignette scene="meet" class="w-12 shrink-0" />
       <span class="min-w-0 flex-1">
@@ -96,6 +103,33 @@
       </span>
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5 shrink-0 text-[#b5b0aa]" aria-hidden="true"><path d="m9 18 6-6-6-6" /></svg>
     </NuxtLink>
+
+    <!-- Share my type: preview the story card, then share it, save it or send the link -->
+    <Teleport to="body">
+      <div v-if="shareCardUrl" class="m2m-app fixed inset-0 z-[120] flex items-end justify-center bg-[#1f1c1a]/40 backdrop-blur-[3px] sm:items-center sm:p-4" role="dialog" aria-modal="true" aria-labelledby="share-title" @click.self="closeShareCard">
+        <div class="max-h-[calc(100dvh-1rem)] w-full max-w-sm overflow-y-auto rounded-t-[1.75rem] bg-white p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] shadow-[0_24px_60px_rgba(0,0,0,0.18)] sm:rounded-[1.75rem] sm:p-6">
+          <div class="flex items-start justify-between gap-4">
+            <div>
+              <h3 id="share-title" class="font-display text-[1.6rem] leading-tight text-[#393737]">Share your type</h3>
+              <p class="mt-1 text-sm text-[#6c6862]">Friends who join from your link are linked to you.</p>
+            </div>
+            <button type="button" class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white text-[#393737] ring-1 ring-black/10 hover:bg-[#fafafa]" aria-label="Close" @click="closeShareCard">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" class="h-4 w-4" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12" /></svg>
+            </button>
+          </div>
+          <img :src="shareCardUrl" alt="Your dating type card" class="mx-auto mt-4 aspect-[9/16] w-44 rounded-2xl object-cover shadow-[0_12px_32px_rgba(57,55,55,0.16)] ring-1 ring-black/5" />
+          <div class="mt-5 grid gap-2">
+            <button v-if="canShareFiles" type="button" class="btn-solid grain h-12 w-full text-base" @click="shareCardNative">Share</button>
+            <div class="grid grid-cols-3 gap-2">
+              <button type="button" class="flex h-12 flex-col items-center justify-center rounded-2xl bg-white text-xs font-medium text-[#393737] ring-1 ring-[#e5e2dd] hover:ring-[#cfc9c1]" @click="saveShareCard">Save image</button>
+              <a :href="whatsAppShareUrl" target="_blank" rel="noopener noreferrer" class="flex h-12 flex-col items-center justify-center rounded-2xl bg-[#eaf6ef] text-xs font-medium text-[#1f8a4c] ring-1 ring-[#cfe9da]">WhatsApp</a>
+              <button type="button" class="flex h-12 flex-col items-center justify-center rounded-2xl bg-white text-xs font-medium text-[#393737] ring-1 ring-[#e5e2dd] hover:ring-[#cfc9c1]" @click="copyShareLink">{{ linkCopied ? 'Copied' : 'Copy link' }}</button>
+            </div>
+          </div>
+          <p class="mt-3 text-center text-xs text-[#9b9690]">Tip: save the image, then post it to your WhatsApp Status or Instagram Story.</p>
+        </div>
+      </div>
+    </Teleport>
 
     <!-- Match readiness: one line, just the next step -->
     <button
@@ -333,6 +367,7 @@
 <script setup lang="ts">
 import { useToast } from '~/composables/useToast'
 import { PhotoError } from '~/composables/usePhotoUpload'
+import { renderPersonaCard } from '~/composables/useShareCard'
 import type { M2MDatabase } from '~/types/database.types'
 import { currentMatchWeekEnd, isOptedInThisWeek } from '~/utils/matchWeek'
 import { normalizeCity } from '~/utils/compatibility'
@@ -366,6 +401,71 @@ const PERSONA_LOOK: Record<string, { scene: 'dawn' | 'meadow' | 'tree' | 'night'
   social_butterfly: { scene: 'meet', tint: 'linear-gradient(135deg,#fdf3df 0%,#ffffff 55%,#fdebe6 100%)' },
   homebody: { scene: 'tree', tint: 'linear-gradient(135deg,#f3efe6 0%,#ffffff 55%,#eaf2e6 100%)' },
 }
+// ===== Share my type =====
+const makingShareCard = ref(false)
+const shareCardUrl = ref<string | null>(null)
+let shareCardBlob: Blob | null = null
+const linkCopied = ref(false)
+const shareLink = computed(() => {
+  const code = profile.value?.referral_code
+  const origin = typeof window !== 'undefined' ? window.location.origin : 'https://minutes2match.com'
+  return `${origin}/vibe-check${code ? `?ref=${encodeURIComponent(code)}` : ''}`
+})
+const shareText = computed(() => `I'm ${myPersona.value?.name || 'on Minutes 2 Match'} on Minutes 2 Match. What's your dating type? Take the free Vibe Check: ${shareLink.value}`)
+const whatsAppShareUrl = computed(() => `https://wa.me/?text=${encodeURIComponent(shareText.value)}`)
+const canShareFiles = ref(false)
+
+const openShareCard = async () => {
+  const p = myPersona.value
+  const svgEl = document.querySelector('.persona-bird svg') as SVGSVGElement | null
+  if (!p || !svgEl || makingShareCard.value) return
+  makingShareCard.value = true
+  try {
+    shareCardBlob = await renderPersonaCard({
+      svgEl, name: p.name, description: p.description, keywords: p.keywords || [], tint: p.tint, host: window.location.host.replace(/^www\./, ''),
+    })
+    const file = new File([shareCardBlob], 'my-dating-type.png', { type: 'image/png' })
+    canShareFiles.value = !!navigator.canShare?.({ files: [file] })
+    shareCardUrl.value = URL.createObjectURL(shareCardBlob)
+  } catch (err) {
+    console.error('[Me] Share card failed:', err)
+    toast.error("Couldn't make your card", 'Please try again.')
+  } finally {
+    makingShareCard.value = false
+  }
+}
+const closeShareCard = () => {
+  if (shareCardUrl.value) URL.revokeObjectURL(shareCardUrl.value)
+  shareCardUrl.value = null
+  shareCardBlob = null
+  linkCopied.value = false
+}
+const shareCardNative = async () => {
+  if (!shareCardBlob) return
+  const file = new File([shareCardBlob], 'my-dating-type.png', { type: 'image/png' })
+  try {
+    await navigator.share({ files: [file], text: shareText.value })
+  } catch (err: any) {
+    if (err?.name !== 'AbortError') toast.error("Couldn't open sharing", 'Save the image and post it instead.')
+  }
+}
+const saveShareCard = () => {
+  if (!shareCardUrl.value) return
+  const a = document.createElement('a')
+  a.href = shareCardUrl.value
+  a.download = 'my-dating-type.png'
+  a.click()
+}
+const copyShareLink = async () => {
+  try {
+    await navigator.clipboard.writeText(shareText.value)
+    linkCopied.value = true
+    setTimeout(() => { linkCopied.value = false }, 2000)
+  } catch {
+    toast.error("Couldn't copy", shareLink.value)
+  }
+}
+
 const myPersona = computed(() => {
   const p = personas[profile.value?.dating_persona as string]
   if (!p) return null

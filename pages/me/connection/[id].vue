@@ -580,75 +580,67 @@
       </Transition>
     </Teleport>
 
-    <!-- Report Modal -->
+    <!-- Report: a calm sheet in the app's style (bottom sheet on phones, centred on desktop) -->
     <Teleport to="body">
       <Transition name="fade">
-        <div v-if="showReportModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4" @click.self="showReportModal = false">
-          <div class="bg-white dark:bg-stone-900 w-full max-w-md rounded-2xl border dark:border-stone-700 overflow-hidden">
-            <!-- Header -->
-            <div class="bg-red-500 p-4 flex justify-between items-center border-b-2">
-              <h3 class="text-white font-bold text-sm flex items-center gap-2">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" x2="4" y1="22" y2="15"/></svg>
-                Report User
-              </h3>
-              <button @click="showReportModal = false" class="text-white hover:text-white/80 transition-colors">
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" x2="6" y1="6" y2="18"/><line x1="6" x2="18" y1="6" y2="18"/></svg>
+        <div v-if="showReportModal" class="m2m-app fixed inset-0 z-[120] flex items-end justify-center bg-[#1f1c1a]/35 backdrop-blur-[3px] sm:items-center sm:p-4" role="dialog" aria-modal="true" aria-labelledby="report-title" @click.self="showReportModal = false">
+          <div class="max-h-[calc(100dvh-1rem)] w-full max-w-md overflow-y-auto rounded-t-[1.75rem] bg-white p-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] shadow-[0_24px_60px_rgba(0,0,0,0.18)] sm:rounded-[1.75rem] sm:p-8">
+            <div class="flex items-start justify-between gap-4">
+              <div>
+                <h3 id="report-title" class="font-display text-[1.75rem] leading-tight text-[#393737]">Report {{ theirFirstName }}</h3>
+                <p class="mt-1.5 text-base leading-relaxed text-[#6c6862]">Help us keep Minutes 2 Match safe. Our team reviews every report, and {{ theirFirstName }} won't know it was you.</p>
+              </div>
+              <button type="button" class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white text-[#393737] ring-1 ring-black/10 transition-colors hover:bg-[#fafafa] active:scale-95" aria-label="Close" @click="showReportModal = false">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" class="h-4 w-4" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12" /></svg>
               </button>
             </div>
-            
-            <!-- Body -->
-            <div class="p-6 space-y-6">
-              <p class="text-sm text-stone-600 dark:text-stone-400">
-                Help us keep the community safe. Your report will be reviewed by our team.
-              </p>
-              
-              <!-- Reason Selection -->
+
+            <fieldset class="mt-6">
+              <legend class="mb-2 text-sm text-[#6c6862]">What happened?</legend>
               <div class="space-y-2">
-                <label class="text-sm font-medium text-stone-500">Reason for reporting</label>
-                <div class="grid grid-cols-2 gap-2">
-                  <button 
-                    v-for="option in reportReasons" 
-                    :key="option.value"
-                    @click="reportForm.reason = option.value"
-                    :class="[
-                      'p-3 rounded-xl border text-left transition-all text-xs font-bold uppercase tracking-wide',
-                      reportForm.reason === option.value 
-                        ? 'border-[#ece8e3] dark:border-white bg-[#393737] dark:bg-white text-white dark:text-[#393737]' 
-                        : 'border-stone-200 dark:border-stone-700 hover:border-stone-400'
-                    ]"
-                  >
-                    {{ option.label }}
-                  </button>
-                </div>
+                <button
+                  v-for="option in reportReasons"
+                  :key="option.value"
+                  type="button"
+                  role="radio"
+                  :aria-checked="reportForm.reason === option.value"
+                  class="flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-left transition-all active:scale-[0.99]"
+                  :class="reportForm.reason === option.value ? 'bg-[#393737] text-white' : 'bg-white text-[#393737] ring-1 ring-[#e5e2dd] hover:ring-[#cfc9c1]'"
+                  @click="reportForm.reason = option.value"
+                >
+                  <span class="flex h-5 w-5 shrink-0 items-center justify-center rounded-full" :class="reportForm.reason === option.value ? 'bg-white' : 'ring-1 ring-black/20'" aria-hidden="true">
+                    <span v-if="reportForm.reason === option.value" class="h-2 w-2 rounded-full bg-[#393737]"></span>
+                  </span>
+                  <span class="min-w-0">
+                    <span class="block text-[15px] font-medium">{{ option.label }}</span>
+                    <span class="block text-[13px] leading-snug" :class="reportForm.reason === option.value ? 'text-white/70' : 'text-[#9b9690]'">{{ option.hint }}</span>
+                  </span>
+                </button>
               </div>
-              
-              <!-- Description -->
-              <div class="space-y-2">
-                <label class="text-sm font-medium text-stone-500">Additional details (optional)</label>
-                <textarea 
-                  v-model="reportForm.description"
-                  rows="3"
-                  placeholder="Describe what happened..."
-                  class="w-full px-4 py-3 bg-stone-50 dark:bg-stone-800 rounded-xl border border-stone-200 dark:border-stone-700 focus:border-[#ece8e3] dark:focus:border-white outline-none text-sm resize-none transition-colors"
-                ></textarea>
-              </div>
+            </fieldset>
+
+            <div class="mt-5">
+              <label for="report-details" class="mb-2 block text-sm text-[#6c6862]">Anything else we should know? <span class="text-[#9b9690]">Optional</span></label>
+              <textarea
+                id="report-details"
+                v-model="reportForm.description"
+                rows="3"
+                maxlength="1000"
+                placeholder="Describe what happened"
+                class="w-full resize-none rounded-2xl border border-[#e5e2dd] bg-[#fbfaf9] p-4 text-base text-[#393737] outline-none transition-[border-color,box-shadow,background-color] placeholder:text-[#a8a39d] hover:border-[#cfc9c1] focus:border-[#393737] focus:bg-white focus:ring-4 focus:ring-black/5"
+              ></textarea>
             </div>
-            
-            <!-- Footer -->
-            <div class="p-4 bg-stone-50 dark:bg-stone-800 border-t-2 border-stone-200 dark:border-stone-700 flex gap-3">
-              <button 
-                @click="showReportModal = false"
-                class="flex-1 py-3 bg-white dark:bg-stone-700 text-stone-600 dark:text-stone-300 rounded-xl text-sm font-medium border border-stone-200 dark:border-stone-600 hover:bg-stone-100 dark:hover:bg-stone-600 transition-colors"
-              >
-                Cancel
-              </button>
-              <button 
-                @click="submitReport"
+
+            <div class="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+              <button type="button" class="h-12 rounded-full px-6 text-base font-medium text-[#6c6862] transition-colors hover:text-[#393737] sm:h-11 sm:text-sm" @click="showReportModal = false">Cancel</button>
+              <button
+                type="button"
                 :disabled="!reportForm.reason || submittingReport"
-                class="flex-1 py-3 bg-red-500 text-white rounded-xl text-sm font-medium border border-red-600 hover:bg-red-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                class="btn-solid grain inline-flex h-12 items-center justify-center gap-2 px-7 text-base disabled:cursor-not-allowed disabled:opacity-50 sm:h-11 sm:text-sm"
+                @click="submitReport"
               >
-                <span v-if="submittingReport" class="w-4 h-4 border border-white/30 border-t-white rounded-full animate-spin"></span>
-                {{ submittingReport ? 'Submitting...' : 'Submit Report' }}
+                <span v-if="submittingReport" class="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" aria-hidden="true"></span>
+                {{ submittingReport ? 'Sending…' : 'Send report' }}
               </button>
             </div>
           </div>
@@ -779,12 +771,12 @@ const reportForm = reactive({
 })
 
 const reportReasons = [
-  { value: 'inappropriate_behavior', label: 'Inappropriate' },
-  { value: 'fake_profile', label: 'Fake Profile' },
-  { value: 'harassment', label: 'Harassment' },
-  { value: 'spam', label: 'Spam' },
-  { value: 'underage', label: 'Underage' },
-  { value: 'other', label: 'Other' }
+  { value: 'inappropriate_behavior', label: 'Inappropriate behaviour', hint: 'Rude, sexual or disrespectful messages or conduct' },
+  { value: 'harassment', label: 'Harassment', hint: "Won't stop contacting me, threats or pressure" },
+  { value: 'fake_profile', label: 'Fake profile', hint: "Photos or details that aren't really them" },
+  { value: 'underage', label: 'Underage', hint: 'I think they are under 18' },
+  { value: 'spam', label: 'Spam or scam', hint: 'Selling something, asking for money or links' },
+  { value: 'other', label: 'Something else', hint: 'Tell us more below' },
 ]
 
 const submitReport = async () => {
