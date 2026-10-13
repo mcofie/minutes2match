@@ -5,10 +5,12 @@
     run watercolour SVG filters, which are very slow on iOS Safari.
   -->
   <div class="persona-bird" aria-hidden="true">
-    <img :src="personaArtSrc(type)" alt="" width="640" height="842" decoding="async" class="block h-auto w-full" />
+    <img :src="src" alt="" width="640" height="842" decoding="async" class="block h-auto w-full" />
   </div>
 </template>
 
 <script setup lang="ts">
-defineProps<{ type: string }>()
+import { personaArtSrc } from '~/utils/personaArt'
+const props = defineProps<{ type: string }>()
+const src = computed(() => personaArtSrc(props.type))
 </script>

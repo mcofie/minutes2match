@@ -368,6 +368,7 @@
 import { useToast } from '~/composables/useToast'
 import { PhotoError } from '~/composables/usePhotoUpload'
 import { renderPersonaCard } from '~/composables/useShareCard'
+import { personaArtSrc } from '~/utils/personaArt'
 import type { M2MDatabase } from '~/types/database.types'
 import { currentMatchWeekEnd, isOptedInThisWeek } from '~/utils/matchWeek'
 import { normalizeCity } from '~/utils/compatibility'
@@ -426,7 +427,6 @@ const buildShareCard = () => {
   }).catch((err) => { shareCardJob = null; throw err })
   return shareCardJob
 }
-watch(myPersona, () => { shareCardJob = null })
 onMounted(() => {
   const idle = (window as any).requestIdleCallback || ((cb: () => void) => setTimeout(cb, 1500))
   idle(() => { buildShareCard()?.catch(() => {}) }, { timeout: 4000 })
@@ -484,6 +484,8 @@ const myPersona = computed(() => {
   if (!p) return null
   return { ...p, ...(PERSONA_LOOK[p.id] || PERSONA_LOOK.social_butterfly) }
 })
+// A different type means a different card
+watch(myPersona, () => { shareCardJob = null })
 
 const FIELD = 'h-12 w-full rounded-[1.25rem] border border-[#e5e2dd] bg-white px-4 text-base text-[#393737] outline-none transition-[border-color,box-shadow] placeholder:text-[#9b9690] focus:border-[#393737] focus:ring-4 focus:ring-black/5'
 
