@@ -57,6 +57,7 @@ export { DATE_CATALOG, pickDateIdeas, Slot, DateIdea, DateIdeaInput, PickedIdea 
 export { downloadCSV } from '../utils/downloadCsv';
 export { unlockedMatchFields } from '../utils/freeMatch';
 export { currentMatchWeekEnd, isOptedInThisWeek, currentMatchWeekStart } from '../utils/matchWeek';
+export { personaArtSrc } from '../utils/personaArt';
 export { PHONE_COUNTRIES, getPhoneCountry, parsePhoneInput, stripTrunkZero, isValidLocalPhone, toE164, PhoneCountryCode, PhoneCountry } from '../utils/phoneNumbers';
 export { VIBE_CHAPTERS, SCALE_QUESTIONS, VALUES_KEY, VALUES_PICK, VALUES_QUESTION, LEGACY_DIMENSION_CHAPTER, LEGACY_KEY_LABELS, getScaleQuestion, chapterForKey, labelForKey, parseValuesAnswer, parseScaleAnswer, scaleRelation, VibeChapter, ScaleQuestion } from '../utils/vibeQuestions';
 export { useSupabaseClient } from '../node_modules/@nuxtjs/supabase/dist/runtime/composables/useSupabaseClient';

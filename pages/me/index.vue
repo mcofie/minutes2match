@@ -415,16 +415,29 @@ const shareText = computed(() => `I'm ${myPersona.value?.name || 'on Minutes 2 M
 const whatsAppShareUrl = computed(() => `https://wa.me/?text=${encodeURIComponent(shareText.value)}`)
 const canShareFiles = ref(false)
 
-const openShareCard = async () => {
+// The card is built ahead of time (when the browser is idle), so tapping Share is instant
+let shareCardJob: Promise<Blob> | null = null
+const buildShareCard = () => {
   const p = myPersona.value
-  const svgEl = document.querySelector('.persona-bird svg') as SVGSVGElement | null
-  if (!p || !svgEl || makingShareCard.value) return
+  if (!p) return null
+  shareCardJob ??= renderPersonaCard({
+    artSrc: personaArtSrc(p.id), name: p.name, description: p.description, keywords: p.keywords || [], tint: p.tint,
+    host: window.location.host.replace(/^www\./, ''),
+  }).catch((err) => { shareCardJob = null; throw err })
+  return shareCardJob
+}
+watch(myPersona, () => { shareCardJob = null })
+onMounted(() => {
+  const idle = (window as any).requestIdleCallback || ((cb: () => void) => setTimeout(cb, 1500))
+  idle(() => { buildShareCard()?.catch(() => {}) }, { timeout: 4000 })
+})
+
+const openShareCard = async () => {
+  if (!myPersona.value || makingShareCard.value) return
   makingShareCard.value = true
   try {
-    shareCardBlob = await renderPersonaCard({
-      svgEl, name: p.name, description: p.description, keywords: p.keywords || [], tint: p.tint, host: window.location.host.replace(/^www\./, ''),
-    })
-    const file = new File([shareCardBlob], 'my-dating-type.png', { type: 'image/png' })
+    shareCardBlob = await buildShareCard()!
+    const file = new File([shareCardBlob], 'my-dating-type.jpg', { type: 'image/jpeg' })
     canShareFiles.value = !!navigator.canShare?.({ files: [file] })
     shareCardUrl.value = URL.createObjectURL(shareCardBlob)
   } catch (err) {
@@ -442,7 +455,7 @@ const closeShareCard = () => {
 }
 const shareCardNative = async () => {
   if (!shareCardBlob) return
-  const file = new File([shareCardBlob], 'my-dating-type.png', { type: 'image/png' })
+  const file = new File([shareCardBlob], 'my-dating-type.jpg', { type: 'image/jpeg' })
   try {
     await navigator.share({ files: [file], text: shareText.value })
   } catch (err: any) {
@@ -453,7 +466,7 @@ const saveShareCard = () => {
   if (!shareCardUrl.value) return
   const a = document.createElement('a')
   a.href = shareCardUrl.value
-  a.download = 'my-dating-type.png'
+  a.download = 'my-dating-type.jpg'
   a.click()
 }
 const copyShareLink = async () => {

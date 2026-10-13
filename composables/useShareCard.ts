@@ -1,19 +1,8 @@
 // Story-sized share image for a member's personality type (1080×1920), drawn in the browser.
-// The bird art is the live <svg> from the card, with its painted images inlined, so the image
-// matches what's on screen. Text uses the page's own fonts.
+// The bird art is the same pre-rendered illustration the card shows. Text uses the page's own fonts.
 
 const W = 1080
 const H = 1920
-
-const toDataUrl = async (src: string) => {
-  const blob = await (await fetch(src)).blob()
-  return await new Promise<string>((resolve, reject) => {
-    const r = new FileReader()
-    r.onload = () => resolve(String(r.result))
-    r.onerror = reject
-    r.readAsDataURL(blob)
-  })
-}
 
 const loadImage = (src: string) => new Promise<HTMLImageElement>((resolve, reject) => {
   const img = new Image()
@@ -22,27 +11,6 @@ const loadImage = (src: string) => new Promise<HTMLImageElement>((resolve, rejec
   img.onerror = reject
   img.src = src
 })
-
-// The card's SVG → an image, with every <image href> inlined (an SVG drawn as an image can't fetch)
-const svgToImage = async (svgEl: SVGSVGElement, width: number) => {
-  const clone = svgEl.cloneNode(true) as SVGSVGElement
-  const vb = (clone.getAttribute('viewBox') || '0 0 760 1000').split(/\s+/).map(Number)
-  const height = Math.round(width * (vb[3] / vb[2]))
-  clone.setAttribute('width', String(width))
-  clone.setAttribute('height', String(height))
-  clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg')
-  await Promise.all([...clone.querySelectorAll('image')].map(async (im) => {
-    const href = im.getAttribute('href') || im.getAttribute('xlink:href')
-    if (href && !href.startsWith('data:')) im.setAttribute('href', await toDataUrl(href))
-  }))
-  const xml = new XMLSerializer().serializeToString(clone)
-  const url = URL.createObjectURL(new Blob([xml], { type: 'image/svg+xml' }))
-  try {
-    return { img: await loadImage(url), height }
-  } finally {
-    URL.revokeObjectURL(url)
-  }
-}
 
 const wrap = (ctx: CanvasRenderingContext2D, text: string, maxWidth: number) => {
   const lines: string[] = []
@@ -59,7 +27,7 @@ const wrap = (ctx: CanvasRenderingContext2D, text: string, maxWidth: number) => 
 }
 
 export interface ShareCardInput {
-  svgEl: SVGSVGElement
+  artSrc: string          // pre-rendered persona illustration (transparent, bottom already faded)
   name: string            // "The Romantic"
   description: string
   keywords: string[]
@@ -98,22 +66,11 @@ export const renderPersonaCard = async (input: ShareCardInput): Promise<Blob> =>
     ctx.drawImage(logo, sx, sy, sw, sh, (W - w) / 2, 110, w, h)
   } catch { /* text-only if the logo can't load */ }
 
-  // The bird, fading out at the bottom like on the card
+  // The bird (pre-rendered, so no SVG filters run on the phone)
   const artW = 640
-  const { img, height: artH } = await svgToImage(input.svgEl, artW)
-  const art = document.createElement('canvas')
-  art.width = artW
-  art.height = artH
-  const actx = art.getContext('2d')!
-  actx.drawImage(img, 0, 0, artW, artH)
-  actx.globalCompositeOperation = 'destination-in'
-  const fade = actx.createLinearGradient(0, 0, 0, artH)
-  fade.addColorStop(0, '#000')
-  fade.addColorStop(0.68, '#000')
-  fade.addColorStop(1, 'rgba(0,0,0,0)')
-  actx.fillStyle = fade
-  actx.fillRect(0, 0, artW, artH)
-  ctx.drawImage(art, (W - artW) / 2, 200)
+  const artImg = await loadImage(input.artSrc)
+  const artH = Math.round(artW * (artImg.naturalHeight / artImg.naturalWidth))
+  ctx.drawImage(artImg, (W - artW) / 2, 200, artW, artH)
 
   // Words
   ctx.textAlign = 'center'
@@ -174,5 +131,6 @@ export const renderPersonaCard = async (input: ShareCardInput): Promise<Blob> =>
   ctx.font = `600 44px ${sans}`
   ctx.fillText(input.host, W / 2, H - 100)
 
-  return await new Promise<Blob>((resolve, reject) => canvas.toBlob(b => (b ? resolve(b) : reject(new Error('Could not create image'))), 'image/png'))
+  // JPEG: the card is opaque, and it encodes far faster (and ~5× smaller) than PNG on phones
+  return await new Promise<Blob>((resolve, reject) => canvas.toBlob(b => (b ? resolve(b) : reject(new Error('Could not create image'))), 'image/jpeg', 0.9))
 }

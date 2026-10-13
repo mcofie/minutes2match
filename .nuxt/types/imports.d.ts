@@ -102,6 +102,7 @@ declare global {
   const parsePhoneInput: typeof import('../../utils/phoneNumbers').parsePhoneInput
   const parseScaleAnswer: typeof import('../../utils/vibeQuestions').parseScaleAnswer
   const parseValuesAnswer: typeof import('../../utils/vibeQuestions').parseValuesAnswer
+  const personaArtSrc: typeof import('../../utils/personaArt').personaArtSrc
   const personas: typeof import('../../composables/usePersona').personas
   const pickDateIdeas: typeof import('../../utils/dateIdeas').pickDateIdeas
   const prefetchComponents: typeof import('../../node_modules/nuxt/dist/app/composables/preload').prefetchComponents
@@ -431,6 +432,7 @@ declare module 'vue' {
     readonly parsePhoneInput: UnwrapRef<typeof import('../../utils/phoneNumbers')['parsePhoneInput']>
     readonly parseScaleAnswer: UnwrapRef<typeof import('../../utils/vibeQuestions')['parseScaleAnswer']>
     readonly parseValuesAnswer: UnwrapRef<typeof import('../../utils/vibeQuestions')['parseValuesAnswer']>
+    readonly personaArtSrc: UnwrapRef<typeof import('../../utils/personaArt')['personaArtSrc']>
     readonly personas: UnwrapRef<typeof import('../../composables/usePersona')['personas']>
     readonly pickDateIdeas: UnwrapRef<typeof import('../../utils/dateIdeas')['pickDateIdeas']>
     readonly prefetchComponents: UnwrapRef<typeof import('../../node_modules/nuxt/dist/app/composables/preload')['prefetchComponents']>
