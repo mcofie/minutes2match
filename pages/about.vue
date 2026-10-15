@@ -52,7 +52,7 @@
         <!-- ===== I. Why we started ===== -->
         <section v-reveal class="pt-6 sm:pt-12">
           <div class="rv-item text-center">
-            <img src="/founder-maxwell.webp" alt="Maxwell Cofie, founder of Minutes 2 Match" width="640" height="800" class="mx-auto mb-6 block w-44 rounded-[1.75rem] shadow-[0_18px_44px_rgba(57,55,55,0.16)] sm:mb-9 sm:w-60" loading="lazy" decoding="async" />
+            <LoveBirds scene="why" class="section-art mx-auto mb-2 w-56 sm:mb-6 sm:w-96" />
             <p class="text-base sm:text-2xl">Where it began</p>
             <h2 class="font-display mt-1.5 text-[2rem] leading-[1.05] tracking-tight sm:text-[4rem]">Why we started</h2>
           </div>
@@ -66,10 +66,13 @@
               something slower: one thoughtful introduction a week, based on what matters to you, from faith and
               family to children. Starting in <strong class="font-semibold">Accra</strong> and <strong class="font-semibold">Nairobi</strong>.
             </p>
-            <p class="rv-item pt-1" style="--i: 3">
-              <span class="font-display block text-[1.5rem] leading-tight sm:text-[1.75rem]">Maxwell Cofie</span>
-              <span class="text-sm text-[#817a72] sm:text-base">Founder, Minutes 2 Match</span>
-            </p>
+            <div class="rv-item flex items-center gap-4 pt-2" style="--i: 3">
+              <img src="/founder-maxwell.webp" alt="Maxwell Cofie" width="640" height="800" class="h-16 w-16 shrink-0 rounded-full object-cover object-[50%_30%] shadow-[0_8px_20px_rgba(57,55,55,0.14)] ring-4 ring-white sm:h-20 sm:w-20" loading="lazy" decoding="async" />
+              <p>
+                <span class="font-display block text-[1.5rem] leading-tight sm:text-[1.75rem]">Maxwell Cofie</span>
+                <span class="text-sm text-[#817a72] sm:text-base">Founder, Minutes 2 Match</span>
+              </p>
+            </div>
           </div>
         </section>
 
