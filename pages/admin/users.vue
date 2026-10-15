@@ -1,1014 +1,490 @@
 <template>
-  <div>
-    <!-- Filters -->
-    <div class="users__filters">
-      <select v-model="filters.gender" class="form-select user-filter">
-        <option value="">All Genders</option>
-        <option value="male">Male</option>
-        <option value="female">Female</option>
-      </select>
-      
-      <select v-model="filters.persona" class="form-select user-filter">
-        <option value="">All Personas</option>
-        <option v-for="(persona, key) in personas" :key="key" :value="key">
-          {{ persona.name }}
-        </option>
-      </select>
-      
-      <select v-model="filters.availability" class="form-select user-filter">
-        <option value="">Availability: All</option>
-        <option value="set">Availability: Set</option>
-        <option value="not_set">Availability: Not Set</option>
-      </select>
-      
-      <input
-        type="text"
-        v-model="filters.search"
-        placeholder="Search by name or phone..."
-        class="form-input user-search"
-      />
-      <button class="btn-secondary" @click="exportUsers">
-        Export CSV
+  <div class="ad-page ad-page--wide">
+    <header class="ad-head">
+      <div>
+        <h1 class="ad-title">Users</h1>
+        <p class="ad-sub">{{ totalUsers.toLocaleString() }} member{{ totalUsers === 1 ? '' : 's' }}{{ filtersActive ? ' match these filters' : '' }}.</p>
+      </div>
+      <button class="btn-ghost" @click="exportUsers">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Export
       </button>
+    </header>
+
+    <div class="ad-toolbar">
+      <label class="ad-search">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><line x1="20" y1="20" x2="16.5" y2="16.5"/></svg>
+        <input v-model="filters.search" type="search" placeholder="Search by name or phone" aria-label="Search users" />
+      </label>
+      <select v-model="filters.city" class="ad-select" aria-label="City">
+        <option value="">All cities</option>
+        <option v-for="c in SERVED_CITIES" :key="c.key" :value="c.key">{{ c.label }}</option>
+      </select>
+      <select v-model="filters.optIn" class="ad-select" aria-label="This week">
+        <option value="">Any week status</option>
+        <option value="in">Opted in this week</option>
+        <option value="out">Not opted in</option>
+        <option value="retake">Asked to retake Vibe Check</option>
+      </select>
+      <select v-model="filters.gender" class="ad-select" aria-label="Gender">
+        <option value="">All genders</option>
+        <option value="male">Men</option>
+        <option value="female">Women</option>
+      </select>
+      <select v-model="filters.persona" class="ad-select" aria-label="Persona">
+        <option value="">All personas</option>
+        <option v-for="(persona, key) in personas" :key="key" :value="key">{{ persona.name }}</option>
+      </select>
+      <select v-model="filters.availability" class="ad-select" aria-label="Availability">
+        <option value="">Any availability</option>
+        <option value="set">Availability set</option>
+        <option value="not_set">No availability</option>
+      </select>
     </div>
 
-    <!-- Bulk Actions -->
-    <div v-if="selectedIds.length > 0" class="bulk-actions">
-      <span>{{ selectedIds.length }} users selected</span>
-      <div class="flex gap-2">
-        <button class="btn-sm btn-primary" @click="bulkVerify">Verify Selected</button>
-        <button class="btn-sm btn-danger" @click="bulkDelete">Delete Selected</button>
+    <div v-if="selectedIds.length > 0" class="mb-3 flex flex-wrap items-center justify-between gap-3 rounded-full bg-[#393737] py-2 pl-5 pr-2 text-sm text-white">
+      <span>{{ selectedIds.length }} selected</span>
+      <div class="flex gap-1.5">
+        <button class="h-8 rounded-full px-3.5 text-sm font-medium text-white/80 hover:text-white" @click="selectedIds = []">Clear</button>
+        <button class="h-8 rounded-full bg-white px-3.5 text-sm font-medium text-[#393737]" @click="bulkVerify">Verify</button>
+        <button class="h-8 rounded-full bg-[#ed1c24] px-3.5 text-sm font-medium text-white" @click="bulkDelete">Delete</button>
       </div>
     </div>
 
-    <!-- Users Table -->
     <div class="data-table-container">
       <table class="data-table">
         <thead>
           <tr>
-            <th>
-              <input type="checkbox" :checked="isAllSelected" @change="toggleSelectAll" />
+            <th class="w-10 !pr-0">
+              <input type="checkbox" :checked="isAllSelected" aria-label="Select all" @change="toggleSelectAll" />
             </th>
-            <th>User</th>
-            <th>Gender</th>
-            <th>Age</th>
-            <th>Persona</th>
-            <th>Location</th>
+            <th>Member</th>
+            <th>About</th>
             <th>Status</th>
             <th>Availability</th>
             <th>Joined</th>
-            <th>Actions</th>
+            <th class="ad-right"><span class="sr-only">Actions</span></th>
           </tr>
         </thead>
         <tbody>
           <tr v-if="loading">
-            <td colspan="8" class="text-center py-8 text-muted">Loading users...</td>
+            <td colspan="7"><div class="ad-empty"><span class="ad-spinner"></span></div></td>
           </tr>
           <tr v-else-if="users.length === 0">
-            <td colspan="8" class="text-center py-8 text-muted">No users found</td>
-          </tr>
-          <tr v-for="user in users" :key="user.id">
-            <td>
-              <input type="checkbox" :value="user.id" v-model="selectedIds" />
-            </td>
-            <td>
-              <div class="user-cell cursor-pointer" @click="viewUser(user)">
-                <div class="user-avatar">
-                  <img 
-                    v-if="user.photo_url" 
-                    :src="user.photo_url" 
-                    :alt="user.display_name" 
-                    class="user-avatar-img"
-                  />
-                  <span v-else>{{ user.display_name?.charAt(0) || '?' }}</span>
-                </div>
-                <div>
-                  <div class="user-name">{{ user.display_name || 'Anonymous' }}</div>
-                  <div class="user-phone">{{ user.phone }}</div>
-                </div>
-              </div>
-            </td>
-            <td>{{ user.gender ? capitalize(user.gender) : '-' }}</td>
-            <td>{{ getAge(user.birth_date) }}</td>
-            <td>
-              <span v-if="user.dating_persona" class="persona-badge" :style="{ backgroundColor: getPersona(user.dating_persona)?.color }">
-                <span v-html="getPersonaIcon(user.dating_persona)"></span>
-              </span>
-              <span v-else>-</span>
-            </td>
-            <td>{{ user.location || '-' }}</td>
-            <td>
-              <span class="badge" :class="user.is_verified ? 'badge--green' : 'badge--yellow'">
-                {{ user.is_verified ? 'Verified' : 'Pending' }}
-              </span>
-              <span v-if="user.is_active === false" class="badge badge--gray ml-1" title="User is incognito (Ghost Mode)">
-                Paused
-              </span>
-              <span v-if="user.telegram_id" class="badge badge--blue ml-1" title="Connected to Telegram">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="inline-block mr-1"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"></path></svg>
-                TG
-              </span>
-              <NuxtLink 
-                v-if="pendingDeletionUserIds.has(user.id)" 
-                to="/admin/deletion-requests" 
-                class="badge badge--red ml-1 hover:underline cursor-pointer font-bold" 
-                title="User has requested account deletion"
-              >
-                Deletion Requested ⏳
-              </NuxtLink>
-            </td>
-            <td>
-               <span v-if="hasAvailability(user)" class="text-green-600 font-bold flex items-center gap-1 text-xs">
-                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-                 Set
-               </span>
-               <span v-else class="text-stone-300 font-medium text-xs">Not Set</span>
-            </td>
-            <td>{{ formatDate(user.created_at) }}</td>
-            <td>
-              <div class="flex items-center gap-2">
-                <button class="btn-secondary btn-sm" @click="viewUser(user)">View Details</button>
-                <button 
-                  class="btn-primary btn-sm disabled:opacity-50 disabled:cursor-not-allowed" 
-                  :disabled="user.is_active === false"
-                  @click="selectForMatch(user)" 
-                  :title="user.is_active === false ? 'Cannot match an incognito user' : 'Add to match'"
-                >
-                  Match
-                </button>
-                <button 
-                  class="p-1 text-stone-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
-                  @click="deleteUser(user)"
-                  title="Delete User"
-                >
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
-                </button>
+            <td colspan="7">
+              <div class="ad-empty">
+                <p class="ad-empty__title">No users</p>
+                <p>Nobody matches these filters.</p>
               </div>
             </td>
           </tr>
+          <template v-else>
+            <tr v-for="user in users" :key="user.id" :class="{ '!bg-[#fcfbf9]': selectedIds.includes(user.id) }">
+              <td class="!pr-0">
+                <input v-model="selectedIds" type="checkbox" :value="user.id" :aria-label="`Select ${user.display_name || 'user'}`" />
+              </td>
+              <td>
+                <button class="ad-person text-left" @click="viewUser(user)">
+                  <span class="ad-avatar">
+                    <img v-if="user.photo_url" :src="user.photo_url" :alt="user.display_name" />
+                    <template v-else>{{ user.display_name?.charAt(0) || '?' }}</template>
+                  </span>
+                  <span class="min-w-0">
+                    <span class="ad-person__name hover:underline">{{ user.display_name || 'Anonymous' }}</span>
+                    <span class="ad-person__meta">{{ user.phone }}</span>
+                  </span>
+                </button>
+              </td>
+              <td class="ad-muted">
+                <span class="whitespace-nowrap">{{ [user.gender ? capitalize(user.gender) : null, getAge(user.birth_date) !== '-' ? getAge(user.birth_date) : null].filter(Boolean).join(' · ') || '—' }}</span>
+                <span class="block text-xs ad-faint" :title="user.location">{{ cityLine(user.location) }}</span>
+              </td>
+              <td>
+                <div class="flex flex-wrap gap-1">
+                  <span class="ad-pill" :class="user.is_verified ? 'ad-pill--green' : 'ad-pill--amber'">{{ user.is_verified ? 'Verified' : 'Pending' }}</span>
+                  <span v-if="isOptedIn(user)" class="ad-pill ad-pill--blue" title="Opted in to be matched this week">In this week</span>
+                  <span v-if="user.vibe_check_required" class="ad-pill ad-pill--amber" title="Will retake the new Vibe Check next time they open the app">Retake</span>
+                  <span v-if="user.is_active === false" class="ad-pill" title="Hidden from matching (incognito)">Paused</span>
+                  <NuxtLink v-if="pendingDeletionUserIds.has(user.id)" to="/admin/deletion-requests" class="ad-pill ad-pill--red hover:underline" title="Has asked to delete their account">Deleting</NuxtLink>
+                </div>
+              </td>
+              <td>
+                <span v-if="hasAvailability(user)" class="text-sm">Set</span>
+                <span v-else class="text-sm ad-faint">Not set</span>
+              </td>
+              <td class="ad-num ad-muted">{{ formatDate(user.created_at) }}</td>
+              <td class="ad-right whitespace-nowrap">
+                <div class="inline-flex items-center gap-1">
+                  <button class="btn-secondary btn-sm" @click="viewUser(user)">View</button>
+                  <button
+                    class="btn-ink btn-sm"
+                    :disabled="user.is_active === false"
+                    :title="user.is_active === false ? 'Paused members can’t be matched' : 'Match this member'"
+                    @click="selectForMatch(user)"
+                  >Match</button>
+                  <button class="ad-icon-btn hover:!text-[#b4232a]" title="Delete user" aria-label="Delete user" @click="deleteUser(user)">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </template>
         </tbody>
       </table>
     </div>
-    
-    <!-- Pagination -->
-    <Pagination 
-      :current-page="currentPage" 
-      :total-pages="Math.ceil(totalUsers / pageSize)" 
-      :total-items="totalUsers"
-      :page-size="pageSize"
-      @page-change="handlePageChange"
-    />
 
-    <!-- User Details Modal -->
+    <div v-if="totalPages > 1" class="ad-pager">
+      <span>{{ (currentPage - 1) * pageSize + 1 }}–{{ Math.min(currentPage * pageSize, totalUsers) }} of {{ totalUsers.toLocaleString() }}</span>
+      <div class="ad-pager__buttons">
+        <button class="btn-secondary btn-sm" :disabled="currentPage === 1" @click="handlePageChange(currentPage - 1)">Previous</button>
+        <button class="btn-secondary btn-sm" :disabled="currentPage >= totalPages" @click="handlePageChange(currentPage + 1)">Next</button>
+      </div>
+    </div>
+
+    <!-- Member profile -->
     <Teleport to="body">
-      <div v-if="showModal && selectedUser" class="modal-overlay" @click.self="closeModal">
-        <div class="modal user-detail-modal">
-          <!-- Modal Header with Photo -->
-          <div class="modal__header user-header">
-            <div class="user-header__left">
-              <!-- Profile Photo or Avatar -->
-              <div class="user-header__photo">
-                <img 
-                  v-if="selectedUser.photo_url" 
-                  :src="selectedUser.photo_url" 
-                  :alt="selectedUser.display_name"
-                  class="user-photo cursor-pointer"
-                  @click="openImagePreview(selectedUser.photo_url)"
-                />
-                <div v-else class="user-avatar-large">
-                  {{ selectedUser.display_name?.charAt(0) || '?' }}
+      <div v-if="showModal && selectedUser" class="m2m-app m2m-admin modal-overlay" @click.self="closeModal">
+        <div class="modal modal--wide user-modal" role="dialog" aria-modal="true" aria-labelledby="user-title">
+          <div class="modal__header !items-start !border-0 !pb-3">
+            <div class="flex min-w-0 items-center gap-4">
+              <button
+                class="relative h-16 w-16 shrink-0 overflow-hidden rounded-full bg-[#f1efec] text-xl font-semibold text-[#6c6862]"
+                :class="{ 'cursor-zoom-in': selectedUser.photo_url }"
+                :aria-label="selectedUser.photo_url ? 'View photo' : undefined"
+                @click="selectedUser.photo_url && openImagePreview(selectedUser.photo_url)"
+              >
+                <img v-if="selectedUser.photo_url" :src="selectedUser.photo_url" :alt="selectedUser.display_name" class="h-full w-full object-cover" />
+                <span v-else>{{ selectedUser.display_name?.charAt(0) || '?' }}</span>
+              </button>
+              <div class="min-w-0">
+                <h2 id="user-title" class="modal__title !text-[1.75rem] leading-tight">{{ selectedUser.display_name || 'Anonymous' }}</h2>
+                <p class="modal__sub">
+                  {{ [capitalize(selectedUser.gender), getAge(selectedUser.birth_date) !== '-' ? getAge(selectedUser.birth_date) : null, cityLine(selectedUser.location), selectedUser.occupation].filter(Boolean).join(' · ') }}
+                </p>
+                <div class="mt-2 flex flex-wrap items-center gap-1.5">
+                  <span class="ad-pill" :class="selectedUser.is_verified ? 'ad-pill--green' : 'ad-pill--amber'">{{ selectedUser.is_verified ? 'Verified' : 'Pending' }}</span>
+                  <span v-if="selectedUser.is_active === false" class="ad-pill">Incognito</span>
+                  <span v-if="isOptedIn(selectedUser)" class="ad-pill ad-pill--blue">In this week</span>
+                  <span v-if="selectedUser.dating_persona" class="ad-pill ad-pill--plain">{{ getPersona(selectedUser.dating_persona)?.name }}</span>
+                  <ProfileBadges :profile="selectedUser" size="sm" :max-display="4" />
                 </div>
-                <span 
-                  class="verification-dot" 
-                  :class="selectedUser.is_verified ? 'verified' : 'pending'"
-                  :title="selectedUser.is_verified ? 'Verified' : 'Pending'"
-                ></span>
-              </div>
-              
-              <!-- Name & Quick Info -->
-              <div class="user-header__info">
-                <h2 class="user-header__name">{{ selectedUser.display_name || 'Anonymous' }}</h2>
-                <div class="user-header__meta">
-                  <span class="meta-item">
-                    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-                      <circle cx="12" cy="7" r="4"/>
-                    </svg>
-                    {{ capitalize(selectedUser.gender) || 'Unknown' }}, {{ getAge(selectedUser.birth_date) }}y
-                  </span>
-                  <span class="meta-item">
-                    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
-                      <circle cx="12" cy="10" r="3"/>
-                    </svg>
-                    {{ selectedUser.location || 'Unknown' }}
-                  </span>
-                  <span v-if="selectedUser.occupation" class="meta-item">
-                    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <rect x="2" y="7" width="20" height="14" rx="2" ry="2"/>
-                      <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
-                    </svg>
-                    {{ selectedUser.occupation }}
-                  </span>
-                </div>
-                
-                <!-- Persona Badge -->
-                <div v-if="selectedUser.dating_persona" class="persona-chip">
-                  <span class="persona-chip__emoji" v-html="getPersonaIcon(selectedUser.dating_persona)"></span>
-                  <span class="persona-chip__name">{{ getPersona(selectedUser.dating_persona)?.name }}</span>
-                </div>
-                
-                <!-- Profile Badges -->
-                <ProfileBadges :profile="selectedUser" size="sm" :max-display="4" />
               </div>
             </div>
-            <button class="modal__close" @click="closeModal">×</button>
+            <button class="modal__close" aria-label="Close" @click="closeModal">×</button>
           </div>
 
-          <!-- Tab Navigation -->
-          <div class="user-tabs">
-            <button 
-              class="user-tab" 
-              :class="{ active: activeTab === 'profile' }"
-              @click="activeTab = 'profile'"
-            >
-              <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-                <circle cx="12" cy="7" r="4"/>
-              </svg>
-              Profile
-            </button>
-            <button 
-              class="user-tab" 
-              :class="{ active: activeTab === 'activity' }"
-              @click="activeTab = 'activity'"
-            >
-              <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
-              </svg>
-              Activity
-            </button>
-            <button 
-              class="user-tab" 
-              :class="{ active: activeTab === 'vibes' }"
-              @click="activeTab = 'vibes'"
-            >
-              <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-              </svg>
-              Vibe Check
-            </button>
-            <button 
-              class="user-tab" 
-              :class="{ active: activeTab === 'wallet' }"
-              @click="activeTab = 'wallet'"
-            >
-              <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/>
-              </svg>
-              Wallet
-            </button>
+          <div class="px-6 pb-3">
+            <div class="ad-tabs" role="tablist">
+              <button
+                v-for="tab in userTabs"
+                :key="tab.key"
+                role="tab"
+                :aria-selected="activeTab === tab.key"
+                class="ad-tab"
+                :class="{ 'is-active': activeTab === tab.key }"
+                @click="activeTab = tab.key"
+              >{{ tab.label }}</button>
+            </div>
           </div>
-          
-          <div class="modal__content user-content">
-            <!-- Profile Tab -->
-            <div v-if="activeTab === 'profile'" class="tab-content">
-              <div class="info-grid">
-                <!-- Basic Info Card -->
-                <div class="info-card">
-                  <h4 class="info-card__title">
-                    <svg class="card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <circle cx="12" cy="12" r="10"/>
-                      <path d="M12 16v-4M12 8h.01"/>
-                    </svg>
-                    Basic Information
-                  </h4>
-                  <div class="info-rows">
-                    <div class="info-row">
-                      <span class="info-label">Full Name</span>
-                      <span class="info-value">{{ selectedUser.display_name || 'Not set' }}</span>
-                    </div>
-                    <div class="info-row">
-                      <span class="info-label">Gender</span>
-                      <span class="info-value">{{ capitalize(selectedUser.gender) || 'Not set' }}</span>
-                    </div>
-                    <div class="info-row">
-                      <span class="info-label">Age</span>
-                      <span class="info-value">{{ getAge(selectedUser.birth_date) }} years old</span>
-                    </div>
-                    <div class="info-row">
-                      <span class="info-label">Birthday</span>
-                      <span class="info-value">{{ selectedUser.birth_date ? formatDate(selectedUser.birth_date) : 'Not set' }}</span>
-                    </div>
-                    <div class="info-row">
-                      <span class="info-label">Location</span>
-                      <span class="info-value">{{ capitalize(selectedUser.location) || 'Not set' }}</span>
-                    </div>
-                  </div>
-                </div>
 
-                <!-- Preferences Card -->
-                <div class="info-card">
-                  <h4 class="info-card__title">
-                    <svg class="card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-                    </svg>
-                    Dating Preferences
-                  </h4>
-                  <div class="info-rows">
-                    <div class="info-row">
-                      <span class="info-label">Interested In</span>
-                      <span class="info-value info-value--highlight">
-                        {{ formatInterestedIn(selectedUser.interested_in) }}
-                      </span>
-                    </div>
-                    <div class="info-row">
-                      <span class="info-label">Looking For</span>
-                      <span class="info-value">
-                        <span class="intent-badge" :class="'intent-' + selectedUser.intent">
-                          {{ formatIntent(selectedUser.intent) }}
-                        </span>
-                      </span>
-                    </div>
-                    <div class="info-row">
-                      <span class="info-label">Persona</span>
-                      <span class="info-value" v-if="selectedUser.dating_persona">
-                        <span class="inline-block w-4 h-4 mr-1 align-text-bottom text-muted" v-html="getPersonaIcon(selectedUser.dating_persona)"></span>
-                        {{ getPersona(selectedUser.dating_persona)?.name }}
-                      </span>
-                      <span class="info-value info-value--muted" v-else>Not assigned</span>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- Extended Details Card -->
-                <div class="info-card">
-                  <h4 class="info-card__title">
-                    <svg class="card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/>
-                      <rect x="8" y="2" width="8" height="4" rx="1" ry="1"/>
-                    </svg>
-                    Extended Details
-                  </h4>
-                  <div class="info-rows">
-                    <div class="info-row">
-                      <span class="info-label">Height</span>
-                      <span class="info-value">
-                        {{ selectedUser.height_cm ? `${selectedUser.height_cm}cm (${cmToFeet(selectedUser.height_cm)})` : 'Not set' }}
-                      </span>
-                    </div>
-                    <div class="info-row">
-                      <span class="info-label">Occupation</span>
-                      <span class="info-value">{{ selectedUser.occupation || 'Not set' }}</span>
-                    </div>
-                    <div class="info-row">
-                      <span class="info-label">Religion</span>
-                      <span class="info-value">{{ capitalize(selectedUser.religion) || 'Not set' }}</span>
-                    </div>
-                    <div class="info-row">
-                      <span class="info-label">Genotype</span>
-                      <span class="info-value">
-                        <span v-if="selectedUser.genotype" class="genotype-badge" :class="'genotype-' + selectedUser.genotype">
-                          {{ selectedUser.genotype }}
-                        </span>
-                        <span v-else class="info-value--muted">Not set</span>
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- Contact & Status Card -->
-                <div class="info-card">
-                  <h4 class="info-card__title">
-                    <svg class="card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72"/>
-                    </svg>
-                    Contact & Account
-                  </h4>
-                  <div class="info-rows">
-                    <div class="info-row">
-                      <span class="info-label">Phone</span>
-                      <span class="info-value info-value--mono">{{ selectedUser.phone }}</span>
-                    </div>
-                    <div class="info-row">
-                      <span class="info-label">Status</span>
-                      <span class="info-value">
-                        <span class="status-badge" :class="selectedUser.is_verified ? 'status-verified' : 'status-pending'">
-                          {{ selectedUser.is_verified ? '✓ Verified' : '⏳ Pending' }}
-                        </span>
-                      </span>
-                    </div>
-                    <div class="info-row">
-                       <span class="info-label">Visibility</span>
-                       <span class="info-value">
-                         <span class="status-badge" :class="selectedUser.is_active !== false ? 'status-verified' : 'status-incognito'">
-                           {{ selectedUser.is_active !== false ? '🌐 Public' : '👻 Incognito' }}
-                         </span>
-                       </span>
-                     </div>
-                    <div class="info-row">
-                      <span class="info-label">Joined</span>
-                      <span class="info-value">{{ formatDate(selectedUser.created_at) }}</span>
-                    </div>
-                    <div class="info-row">
-                      <span class="info-label">Last Updated</span>
-                      <span class="info-value">{{ selectedUser.updated_at ? formatDate(selectedUser.updated_at) : 'Never' }}</span>
-                    </div>
-                  </div>
-                  <div class="mt-4 pt-4 border-t">
-                    <!-- Preview Section -->
-                    <div v-if="reminderPreview" class="mb-4 bg-orange-50 border border-orange-100 rounded-lg p-3 animate-in fade-in zoom-in duration-300">
-                      <div class="flex items-center justify-between mb-2">
-                        <span class="text-[10px] font-bold uppercase tracking-widest text-orange-600">Message Preview</span>
-                        <button @click="reminderPreview = null" class="text-stone-400 hover:text-stone-600">
-                          <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
-                        </button>
-                      </div>
-                      <div class="space-y-3">
-                        <div>
-                          <p class="text-[9px] font-bold text-stone-400 uppercase mb-1">SMS to {{ reminderPreview.phoneNumber }}</p>
-                          <textarea 
-                            v-model="reminderPreview.smsMessage"
-                            class="w-full text-[11px] bg-white p-2 rounded border border-orange-200 text-stone-700 leading-relaxed focus:outline-none focus:border-orange-400 resize-none"
-                            rows="3"
-                          ></textarea>
-                        </div>
-                        <div>
-                          <p class="text-[9px] font-bold text-stone-400 uppercase mb-1">Internal Notification</p>
-                          <textarea 
-                            v-model="reminderPreview.notificationMessage"
-                            class="w-full text-[11px] bg-white p-2 rounded border border-orange-200 text-stone-700 leading-relaxed focus:outline-none focus:border-orange-400 resize-none"
-                            rows="2"
-                          ></textarea>
-                        </div>
-                      </div>
-                      <button 
-                        class="btn-primary btn-sm w-full mt-3 flex items-center justify-center gap-2"
-                        :disabled="sendingReminder"
-                        @click="confirmSendReminder"
-                      >
-                        <svg v-if="sendingReminder" class="w-3 h-3 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                           <path d="M21 12a9 9 0 1 1-6.219-8.56" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                        </svg>
-                        <span v-if="!sendingReminder">Confirm & Send Now</span>
-                        <span v-else>Sending...</span>
-                      </button>
-                    </div>
-
-                    <!-- Initial Trigger Button -->
-                    <button 
-                      v-else
-                      class="btn-secondary btn-sm w-full flex items-center justify-center gap-2"
-                      :disabled="fetchingPreview"
-                      @click="fetchReminderPreview"
-                    >
-                      <svg v-if="fetchingPreview" class="w-3 h-3 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M21 12a9 9 0 1 1-6.219-8.56" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                      </svg>
-                      <svg v-else class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>
-                      </svg>
-                      {{ fetchingPreview ? 'Analyzing profile...' : 'Send Profile Reminder' }}
-                    </button>
-                    <p v-if="reminderSent" class="text-[10px] text-green-600 mt-2 text-center font-bold animate-in fade-in">✓ Reminder sent (SMS + Notification)</p>
-                  </div>
-                </div>
-
-                <!-- Bio / About Me Card -->
-                <div class="info-card info-card--full">
-                  <div class="flex justify-between items-start mb-4">
-                    <h4 class="info-card__title m-0">
-                      <svg class="card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                        <polyline points="14 2 14 8 20 8"/>
-                        <line x1="16" y1="13" x2="8" y2="13"/>
-                        <line x1="16" y1="17" x2="8" y2="17"/>
-                      </svg>
-                      About Me
-                    </h4>
-                    <button 
-                      class="btn-xs border border-stone-200 hover:bg-stone-50 transition-colors flex items-center gap-1 font-bold text-[10px] uppercase"
-                      :disabled="extractingAi"
-                      @click="extractAiPreferences"
-                    >
-                      <svg v-if="extractingAi" class="animate-spin h-3 w-3" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
-                      <span v-else>✨ Refresh AI Analysis</span>
-                    </button>
-                  </div>
-                  <p v-if="selectedUser.about_me" class="bio-text">
-                    "{{ selectedUser.about_me }}"
-                  </p>
-                  <p v-else class="bio-text bio-text--empty">
-                    No bio added yet
-                  </p>
-
-                  <!-- AI Extracted Preferences -->
-                  <div v-if="selectedUser.preferences_extracted && Object.keys(selectedUser.preferences_extracted).length > 0" class="mt-6 pt-6 border-t border-stone-100">
-                    <div class="flex items-center gap-2 mb-4">
-                      <span class="px-2 py-0.5 bg-blue-50 text-blue-600 rounded text-[9px] font-black uppercase tracking-widest border border-blue-100">AI Analyzed Preferences</span>
-                    </div>
-
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <!-- Seeking Section -->
-                      <div class="ai-section">
-                        <p class="text-[10px] font-black text-stone-400 uppercase tracking-widest mb-3">Looking For</p>
-                        <div class="space-y-4">
-                          <div v-if="selectedUser.preferences_extracted.seeking?.attributes?.length">
-                            <p class="text-[9px] font-bold text-stone-500 mb-1">Traits & Attributes</p>
-                            <div class="flex flex-wrap gap-1">
-                              <span v-for="attr in selectedUser.preferences_extracted.seeking.attributes" :key="attr" class="px-2 py-0.5 bg-stone-100 text-stone-800 rounded text-[10px] font-medium border border-stone-200">
-                                {{ attr }}
-                              </span>
-                            </div>
-                          </div>
-                          
-                          <div v-if="selectedUser.preferences_extracted.seeking?.lifestyle?.length">
-                            <p class="text-[9px] font-bold text-stone-500 mb-1">Lifestyle Alignment</p>
-                            <div class="flex flex-wrap gap-1">
-                              <span v-for="ls in selectedUser.preferences_extracted.seeking.lifestyle" :key="ls" class="px-2 py-0.5 bg-stone-100 text-stone-800 rounded text-[10px] font-medium border border-stone-200">
-                                {{ ls }}
-                              </span>
-                            </div>
-                          </div>
-
-                          <div v-if="selectedUser.preferences_extracted.seeking?.dealbreakers?.length">
-                            <p class="text-[9px] font-bold text-red-500 mb-1">AI-Detected Dealbreakers</p>
-                            <div class="flex flex-wrap gap-1">
-                              <span v-for="db in selectedUser.preferences_extracted.seeking.dealbreakers" :key="db" class="px-2 py-0.5 bg-red-50 text-red-600 rounded text-[10px] font-bold border border-red-100">
-                                {{ db }}
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-
-                      <!-- Self Section -->
-                      <div class="ai-section">
-                        <p class="text-[10px] font-black text-stone-400 uppercase tracking-widest mb-3">Self Description</p>
-                        <div class="space-y-4">
-                          <div v-if="selectedUser.preferences_extracted.self?.personality?.length">
-                            <p class="text-[9px] font-bold text-stone-500 mb-1">Personality Traits</p>
-                            <div class="flex flex-wrap gap-1">
-                              <span v-for="p in selectedUser.preferences_extracted.self.personality" :key="p" class="px-2 py-0.5 bg-indigo-50 text-indigo-700 rounded text-[10px] font-medium border border-indigo-100">
-                                {{ p }}
-                              </span>
-                            </div>
-                          </div>
-
-                          <div v-if="selectedUser.preferences_extracted.self?.values?.length">
-                            <p class="text-[9px] font-bold text-stone-500 mb-1">Core Values</p>
-                            <div class="flex flex-wrap gap-1">
-                              <span v-for="v in selectedUser.preferences_extracted.self.values" :key="v" class="px-2 py-0.5 bg-indigo-50 text-indigo-700 rounded text-[10px] font-medium border border-indigo-100">
-                                {{ v }}
-                              </span>
-                            </div>
-                          </div>
-
-                          <div v-if="selectedUser.preferences_extracted.self?.lifestyle?.length">
-                            <p class="text-[9px] font-bold text-stone-500 mb-1">Habits & Lifestyle</p>
-                            <div class="flex flex-wrap gap-1">
-                              <span v-for="ls in selectedUser.preferences_extracted.self.lifestyle" :key="ls" class="px-2 py-0.5 bg-indigo-50 text-indigo-700 rounded text-[10px] font-medium border border-indigo-100">
-                                {{ ls }}
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <div v-else-if="!selectedUser.about_me || selectedUser.about_me.length < 10" class="mt-4 text-[10px] text-stone-400 italic">
-                    Bio is too short for AI analysis (min 10 characters).
-                  </div>
-                  <div v-else-if="extractError" class="mt-4 text-[10px] text-red-500 font-bold">
-                    {{ extractError }}
-                  </div>
-                </div>
-
-                <!-- Interests Card -->
-                <div class="info-card info-card--full">
-                  <h4 class="info-card__title">
-                    <svg class="card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
-                    </svg>
-                    Interests
-                  </h4>
-                  <div v-if="selectedUser.interests && selectedUser.interests.length > 0" class="interests-list">
-                    <span 
-                      v-for="interest in selectedUser.interests" 
-                      :key="interest" 
-                      class="interest-tag"
-                    >
-                      {{ getInterestLabel(interest) }}
+          <div class="modal__content border-t border-[#ece8e3]">
+            <!-- Profile -->
+            <div v-if="activeTab === 'profile'" class="space-y-8">
+              <div class="grid grid-cols-1 gap-x-10 gap-y-8 md:grid-cols-2">
+                <section>
+                  <h3 class="ad-label">Basics</h3>
+                  <div class="ad-kv"><span>Phone</span><span class="ad-num">{{ selectedUser.phone }}</span></div>
+                  <div class="ad-kv"><span>Birthday</span><span>{{ selectedUser.birth_date ? formatDate(selectedUser.birth_date) : '—' }}</span></div>
+                  <div class="ad-kv"><span>Height</span><span>{{ selectedUser.height_cm ? `${selectedUser.height_cm}cm (${cmToFeet(selectedUser.height_cm)})` : '—' }}</span></div>
+                  <div class="ad-kv"><span>Religion</span><span>{{ capitalize(selectedUser.religion) || '—' }}</span></div>
+                  <div class="ad-kv">
+                    <span>Genotype</span>
+                    <span>
+                      <span v-if="selectedUser.genotype" class="ad-pill ad-pill--plain" :class="selectedUser.genotype === 'AA' ? 'ad-pill--green' : ''">{{ selectedUser.genotype }}</span>
+                      <template v-else>—</template>
                     </span>
                   </div>
-                  <p v-else class="bio-text--empty">No interests selected</p>
-                </div>
+                </section>
 
-                <!-- Age Preferences Card -->
-                <div class="info-card">
-                  <h4 class="info-card__title">
-                    <svg class="card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <circle cx="12" cy="12" r="10"/>
-                      <polyline points="12 6 12 12 16 14"/>
-                    </svg>
-                    Age Preferences
-                  </h4>
-                  <div class="info-rows">
-                    <div class="info-row">
-                      <span class="info-label">Age Range</span>
-                      <span class="info-value">
-                        <span v-if="selectedUser.min_age || selectedUser.max_age" class="age-range-badge">
-                          {{ selectedUser.min_age || 18 }} - {{ selectedUser.max_age || 50 }} years
-                        </span>
-                        <span v-else class="info-value--muted">Not set</span>
-                      </span>
-                    </div>
+                <section>
+                  <h3 class="ad-label">Looking for</h3>
+                  <div class="ad-kv"><span>Interested in</span><span>{{ formatInterestedIn(selectedUser.interested_in) }}</span></div>
+                  <div class="ad-kv"><span>Intent</span><span>{{ formatIntent(selectedUser.intent) }}</span></div>
+                  <div class="ad-kv"><span>Age range</span><span>{{ selectedUser.min_age || selectedUser.max_age ? `${selectedUser.min_age || 18}–${selectedUser.max_age || 50}` : '—' }}</span></div>
+                  <div class="ad-kv">
+                    <span>Persona</span>
+                    <span :title="getPersona(selectedUser.dating_persona)?.description">{{ selectedUser.dating_persona ? getPersona(selectedUser.dating_persona)?.name : '—' }}</span>
                   </div>
-                </div>
+                </section>
 
-                <!-- Referral Information Card -->
-                <div class="info-card">
-                  <h4 class="info-card__title">
-                    <svg class="card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-                      <circle cx="8.5" cy="7" r="4"/>
-                      <polyline points="17 11 19 13 23 9"/>
-                    </svg>
-                    Referral Information
-                  </h4>
-                  <div class="info-rows">
-                    <div class="info-row">
-                      <span class="info-label">My Code</span>
-                      <span class="info-value font-mono">{{ selectedUser.referral_code || 'None' }}</span>
-                    </div>
-                    <div class="info-row">
-                      <span class="info-label">Referred By</span>
-                      <span class="info-value">
-                        <span v-if="referrerName" class="text-brand-600 font-bold">{{ referrerName }}</span>
-                        <span v-else class="info-value--muted">Organic</span>
-                      </span>
-                    </div>
+                <section>
+                  <h3 class="ad-label">Account</h3>
+                  <div class="ad-kv"><span>City</span><span>{{ memberCityLabel(selectedUser.location) }}<span v-if="selectedUser.location" class="block text-xs ad-faint">{{ selectedUser.location }}</span></span></div>
+                  <div class="ad-kv">
+                    <span>This week</span>
+                    <span>{{ isOptedIn(selectedUser) ? 'Opted in' : 'Not opted in' }}<span v-if="isOptedIn(selectedUser)" class="block text-xs ad-faint">until {{ formatDate(selectedUser.weekly_opt_in_until) }}</span></span>
                   </div>
-                </div>
+                  <div class="ad-kv">
+                    <span>Vibe Check</span>
+                    <span>
+                      {{ vibeVersionLabel }}
+                      <span v-if="selectedUser.vibe_check_required" class="block text-xs text-[#9a5b0f]">Retake requested</span>
+                      <button
+                        v-if="vibeVersion !== 'new' || selectedUser.vibe_check_required"
+                        class="mt-1 block text-xs font-medium underline underline-offset-2 ad-muted hover:text-[#393737] disabled:opacity-50"
+                        :disabled="updatingRetake"
+                        @click="setRetake(!selectedUser.vibe_check_required)"
+                      >{{ selectedUser.vibe_check_required ? 'Cancel request' : 'Ask to retake' }}</button>
+                    </span>
+                  </div>
+                  <div class="ad-kv"><span>Visibility</span><span>{{ selectedUser.is_active !== false ? 'Public' : 'Incognito' }}</span></div>
+                  <div class="ad-kv"><span>Joined</span><span>{{ formatDate(selectedUser.created_at) }}</span></div>
+                  <div class="ad-kv"><span>Last updated</span><span>{{ selectedUser.updated_at ? formatDate(selectedUser.updated_at) : '—' }}</span></div>
+                  <div class="ad-kv"><span>Referral code</span><span class="font-mono text-xs">{{ selectedUser.referral_code || '—' }}</span></div>
+                  <div class="ad-kv"><span>Referred by</span><span>{{ referrerName || 'Organic' }}</span></div>
+                </section>
 
-                <!-- Social & Contact Card -->
-                <div class="info-card">
-                  <h4 class="info-card__title">
-                    <svg class="card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/>
-                    </svg>
-                    Social & Reveal
-                  </h4>
-                  <div class="info-rows">
-                    <div class="info-row">
-                      <span class="info-label">Instagram</span>
-                      <span class="info-value">
-                        <span v-if="selectedUser.instagram_handle" class="text-pink-600">@{{ selectedUser.instagram_handle }}</span>
-                        <span v-else class="info-value--muted">Not linked</span>
-                      </span>
-                    </div>
-                    <div class="info-row">
-                      <span class="info-label">Snapchat</span>
-                      <span class="info-value">
-                        <span v-if="selectedUser.snapchat_handle" class="text-yellow-600">👻 {{ selectedUser.snapchat_handle }}</span>
-                        <span v-else class="info-value--muted">Not linked</span>
-                      </span>
-                    </div>
-                    <div class="info-row">
-                      <span class="info-label">Preferred Reveal</span>
-                      <span class="info-value capitalize">{{ selectedUser.preferred_contact_method || 'Phone' }}</span>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- Engagement Stats Card -->
-                <div class="info-card">
-                  <h4 class="info-card__title">
-                    <svg class="card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <path d="M12 20V10M18 20V4M6 20v-4"/>
-                    </svg>
-                    Engagement Stats
-                  </h4>
-                  <div class="info-rows">
-                    <div class="info-row">
-                      <span class="info-label">Trust Score</span>
-                      <span class="info-value">
-                        <span class="font-bold" :class="getTrustScoreColor(selectedUser.trust_score)">
-                          {{ selectedUser.trust_score || 60 }}%
-                        </span>
-                      </span>
-                    </div>
-                    <div class="info-row">
-                      <span class="info-label">Events Attended</span>
-                      <span class="info-value">{{ selectedUser.events_attended || 0 }}</span>
-                    </div>
-                    <div class="info-row">
-                      <span class="info-label">Avg Response</span>
-                      <span class="info-value">{{ selectedUser.avg_response_time_hours ? selectedUser.avg_response_time_hours + 'h' : 'N/A' }}</span>
-                    </div>
-                    <div class="info-row">
-                      <span class="info-label">Free Unlock</span>
-                      <span class="info-value">{{ selectedUser.has_used_free_unlock ? 'Used' : 'Available' }}</span>
-                    </div>
-                    <div class="info-row">
-                      <span class="info-label">Profile Status</span>
-                      <span class="info-value">
-                        <span :class="selectedUser.is_active !== false ? 'text-green-600' : 'text-red-600'">
-                          {{ selectedUser.is_active !== false ? 'Active' : 'Paused' }}
-                        </span>
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- Dating Availability Card -->
-                <div class="info-card info-card--full">
-                  <h4 class="info-card__title">
-                    <svg class="card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                       <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
-                    </svg>
-                    Dating Availability
-                  </h4>
-                  <div v-if="hasAvailability(selectedUser)" class="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4">
-                    <div 
-                      v-for="day in ['weekdays', 'friday', 'saturday', 'sunday']" 
-                      :key="day" 
-                      class="p-3 bg-stone-50/50 rounded-2xl border border-stone-100 flex flex-col gap-2"
-                      :class="{ 'opacity-50 grayscale': !parseAvailability(selectedUser.availability)[day]?.length }"
-                    >
-                      <div class="flex items-center justify-between">
-                        <span class="text-[10px] font-black uppercase tracking-widest text-stone-600">{{ day }}</span>
-                        <span v-if="parseAvailability(selectedUser.availability)[day]?.length" class="text-[9px] px-1.5 py-0.5 bg-rose-100 text-rose-600 rounded-full font-bold">Active</span>
-                      </div>
-                      
-                      <div class="flex flex-wrap gap-1.5">
-                        <template v-if="parseAvailability(selectedUser.availability)[day]?.length">
-                          <span 
-                            v-for="slot in parseAvailability(selectedUser.availability)[day]" 
-                            :key="slot" 
-                            class="inline-flex items-center gap-1 px-2 py-1 bg-white border border-rose-100 text-rose-700 rounded-lg text-[10px] font-bold shadow-sm"
-                          >
-                            <span v-if="slot === 'morning'">🌅</span>
-                            <span v-else-if="slot === 'afternoon'">☀️</span>
-                            <span v-else-if="slot === 'evening'">🌆</span>
-                            <span v-else-if="slot === 'night'">🌙</span>
-                            {{ capitalize(slot) }}
-                          </span>
-                        </template>
-                        <span v-else class="text-[9px] text-stone-400 italic">No availability</span>
-                      </div>
-                    </div>
-                  </div>
-                  <p v-else class="bio-text--empty">No availability specified by user.</p>
-                </div>
-
-                <!-- Dealbreakers Card -->
-                <div class="info-card info-card--full">
-                  <h4 class="info-card__title">
-                    <svg class="card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/>
-                    </svg>
-                    Dealbreakers
-                  </h4>
-                  <div v-if="hasDealbreakers" class="dealbreakers-list">
-                    <div v-for="(values, category) in selectedUser.dealbreakers" :key="category" class="mb-3">
-                      <span class="block text-[10px] font-bold uppercase text-stone-400 mb-1">{{ formatKey(category as string) }}</span>
-                      <div class="flex flex-wrap gap-1">
-                        <span 
-                          v-for="val in values" 
-                          :key="val" 
-                          class="px-2 py-0.5 bg-rose-50 text-rose-600 border border-rose-100 rounded text-[10px] font-bold"
-                        >
-                          {{ val }}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                  <p v-else class="bio-text--empty">No dealbreakers set</p>
-                </div>
-
-                <!-- Badge Management Card -->
-                <div class="info-card info-card--full">
-                  <h4 class="info-card__title">
-                    <svg class="card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <circle cx="12" cy="8" r="7"/>
-                      <polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/>
-                    </svg>
-                    Badge Management
-                  </h4>
-                  <div class="badges-grid">
-                    <button 
-                      v-for="badge in allBadges" 
-                      :key="badge.id"
-                      @click="toggleBadge(badge.id)"
-                      class="badge-toggle"
-                      :class="{ 'badge-toggle--active': userHasBadge(badge.id) }"
-                      :style="userHasBadge(badge.id) ? { backgroundColor: badge.color, color: badge.textColor } : {}"
-                    >
-                      <span class="badge-toggle__icon" v-html="badge.icon"></span>
-                      <span class="badge-toggle__name">{{ badge.name }}</span>
-                      <span class="badge-toggle__status">{{ userHasBadge(badge.id) ? '✓' : '+' }}</span>
-                    </button>
-                  </div>
-                  <div class="badge-actions">
-                    <button 
-                      class="btn btn--primary btn--sm"
-                      :disabled="savingBadges"
-                      @click="saveBadges"
-                    >
-                      {{ savingBadges ? 'Saving...' : 'Save Badges' }}
-                    </button>
-                    <span v-if="badgeSaveSuccess" class="save-success">✓ Badges updated</span>
-                  </div>
-                </div>
+                <section>
+                  <h3 class="ad-label">Engagement</h3>
+                  <div class="ad-kv"><span>Trust score</span><span class="font-semibold" :class="getTrustScoreColor(selectedUser.trust_score)">{{ selectedUser.trust_score || 60 }}%</span></div>
+                  <div class="ad-kv"><span>Events attended</span><span>{{ selectedUser.events_attended || 0 }}</span></div>
+                  <div class="ad-kv"><span>Avg. response</span><span>{{ selectedUser.avg_response_time_hours ? selectedUser.avg_response_time_hours + 'h' : '—' }}</span></div>
+                  <div class="ad-kv"><span>Free unlock</span><span>{{ selectedUser.has_used_free_unlock ? 'Used' : 'Available' }}</span></div>
+                  <div class="ad-kv"><span>Contact reveal</span><span class="capitalize">{{ selectedUser.preferred_contact_method || 'Phone' }}</span></div>
+                  <div v-if="selectedUser.instagram_handle" class="ad-kv"><span>Instagram</span><span>@{{ selectedUser.instagram_handle }}</span></div>
+                  <div v-if="selectedUser.snapchat_handle" class="ad-kv"><span>Snapchat</span><span>{{ selectedUser.snapchat_handle }}</span></div>
+                </section>
               </div>
 
-              <!-- Persona Description -->
-              <div v-if="selectedUser.dating_persona" class="persona-description">
-                <div class="persona-description__header">
-                  <span class="persona-description__emoji" v-html="getPersonaIcon(selectedUser.dating_persona)"></span>
-                  <div>
-                    <h4 class="persona-description__title">{{ getPersona(selectedUser.dating_persona)?.name }}</h4>
-                    <p class="persona-description__subtitle">Dating Persona</p>
+              <!-- Bio and AI read of it -->
+              <section>
+                <div class="mb-2 flex items-center justify-between gap-3">
+                  <h3 class="ad-label !mb-0">About</h3>
+                  <button class="btn-ghost btn-sm" :disabled="extractingAi" @click="extractAiPreferences">
+                    {{ extractingAi ? 'Analysing…' : 'Refresh AI analysis' }}
+                  </button>
+                </div>
+                <p v-if="selectedUser.about_me" class="ad-callout whitespace-pre-line">{{ selectedUser.about_me }}</p>
+                <p v-else class="text-sm ad-faint">No bio yet.</p>
+
+                <div v-if="selectedUser.preferences_extracted && Object.keys(selectedUser.preferences_extracted).length > 0" class="mt-5 grid grid-cols-1 gap-6 md:grid-cols-2">
+                  <div class="space-y-3">
+                    <p class="text-xs font-semibold ad-muted">They're looking for</p>
+                    <div v-for="group in [
+                      { label: 'Traits', items: selectedUser.preferences_extracted.seeking?.attributes },
+                      { label: 'Lifestyle', items: selectedUser.preferences_extracted.seeking?.lifestyle },
+                      { label: 'Dealbreakers', items: selectedUser.preferences_extracted.seeking?.dealbreakers, alert: true }
+                    ].filter(g => g.items?.length)" :key="group.label">
+                      <p class="mb-1 text-xs ad-faint">{{ group.label }}</p>
+                      <div class="flex flex-wrap gap-1">
+                        <span v-for="item in group.items" :key="item" class="chip" :class="{ 'chip--red': group.alert }">{{ item }}</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="space-y-3">
+                    <p class="text-xs font-semibold ad-muted">How they describe themselves</p>
+                    <div v-for="group in [
+                      { label: 'Personality', items: selectedUser.preferences_extracted.self?.personality },
+                      { label: 'Values', items: selectedUser.preferences_extracted.self?.values },
+                      { label: 'Lifestyle', items: selectedUser.preferences_extracted.self?.lifestyle }
+                    ].filter(g => g.items?.length)" :key="group.label">
+                      <p class="mb-1 text-xs ad-faint">{{ group.label }}</p>
+                      <div class="flex flex-wrap gap-1">
+                        <span v-for="item in group.items" :key="item" class="chip">{{ item }}</span>
+                      </div>
+                    </div>
                   </div>
                 </div>
-                <p class="persona-description__text">
-                  {{ getPersona(selectedUser.dating_persona)?.description }}
+                <p v-else-if="!selectedUser.about_me || selectedUser.about_me.length < 10" class="mt-2 text-xs ad-faint">Bio is too short for AI analysis (10 characters minimum).</p>
+                <p v-else-if="extractError" class="mt-2 text-xs font-semibold text-[#b4232a]">{{ extractError }}</p>
+              </section>
+
+              <div class="grid grid-cols-1 gap-x-10 gap-y-8 md:grid-cols-2">
+                <section>
+                  <h3 class="ad-label">Interests</h3>
+                  <div v-if="selectedUser.interests?.length" class="flex flex-wrap gap-1.5">
+                    <span v-for="interest in selectedUser.interests" :key="interest" class="chip">{{ getInterestLabel(interest) }}</span>
+                  </div>
+                  <p v-else class="text-sm ad-faint">None selected.</p>
+                </section>
+
+                <section>
+                  <h3 class="ad-label">Dealbreakers</h3>
+                  <div v-if="hasDealbreakers" class="space-y-2">
+                    <div v-for="(values, category) in selectedUser.dealbreakers" :key="category">
+                      <p class="mb-1 text-xs ad-faint">{{ formatKey(category as string) }}</p>
+                      <div class="flex flex-wrap gap-1">
+                        <span v-for="val in values" :key="val" class="chip chip--red">{{ val }}</span>
+                      </div>
+                    </div>
+                  </div>
+                  <p v-else class="text-sm ad-faint">None set.</p>
+                </section>
+              </div>
+
+              <section>
+                <h3 class="ad-label">Availability</h3>
+                <div v-if="hasAvailability(selectedUser)" class="grid grid-cols-2 gap-2 sm:grid-cols-4">
+                  <div
+                    v-for="day in ['weekdays', 'friday', 'saturday', 'sunday']"
+                    :key="day"
+                    class="rounded-2xl bg-[#f6f4f1] p-3"
+                    :class="{ 'opacity-50': !parseAvailability(selectedUser.availability)[day]?.length }"
+                  >
+                    <p class="text-xs font-semibold capitalize">{{ day }}</p>
+                    <p class="mt-1 text-xs ad-muted">
+                      {{ parseAvailability(selectedUser.availability)[day]?.length ? parseAvailability(selectedUser.availability)[day].map((s: string) => capitalize(s)).join(', ') : 'Not free' }}
+                    </p>
+                  </div>
+                </div>
+                <p v-else class="text-sm ad-faint">Not set.</p>
+              </section>
+
+              <section>
+                <h3 class="ad-label">Badges</h3>
+                <div class="flex flex-wrap gap-1.5">
+                  <button
+                    v-for="badge in allBadges"
+                    :key="badge.id"
+                    class="inline-flex h-8 items-center gap-1.5 rounded-full border px-3 text-xs font-medium transition-colors"
+                    :class="userHasBadge(badge.id) ? 'border-transparent' : 'border-[#ded9d2] text-[#6c6862] hover:border-[#393737]'"
+                    :style="userHasBadge(badge.id) ? { backgroundColor: badge.color, color: badge.textColor } : {}"
+                    :aria-pressed="userHasBadge(badge.id)"
+                    @click="toggleBadge(badge.id)"
+                  >
+                    <span class="badge-icon" v-html="badge.icon"></span>
+                    {{ badge.name }}
+                  </button>
+                </div>
+                <div class="mt-3 flex items-center gap-3">
+                  <button class="btn-ink btn-sm" :disabled="savingBadges" @click="saveBadges">{{ savingBadges ? 'Saving…' : 'Save badges' }}</button>
+                  <span v-if="badgeSaveSuccess" class="text-xs font-semibold text-[#1f7a4d]">Saved</span>
+                </div>
+              </section>
+
+              <!-- Profile completion reminder -->
+              <section>
+                <h3 class="ad-label">Profile reminder</h3>
+                <div v-if="reminderPreview" class="ad-panel ad-panel--flat space-y-3 !p-4">
+                  <div>
+                    <label class="mb-1 block text-xs ad-muted" for="reminder-sms">SMS to {{ reminderPreview.phoneNumber }}</label>
+                    <textarea id="reminder-sms" v-model="reminderPreview.smsMessage" rows="3" class="form-input resize-none !text-sm"></textarea>
+                  </div>
+                  <div>
+                    <label class="mb-1 block text-xs ad-muted" for="reminder-note">In-app notification</label>
+                    <textarea id="reminder-note" v-model="reminderPreview.notificationMessage" rows="2" class="form-input resize-none !text-sm"></textarea>
+                  </div>
+                  <div class="flex gap-2">
+                    <button class="btn-ghost btn-sm" @click="reminderPreview = null">Cancel</button>
+                    <button class="btn-primary btn-sm" :disabled="sendingReminder" @click="confirmSendReminder">{{ sendingReminder ? 'Sending…' : 'Send now' }}</button>
+                  </div>
+                </div>
+                <div v-else class="flex items-center gap-3">
+                  <button class="btn-secondary btn-sm" :disabled="fetchingPreview" @click="fetchReminderPreview">
+                    {{ fetchingPreview ? 'Checking profile…' : 'Draft a reminder' }}
+                  </button>
+                  <span v-if="reminderSent" class="text-xs font-semibold text-[#1f7a4d]">Sent by SMS and notification</span>
+                  <span v-else class="text-xs ad-faint">Nudges them to finish missing parts of their profile.</span>
+                </div>
+              </section>
+
+
+              <section>
+                <label class="ad-label" for="admin-notes">Admin notes</label>
+                <textarea
+                  id="admin-notes"
+                  v-model="adminNotes"
+                  class="form-input min-h-[100px] resize-y"
+                  placeholder="Private notes about this member. Saved when you click away."
+                  @blur="saveAdminNotes"
+                ></textarea>
+                <p v-if="notesSaved" class="mt-1 text-xs font-semibold text-[#1f7a4d]">Saved</p>
+              </section>
+            </div>
+
+            <!-- Activity -->
+            <div v-if="activeTab === 'activity'">
+              <UserActivityTimeline :userId="selectedUser.id" :user="selectedUser" />
+            </div>
+
+            <!-- Wallet -->
+            <div v-if="activeTab === 'wallet'" class="mx-auto max-w-md space-y-6">
+              <div class="text-center">
+                <p class="text-sm ad-muted">Available balance</p>
+                <p class="font-display mt-1 text-[2.75rem] leading-none tracking-tight">
+                  <span class="mr-1 text-lg ad-faint">GH₵</span>
+                  <span v-if="loadingWallet" class="animate-pulse">…</span>
+                  <span v-else class="ad-num">{{ userBalance.toFixed(2) }}</span>
                 </p>
               </div>
-            </div>
 
-            <!-- Activity Tab -->
-            <div v-if="activeTab === 'activity'" class="tab-content">
-              <UserActivityTimeline 
-                :userId="selectedUser.id" 
-                :user="selectedUser" 
-              />
-            </div>
-
-            <!-- Wallet Tab -->
-            <div v-if="activeTab === 'wallet'" class="tab-content">
-              <div class="space-y-6">
-                <!-- Current Balance Card -->
-                <div class="bg-black text-white p-8 rounded-[2rem] flex flex-col items-center justify-center text-center space-y-2">
-                   <p class="text-[10px] font-black uppercase tracking-[0.3em] opacity-40">Available Balance</p>
-                   <div class="flex items-baseline gap-1">
-                      <span class="text-stone-400 font-mono text-sm">GHS</span>
-                      <span v-if="loadingWallet" class="text-3xl font-black tabular-nums animate-pulse">...</span>
-                      <span v-else class="text-4xl font-black tabular-nums font-mono">{{ userBalance.toFixed(2) }}</span>
-                   </div>
-                </div>
-
-                <!-- Adjustment Form -->
-                <div class="bg-white p-6 rounded-3xl border border-stone-200 space-y-6">
-                   <div class="flex items-center justify-between">
-                      <h4 class="text-[10px] font-black uppercase tracking-widest text-stone-400">Manual Adjustment</h4>
-                      <div class="flex bg-stone-100 p-1 rounded-lg">
-                         <button 
-                            @click="walletType = 'credit'"
-                            class="px-4 py-1.5 text-[10px] font-black uppercase tracking-widest rounded-md transition-all"
-                            :class="walletType === 'credit' ? 'bg-white text-black shadow-sm' : 'text-stone-400'"
-                         >Add</button>
-                         <button 
-                            @click="walletType = 'debit'"
-                            class="px-4 py-1.5 text-[10px] font-black uppercase tracking-widest rounded-md transition-all"
-                            :class="walletType === 'debit' ? 'bg-white text-rose-600 shadow-sm' : 'text-stone-400'"
-                         >Deduct</button>
-                      </div>
-                   </div>
-
-                   <div class="grid grid-cols-2 gap-4">
-                      <div>
-                         <label class="block text-[10px] font-bold text-stone-400 uppercase mb-2">Amount (GHS)</label>
-                         <input v-model.number="walletAmount" type="number" min="1" class="w-full p-4 bg-stone-50 rounded-2xl text-sm font-bold outline-none border border-transparent focus:border-black" />
-                      </div>
-                      <div>
-                         <label class="block text-[10px] font-bold text-stone-400 uppercase mb-2">Reason</label>
-                         <select v-model="walletReason" class="w-full p-4 bg-stone-50 rounded-2xl text-xs font-bold outline-none border border-transparent">
-                            <option value="reward">🎉 Reward / Promo</option>
-                            <option value="refund">🔙 Refund</option>
-                            <option value="compensation">🎁 Compensation</option>
-                            <option value="adjustment">⚙️ Admin Correction</option>
-                         </select>
-                      </div>
-                   </div>
-
-                   <div>
-                      <label class="block text-[10px] font-bold text-stone-400 uppercase mb-2">Internal Note</label>
-                      <input v-model="walletDescription" placeholder="e.g. Compensation for match bug" class="w-full p-4 bg-stone-50 rounded-2xl text-xs outline-none" />
-                   </div>
-
-                   <button 
-                      @click="adjustWallet"
-                      :disabled="adjustingWallet || !walletAmount"
-                      class="w-full py-4 bg-black text-white rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] active:scale-95 disabled:opacity-30 flex items-center justify-center gap-2"
-                   >
-                      <span v-if="adjustingWallet" class="w-3 h-3 border-2 border-white border-t-transparent animate-spin rounded-full"></span>
-                      {{ walletType === 'credit' ? 'Grant Credits Now' : 'Process Deduction' }}
-                   </button>
-                </div>
-
-                <!-- Quick History Hint -->
-                <div class="text-center">
-                   <p class="text-[10px] text-stone-400 font-medium italic">All adjustments are logged in the immutable m2m.credit_transactions ledger.</p>
-                </div>
-              </div>
-            </div>
-            
-            <!-- Suggested Matches (New Section in Profile) -->
-            <div v-if="activeTab === 'profile'" class="mt-6 border-t pt-6">
-               <h4 class="info-card__title mb-4">
-                  <svg class="card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                     <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-                  </svg>
-                  Smart Suggestions
-               </h4>
-               <div v-if="loadingSuggestions" class="text-sm text-gray-500">Finding suggestions...</div>
-               <div v-else-if="suggestedMatches.length === 0" class="text-sm text-gray-500">No suggestions found.</div>
-               <div v-else class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div v-for="match in suggestedMatches" :key="match.id" class="flex items-center justify-between p-3 border rounded-lg bg-white">
-                     <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center font-bold text-gray-700 overflow-hidden">
-                           <img v-if="match.photo_url" :src="match.photo_url" class="w-full h-full object-cover" />
-                           <span v-else>{{ match.display_name?.charAt(0) || '?' }}</span>
-                        </div>
-                        <div>
-                           <div class="font-semibold text-sm">{{ match.display_name }}</div>
-                           <div class="text-xs text-brand-500 font-bold">{{ match.match_score }}% Match</div>
-                        </div>
-                     </div>
-                     <button class="btn-xs btn-primary" @click="selectForMatch(match)">Match</button>
-                  </div>
-               </div>
-            </div>
-
-            <!-- Admin Notes (New Section in Profile) -->
-            <div v-if="activeTab === 'profile'" class="mt-6 border-t pt-6">
-              <h4 class="info-card__title mb-4">
-                <svg class="card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
-                </svg>
-                Admin Notes
-              </h4>
-              <textarea 
-                v-model="adminNotes" 
-                class="w-full p-3 border rounded-lg text-sm bg-yellow-50 focus:bg-white transition-colors min-h-[100px]"
-                placeholder="Add private notes about this user..."
-                @blur="saveAdminNotes"
-              ></textarea>
-              <div v-if="notesSaved" class="text-xs text-green-600 mt-1 font-semibold">Notes saved!</div>
-            </div>
-
-            <!-- Vibe Check Tab -->
-            <div v-if="activeTab === 'vibes'" class="tab-content">
-              <div v-if="loadingAnswers" class="loading-state">
-                <div class="spinner"></div>
-                <p>Loading vibe answers...</p>
-              </div>
-              
-              <div v-else-if="userAnswers.length === 0" class="empty-vibes">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                  <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-                </svg>
-                <h4>No Vibe Check Yet</h4>
-                <p>This user hasn't completed the vibe check questions.</p>
-              </div>
-              
-              <div v-else class="vibes-grid">
-                <div v-for="(item, idx) in userAnswers" :key="idx" class="vibe-card">
-                  <div class="vibe-card__question">
-                    <span class="vibe-number">{{ idx + 1 }}</span>
-                    {{ item.question }}
-                  </div>
-                  <div class="vibe-card__answer">
-                    {{ item.answer }}
+              <div class="ad-panel ad-panel--flat space-y-4">
+                <div class="flex items-center justify-between">
+                  <h3 class="ad-label !mb-0">Adjust balance</h3>
+                  <div class="ad-tabs !bg-white">
+                    <button class="ad-tab !h-8" :class="{ 'is-active !bg-[#393737] !text-white': walletType === 'credit' }" @click="walletType = 'credit'">Add</button>
+                    <button class="ad-tab !h-8" :class="{ 'is-active !bg-[#393737] !text-white': walletType === 'debit' }" @click="walletType = 'debit'">Deduct</button>
                   </div>
                 </div>
+                <div class="grid grid-cols-2 gap-3">
+                  <div>
+                    <label class="form-label" for="wallet-amount">Amount (GH₵)</label>
+                    <input id="wallet-amount" v-model.number="walletAmount" type="number" min="1" class="form-input" />
+                  </div>
+                  <div>
+                    <label class="form-label" for="wallet-reason">Reason</label>
+                    <select id="wallet-reason" v-model="walletReason" class="ad-select w-full !h-[44px]">
+                      <option value="reward">Reward or promo</option>
+                      <option value="refund">Refund</option>
+                      <option value="compensation">Compensation</option>
+                      <option value="adjustment">Correction</option>
+                    </select>
+                  </div>
+                </div>
+                <div>
+                  <label class="form-label" for="wallet-note">Internal note</label>
+                  <input id="wallet-note" v-model="walletDescription" placeholder="e.g. Compensation for a match bug" class="form-input" />
+                </div>
+                <button class="w-full" :class="walletType === 'credit' ? 'btn-ink' : 'btn-danger'" :disabled="adjustingWallet || !walletAmount" @click="adjustWallet">
+                  {{ adjustingWallet ? 'Saving…' : walletType === 'credit' ? `Add GH₵${walletAmount || 0}` : `Deduct GH₵${walletAmount || 0}` }}
+                </button>
               </div>
+
+              <p class="text-center text-xs ad-faint">Every adjustment is recorded in the credit ledger.</p>
+            </div>
+
+            <!-- Vibe check -->
+            <div v-if="activeTab === 'vibes'">
+              <div v-if="loadingAnswers" class="ad-empty"><span class="ad-spinner"></span></div>
+              <div v-else-if="userAnswers.length === 0" class="ad-empty">
+                <p class="ad-empty__title">No Vibe Check yet</p>
+                <p>They haven't answered the questions.</p>
+              </div>
+              <ol v-else class="divide-y divide-[#ece8e3]">
+                <li v-for="(item, idx) in userAnswers" :key="idx" class="flex gap-4 py-3.5">
+                  <span class="ad-num w-6 shrink-0 pt-0.5 text-xs ad-faint">{{ idx + 1 }}</span>
+                  <div class="min-w-0">
+                    <p class="text-sm ad-muted">{{ item.question }}</p>
+                    <p class="mt-0.5 font-medium">{{ item.answer }}</p>
+                  </div>
+                </li>
+              </ol>
             </div>
           </div>
-          
+
           <div class="modal__footer">
             <button class="btn-secondary" @click="closeModal">Close</button>
-            <button class="btn-primary" @click="selectForMatch(selectedUser)">
-              <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-              </svg>
-              Select for Match
-            </button>
+            <button class="btn-primary" @click="selectForMatch(selectedUser)">Select for match</button>
           </div>
         </div>
       </div>
     </Teleport>
 
-    <!-- Image Preview Modal -->
+    <!-- Photo preview -->
     <Teleport to="body">
-      <div v-if="showImagePreview" class="modal-overlay image-preview-overlay" @click="closeImagePreview">
-        <div class="image-preview-container">
-          <img :src="previewImageUrl" class="preview-image" @click.stop />
-          <button class="preview-close" @click="closeImagePreview">×</button>
-        </div>
+      <div v-if="showImagePreview" class="fixed inset-0 z-[110] flex items-center justify-center bg-[#393737]/80 p-6 backdrop-blur-sm" @click="closeImagePreview">
+        <img :src="previewImageUrl" alt="" class="max-h-[85vh] max-w-full rounded-3xl object-contain shadow-2xl" @click.stop />
+        <button class="absolute right-5 top-5 flex h-10 w-10 items-center justify-center rounded-full bg-white/90 text-2xl leading-none text-[#393737]" aria-label="Close" @click="closeImagePreview">×</button>
       </div>
     </Teleport>
   </div>
@@ -1032,6 +508,8 @@ const loading = ref(true)
 const users = ref<any[]>([])
 const selectedIds = ref<string[]>([])
 const filters = reactive({
+  city: '' as '' | ServedCity,
+  optIn: '' as '' | 'in' | 'out' | 'retake',
   gender: '',
   persona: '',
   verified: '',
@@ -1043,6 +521,19 @@ const filters = reactive({
 const currentPage = ref(1)
 const pageSize = ref(15)
 const totalUsers = ref(0) // Will be set by fetch
+const totalPages = computed(() => Math.ceil(totalUsers.value / pageSize.value))
+const filtersActive = computed(() => !!(filters.city || filters.optIn || filters.gender || filters.persona || filters.availability || filters.search))
+
+const isOptedIn = (user: any) => user?.is_active !== false && isOptedInThisWeek(user?.weekly_opt_in_until)
+
+// "Accra · East Legon", "Nairobi", or the raw location for anywhere else
+const cityLine = (location?: string | null) => {
+  if (!location) return 'No location'
+  const city = memberCity(location)
+  if (city === 'other') return location
+  const area = location.split(',').map(x => x.trim()).find(x => x.toLowerCase() !== city)
+  return area ? `${memberCityLabel(location)} · ${area}` : memberCityLabel(location)
+}
 
 // Modal State
 const showModal = ref(false)
@@ -1060,8 +551,6 @@ const userBadges = ref<string[]>([])
 const savingBadges = ref(false)
 const badgeSaveSuccess = ref(false)
 
-const suggestedMatches = ref<any[]>([])
-const loadingSuggestions = ref(false)
 const fetchingPreview = ref(false)
 const sendingReminder = ref(false)
 const reminderSent = ref(false)
@@ -1073,6 +562,12 @@ const userAnswers = ref<any[]>([])
 const loadingAnswers = ref(false)
 const questionsMap = ref<Record<string, string>>({})
 const activeTab = ref<'profile' | 'activity' | 'vibes' | 'wallet'>('profile')
+const userTabs: { key: 'profile' | 'activity' | 'vibes' | 'wallet'; label: string }[] = [
+  { key: 'profile', label: 'Profile' },
+  { key: 'vibes', label: 'Vibe Check' },
+  { key: 'activity', label: 'Activity' },
+  { key: 'wallet', label: 'Wallet' }
+]
 const loadingActivity = ref(false)
 const referrerName = ref('')
 const userActivity = reactive({
@@ -1096,6 +591,20 @@ const fetchUsers = async () => {
     .select('*, telegram_id', { count: 'exact' })
   
   // Apply Filters
+  if (filters.city) {
+    // A city covers its neighbourhoods too ("East Legon" is Accra)
+    query = query.or(cityAreaTerms(filters.city).map(term => `location.ilike.%${term}%`).join(','))
+  }
+
+  const nowIso = new Date().toISOString()
+  if (filters.optIn === 'in') {
+    query = query.gte('weekly_opt_in_until', nowIso).not('is_active', 'is', false)
+  } else if (filters.optIn === 'out') {
+    query = query.or(`weekly_opt_in_until.is.null,weekly_opt_in_until.lt.${nowIso}`)
+  } else if (filters.optIn === 'retake') {
+    query = query.eq('vibe_check_required', true)
+  }
+
   if (filters.gender) {
     query = query.eq('gender', filters.gender)
   }
@@ -1375,8 +884,43 @@ const fetchUserActivity = async (userId: string) => {
 }
 
 // Actions
+// Which Vibe Check the open member has answered: v2 keys start with "v2_"
+const vibeVersion = ref<'new' | 'old' | 'none' | 'loading'>('loading')
+const vibeVersionLabel = computed(() => ({ new: 'New version', old: 'Old version', none: 'Not taken', loading: '…' })[vibeVersion.value])
+
+const loadVibeVersion = async (userId: string) => {
+  vibeVersion.value = 'loading'
+  const countAnswers = () => (supabase as any).schema('m2m').from('vibe_answers').select('id', { count: 'exact', head: true }).eq('user_id', userId)
+  const [{ count: v2 }, { count: any }] = await Promise.all([
+    countAnswers().like('question_key', 'v2_%'),
+    countAnswers()
+  ])
+  if (selectedUser.value?.id !== userId) return
+  vibeVersion.value = v2 ? 'new' : any ? 'old' : 'none'
+}
+
+const updatingRetake = ref(false)
+const setRetake = async (required: boolean) => {
+  if (!selectedUser.value) return
+  updatingRetake.value = true
+  try {
+    await $fetch('/api/admin/vibe-check/retake', {
+      method: 'POST',
+      body: { userIds: [selectedUser.value.id], clear: !required }
+    })
+    selectedUser.value = { ...selectedUser.value, vibe_check_required: required }
+    const row = users.value.find((u: any) => u.id === selectedUser.value.id)
+    if (row) row.vibe_check_required = required
+  } catch (e: any) {
+    alert(e?.data?.statusMessage || 'Could not update. Please try again.')
+  } finally {
+    updatingRetake.value = false
+  }
+}
+
 const viewUser = async (user: any) => {
   selectedUser.value = user
+  loadVibeVersion(user.id)
   showModal.value = true
   activeTab.value = 'profile'
   loadingAnswers.value = true
@@ -1398,8 +942,6 @@ const viewUser = async (user: any) => {
     })
   }
 
-  // Fetch Suggestions
-  fetchSuggestions(user)
 
   // Wallet State Reset & Fetch
   userBalance.value = 0
@@ -1620,35 +1162,6 @@ const saveBadges = async () => {
   }
 }
 
-// Smart Suggestions (Mock logic for now, or simple gender swap)
-const fetchSuggestions = async (user: any) => {
-  loadingSuggestions.value = true
-  suggestedMatches.value = []
-  
-  // Simple heuristic: Opposite gender, verified, not matched yet
-  // In a real app, this would be a weighted algorithm
-  const targetGender = user.gender === 'male' ? 'female' : 'male'
-  
-  const { data } = await supabase
-    .from('profiles')
-    .select('id, display_name, photo_url, gender, birth_date, location')
-    .eq('gender', targetGender)
-    .eq('is_verified', true)
-    .eq('is_active', true)
-    .neq('id', user.id)
-    .limit(4)
-    
-  if (data) {
-    // Add fake match score for demo/ MVP
-    suggestedMatches.value = (data as any[]).map(m => ({
-      ...m,
-      match_score: Math.floor(Math.random() * (98 - 75) + 75) // Random 75-98%
-    }))
-  }
-  
-  loadingSuggestions.value = false
-}
-
 // Helpers
 const formatKey = (key: string) => {
   return key.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
@@ -1851,1072 +1364,33 @@ onMounted(() => {
 </script>
 
 <style scoped>
-/* Page specific styles matching theme */
-.users__filters {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1rem;
-  margin-bottom: 1.5rem;
-  background: white;
-  padding: 1rem;
-  border-radius: 12px;
-  border: 1px solid #E5E7EB;
-}
-
-.user-filter {
-  width: auto;
-  min-width: 150px;
-}
-
-.user-search {
-  flex: 1;
-  min-width: 250px;
-}
-
-.user-cell {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.user-avatar {
-  width: 2.25rem;
-  height: 2.25rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: #F3F4F6;
-  color: #111827;
-  font-weight: 600;
-  border-radius: 50%;
-  font-size: 0.875rem;
-}
-
-.user-avatar-img {
-  width: 100%;
-  height: 100%;
-  border-radius: 50%;
-  object-fit: cover;
-}
-
-.user-name {
-  font-weight: 600;
-  color: #111827;
-}
-
-.user-phone {
-  font-size: 0.75rem;
-  color: #6B7280;
-}
-
-.persona-badge {
+.chip {
   display: inline-flex;
   align-items: center;
-  justify-content: center;
-  width: 1.75rem;
-  height: 1.75rem;
-  border-radius: 50%;
-  font-size: 1rem;
-  border: 1px solid rgba(0,0,0,0.05);
+  height: 1.6rem;
+  padding: 0 0.65rem;
+  border-radius: 9999px;
+  background: #f1efec;
+  color: #524e4b;
+  font-size: 0.75rem;
+  font-weight: 500;
 }
 
-/* Enhanced User Detail Modal */
-.user-detail-modal {
-  width: 95%;
-  max-width: 900px;
-  max-height: 90vh;
-  display: flex;
-  flex-direction: column;
+.chip--red {
+  background: #fdecec;
+  color: #b4232a;
 }
 
-.user-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  padding: 1.5rem;
-  border-bottom: 1px solid #E5E7EB;
-  background: white;
+.badge-icon {
+  display: inline-flex;
 }
 
-.user-header__left {
-  display: flex;
-  gap: 1.25rem;
-  align-items: flex-start;
-}
-
-.user-header__photo {
-  position: relative;
-  flex-shrink: 0;
-}
-
-.user-photo {
-  width: 80px;
-  height: 80px;
-  border-radius: 50%;
-  object-fit: cover;
-  border: 1px solid #E5E7EB;
-}
-
-.user-photo.cursor-pointer {
-  cursor: zoom-in;
-  transition: opacity 0.2s;
-}
-
-.user-photo.cursor-pointer:hover {
-  opacity: 0.9;
-}
-
-.user-avatar-large {
-  width: 80px;
-  height: 80px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: #F9FAFB;
-  color: #111827;
-  font-weight: 600;
-  border-radius: 50%;
-  font-size: 2rem;
-  border: 1px solid #E5E7EB;
-}
-
-.verification-dot {
-  position: absolute;
-  bottom: 2px;
-  right: 2px;
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  border: 3px solid white;
-}
-
-.verification-dot.verified {
-  background: #10B981;
-}
-
-.verification-dot.pending {
-  background: #F59E0B;
-}
-
-.user-header__info {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-}
-
-.user-header__name {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: #111827;
-  margin: 0;
-}
-
-.user-header__meta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1rem;
-  margin-top: 0.25rem;
-}
-
-.meta-item {
-  display: flex;
-  align-items: center;
-  gap: 0.35rem;
-  font-size: 0.875rem;
-  color: #6B7280;
-}
-
-.meta-item .icon {
+.badge-icon :deep(svg) {
   width: 14px;
   height: 14px;
-  stroke: #9CA3AF;
 }
 
-.persona-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.25rem 0.75rem;
-  background: #F3F4F6;
-  border-radius: 100px;
-  font-size: 0.75rem;
-  font-weight: 500;
-  color: #374151;
-  margin-top: 0.5rem;
-}
-
-.persona-chip__emoji {
-  font-size: 1rem;
-}
-
-/* Tabs */
-.user-tabs {
-  display: flex;
-  border-bottom: 1px solid #E5E7EB;
-  background: white;
-  padding: 0 1.5rem;
-}
-
-.user-tab {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 1rem 0;
-  margin-right: 1.5rem;
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: #6B7280;
-  background: none;
-  border: none;
-  cursor: pointer;
-  border-bottom: 2px solid transparent;
-  transition: all 0.2s;
-}
-
-.user-tab:hover {
-  color: #111827;
-}
-
-.user-tab.active {
-  color: #000000;
-  border-bottom-color: #000000;
-  font-weight: 600;
-}
-
-.tab-icon {
-  width: 16px;
-  height: 16px;
-}
-
-/* Modal Content */
-.user-content {
-  flex: 1;
-  overflow-y: auto;
-  padding: 1.5rem;
-  background: #F9FAFB;
-}
-
-.tab-content {
-  animation: fadeIn 0.3s ease;
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(5px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-/* Info Grid */
-.info-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 1.5rem;
-}
-
-@media (max-width: 768px) {
-  .info-grid {
-    grid-template-columns: 1fr;
-  }
-}
-
-.info-card {
-  background: white;
-  border-radius: 12px;
-  padding: 1.5rem;
-  border: 1px solid #E5E7EB;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.02);
-}
-
-.info-card__title {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: #111827;
-  margin: 0 0 1.25rem 0;
-  padding-bottom: 0.75rem;
-  border-bottom: 1px solid #F3F4F6;
-}
-
-.card-icon {
-  width: 16px;
-  height: 16px;
-  stroke: #6B7280;
-}
-
-.info-rows {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.info-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.info-label {
-  font-size: 0.875rem;
-  color: #6B7280;
-}
-
-.info-value {
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: #111827;
-  text-align: right;
-}
-
-.info-value--highlight {
-  color: #000000;
-  font-weight: 600;
-}
-
-.info-value--muted {
-  color: #9CA3AF;
-  font-weight: 400;
-}
-
-.info-value--mono {
-  font-family: 'Space Mono', monospace;
-  font-size: 0.8125rem;
-}
-
-/* Intent badges */
-.intent-badge {
-  display: inline-block;
-  padding: 0.25rem 0.65rem;
-  border-radius: 6px;
-  font-size: 0.75rem;
-  font-weight: 600;
-  background: #F3F4F6;
-  color: #374151;
-}
-
-/* Genotype badges */
-.genotype-badge {
-  display: inline-block;
-  padding: 0.2rem 0.5rem;
-  border-radius: 4px;
-  font-size: 0.75rem;
-  font-weight: 600;
-  font-family: monospace;
-}
-
-.genotype-AA { background: #ECFDF5; color: #047857; }
-.genotype-AS, .genotype-SS, .genotype-AC, .genotype-SC { background: #F3F4F6; color: #374151; }
-
-/* Status badges */
-.status-badge {
-  padding: 0.25rem 0.65rem;
-  border-radius: 99px;
-  font-size: 0.75rem;
-  font-weight: 600;
-}
-
-.status-verified {
-  background: #ECFDF5;
-  color: #047857;
-}
-
-.status-pending {
-  background: #FFFBEB;
-  color: #B45309;
-}
-
-/* Persona Description */
-.persona-description {
-  margin-top: 1.5rem;
-  padding: 1.5rem;
-  background: white;
-  border-radius: 12px;
-  border: 1px solid #E5E7EB;
-}
-
-.persona-description__header {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  margin-bottom: 1rem;
-}
-
-.persona-description__emoji {
-  font-size: 2rem;
-}
-
-.persona-description__title {
-  font-size: 1.125rem;
-  font-weight: 700;
-  color: #111827;
-  margin: 0;
-}
-
-.persona-description__subtitle {
-  font-size: 0.875rem;
-  color: #6B7280;
-  margin: 0;
-}
-
-.persona-description__text {
-  font-size: 0.875rem;
-  color: #374151;
-  line-height: 1.6;
-  margin: 0;
-}
-
-/* Activity Tab */
-.loading-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 3rem;
-  color: #6B7280;
-}
-
-.spinner {
-  width: 32px;
-  height: 32px;
-  border: 3px solid #E5E7EB;
-  border-top-color: #000000;
-  border-radius: 50%;
-  animation: spin 0.8s linear infinite;
-  margin-bottom: 1rem;
-}
-
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
-
-/* Stats Grid */
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 1rem;
-  margin-bottom: 1.5rem;
-}
-
-@media (max-width: 768px) {
-  .stats-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-.stat-card {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 1.25rem;
-  background: white;
-  border-radius: 12px;
-  border: 1px solid #E5E7EB;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.02);
-}
-
-.stat-card__icon {
-  width: 40px;
-  height: 40px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 8px;
-  background: #F3F4F6;
-  color: #111827;
-}
-
-.stat-card__icon svg {
-  width: 20px;
-  height: 20px;
-  stroke: currentColor;
-}
-
-.stat-icon--matches,
-.stat-icon--unlocked,
-.stat-icon--events {
-  background: #F3F4F6;
-  color: #111827;
-}
-
-.stat-icon--revenue {
-  background: #ECFDF5;
-  color: #047857;
-}
-
-.stat-card__content {
-  display: flex;
-  flex-direction: column;
-}
-
-.stat-card__value {
-  font-size: 1.125rem;
-  font-weight: 700;
-  color: #111827;
-}
-
-.stat-card__label {
-  font-size: 0.75rem;
-  color: #6B7280;
-}
-
-/* Activity Sections */
-.activity-section {
-  margin-bottom: 2rem;
-}
-
-.activity-section__title {
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: #111827;
-  margin: 0 0 1rem 0;
-}
-
-/* Matches List */
-.matches-list {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-
-.match-item {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  padding: 1rem;
-  background: white;
-  border-radius: 12px;
-  border: 1px solid #E5E7EB;
-}
-
-.match-item__avatar {
-  width: 40px;
-  height: 40px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: #F3F4F6;
-  color: #111827;
-  font-weight: 600;
-  border-radius: 50%;
-  font-size: 0.875rem;
-}
-
-.match-item__info {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-}
-
-.match-item__name {
-  font-weight: 600;
-  color: #111827;
-  font-size: 0.875rem;
-}
-
-.match-item__date {
-  font-size: 0.75rem;
-  color: #6B7280;
-}
-
-.match-item__status {
-  padding: 0.25rem 0.75rem;
-  border-radius: 99px;
-  font-size: 0.75rem;
-  font-weight: 500;
-}
-
-.match-item__status.status-unlocked {
-  background: #ECFDF5;
-  color: #047857;
-}
-
-.match-item__status.status-pending_payment {
-  background: #FFFBEB;
-  color: #B45309;
-}
-
-.match-item__status.status-rejected {
-  background: #F3F4F6;
-  color: #6B7280;
-}
-
-/* Events List */
-.events-list {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-
-.event-item {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  padding: 1rem;
-  background: white;
-  border-radius: 12px;
-  border: 1px solid #E5E7EB;
-}
-
-.event-item__date {
-  width: 50px;
-  height: 50px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  background: #000000;
-  color: white;
-  border-radius: 8px;
-  flex-shrink: 0;
-}
-
-.event-day {
-  font-size: 1.125rem;
-  font-weight: 700;
-  line-height: 1;
-}
-
-.event-month {
-  font-size: 0.625rem;
-  text-transform: uppercase;
-  font-weight: 600;
-}
-
-.event-item__info {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-}
-
-.event-item__title {
-  font-weight: 600;
-  color: #111827;
-  font-size: 0.875rem;
-}
-
-.event-item__venue {
-  font-size: 0.75rem;
-  color: #6B7280;
-}
-
-.event-item__status {
-  padding: 0.25rem 0.75rem;
-  border-radius: 99px;
-  font-size: 0.75rem;
-  font-weight: 500;
-}
-
-.event-item__status.status-confirmed {
-  background: #ECFDF5;
-  color: #047857;
-}
-
-.event-item__status.status-pending {
-  background: #FFFBEB;
-  color: #B45309;
-}
-
-.event-item__status.status-cancelled {
-  background: #FEF2F2;
-  color: #DC2626;
-}
-
-/* Payments List */
-.payments-list {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-
-.payment-item {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  padding: 1rem;
-  background: white;
-  border-radius: 12px;
-  border: 1px solid #E5E7EB;
-}
-
-.payment-item__icon {
-  width: 40px;
-  height: 40px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 8px;
-  background: #F3F4F6;
-}
-
-.payment-item__icon svg {
-  width: 20px;
-  height: 20px;
-  stroke: #374151;
-}
-
-.payment-item__icon.purpose-match_unlock {
-  background: #F3F4F6;
-}
-.payment-item__icon.purpose-match_unlock svg { stroke: #374151; }
-
-.payment-item__icon.purpose-event_ticket {
-  background: #F3F4F6;
-}
-.payment-item__icon.purpose-event_ticket svg { stroke: #374151; }
-
-.payment-item__info {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-}
-
-.payment-item__purpose {
-  font-weight: 600;
-  color: #111827;
-  font-size: 0.875rem;
-}
-
-.payment-item__date {
-  font-size: 0.75rem;
-  color: #6B7280;
-}
-
-.payment-item__amount {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-}
-
-.amount-value {
-  font-weight: 700;
-  color: #111827;
-  font-size: 0.875rem;
-}
-
-.payment-status {
-  padding: 0.15rem 0.5rem;
-  border-radius: 99px;
-  font-size: 0.65rem;
-  font-weight: 600;
-  margin-top: 0.25rem;
-}
-
-.payment-status.status-success {
-  background: #ECFDF5;
-  color: #047857;
-}
-
-.payment-status.status-pending {
-  background: #FFFBEB;
-  color: #B45309;
-}
-
-.payment-status.status-failed {
-  background: #FEF2F2;
-  color: #DC2626;
-}
-
-/* Empty States */
-.empty-activity, .empty-vibes {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 4rem 2rem;
-  color: #6B7280;
-  text-align: center;
-}
-
-.empty-activity svg, .empty-vibes svg {
-  width: 48px;
-  height: 48px;
-  margin-bottom: 1rem;
-  stroke: #E5E7EB;
-}
-
-.empty-vibes h4 {
-  margin: 0 0 0.5rem 0;
-  color: #666;
-}
-
-/* Image Preview Modal */
-.image-preview-overlay {
-  z-index: 9999;
-  background: rgba(0, 0, 0, 0.9);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.image-preview-container {
-  position: relative;
-  max-width: 90vw;
-  max-height: 90vh;
-}
-
-.preview-image {
-  max-width: 100%;
-  max-height: 90vh;
-  object-fit: contain;
-  border-radius: 8px;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-}
-
-.preview-close {
-  position: absolute;
-  top: -40px;
-  right: -40px;
-  background: none;
-  border: none;
-  color: white;
-  font-size: 2rem;
-  cursor: pointer;
-  padding: 10px;
-}
-
-.preview-close:hover {
-  opacity: 0.8;
-}
-
-@media (max-width: 768px) {
-  .preview-close {
-    top: -40px;
-    right: 0;
-  }
-}
-
-.empty-vibes p {
-  margin: 0;
-  font-size: 0.875rem;
-}
-
-/* Vibes Grid */
-.vibes-grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 1rem;
-}
-
-.vibe-card {
-  background: white;
-  border-radius: 12px;
-  padding: 1.25rem;
-  border: 1px solid #E5E7EB;
-}
-
-.vibe-card__question {
-  display: flex;
-  font-size: 0.75rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.3px;
-  color: #888;
-  margin-bottom: 0.5rem;
-}
-
-.vibe-number {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 18px;
-  height: 18px;
-  background: var(--color-primary);
-  color: white;
-  font-size: 0.65rem;
-  font-weight: 700;
-  border-radius: 50%;
-  flex-shrink: 0;
-}
-
-.vibe-card__answer {
-  font-size: 0.9375rem;
-  font-weight: 600;
-  color: #1a1a1a;
-  line-height: 1.4;
-}
-
-/* Button with icon */
-.btn-icon {
-  width: 16px;
-  height: 16px;
-  margin-right: 0.5rem;
-  stroke: currentColor;
-}
-
-/* Utility classes */
-.btn-sm { padding: 0.4rem 0.8rem; font-size: 0.75rem; }
-.text-center { text-align: center; }
-.py-8 { padding-top: 2rem; padding-bottom: 2rem; }
-.text-muted { color: var(--color-text-muted); }
-.cursor-pointer { cursor: pointer; }
-.flex { display: flex; }
-.items-center { align-items: center; }
-.gap-2 { gap: 0.5rem; }
-.gap-3 { gap: 0.75rem; }
-.w-10 { width: 2.5rem; }
-.h-10 { height: 2.5rem; }
-.rounded-full { border-radius: 9999px; }
-.text-lg { font-size: 1.125rem; }
-.text-xl { font-size: 1.25rem; }
-.grid { display: grid; }
-.grid-cols-1 { grid-template-columns: repeat(1, minmax(0, 1fr)); }
-.md\:grid-cols-2 { 
-  @media (min-width: 768px) {
-    grid-template-columns: repeat(2, minmax(0, 1fr)); 
-  }
-}
-.gap-8 { gap: 2rem; }
-.space-y-4 > :not([hidden]) ~ :not([hidden]) { --tw-space-y-reverse: 0; margin-top: calc(1rem * calc(1 - var(--tw-space-y-reverse))); margin-bottom: calc(1rem * var(--tw-space-y-reverse)); }
-.justify-between { justify-content: space-between; }
-.bg-gray-50 { background-color: #F9FAFB; }
-.p-3 { padding: 0.75rem; }
-.rounded-lg { border-radius: 0.5rem; }
-.font-mono { font-family: monospace; }
-.bg-blue-50 { background-color: #EFF6FF; }
-.p-4 { padding: 1rem; }
-.border-blue-100 { border-color: #DBEAFE; }
-.text-blue-900 { color: #1E3A8A; }
-.text-blue-800 { color: #1E40AF; }
-.max-h-\[400px\] { max-height: 400px; }
-.overflow-y-auto { overflow-y: auto; }
-.pr-2 { padding-right: 0.5rem; }
-.text-gray-800 { color: #1F2937; }
-.font-medium { font-weight: 500; }
-.border-b { border-bottom-width: 1px; }
-.border-gray-100 { border-color: #F3F4F6; }
-.pb-2 { padding-bottom: 0.5rem; }
-.mb-4 { margin-bottom: 1rem; }
-.mb-2 { margin-bottom: 0.5rem; }
-.mb-1 { margin-bottom: 0.25rem; }
-
-/* Bio and Interests Styles */
-.info-card--full {
-  grid-column: 1 / -1;
-}
-
-.bio-text {
-  font-style: italic;
-  color: #4B5563;
-  line-height: 1.6;
-  padding: 0.75rem 1rem;
-  background: #F9FAFB;
-  border-radius: 8px;
-  border-left: 3px solid #E5E7EB;
-}
-
-.bio-text--empty {
-  color: #9CA3AF;
-  font-size: 0.875rem;
-}
-
-.interests-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-}
-
-.interest-tag {
-  display: inline-block;
-  padding: 0.375rem 0.75rem;
-  background: #F3F4F6;
-  color: #374151;
-  border-radius: 9999px;
-  font-size: 0.8125rem;
-  font-weight: 500;
-  border: 1px solid #E5E7EB;
-}
-
-.age-range-badge {
-  display: inline-block;
-  padding: 0.25rem 0.75rem;
-  background: #EFF6FF;
-  color: #1E40AF;
-  border-radius: 9999px;
-  font-size: 0.8125rem;
-  font-weight: 600;
-}
-
-/* Badge Management */
-.badges-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-  gap: 0.5rem;
-  margin-bottom: 1rem;
-}
-
-.badge-toggle {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem 0.75rem;
-  background: #F9FAFB;
-  border: 2px solid #E5E7EB;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: all 0.2s;
-  font-size: 0.75rem;
-  font-weight: 500;
-}
-
-.badge-toggle:hover {
-  border-color: #D1D5DB;
-  background: #F3F4F6;
-}
-
-.badge-toggle--active {
-  border-color: currentColor;
-}
-
-.badge-toggle__icon {
-  width: 16px;
-  height: 16px;
-  flex-shrink: 0;
-}
-
-.badge-toggle__icon svg {
-  width: 100%;
-  height: 100%;
-}
-
-.badge-toggle__name {
-  flex: 1;
-  text-align: left;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.badge-toggle__status {
-  flex-shrink: 0;
-  font-weight: 700;
-}
-
-.badge-actions {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding-top: 0.75rem;
-  border-top: 1px solid #E5E7EB;
-}
-
-.save-success {
-  color: #059669;
-  font-size: 0.75rem;
-  font-weight: 600;
-}
-
-/* Dealbreakers */
-.dealbreakers-list {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.text-brand-600 {
-  color: #000000;
-}
-.status-incognito {
-  background: #F3F4F6;
-  color: #6B7280;
+.user-modal {
+  max-width: 920px;
 }
 </style>

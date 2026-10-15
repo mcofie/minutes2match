@@ -1,514 +1,349 @@
 <template>
-  <div>
-    <!-- Actions -->
-    <div class="flex justify-between items-center mb-6">
-      <h1 class="text-xl font-bold m-0">Events</h1>
-      <button class="btn-primary" @click="showModal = true">+ New Event</button>
-    </div>
+  <div class="ad-page ad-page--wide">
+    <header class="ad-head">
+      <div>
+        <h1 class="ad-title">Events</h1>
+        <p class="ad-sub">Create events, track ticket sales and invite the right people.</p>
+      </div>
+      <button class="btn-primary" @click="showModal = true">New event</button>
+    </header>
 
-    <!-- Loading State -->
-    <div v-if="loading" class="state-loading">Loading events...</div>
-    
-    <!-- Empty State -->
-    <div v-else-if="events.length === 0" class="state-empty">
-      <p>No events yet. Create your first event!</p>
-    </div>
-    
-    <!-- Events Grid -->
-    <div v-else class="card-grid">
-      <div v-for="event in events" :key="event.id" class="admin-card">
-        <div class="relative h-32 bg-stone-100 -mx-6 -mt-6 mb-4 overflow-hidden">
-          <img v-if="event.cover_image_url" :src="event.cover_image_url" class="w-full h-full object-cover" />
-          <div v-else class="w-full h-full flex items-center justify-center text-stone-300 text-4xl">🎫</div>
-          <div class="absolute top-2 right-2 flex gap-1">
-            <span v-if="!event.is_public" class="badge badge--purple" title="Invite Only">
-              🔒 Invite
-            </span>
-            <span class="badge" :class="getStatusClass(event.status)">
-              {{ event.status.replace('_', ' ') }}
-            </span>
-          </div>
-        </div>
-        
-        <div class="text-xs text-muted font-bold font-mono mb-2">{{ formatDate(event.event_date) }}</div>
-        
-        <h3 class="admin-card__title">{{ event.title }}</h3>
-        <p class="admin-card__subtitle mb-4">📍 {{ event.venue }}</p>
-        
-        <div class="bg-gray-50 rounded-lg p-3 my-4 flex justify-between border border-gray-100">
-          <div class="text-center flex-1 border-r border-gray-200">
-            <span class="block text-xs uppercase text-muted tracking-wider mb-1">Male</span>
-            <span class="font-bold text-lg">{{ event.male_tickets_sold }}/{{ event.male_capacity }}</span>
-          </div>
-          <div class="text-center flex-1">
-            <span class="block text-xs uppercase text-muted tracking-wide mb-1">Female</span>
-            <span class="font-bold text-lg">{{ event.female_tickets_sold }}/{{ event.female_capacity }}</span>
-          </div>
-        </div>
-        
-        <div class="admin-card__actions">
-          <button @click="editEvent(event)" class="btn-secondary flex-1">Edit</button>
-          <button @click="viewBookings(event)" class="btn-secondary flex-1">Bookings</button>
-          <button @click="openQualifyModal(event)" class="btn-primary flex-1">Qualify</button>
-        </div>
+    <div v-if="loading" class="ad-panel"><div class="ad-empty"><span class="ad-spinner"></span></div></div>
+
+    <div v-else-if="events.length === 0" class="ad-panel">
+      <div class="ad-empty">
+        <p class="ad-empty__title">No events yet</p>
+        <p>Create your first one to start selling tickets.</p>
+        <button class="btn-primary mt-5" @click="showModal = true">New event</button>
       </div>
     </div>
-    
-    <!-- Pagination -->
-    <Pagination 
-      v-if="!loading && events.length > 0"
-      class="mt-6"
-      :current-page="currentPage" 
-      :total-pages="Math.ceil(totalEvents / pageSize)" 
-      :total-items="totalEvents"
-      :page-size="pageSize"
-      @page-change="handlePageChange"
-    />
 
-    <!-- Create/Edit Modal -->
-    <Teleport to="body">
-      <div v-if="showModal" class="modal-overlay" @click.self="closeModal">
-        <div class="modal modal--large">
-          <div class="modal__header">
-            <h2 class="modal__title">{{ editingEvent ? 'Edit Event' : 'Create Event' }}</h2>
-            <button class="modal__close" @click="closeModal">×</button>
+    <div v-else class="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3">
+      <article v-for="event in events" :key="event.id" class="ad-panel flex flex-col !p-0 overflow-hidden">
+        <button class="relative block aspect-[2/1] w-full overflow-hidden bg-[#f1efec]" :aria-label="`Open ${event.title}`" @click="viewBookings(event)">
+          <img v-if="event.cover_image_url" :src="event.cover_image_url" alt="" class="h-full w-full object-cover" />
+          <svg v-else class="absolute left-1/2 top-1/2 h-8 w-8 -translate-x-1/2 -translate-y-1/2 text-[#c9c3bb]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          <span class="absolute left-3 top-3 flex gap-1">
+            <span class="ad-pill shadow-sm" :class="getStatusClass(event.status) || '!bg-white'">{{ statusLabel(event.status) }}</span>
+            <span v-if="!event.is_public" class="ad-pill ad-pill--plain !bg-white shadow-sm">Invite only</span>
+          </span>
+        </button>
+
+        <div class="flex flex-1 flex-col p-5">
+          <p class="text-xs font-medium ad-muted">{{ formatDate(event.event_date) }}</p>
+          <h3 class="font-display mt-1 text-[1.35rem] leading-tight">{{ event.title }}</h3>
+          <p class="mt-1 text-sm ad-muted">{{ event.venue }}</p>
+
+          <div class="mt-4 space-y-2">
+            <div v-for="side in [
+              { label: 'Men', sold: event.male_tickets_sold || 0, cap: event.male_capacity || 0 },
+              { label: 'Women', sold: event.female_tickets_sold || 0, cap: event.female_capacity || 0 }
+            ]" :key="side.label" class="grid grid-cols-[3.5rem_1fr_auto] items-center gap-3 text-xs" :title="`${side.label}: ${side.sold} of ${side.cap} sold`">
+              <span class="ad-muted">{{ side.label }}</span>
+              <span class="h-1.5 overflow-hidden rounded-full bg-[#f1efec]">
+                <span class="block h-full rounded-full" :class="side.cap && side.sold >= side.cap ? 'bg-[#ed1c24]' : 'bg-[#393737]'" :style="{ width: (side.cap ? Math.min(100, (side.sold / side.cap) * 100) : 0) + '%' }"></span>
+              </span>
+              <span class="ad-num font-medium">{{ side.sold }}/{{ side.cap }}</span>
+            </div>
           </div>
-          
+
+          <div class="mt-auto flex gap-2 pt-5">
+            <button class="btn-ink btn-sm flex-1" @click="viewBookings(event)">Bookings</button>
+            <button class="btn-secondary btn-sm flex-1" @click="openQualifyModal(event)">Invite</button>
+            <button class="ad-icon-btn !h-8 !w-8" title="Edit event" aria-label="Edit event" @click="editEvent(event)">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+            </button>
+          </div>
+        </div>
+      </article>
+    </div>
+
+    <div v-if="!loading && totalEvents > pageSize" class="ad-pager">
+      <span>{{ (currentPage - 1) * pageSize + 1 }}–{{ Math.min(currentPage * pageSize, totalEvents) }} of {{ totalEvents }}</span>
+      <div class="ad-pager__buttons">
+        <button class="btn-secondary btn-sm" :disabled="currentPage === 1" @click="handlePageChange(currentPage - 1)">Previous</button>
+        <button class="btn-secondary btn-sm" :disabled="currentPage * pageSize >= totalEvents" @click="handlePageChange(currentPage + 1)">Next</button>
+      </div>
+    </div>
+
+    <!-- Create / edit -->
+    <Teleport to="body">
+      <div v-if="showModal" class="m2m-app m2m-admin modal-overlay" @click.self="closeModal">
+        <div class="modal modal--large" role="dialog" aria-modal="true" aria-labelledby="event-form-title">
+          <div class="modal__header">
+            <h2 id="event-form-title" class="modal__title">{{ editingEvent ? 'Edit event' : 'New event' }}</h2>
+            <button class="modal__close" aria-label="Close" @click="closeModal">×</button>
+          </div>
+
           <div class="modal__content">
-            <form @submit.prevent="saveEvent">
-              
-              <!-- Image Upload -->
-              <div class="form-group">
-                <label class="form-label">Event Cover Image</label>
-                <div class="flex items-center gap-4">
-                  <div class="w-24 h-24 bg-stone-100 rounded-lg overflow-hidden border border-stone-200 flex items-center justify-center relative">
-                    <img v-if="form.cover_image_url" :src="form.cover_image_url" class="w-full h-full object-cover" />
-                    <span v-else class="text-2xl">📷</span>
-                    <div v-if="uploading" class="absolute inset-0 bg-black/50 flex items-center justify-center">
-                      <div class="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                    </div>
-                  </div>
-                  <div class="flex-1">
-                    <input 
-                      type="file" 
-                      accept="image/*" 
-                      @change="handleImageUpload" 
-                      class="block w-full text-sm text-stone-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-black file:text-white hover:file:bg-stone-800"
-                    />
-                    <p class="text-xs text-stone-400 mt-1">Recommended: 1200x600px JPG or PNG</p>
-                  </div>
+            <form class="space-y-6" @submit.prevent="saveEvent">
+              <div class="flex items-center gap-4">
+                <div class="relative h-20 w-32 shrink-0 overflow-hidden rounded-2xl bg-[#f1efec]">
+                  <img v-if="form.cover_image_url" :src="form.cover_image_url" alt="" class="h-full w-full object-cover" />
+                  <div v-if="uploading" class="absolute inset-0 flex items-center justify-center bg-white/70"><span class="ad-spinner"></span></div>
+                </div>
+                <div class="min-w-0">
+                  <label class="btn-secondary btn-sm cursor-pointer">
+                    {{ form.cover_image_url ? 'Change cover' : 'Upload cover' }}
+                    <input type="file" accept="image/*" class="sr-only" @change="handleImageUpload" />
+                  </label>
+                  <p class="mt-1.5 text-xs ad-faint">1200×600 JPG or PNG works best.</p>
                 </div>
               </div>
 
-              <div class="form-group">
-                <label class="form-label">Event Title</label>
-                <input v-model="form.title" type="text" class="form-input" required placeholder="e.g. Singles Mixer in Accra" />
-              </div>
-              
-              <div class="form-group">
-                <label class="form-label">Description</label>
-                <textarea v-model="form.description" rows="3" class="form-input" placeholder="Event details..."></textarea>
-              </div>
-              
-              <div class="grid grid-cols-2 gap-4">
-                <div class="form-group">
-                  <label class="form-label">Date & Time</label>
-                  <input v-model="form.event_date" type="datetime-local" class="form-input" required />
+              <fieldset class="space-y-4">
+                <legend class="ad-label">Details</legend>
+                <div>
+                  <label class="form-label" for="ev-title">Title</label>
+                  <input id="ev-title" v-model="form.title" type="text" class="form-input" required placeholder="e.g. Singles Mixer in Accra" />
                 </div>
-                <div class="form-group">
-                  <label class="form-label">Venue Name</label>
-                  <input v-model="form.venue" type="text" class="form-input" required placeholder="e.g. Zen Garden" />
+                <div>
+                  <label class="form-label" for="ev-desc">Description</label>
+                  <textarea id="ev-desc" v-model="form.description" rows="3" class="form-input" placeholder="What should guests know?"></textarea>
                 </div>
-              </div>
-              
-              <div class="form-group">
-                <label class="form-label">Venue Address</label>
-                <input v-model="form.venue_address" type="text" class="form-input" placeholder="Full address for map..." />
-              </div>
-              
-              <div class="grid grid-cols-2 gap-4">
-                <div class="form-group">
-                  <label class="form-label">Male Capacity</label>
-                  <input v-model.number="form.male_capacity" type="number" min="1" class="form-input" required />
+                <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  <div>
+                    <label class="form-label" for="ev-date">Date and time</label>
+                    <input id="ev-date" v-model="form.event_date" type="datetime-local" class="form-input" required />
+                  </div>
+                  <div>
+                    <label class="form-label" for="ev-venue">Venue</label>
+                    <input id="ev-venue" v-model="form.venue" type="text" class="form-input" required placeholder="e.g. Zen Garden" />
+                  </div>
                 </div>
-                <div class="form-group">
-                  <label class="form-label">Female Capacity</label>
-                  <input v-model.number="form.female_capacity" type="number" min="1" class="form-input" required />
+                <div>
+                  <label class="form-label" for="ev-address">Address</label>
+                  <input id="ev-address" v-model="form.venue_address" type="text" class="form-input" placeholder="Full address, for the map" />
                 </div>
-              </div>
-              
-              <div class="grid grid-cols-2 gap-4">
-                <div class="form-group">
-                  <label class="form-label">Male Ticket (GH₵)</label>
-                  <input v-model.number="form.ticket_price_male" type="number" min="0" step="0.01" class="form-input" required />
-                </div>
-                <div class="form-group">
-                  <label class="form-label">Female Ticket (GH₵)</label>
-                  <input v-model.number="form.ticket_price_female" type="number" min="0" step="0.01" class="form-input" required />
-                </div>
-              </div>
-              
-              <div class="grid grid-cols-2 gap-4">
-                <div class="form-group">
-                  <label class="form-label">Male Min Age</label>
-                  <input v-model.number="form.male_min_age" type="number" min="18" class="form-input" placeholder="e.g. 25" />
-                </div>
-                <div class="form-group">
-                  <label class="form-label">Male Max Age</label>
-                  <input v-model.number="form.male_max_age" type="number" min="18" class="form-input" placeholder="e.g. 40" />
-                </div>
-              </div>
+              </fieldset>
 
-              <div class="grid grid-cols-2 gap-4">
-                <div class="form-group">
-                  <label class="form-label">Female Min Age</label>
-                  <input v-model.number="form.female_min_age" type="number" min="18" class="form-input" placeholder="e.g. 21" />
+              <fieldset>
+                <legend class="ad-label">Tickets and guests</legend>
+                <div class="overflow-hidden rounded-2xl border border-[#ece8e3]">
+                  <div class="grid grid-cols-[5rem_1fr_1fr] gap-3 border-b border-[#ece8e3] bg-[#faf8f5] px-4 py-2 text-xs ad-muted sm:grid-cols-[5rem_1fr_1fr_1fr_1fr]">
+                    <span></span><span>Capacity</span><span>Price (GH₵)</span><span class="hidden sm:block">Min age</span><span class="hidden sm:block">Max age</span>
+                  </div>
+                  <div class="grid grid-cols-[5rem_1fr_1fr] items-center gap-3 border-b border-[#f3f1ee] px-4 py-3 sm:grid-cols-[5rem_1fr_1fr_1fr_1fr]">
+                    <span class="text-sm font-medium">Men</span>
+                    <input v-model.number="form.male_capacity" type="number" min="1" class="form-input" required aria-label="Men capacity" />
+                    <input v-model.number="form.ticket_price_male" type="number" min="0" step="0.01" class="form-input" required aria-label="Men ticket price" />
+                    <input v-model.number="form.male_min_age" type="number" min="18" class="form-input max-sm:col-start-2" placeholder="25" aria-label="Men minimum age" />
+                    <input v-model.number="form.male_max_age" type="number" min="18" class="form-input" placeholder="40" aria-label="Men maximum age" />
+                  </div>
+                  <div class="grid grid-cols-[5rem_1fr_1fr] items-center gap-3 px-4 py-3 sm:grid-cols-[5rem_1fr_1fr_1fr_1fr]">
+                    <span class="text-sm font-medium">Women</span>
+                    <input v-model.number="form.female_capacity" type="number" min="1" class="form-input" required aria-label="Women capacity" />
+                    <input v-model.number="form.ticket_price_female" type="number" min="0" step="0.01" class="form-input" required aria-label="Women ticket price" />
+                    <input v-model.number="form.female_min_age" type="number" min="18" class="form-input max-sm:col-start-2" placeholder="21" aria-label="Women minimum age" />
+                    <input v-model.number="form.female_max_age" type="number" min="18" class="form-input" placeholder="35" aria-label="Women maximum age" />
+                  </div>
                 </div>
-                <div class="form-group">
-                  <label class="form-label">Female Max Age</label>
-                  <input v-model.number="form.female_max_age" type="number" min="18" class="form-input" placeholder="e.g. 35" />
-                </div>
-              </div>
-              
-              <div class="grid grid-cols-2 gap-4">
-                <div class="form-group">
-                  <label class="form-label">Status</label>
-                  <select v-model="form.status" class="form-select">
-                    <option value="draft">Draft (Hidden)</option>
-                    <option value="open">Open (Selling tickets)</option>
-                    <option value="waitlist">Waitlist (Full)</option>
-                    <option value="sold_out">Sold Out</option>
+              </fieldset>
+
+              <fieldset class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <legend class="ad-label">Publishing</legend>
+                <div>
+                  <label class="form-label" for="ev-status">Status</label>
+                  <select id="ev-status" v-model="form.status" class="ad-select w-full !h-[44px]">
+                    <option value="draft">Draft (hidden)</option>
+                    <option value="open">Open (selling tickets)</option>
+                    <option value="waitlist">Waitlist (full)</option>
+                    <option value="sold_out">Sold out</option>
                     <option value="completed">Completed</option>
                   </select>
                 </div>
-                
-                <div class="form-group">
-                  <label class="form-label">Visibility</label>
-                  <select v-model="form.is_public" class="form-select">
-                    <option :value="true">🌍 Public (Everyone)</option>
-                    <option :value="false">🔒 Invite Only (Qualified users)</option>
+                <div>
+                  <label class="form-label" for="ev-visibility">Who can see it</label>
+                  <select id="ev-visibility" v-model="form.is_public" class="ad-select w-full !h-[44px]">
+                    <option :value="true">Everyone</option>
+                    <option :value="false">Invited members only</option>
                   </select>
-                  <p class="text-xs text-stone-400 mt-1">{{ form.is_public ? 'All users can see this event' : 'Only qualified users can see this event' }}</p>
                 </div>
-              </div>
+              </fieldset>
             </form>
           </div>
-          
+
           <div class="modal__footer">
-            <button type="button" @click="closeModal" class="btn-secondary">Cancel</button>
-            <button type="button" @click="saveEvent" class="btn-primary" :disabled="saving">
-              {{ saving ? 'Saving...' : 'Save Event' }}
-            </button>
+            <button type="button" class="btn-secondary" @click="closeModal">Cancel</button>
+            <button type="button" class="btn-primary" :disabled="saving" @click="saveEvent">{{ saving ? 'Saving…' : editingEvent ? 'Save changes' : 'Create event' }}</button>
           </div>
         </div>
       </div>
     </Teleport>
 
-    <!-- User Qualification Modal -->
+    <!-- Invite (qualify) members -->
     <Teleport to="body">
-      <div v-if="showQualifyModal" class="modal-overlay" @click.self="closeQualifyModal">
-        <div class="modal modal--large">
+      <div v-if="showQualifyModal" class="m2m-app m2m-admin modal-overlay" @click.self="closeQualifyModal">
+        <div class="modal modal--large !max-w-[980px]" role="dialog" aria-modal="true" aria-labelledby="qualify-title">
           <div class="modal__header">
             <div>
-              <h2 class="modal__title">Qualify Users</h2>
-              <p class="text-xs text-muted mt-1">{{ qualifyingEvent?.title }}</p>
+              <h2 id="qualify-title" class="modal__title">Invite members</h2>
+              <p class="modal__sub">{{ qualifyingEvent?.title }}</p>
             </div>
-            <button class="modal__close" @click="closeQualifyModal">×</button>
+            <button class="modal__close" aria-label="Close" @click="closeQualifyModal">×</button>
           </div>
-          
-          <!-- Capacity Indicator -->
-          <div class="capacity-bar">
-            <div class="capacity-item">
-              <span class="capacity-label">👨 Male</span>
-              <div class="capacity-progress">
-                <div 
-                  class="capacity-fill capacity-fill--male" 
-                  :style="{ width: maleCapacityPercent + '%' }"
-                ></div>
+
+          <div class="space-y-4 border-b border-[#ece8e3] px-6 py-4">
+            <div class="grid grid-cols-1 gap-x-8 gap-y-2 sm:grid-cols-2">
+              <div v-for="side in [
+                { label: 'Men', count: qualifiedMaleCount, cap: qualifyingEvent?.male_capacity || 0, pct: maleCapacityPercent, left: remainingMaleSlots },
+                { label: 'Women', count: qualifiedFemaleCount, cap: qualifyingEvent?.female_capacity || 0, pct: femaleCapacityPercent, left: remainingFemaleSlots }
+              ]" :key="side.label" class="grid grid-cols-[3.5rem_1fr_auto] items-center gap-3 text-sm">
+                <span class="ad-muted">{{ side.label }}</span>
+                <span class="h-1.5 overflow-hidden rounded-full bg-[#f1efec]"><span class="block h-full rounded-full bg-[#393737]" :style="{ width: side.pct + '%' }"></span></span>
+                <span class="ad-num" :class="side.count > side.cap ? 'font-semibold text-[#b4232a]' : ''">{{ side.count }}/{{ side.cap }} <span class="text-xs ad-faint">· {{ side.left }} left</span></span>
               </div>
-              <span class="capacity-count" :class="{ 'text-red-500': qualifiedMaleCount > qualifyingEvent?.male_capacity }">
-                {{ qualifiedMaleCount }}/{{ qualifyingEvent?.male_capacity }}
-              </span>
             </div>
-            <div class="capacity-item">
-              <span class="capacity-label">👩 Female</span>
-              <div class="capacity-progress">
-                <div 
-                  class="capacity-fill capacity-fill--female" 
-                  :style="{ width: femaleCapacityPercent + '%' }"
-                ></div>
+            <div class="flex flex-wrap items-center justify-between gap-3">
+              <div class="ad-tabs">
+                <button v-for="mode in [
+                  { key: 'all', label: 'Everyone' },
+                  { key: 'male', label: 'Fill men' },
+                  { key: 'female', label: 'Fill women' },
+                  { key: 'balanced', label: 'Balanced' }
+                ]" :key="mode.key" class="ad-tab !h-8" :class="{ 'is-active': availabilityMode === mode.key }" @click="availabilityMode = mode.key as any">{{ mode.label }}</button>
               </div>
-              <span class="capacity-count" :class="{ 'text-red-500': qualifiedFemaleCount > qualifyingEvent?.female_capacity }">
-                {{ qualifiedFemaleCount }}/{{ qualifyingEvent?.female_capacity }}
-              </span>
+              <div class="flex items-center gap-3 text-xs ad-muted">
+                <button v-if="neededGenderFilter" class="btn-ghost btn-sm" @click="prefillNeededGender">Show only {{ neededGenderFilter === 'male' ? 'men' : 'women' }}</button>
+                <span>{{ notifiedQualifiedCount }} invited · {{ selectedAvailableUserIds.length }} selected</span>
+              </div>
             </div>
           </div>
 
-          <div class="px-6 py-4 border-b border-gray-100 bg-white">
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
-              <div class="rounded-xl border border-stone-200 bg-stone-50 px-4 py-3">
-                <p class="text-[10px] uppercase tracking-widest text-stone-400 font-bold">Remaining Male</p>
-                <p class="text-lg font-bold text-stone-900">{{ remainingMaleSlots }}</p>
-              </div>
-              <div class="rounded-xl border border-stone-200 bg-stone-50 px-4 py-3">
-                <p class="text-[10px] uppercase tracking-widest text-stone-400 font-bold">Remaining Female</p>
-                <p class="text-lg font-bold text-stone-900">{{ remainingFemaleSlots }}</p>
-              </div>
-              <div class="rounded-xl border border-stone-200 bg-stone-50 px-4 py-3">
-                <p class="text-[10px] uppercase tracking-widest text-stone-400 font-bold">Invites Sent</p>
-                <p class="text-lg font-bold text-stone-900">{{ notifiedQualifiedCount }}</p>
-              </div>
-              <div class="rounded-xl border border-stone-200 bg-stone-50 px-4 py-3">
-                <p class="text-[10px] uppercase tracking-widest text-stone-400 font-bold">Selected</p>
-                <p class="text-lg font-bold text-stone-900">{{ selectedAvailableUserIds.length }}</p>
-              </div>
-            </div>
-
-            <div class="mt-3 flex flex-wrap gap-2">
-              <button class="quick-chip" :class="{ 'quick-chip--active': availabilityMode === 'all' }" @click="availabilityMode = 'all'">All Available</button>
-              <button class="quick-chip" :class="{ 'quick-chip--active': availabilityMode === 'male' }" @click="availabilityMode = 'male'">Fill Male Slots</button>
-              <button class="quick-chip" :class="{ 'quick-chip--active': availabilityMode === 'female' }" @click="availabilityMode = 'female'">Fill Female Slots</button>
-              <button class="quick-chip" :class="{ 'quick-chip--active': availabilityMode === 'balanced' }" @click="availabilityMode = 'balanced'">Balanced Picks</button>
-              <button class="quick-chip" @click="prefillNeededGender" :disabled="!neededGenderFilter">Use Needed Gender</button>
-            </div>
-          </div>
-          
-          <div class="modal__content grid grid-cols-1 md:grid-cols-2 gap-6 h-[55vh]">
-            <!-- Available Users -->
-            <div class="flex flex-col h-full">
-              <!-- Filters Row -->
-              <div class="grid grid-cols-2 md:grid-cols-4 gap-2 mb-3">
-                <input
-                  type="text"
-                  v-model="userSearch"
-                  placeholder="Search..."
-                  class="form-input text-sm"
-                />
-                <select v-model="filterGender" class="form-select text-sm">
-                  <option value="">All Genders</option>
-                  <option value="male">Male</option>
-                  <option value="female">Female</option>
+          <div class="modal__content grid h-[55vh] grid-cols-1 gap-6 md:grid-cols-2">
+            <!-- Available -->
+            <div class="flex min-h-0 flex-col">
+              <div class="mb-3 grid grid-cols-2 gap-2">
+                <label class="ad-search col-span-2">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><line x1="20" y1="20" x2="16.5" y2="16.5"/></svg>
+                  <input v-model="userSearch" type="search" placeholder="Search members" aria-label="Search members" />
+                </label>
+                <select v-model="filterGender" class="ad-select" aria-label="Gender">
+                  <option value="">Any gender</option>
+                  <option value="male">Men</option>
+                  <option value="female">Women</option>
                 </select>
-                <select v-model="filterPersona" class="form-select text-sm">
-                  <option value="">All Personas</option>
-                  <option v-for="(p, key) in personas" :key="key" :value="key">{{ p.emoji }} {{ p.name }}</option>
-                </select>
-                <select v-model="availableSort" class="form-select text-sm">
+                <select v-model="availableSort" class="ad-select" aria-label="Sort">
                   <option value="recommended">Recommended</option>
                   <option value="name">Name</option>
                   <option value="gender">Gender</option>
                   <option value="persona">Persona</option>
                 </select>
-              </div>
-              
-              <div class="flex justify-between items-center mb-2">
-                <h4 class="form-label mb-0">Available ({{ visibleAvailableUsers.length }} of {{ filteredAvailableUsers.length }})</h4>
-                <div class="flex items-center gap-3">
-                  <button 
-                    v-if="visibleAvailableUsers.length > 0"
-                    class="text-xs text-stone-500 font-medium hover:underline"
-                    @click="toggleSelectAllVisible"
-                  >
-                    {{ allVisibleSelected ? 'Clear Visible' : `Select Visible (${visibleAvailableUsers.length})` }}
-                  </button>
-                  <button 
-                    v-if="visibleAvailableUsers.length > 0"
-                    class="text-xs text-blue-600 font-medium hover:underline disabled:text-stone-300 disabled:no-underline"
-                    @click="addSelectedUsers"
-                    :disabled="selectedAvailableUserIds.length === 0"
-                  >
-                    + Add Selected ({{ selectedAvailableUserIds.length }})
-                  </button>
-                </div>
-              </div>
-              
-              <div class="border border-gray-100 rounded-lg flex-1 overflow-y-auto bg-gray-50">
-                <div v-if="loadingUsers" class="text-center py-8 text-muted text-xs">Loading...</div>
-                <div v-else-if="visibleAvailableUsers.length === 0" class="text-center py-8 text-muted text-xs">
-                  No users match filters
-                </div>
-                <div
-                  v-else
-                  v-for="user in visibleAvailableUsers"
-                  :key="user.id"
-                  class="user-row"
-                  :class="{ 'user-row--selected': selectedAvailableUserIds.includes(user.id) }"
-                >
-                  <label class="flex items-center gap-3 flex-1 min-w-0 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      class="rounded border-stone-300"
-                      :checked="selectedAvailableUserIds.includes(user.id)"
-                      @change="toggleSelectedAvailableUser(user.id)"
-                    />
-                    <div class="user-avatar-sm" :class="user.gender === 'male' ? 'bg-blue-50 text-blue-600' : 'bg-pink-50 text-pink-600'">
-                      {{ user.display_name?.charAt(0) || '?' }}
-                    </div>
-                    <div class="min-w-0 flex-1">
-                      <div class="flex items-center gap-2">
-                        <strong class="text-sm font-medium truncate">{{ user.display_name }}</strong>
-                        <span v-if="user.dating_persona" class="persona-dot" :style="{ background: getPersona(user.dating_persona)?.color }"></span>
-                        <span v-if="availabilityRecommendation(user)" class="text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full border" :class="availabilityRecommendation(user) === 'Best fit' ? 'text-emerald-700 border-emerald-200 bg-emerald-50' : 'text-sky-700 border-sky-200 bg-sky-50'">
-                          {{ availabilityRecommendation(user) }}
-                        </span>
-                      </div>
-                      <div class="text-xs text-muted flex items-center gap-2 flex-wrap">
-                        <span>{{ user.gender }}</span>
-                        <span v-if="user.dating_persona" class="text-stone-400">• {{ getPersona(user.dating_persona)?.name }}</span>
-                        <span v-if="user.phone" class="text-stone-400">• {{ user.phone }}</span>
-                      </div>
-                      <div v-if="user.interests?.length" class="flex gap-1 mt-1 flex-wrap">
-                        <span 
-                          v-for="interest in user.interests.slice(0, 2)" 
-                          :key="interest" 
-                          class="interest-chip"
-                        >{{ getInterestEmoji(interest) }}</span>
-                        <span v-if="user.interests.length > 2" class="interest-chip">+{{ user.interests.length - 2 }}</span>
-                      </div>
-                    </div>
-                  </label>
-                  <button class="btn-add" @click="addQualification(user.id)">+</button>
-                </div>
-
-                <div v-if="visibleAvailableUsers.length < filteredAvailableUsers.length" class="p-4 border-t border-stone-200 bg-white">
-                  <button class="w-full rounded-xl border border-stone-300 bg-stone-50 px-4 py-3 text-sm font-bold text-stone-700 hover:bg-stone-100 transition-colors" @click="loadMoreAvailableUsers">
-                    Load More ({{ Math.min(availableVisibleCount + availablePageSize, filteredAvailableUsers.length) - visibleAvailableUsers.length }} more)
-                  </button>
-                </div>
-              </div>
-            </div>
-            
-            <!-- Qualified Users -->
-            <div class="flex flex-col h-full">
-              <div class="grid grid-cols-2 gap-2 mb-3">
-                <input
-                  type="text"
-                  v-model="qualifiedSearch"
-                  placeholder="Search qualified..."
-                  class="form-input text-sm"
-                />
-                <select v-model="qualifiedFilter" class="form-select text-sm">
-                  <option value="all">All qualified</option>
-                  <option value="notified">Invites sent</option>
-                  <option value="not_notified">Not yet invited</option>
+                <select v-model="filterPersona" class="ad-select col-span-2" aria-label="Persona">
+                  <option value="">Any persona</option>
+                  <option v-for="(p, key) in personas" :key="key" :value="key">{{ p.name }}</option>
                 </select>
               </div>
 
-              <div class="flex justify-between items-center mb-3 min-h-[32px]">
-                 <h4 class="form-label mb-0">Qualified ({{ filteredQualifiedUsers.length }})</h4>
-                 <div class="flex items-center gap-3">
-                   <button class="text-xs text-stone-500 font-medium hover:underline" @click="removeSelectedQualifiedUsers" v-if="selectedQualifiedUserIds.length">
-                     Remove Selected ({{ selectedQualifiedUserIds.length }})
-                   </button>
-                   <button class="text-xs text-red-500 font-medium hover:underline" @click="clearQualifications" v-if="qualifiedUsers.length">Clear All</button>
-                 </div>
-              </div>
-         
-              <div class="border border-gray-100 rounded-lg flex-1 overflow-y-auto bg-white">
-                <div v-if="filteredQualifiedUsers.length === 0" class="flex flex-col items-center justify-center h-full text-muted text-xs p-8 text-center">
-                  <span class="text-xl mb-2">👥</span>
-                  No users qualified yet
+              <div class="mb-2 flex items-center justify-between gap-2">
+                <h3 class="ad-label !mb-0">Available · {{ filteredAvailableUsers.length }}</h3>
+                <div v-if="visibleAvailableUsers.length > 0" class="flex gap-1">
+                  <button class="btn-ghost btn-sm" @click="toggleSelectAllVisible">{{ allVisibleSelected ? 'Clear' : 'Select shown' }}</button>
+                  <button class="btn-ink btn-sm" :disabled="selectedAvailableUserIds.length === 0" @click="addSelectedUsers">Add {{ selectedAvailableUserIds.length || '' }}</button>
                 </div>
-                <div
-                  v-else
-                  v-for="user in filteredQualifiedUsers"
-                  :key="user.id"
-                  class="user-row"
-                  :class="{ 'user-row--selected': selectedQualifiedUserIds.includes(user.id) }"
-                >
-                  <label class="flex items-center gap-3 flex-1 min-w-0 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      class="rounded border-stone-300"
-                      :checked="selectedQualifiedUserIds.includes(user.id)"
-                      @change="toggleSelectedQualifiedUser(user.id)"
-                    />
-                    <div class="user-avatar-sm" :class="user.gender === 'male' ? 'bg-blue-100 text-blue-700' : 'bg-pink-100 text-pink-700'">
-                      {{ user.display_name?.charAt(0) || '?' }}
-                    </div>
-                    <div class="min-w-0 flex-1">
-                      <div class="flex items-center gap-2">
-                        <strong class="text-sm font-medium truncate">{{ user.display_name }}</strong>
-                        <span v-if="user.dating_persona" class="persona-dot" :style="{ background: getPersona(user.dating_persona)?.color }"></span>
-                        <span class="text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full border" :class="qualificationMetaByUserId[user.id]?.notified_at ? 'text-emerald-700 border-emerald-200 bg-emerald-50' : 'text-stone-500 border-stone-200 bg-stone-50'">
-                          {{ qualificationMetaByUserId[user.id]?.notified_at ? 'Invite Sent' : 'Not Invited' }}
+              </div>
+
+              <div class="min-h-0 flex-1 overflow-y-auto rounded-2xl border border-[#ece8e3]">
+                <div v-if="loadingUsers" class="ad-empty !py-10"><span class="ad-spinner"></span></div>
+                <p v-else-if="visibleAvailableUsers.length === 0" class="ad-empty !py-10">No members match.</p>
+                <template v-else>
+                  <div v-for="user in visibleAvailableUsers" :key="user.id" class="flex items-center gap-3 border-b border-[#f3f1ee] px-3 py-2.5 last:border-0" :class="{ 'bg-[#faf8f5]': selectedAvailableUserIds.includes(user.id) }">
+                    <label class="flex min-w-0 flex-1 cursor-pointer items-center gap-3">
+                      <input type="checkbox" class="h-4 w-4" :checked="selectedAvailableUserIds.includes(user.id)" @change="toggleSelectedAvailableUser(user.id)" />
+                      <span class="ad-avatar ad-avatar--sm">{{ user.display_name?.charAt(0) || '?' }}</span>
+                      <span class="min-w-0 flex-1">
+                        <span class="flex items-center gap-2">
+                          <span class="ad-person__name !font-medium text-sm">{{ user.display_name }}</span>
+                          <span v-if="availabilityRecommendation(user)" class="ad-pill ad-pill--plain !h-5 !text-[11px]" :class="availabilityRecommendation(user) === 'Best fit' ? 'ad-pill--green' : 'ad-pill--blue'">{{ availabilityRecommendation(user) }}</span>
                         </span>
-                      </div>
-                      <div class="text-xs text-muted flex items-center gap-2 flex-wrap">
-                        <span>{{ user.phone }}</span>
-                        <span v-if="qualificationMetaByUserId[user.id]?.notified_at" class="text-stone-400">• {{ formatShortDateTime(qualificationMetaByUserId[user.id]?.notified_at) }}</span>
-                      </div>
-                    </div>
+                        <span class="ad-person__meta capitalize">{{ [user.gender, getPersona(user.dating_persona)?.name].filter(Boolean).join(' · ') }}</span>
+                      </span>
+                    </label>
+                    <button class="ad-icon-btn !h-8 !w-8" title="Add" aria-label="Add" @click="addQualification(user.id)">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                    </button>
+                  </div>
+                  <button v-if="visibleAvailableUsers.length < filteredAvailableUsers.length" class="w-full py-3 text-sm font-medium ad-muted hover:text-[#393737]" @click="loadMoreAvailableUsers">
+                    Show {{ Math.min(availableVisibleCount + availablePageSize, filteredAvailableUsers.length) - visibleAvailableUsers.length }} more
+                  </button>
+                </template>
+              </div>
+            </div>
+
+            <!-- Qualified -->
+            <div class="flex min-h-0 flex-col">
+              <div class="mb-3 grid grid-cols-2 gap-2">
+                <label class="ad-search">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><line x1="20" y1="20" x2="16.5" y2="16.5"/></svg>
+                  <input v-model="qualifiedSearch" type="search" placeholder="Search invited" aria-label="Search invited" />
+                </label>
+                <select v-model="qualifiedFilter" class="ad-select" aria-label="Invite status">
+                  <option value="all">All</option>
+                  <option value="notified">SMS sent</option>
+                  <option value="not_notified">Not sent yet</option>
+                </select>
+              </div>
+
+              <div class="mb-2 flex min-h-8 items-center justify-between gap-2">
+                <h3 class="ad-label !mb-0">On the list · {{ filteredQualifiedUsers.length }}</h3>
+                <div class="flex gap-1">
+                  <button v-if="selectedQualifiedUserIds.length" class="btn-ghost btn-sm" @click="removeSelectedQualifiedUsers">Remove {{ selectedQualifiedUserIds.length }}</button>
+                  <button v-if="qualifiedUsers.length" class="btn-ghost btn-sm !text-[#b4232a]" @click="clearQualifications">Clear all</button>
+                </div>
+              </div>
+
+              <div class="min-h-0 flex-1 overflow-y-auto rounded-2xl border border-[#ece8e3]">
+                <p v-if="filteredQualifiedUsers.length === 0" class="ad-empty !py-10">Nobody on the list yet.</p>
+                <div v-for="user in filteredQualifiedUsers" v-else :key="user.id" class="flex items-center gap-3 border-b border-[#f3f1ee] px-3 py-2.5 last:border-0" :class="{ 'bg-[#faf8f5]': selectedQualifiedUserIds.includes(user.id) }">
+                  <label class="flex min-w-0 flex-1 cursor-pointer items-center gap-3">
+                    <input type="checkbox" class="h-4 w-4" :checked="selectedQualifiedUserIds.includes(user.id)" @change="toggleSelectedQualifiedUser(user.id)" />
+                    <span class="ad-avatar ad-avatar--sm">{{ user.display_name?.charAt(0) || '?' }}</span>
+                    <span class="min-w-0 flex-1">
+                      <span class="ad-person__name !font-medium text-sm">{{ user.display_name }}</span>
+                      <span class="ad-person__meta">
+                        {{ qualificationMetaByUserId[user.id]?.notified_at ? `SMS sent ${formatShortDateTime(qualificationMetaByUserId[user.id]?.notified_at)}` : 'SMS not sent' }}
+                      </span>
+                    </span>
                   </label>
-                  <button class="btn-remove" @click="removeQualification(user.id)">×</button>
+                  <button class="ad-icon-btn !h-8 !w-8 hover:!text-[#b4232a]" title="Remove" aria-label="Remove" @click="removeQualification(user.id)">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="6" y1="6" x2="18" y2="18"/><line x1="18" y1="6" x2="6" y2="18"/></svg>
+                  </button>
                 </div>
               </div>
             </div>
           </div>
-          
+
           <div class="modal__footer">
-            <button class="btn-primary w-full" @click="notifyQualifiedUsers" :disabled="notifying || qualifiedUsers.length === 0">
-              {{ notifying ? 'Sending...' : `Send SMS Invites to ${qualifiedUsers.length} Users` }}
+            <button class="btn-secondary" @click="closeQualifyModal">Done</button>
+            <button class="btn-primary" :disabled="notifying || qualifiedUsers.length === 0" @click="notifyQualifiedUsers">
+              {{ notifying ? 'Sending…' : `Text invites to ${qualifiedUsers.length}` }}
             </button>
           </div>
         </div>
       </div>
     </Teleport>
 
-    <!-- Change Alert Prompt Modal -->
+    <!-- Alert booked guests about changes -->
     <Teleport to="body">
-      <div v-if="showChangeAlertModal" class="modal-overlay" @click.self="closeChangeAlertModal">
-        <div class="modal">
+      <div v-if="showChangeAlertModal" class="m2m-app m2m-admin modal-overlay" @click.self="closeChangeAlertModal">
+        <div class="modal" role="dialog" aria-modal="true" aria-labelledby="change-title">
           <div class="modal__header">
-            <h2 class="modal__title">Event Details Changed</h2>
-            <button class="modal__close" @click="closeChangeAlertModal">×</button>
+            <div>
+              <h2 id="change-title" class="modal__title">Tell booked guests?</h2>
+              <p class="modal__sub">You changed key details of this event.</p>
+            </div>
+            <button class="modal__close" aria-label="Close" @click="closeChangeAlertModal">×</button>
           </div>
           <div class="modal__content">
-            <p class="text-sm text-stone-500 mb-4">
-              You changed key details of this event. Would you like to alert all booked guests via SMS?
-            </p>
-
-            <div class="mb-4">
-              <label class="block text-xs font-bold uppercase tracking-widest text-stone-400 mb-2">
-                SMS Message Text
-              </label>
-              <textarea 
-                v-model="changeAlertMessage" 
-                rows="6" 
-                class="form-input w-full font-mono text-sm p-3 h-auto" 
-                placeholder="Enter alert message..."
-                required
-              ></textarea>
-            </div>
-            
-            <p class="text-xs text-stone-400">
-              Note: <code>{name}</code> will be auto-replaced with each guest's name.
-            </p>
+            <label class="ad-label" for="change-message">SMS</label>
+            <textarea id="change-message" v-model="changeAlertMessage" rows="6" class="form-input text-sm" placeholder="What changed?" required></textarea>
+            <p class="mt-1.5 text-xs ad-faint">{name} becomes each guest's name.</p>
           </div>
-          <div class="modal__footer flex justify-end gap-2">
-            <button 
-              type="button" 
-              @click="closeChangeAlertModal" 
-              class="btn-secondary" 
-              :disabled="sendingChangeAlert"
-            >
-              Cancel
-            </button>
-            <button 
-              type="button" 
-              @click="executeSaveEvent(false)" 
-              class="btn-secondary" 
-              :disabled="sendingChangeAlert"
-            >
-              Save Without Alerts
-            </button>
-            <button 
-              type="button" 
-              @click="executeSaveEvent(true)" 
-              class="btn-primary" 
-              :disabled="sendingChangeAlert || !changeAlertMessage.trim()"
-            >
-              {{ sendingChangeAlert ? 'Sending...' : 'Send Alerts & Save' }}
+          <div class="modal__footer flex-wrap">
+            <button type="button" class="btn-ghost mr-auto" :disabled="sendingChangeAlert" @click="closeChangeAlertModal">Cancel</button>
+            <button type="button" class="btn-secondary" :disabled="sendingChangeAlert" @click="executeSaveEvent(false)">Save only</button>
+            <button type="button" class="btn-primary" :disabled="sendingChangeAlert || !changeAlertMessage.trim()" @click="executeSaveEvent(true)">
+              {{ sendingChangeAlert ? 'Sending…' : 'Save and text guests' }}
             </button>
           </div>
         </div>
@@ -612,12 +447,23 @@ const formatDate = (dateStr: string) => {
 
 const getStatusClass = (status: string) => {
   switch(status) {
-    case 'open': return 'badge--green'
-    case 'waitlist': return 'badge--yellow'
-    case 'sold_out': return 'badge--red'
-    case 'completed': return 'badge--blue'
-    default: return 'badge--gray'
+    case 'open': return 'ad-pill--green'
+    case 'waitlist': return 'ad-pill--amber'
+    case 'sold_out': return 'ad-pill--red'
+    case 'completed': return 'ad-pill--blue'
+    default: return ''
   }
+}
+
+const statusLabel = (status: string) => {
+  const labels: Record<string, string> = {
+    draft: 'Draft',
+    open: 'Open',
+    waitlist: 'Waitlist',
+    sold_out: 'Sold out',
+    completed: 'Completed'
+  }
+  return labels[status] || status.replace(/_/g, ' ')
 }
 
 const editEvent = (event: any) => {
@@ -1201,177 +1047,3 @@ onMounted(() => {
   fetchEvents()
 })
 </script>
-
-<style scoped>
-.badge--purple {
-  background-color: #7C3AED;
-  color: white;
-}
-
-/* Capacity Bar */
-.capacity-bar {
-  display: flex;
-  gap: 1.5rem;
-  padding: 0.75rem 1.5rem;
-  background: #F9FAFB;
-  border-bottom: 1px solid #E5E7EB;
-}
-
-.capacity-item {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  flex: 1;
-}
-
-.capacity-label {
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: #6B7280;
-  min-width: 60px;
-}
-
-.capacity-progress {
-  flex: 1;
-  height: 8px;
-  background: #E5E7EB;
-  border-radius: 4px;
-  overflow: hidden;
-}
-
-.capacity-fill {
-  height: 100%;
-  transition: width 0.3s ease;
-}
-
-.quick-chip {
-  border: 1px solid #E7E5E4;
-  background: #F8F7F5;
-  color: #57534E;
-  border-radius: 9999px;
-  padding: 0.45rem 0.85rem;
-  font-size: 0.7rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-}
-
-.quick-chip--active {
-  background: #111827;
-  color: white;
-  border-color: #111827;
-}
-
-.user-row--selected {
-  background: #F5F3FF;
-  border-left: 3px solid #7C3AED;
-}
-
-.capacity-fill--male {
-  background: linear-gradient(90deg, #3B82F6, #60A5FA);
-}
-
-.capacity-fill--female {
-  background: linear-gradient(90deg, #EC4899, #F472B6);
-}
-
-.capacity-count {
-  font-size: 0.8125rem;
-  font-weight: 700;
-  color: #111827;
-  min-width: 50px;
-  text-align: right;
-}
-
-/* User Row */
-.user-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0.625rem 0.75rem;
-  border-bottom: 1px solid #F3F4F6;
-  transition: background 0.15s;
-}
-
-.user-row:last-child {
-  border-bottom: none;
-}
-
-.user-row:hover {
-  background: white;
-}
-
-/* User Avatar Small */
-.user-avatar-sm {
-  width: 32px;
-  height: 32px;
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.75rem;
-  font-weight: 700;
-  flex-shrink: 0;
-}
-
-/* Persona Dot */
-.persona-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  flex-shrink: 0;
-}
-
-/* Interest Chip */
-.interest-chip {
-  display: inline-block;
-  font-size: 0.6875rem;
-  background: #F3F4F6;
-  padding: 0.125rem 0.375rem;
-  border-radius: 4px;
-}
-
-/* Action Buttons */
-.btn-add {
-  width: 28px;
-  height: 28px;
-  border-radius: 6px;
-  border: 1px solid #E5E7EB;
-  background: white;
-  color: #10B981;
-  font-size: 1rem;
-  font-weight: 700;
-  cursor: pointer;
-  transition: all 0.15s;
-  flex-shrink: 0;
-}
-
-.btn-add:hover {
-  background: #10B981;
-  color: white;
-  border-color: #10B981;
-}
-
-.btn-remove {
-  width: 28px;
-  height: 28px;
-  border-radius: 6px;
-  border: 1px solid #FEE2E2;
-  background: #FEF2F2;
-  color: #EF4444;
-  font-size: 1.125rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.15s;
-  flex-shrink: 0;
-}
-
-.btn-remove:hover {
-  background: #EF4444;
-  color: white;
-}
-
-.text-red-500 {
-  color: #EF4444;
-}
-</style>

@@ -65,7 +65,7 @@ p {
   width: 48px;
   height: 48px;
   border: 4px solid #e5e5e5;
-  border-top-color: #000;
+  border-top-color: #393737;
   border-radius: 50%;
   margin: 0 auto;
   animation: spin 1s infinite linear;

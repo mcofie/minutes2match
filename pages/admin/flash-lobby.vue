@@ -633,7 +633,7 @@ const fetchRealStats = async () => {
     const today = new Date()
     today.setHours(0, 0, 0, 0)
     const { count: mCount } = await supabase.schema('m2m').from('matches')
-      .select('*', { count: 'exact', head: true })
+      .select('id', { count: 'exact', head: true })
       .gte('created_at', today.toISOString())
     matchesToday.value = mCount || 0
     
@@ -943,7 +943,7 @@ onUnmounted(() => {
 
 .stat-card {
   background: white;
-  border: 1px solid #E5E7EB;
+  border: 1px solid #ece8e3;
   border-radius: 16px;
   padding: 1.5rem;
   box-shadow: 0 1px 2px rgba(0,0,0,0.05);

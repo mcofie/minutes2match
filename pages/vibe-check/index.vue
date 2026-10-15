@@ -1094,6 +1094,11 @@ const handleReturningUserCompletion = async () => {
     // Update profile and save vibe answers
     await updateUserProfile(userId)
 
+    // Saving v2 answers clears a retake request in the database (migration 075); clear the cached copy too
+    // so the member area doesn't send them straight back here
+    const dashProfile = useState<any>('dash_profile')
+    if (dashProfile.value?.vibe_check_required) dashProfile.value = { ...dashProfile.value, vibe_check_required: false }
+
     // Save persona to database
     if (assignedPersona.value) {
        await savePersona(userId, assignedPersona.value.id)

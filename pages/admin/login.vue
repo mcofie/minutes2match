@@ -1,13 +1,15 @@
 <template>
-  <div class="admin-login">
+  <div class="m2m-app m2m-admin admin-login">
+    <div aria-hidden="true" class="pointer-events-none absolute left-1/2 top-24 h-80 w-80 -translate-x-1/2 rounded-full bg-[#ed1c24]/[0.045] blur-3xl"></div>
+    <div aria-hidden="true" class="pointer-events-none absolute -right-32 top-48 h-72 w-72 rounded-full bg-[#f3c7bd]/25 blur-3xl"></div>
     <div class="admin-login__container">
       <!-- Logo / Header -->
       <div class="admin-login__header">
-        <div class="admin-login__icon flex justify-center text-black">
-          <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-shield"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+        <div class="admin-login__logo">
+          <NuxtImg format="webp" src="/logo-full.png" alt="Minutes 2 Match" class="admin-login__logo-img" />
         </div>
-        <h1 class="admin-login__title">Admin Portal</h1>
-        <p class="admin-login__subtitle">Restricted Access</p>
+        <h1 class="admin-login__title">Admin portal</h1>
+        <p class="admin-login__subtitle">Restricted access</p>
       </div>
 
       <!-- Email & Password Form -->
@@ -168,44 +170,61 @@ onMounted(async () => {
 
 <style scoped>
 .admin-login {
+  position: relative;
+  overflow: hidden;
   min-height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #F9FAFB;
-  font-family: 'Inter', sans-serif;
+  padding: 1rem;
+  background: linear-gradient(to bottom, #fff, #fff 40%, #f7f7f7);
+  color: #393737;
 }
 
 .admin-login__container {
+  position: relative;
+  z-index: 1;
   background: white;
   width: 100%;
   max-width: 400px;
-  padding: 3rem 2rem;
-  border-radius: 12px;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  padding: 2.75rem 2rem;
+  border-radius: 1.8rem;
+  box-shadow: 0 18px 50px rgba(52, 38, 25, 0.10);
   text-align: center;
-  border: 1px solid #E5E7EB;
+  border: 1px solid rgba(0, 0, 0, 0.04);
 }
 
 .admin-login__header {
   margin-bottom: 2rem;
 }
 
-.admin-login__icon {
-  font-size: 3rem;
-  margin-bottom: 1rem;
+.admin-login__logo {
+  position: relative;
+  margin: 0 auto 1.5rem;
+  height: 2rem;
+  width: 140px;
+  overflow: hidden;
+}
+
+.admin-login__logo-img {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  height: 102px;
+  width: auto;
+  max-width: none;
+  transform: translate(-50%, -50%);
 }
 
 .admin-login__title {
-  font-family: 'Inter', sans-serif;
-  font-size: 1.5rem;
-  font-weight: 700;
+  font-size: 2rem;
+  line-height: 1.1;
   margin: 0 0 0.5rem;
-  color: #000;
+  color: #393737;
 }
 
 .admin-login__subtitle {
-  color: #6B7280;
+  color: #817a72;
   margin: 0;
   font-size: 0.875rem;
 }
@@ -225,44 +244,45 @@ onMounted(async () => {
   font-size: 0.875rem;
   font-weight: 500;
   margin-bottom: 0.5rem;
-  color: #374151;
+  color: #524e4b;
 }
 
 .admin-input {
   width: 100%;
-  padding: 0.75rem 1rem;
-  border: 1px solid #D1D5DB;
-  border-radius: 8px;
-  font-family: 'Inter', sans-serif;
-  font-size: 0.875rem;
-  transition: all 0.2s;
-  background: #F9FAFB;
+  padding: 0.85rem 1.1rem;
+  border: 1px solid #ded9d2;
+  border-radius: 9999px;
+  font-family: inherit;
+  font-size: 0.95rem;
+  color: #393737;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  background: #fff;
 }
 
 .admin-input:focus {
   outline: none;
-  background: white;
-  border-color: #000;
-  box-shadow: 0 0 0 2px rgba(0,0,0,0.05);
+  border-color: #ed1c24;
+  box-shadow: 0 0 0 4px rgba(237, 28, 36, 0.1);
 }
 
 .admin-input::placeholder {
-  color: #9CA3AF;
+  color: #9b9690;
 }
 
 .admin-btn {
   width: 100%;
   margin-top: 0.5rem;
-  background-color: #000;
+  background-color: #ed1c24;
   color: white;
-  border-radius: 8px;
-  padding: 0.75rem;
-  font-weight: 600;
-  font-size: 0.875rem;
+  border-radius: 9999px;
+  padding: 0.9rem;
+  font-weight: 500;
+  font-size: 0.95rem;
+  box-shadow: inset 0 2px 4px 0 rgba(255, 255, 255, 0.2), 0 8px 24px rgba(237, 28, 36, 0.18);
 }
 
-.admin-btn:hover {
-  background-color: #1a1a1a;
+.admin-btn:not(:disabled):hover {
+  background-color: #d71920;
 }
 .admin-btn:disabled {
   opacity: 0.5;
@@ -274,7 +294,7 @@ onMounted(async () => {
   color: #EF4444;
   background: #FEF2F2;
   padding: 0.75rem 1rem;
-  border-radius: 8px;
+  border-radius: 1rem;
   font-size: 0.875rem;
   text-align: left;
   border: 1px solid #FEE2E2;
@@ -284,7 +304,7 @@ onMounted(async () => {
   margin-top: 1.5rem;
   padding: 0.75rem 1rem;
   background: #FEF3C7;
-  border-radius: 8px;
+  border-radius: 1rem;
   font-size: 0.75rem;
   color: #B45309;
 }

@@ -9,6 +9,8 @@ import { SCALE_QUESTIONS, VALUES_KEY, VALUES_QUESTION, parseScaleAnswer, parseVa
 export interface VibeAnswer {
   question_key: string
   answer: string
+  /** What the question measures (love_language, …). Older variants like love_language_v2 only match up through this */
+  dimension?: string | null
 }
 
 export interface UserProfile {
@@ -29,6 +31,8 @@ export interface UserProfile {
   dealbreakers?: { religion?: string[]; intent?: string[]; genotype?: string[] } | string[] | null
   min_age?: number
   max_age?: number
+  /** Meaning vectors of what they look for and how they describe themselves (from their bio) */
+  bio_embeddings?: { seeking?: number[]; self?: number[] } | null
   preferences_extracted?: {
     seeking: {
       attributes: string[]
@@ -73,6 +77,16 @@ export interface CompatibilityResult {
   }
   signals: CompatibilitySignal[]
 }
+
+/** Most points each part of the score can earn (they add up to 100, plus up to 10 for bios) */
+export const BREAKDOWN_MAX = {
+  vibeMatch: 50,
+  goalsMatch: 20,
+  lifestyleMatch: 10,
+  maturityMatch: 10,
+  interestMatch: 10,
+  aiSynergy: 10
+} as const
 
 export const COMPATIBILITY_MAP: Record<string, Record<string, string[]>> = {
   love_language: {
@@ -134,8 +148,8 @@ const addSignal = (signals: CompatibilitySignal[], category: CompatibilitySignal
 }
 
 // Accra neighbourhoods count as Accra; everything compares case-insensitively
-const ACCRA_AREAS = ['accra', 'east legon', 'osu', 'cantonments', 'spintex', 'airport residential', 'labone', 'dzorwulu', 'madina', 'adenta', 'tema']
-const NAIROBI_AREAS = ['nairobi', 'kiambu', 'ruaka', 'ruiru', 'westlands', 'kilimani', 'karen', 'lavington', 'kileleshwa', 'runda', 'parklands']
+export const ACCRA_AREAS = ['accra', 'east legon', 'osu', 'cantonments', 'spintex', 'airport residential', 'labone', 'dzorwulu', 'madina', 'adenta', 'tema']
+export const NAIROBI_AREAS = ['nairobi', 'kiambu', 'ruaka', 'ruiru', 'westlands', 'kilimani', 'karen', 'lavington', 'kileleshwa', 'runda', 'parklands']
 export const normalizeCity = (location?: string | null) => {
   const l = (location || '').trim().toLowerCase().replace(/_/g, ' ').replace(/\s+/g, ' ')
   if (!l || l === 'other') return ''
@@ -163,13 +177,34 @@ export const checkAgeViolation = (user: UserProfile, actualAge: number) => {
   return false
 }
 
-export const isCompatibleProfession = (p1: string, p2: string) => {
-  const technology = ['tech', 'software', 'dev', 'engineer', 'it', 'cyber']
-  const legalFinance = ['law', 'fin', 'bank', 'acc', 'analyst', 'audit']
-  const health = ['med', 'nurse', 'doc', 'pharm']
+// Fields of work, matched on whole words (so "it" doesn't match "digital" or "architect")
+const PROFESSION_FIELDS: RegExp[] = [
+  /\b(tech\w*|software|developer|dev|engineer\w*|it|cyber\w*|data|programm\w*)\b/,
+  /\b(law\w*|legal|financ\w*|bank\w*|account\w*|analyst|audit\w*|invest\w*)\b/,
+  /\b(medic\w*|doctor|nurs\w*|pharma\w*|dentist|physician|health\w*)\b/,
+  /\b(teach\w*|lectur\w*|educat\w*|tutor)\b/,
+  /\b(market\w*|sales|brand\w*|advertis\w*|communications?)\b/,
+  /\b(design\w*|architect\w*|artist|creative|photograph\w*|film\w*)\b/
+]
+export const isCompatibleProfession = (p1: string, p2: string) =>
+  PROFESSION_FIELDS.some(field => field.test(p1) && field.test(p2))
 
-  const check = (list: string[]) => list.some(k => p1.includes(k)) && list.some(k => p2.includes(k))
-  return check(technology) || check(legalFinance) || check(health)
+// "Christianity", "christian " and "Christian" are the same faith
+const normalizeReligion = (r?: string | null) => {
+  const v = (r || '').trim().toLowerCase()
+  if (!v) return ''
+  if (v.startsWith('christ') || ['catholic', 'protestant', 'pentecostal', 'methodist', 'anglican', 'presbyterian', 'adventist'].some(d => v.includes(d))) return 'christian'
+  if (v.startsWith('muslim') || v.startsWith('islam')) return 'muslim'
+  if (v.startsWith('tradition')) return 'traditional'
+  return v
+}
+
+// Cosine similarity of two unit-length vectors (bio embeddings are stored normalised)
+const similarity = (a?: number[], b?: number[]) => {
+  if (!a?.length || !b?.length || a.length !== b.length) return null
+  let dot = 0
+  for (let i = 0; i < a.length; i++) dot += a[i] * b[i]
+  return dot
 }
 
 // Which Vibe Check a pair can be compared on: the new one if both answered most of it,
@@ -241,8 +276,8 @@ export const calculateCompatibility = (
 
   const answers1 = new Map(ans1List.map(a => [a.question_key, a.answer]))
   const answers2 = new Map(ans2List.map(a => [a.question_key, a.answer]))
-  const dims1 = new Map((ans1List as any[]).map(a => [a.dimension || a.question_key, a.answer]))
-  const dims2 = new Map((ans2List as any[]).map(a => [a.dimension || a.question_key, a.answer]))
+  const dims1 = new Map(ans1List.map(a => [a.dimension || a.question_key, a.answer]))
+  const dims2 = new Map(ans2List.map(a => [a.dimension || a.question_key, a.answer]))
   const v2a = countV2Answers(answers1)
   const v2b = countV2Answers(answers2)
   const mode: AnswerMode =
@@ -303,8 +338,8 @@ export const calculateCompatibility = (
     if (sharedValues.length >= 3) strengths.push('Shared core values 💛')
   }
 
-  breakdown.vibeMatch = maxVibeWeight > 0 ? Math.round((vibePoints / maxVibeWeight) * 40) : 0
-  if (breakdown.vibeMatch > 32) strengths.push('Deep Vibe Alignment ✨')
+  breakdown.vibeMatch = maxVibeWeight > 0 ? Math.round((vibePoints / maxVibeWeight) * BREAKDOWN_MAX.vibeMatch) : 0
+  if (breakdown.vibeMatch > BREAKDOWN_MAX.vibeMatch * 0.8) strengths.push('Deep Vibe Alignment ✨')
 
   if (u1.intent && u2.intent) {
     if (u1.intent === u2.intent) {
@@ -328,16 +363,14 @@ export const calculateCompatibility = (
     }
   }
 
-  if (u1.religion && u2.religion && u1.religion.toLowerCase() === u2.religion.toLowerCase()) {
+  if (normalizeReligion(u1.religion) && normalizeReligion(u1.religion) === normalizeReligion(u2.religion)) {
     breakdown.goalsMatch += 8
     strengths.push('Shared Belief System 🙏')
   }
 
   if (u1.dating_persona && u2.dating_persona) {
-    breakdown.lifestyleMatch += u1.dating_persona === u2.dating_persona ? 10 : 5
-    if (u1.dating_persona !== u2.dating_persona) {
-      addSignal(signals, 'difference_not_bad', 'Different personas may still complement each other')
-    }
+    if (u1.dating_persona === u2.dating_persona) breakdown.lifestyleMatch += 5
+    else addSignal(signals, 'difference_not_bad', 'Different personas may still complement each other')
   }
 
   if (u1.occupation && u2.occupation) {
@@ -357,7 +390,7 @@ export const calculateCompatibility = (
   if (!city1 || !city2) {
     addSignal(signals, 'hard_block', 'City unknown')
   } else if (city1 === city2) {
-    breakdown.lifestyleMatch += 5
+    // Same city is required, so it earns no points (every eligible pair would get them)
     strengths.push(`Local Connection (${displayCity(city1)}) 📍`)
   } else {
     addSignal(signals, 'hard_block', `Different cities (${displayCity(city1)} and ${displayCity(city2)})`)
@@ -424,19 +457,32 @@ export const calculateCompatibility = (
     addSignal(signals, 'hard_block', `Matches User B's dealbreaker (${deal2})`)
   }
 
+  // Bios: does what each is looking for sound like how the other describes themselves?
+  // Compared by meaning when both bios have been read by AI, otherwise by shared words
+  const fit1 = similarity(u1.bio_embeddings?.seeking, u2.bio_embeddings?.self)
+  const fit2 = similarity(u2.bio_embeddings?.seeking, u1.bio_embeddings?.self)
+  if (fit1 !== null && fit2 !== null) {
+    // Short trait lists sit around 0.55 (unrelated) to 0.85 (very close); each direction is worth 5
+    const points = (sim: number) => 5 * Math.max(0, Math.min(1, (sim - 0.55) / 0.3))
+    breakdown.aiSynergy = Math.round(points(fit1) + points(fit2))
+    if (breakdown.aiSynergy >= 6) strengths.push('Bio Personalities Match ✨')
+  }
+
   if (u1.preferences_extracted && u2.preferences_extracted) {
     const p1 = u1.preferences_extracted
     const p2 = u2.preferences_extracted
 
-    const match1 = (p1.seeking?.attributes || []).filter(a =>
-      (p2.self?.personality || []).concat(p2.self?.lifestyle || []).some(s => s.toLowerCase().includes(a.toLowerCase()))
-    ).length
-    const match2 = (p2.seeking?.attributes || []).filter(a =>
-      (p1.self?.personality || []).concat(p1.self?.lifestyle || []).some(s => s.toLowerCase().includes(a.toLowerCase()))
-    ).length
+    if (fit1 === null || fit2 === null) {
+      const match1 = (p1.seeking?.attributes || []).filter(a =>
+        (p2.self?.personality || []).concat(p2.self?.lifestyle || []).some(s => s.toLowerCase().includes(a.toLowerCase()))
+      ).length
+      const match2 = (p2.seeking?.attributes || []).filter(a =>
+        (p1.self?.personality || []).concat(p1.self?.lifestyle || []).some(s => s.toLowerCase().includes(a.toLowerCase()))
+      ).length
 
-    breakdown.aiSynergy = Math.min(10, (match1 + match2) * 2)
-    if ((breakdown.aiSynergy || 0) >= 6) strengths.push('Bio Personalities Match ✨')
+      breakdown.aiSynergy = Math.min(BREAKDOWN_MAX.aiSynergy, (match1 + match2) * 2)
+      if ((breakdown.aiSynergy || 0) >= 6) strengths.push('Bio Personalities Match ✨')
+    }
 
     const aiDealbreakers1 = p1.seeking?.dealbreakers || []
     const aiDealbreakers2 = p2.seeking?.dealbreakers || []

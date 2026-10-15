@@ -273,20 +273,20 @@ onMounted(() => {
 }
 .stat-card {
   background: white;
-  border: 1px solid #E5E7EB;
+  border: 1px solid #ece8e3;
   border-radius: 16px;
   padding: 1.5rem;
 }
 .btn-secondary {
   background: white;
-  border: 1px solid #E5E7EB;
+  border: 1px solid #ece8e3;
   padding: 0.5rem 1rem;
   border-radius: 0.75rem;
   font-weight: 700;
   transition: all 0.2s;
 }
 .btn-secondary:hover:not(:disabled) {
-  border-color: #000;
+  border-color: #393737;
   background: #f9f9f9;
 }
 </style>

@@ -2,8 +2,10 @@
  * Auto Match Cron Endpoint
  * GET /api/cron/auto-match
  * 
- * Automatically finds and matches users above the configured match threshold.
- * Uses the "Ultra-Tight" Compatibility Algorithm.
+ * Weekly matching: scores every pair of opted-in members who aren't matched yet this week,
+ * keeps the pairs the rules allow above the minimum score, then picks pairs so the most people
+ * get a good match (utils/pairing.ts). Members who missed out last week get priority.
+ * New matches are announced: an AI "why you two" note and a message to both people.
  * 
  * Call via: https://cron-job.org/en/ with Authorization: Bearer <CRON_SECRET>
  */
@@ -12,7 +14,8 @@ import { createClient } from '@supabase/supabase-js'
 import { notifyDiscord, DiscordColors } from '~/server/utils/discord'
 import { calculateCompatibility, type UserProfile, type VibeAnswer } from '~/utils/compatibility'
 import { unlockedMatchFields } from '~/utils/freeMatch'
-import { currentMatchWeekStart } from '~/utils/matchWeek'
+import { currentMatchWeekStart, matchWeekKey } from '~/utils/matchWeek'
+import { choosePairs, MISSED_LAST_WEEK_BOOST, type CandidatePair } from '~/utils/pairing'
 
 // ====================
 // TYPES & INTERFACES
@@ -31,22 +34,8 @@ interface MatchResult {
     score: number
     reasons: string[]
     warnings: string[]
-}
-
-function calculateMatchScore(
-    u1: CronUserProfile,
-    u2: CronUserProfile,
-    ans1List: VibeAnswer[],
-    ans2List: VibeAnswer[]
-): { score: number; reasons: string[]; warnings: string[]; confidence: number; eligible: boolean } {
-    const result = calculateCompatibility(u1, ans1List, u2, ans2List)
-    return {
-        score: result.score,
-        reasons: result.strengths,
-        warnings: result.warnings,
-        confidence: result.confidence,
-        eligible: result.eligibility.eligible
-    }
+    confidence: number
+    breakdown: Record<string, number>
 }
 
 // ====================
@@ -73,46 +62,69 @@ export default defineEventHandler(async (event) => {
     })
 
     try {
-        const { data: users, error: usersError } = await supabase
+        // Everything is paged: Supabase returns at most 1,000 rows per request, and there are
+        // more Vibe Check answers than that. Missing answers used to make members look unmatchable.
+        const users = await fetchAllRows<CronUserProfile>(() => supabase
             .from('profiles')
             .select('*')
             .eq('is_verified', true)
             .eq('is_active', true)
             .gte('weekly_opt_in_until', new Date().toISOString())
+            .order('id'))
 
-        if (usersError) throw createError({ statusCode: 500, message: 'Failed to fetch users' })
-
-        const { data: existingMatches, error: matchError } = await supabase
+        const existingMatches = await fetchAllRows<any>(() => supabase
             .from('matches')
-            .select('user_1_id, user_2_id, created_at')
-
-        if (matchError) throw createError({ statusCode: 500, message: 'Failed to fetch matches' })
+            .select('user_1_id, user_2_id, created_at, status')
+            .order('created_at'))
 
         const matchedPairs = new Set<string>()
         // One match per member per week: anyone already matched this week sits this run out
         const weekStart = currentMatchWeekStart().getTime()
+        const lastWeekStart = weekStart - 7 * 24 * 60 * 60 * 1000
         const matchedThisWeek = new Set<string>()
-        existingMatches?.forEach(m => {
+        const matchedLastWeek = new Set<string>()
+        existingMatches.forEach(m => {
             matchedPairs.add(`${m.user_1_id}-${m.user_2_id}`)
             matchedPairs.add(`${m.user_2_id}-${m.user_1_id}`)
-            if (new Date((m as any).created_at).getTime() >= weekStart) {
+            if (m.status === 'expired') return
+            const at = new Date(m.created_at).getTime()
+            if (at >= weekStart) {
                 matchedThisWeek.add(m.user_1_id)
                 matchedThisWeek.add(m.user_2_id)
+            } else if (at >= lastWeekStart) {
+                matchedLastWeek.add(m.user_1_id)
+                matchedLastWeek.add(m.user_2_id)
             }
         })
 
-        const { data: vibeAnswers, error: vibeError } = await supabase
+        // Members who opted in last week but weren't matched get priority this week
+        const missedLastWeek = new Set<string>()
+        try {
+            const lastWeekRows = await fetchAllRows<any>(() => supabase
+                .from('weekly_opt_ins')
+                .select('user_id, opted_out_at')
+                .eq('week_start', matchWeekKey(new Date(lastWeekStart)))
+                .order('user_id'))
+            lastWeekRows.forEach(r => { if (!r.opted_out_at && !matchedLastWeek.has(r.user_id)) missedLastWeek.add(r.user_id) })
+        } catch {
+            // weekly_opt_ins arrives with migration 075; without it there's simply no priority
+        }
+
+        const vibeAnswers = await fetchAllRows<any>(() => supabase
             .from('vibe_answers')
-            .select('user_id, question_key, answer_value')
+            .select('user_id, question_key, answer_value, dimension')
+            .order('user_id')
+            .order('question_key'))
 
         const userVibeAnswers = new Map<string, VibeAnswer[]>()
-        vibeAnswers?.forEach((row: any) => {
+        vibeAnswers.forEach((row: any) => {
             const existing = userVibeAnswers.get(row.user_id) || []
-            existing.push({ question_key: row.question_key, answer: row.answer_value })
+            // dimension ties older question variants (love_language_v2 …) to what they measure
+            existing.push({ question_key: row.question_key, answer: row.answer_value, dimension: row.dimension })
             userVibeAnswers.set(row.user_id, existing)
         })
 
-        const eligibleUsers = ((users || []) as CronUserProfile[]).filter(u => !matchedThisWeek.has(u.id))
+        const eligibleUsers = users.filter(u => !matchedThisWeek.has(u.id))
 
         const { data: autoMatchSetting } = await supabase
             .from('settings')
@@ -121,53 +133,60 @@ export default defineEventHandler(async (event) => {
             .maybeSingle()
 
         const MIN_SCORE = Math.max(0, Math.min(100, Number((autoMatchSetting as any)?.value?.score ?? 75)))
-        const potentialMatches: MatchResult[] = []
-        const usedPairs = new Set<string>()
 
-        const evaluatePair = (u1: any, u2: any) => {
-            const pairKey = [u1.id, u2.id].sort().join('-')
-            if (matchedPairs.has(`${u1.id}-${u2.id}`) || matchedPairs.has(`${u2.id}-${u1.id}`) || usedPairs.has(pairKey)) return
-
-            const result = calculateMatchScore(u1, u2, userVibeAnswers.get(u1.id) || [], userVibeAnswers.get(u2.id) || [])
-
-            if (result.score >= MIN_SCORE && result.eligible) {
-                potentialMatches.push({ user1: u1, user2: u2, score: result.score, reasons: result.reasons, warnings: result.warnings })
-                usedPairs.add(pairKey)
-            }
-        }
-
+        // Score every pair; keep the ones the rules allow
+        const candidates: CandidatePair<MatchResult>[] = []
         for (let i = 0; i < eligibleUsers.length; i++) {
             for (let j = i + 1; j < eligibleUsers.length; j++) {
-                evaluatePair(eligibleUsers[i], eligibleUsers[j])
+                const u1 = eligibleUsers[i]
+                const u2 = eligibleUsers[j]
+                if (matchedPairs.has(`${u1.id}-${u2.id}`)) continue
+                const result = calculateCompatibility(u1, userVibeAnswers.get(u1.id) || [], u2, userVibeAnswers.get(u2.id) || [])
+                if (result.score < MIN_SCORE || !result.eligibility.eligible) continue
+                const boost = (missedLastWeek.has(u1.id) ? MISSED_LAST_WEEK_BOOST : 0) + (missedLastWeek.has(u2.id) ? MISSED_LAST_WEEK_BOOST : 0)
+                candidates.push({
+                    a: u1.id,
+                    b: u2.id,
+                    weight: result.score + boost,
+                    data: { user1: u1, user2: u2, score: result.score, reasons: result.strengths, warnings: result.warnings, confidence: result.confidence, breakdown: result.breakdown }
+                })
             }
         }
 
-        potentialMatches.sort((a, b) => b.score - a.score)
-
-        const selectedMatches: MatchResult[] = []
-        const usedUsers = new Set<string>()
-
-        for (const match of potentialMatches) {
-            if (!usedUsers.has(match.user1.id) && !usedUsers.has(match.user2.id)) {
-                selectedMatches.push(match)
-                usedUsers.add(match.user1.id)
-                usedUsers.add(match.user2.id)
-            }
-        }
-
-        const matchesToInsert = selectedMatches.map(match => ({
-            user_1_id: match.user1.id,
-            user_2_id: match.user2.id,
-            ...unlockedMatchFields(),
-            match_score: match.score,
-            match_reasons: match.reasons,
-            match_warnings: match.warnings
-        }))
+        // Pick pairs so the most people get a good match (each person at most once)
+        const selectedMatches = choosePairs(candidates).map(c => c.data!).sort((x, y) => y.score - x.score)
 
         let createdCount = 0
-        if (matchesToInsert.length > 0) {
-            const { error: insertError } = await supabase.from('matches').insert(matchesToInsert)
-            if (!insertError) createdCount = matchesToInsert.length
+        let notifiedCount = 0
+        if (selectedMatches.length > 0) {
+            const { data: created, error: insertError } = await supabase
+                .from('matches')
+                .insert(selectedMatches.map(match => ({
+                    user_1_id: match.user1.id,
+                    user_2_id: match.user2.id,
+                    ...unlockedMatchFields(),
+                    match_score: match.score,
+                    match_reasons: match.reasons,
+                    match_warnings: match.warnings,
+                    match_breakdown: match.breakdown,
+                    match_confidence: match.confidence,
+                    created_by_label: 'weekly_run'
+                })))
+                .select('id, user_1_id, user_2_id, match_score, match_reasons, ai_analysis')
+
+            if (insertError) throw insertError
+            createdCount = created?.length || 0
+
+            // Tell both people (and write the "why you two" note), a few at a time
+            const byId = new Map(users.map(u => [u.id, u]))
+            const queue = [...(created || [])]
+            const worker = async () => {
+                for (let m = queue.shift(); m; m = queue.shift()) {
+                    const res = await announceMatch(supabase, m, { user1: byId.get(m.user_1_id), user2: byId.get(m.user_2_id) })
+                    notifiedCount += res.notified
+                }
+            }
+            await Promise.all([worker(), worker(), worker()])
         }
 
         const elapsedTime = ((Date.now() - startTime) / 1000).toFixed(2)
@@ -177,16 +196,17 @@ export default defineEventHandler(async (event) => {
             : '_No matches created_'
 
         await notifyDiscord({
-            title: '🤖 Auto Matchmaker Report (V2 Engine)',
-            description: `Automatic matching job completed with Ultra-Tight logic.`,
+            title: '🤖 Weekly matching report',
+            description: 'Automatic weekly matching finished.',
             color: createdCount > 0 ? DiscordColors.match : DiscordColors.info,
             fields: [
                 {
                     name: '📊 Statistics', value: [
-                        `**Total Users Checked:** ${users?.length || 0}`,
+                        `**Opted in:** ${users.length} (${eligibleUsers.length} not yet matched this week)`,
                         `**Threshold:** ${MIN_SCORE}%`,
-                        `**Potential Matches (${MIN_SCORE}%+):** ${potentialMatches.length}`,
-                        `**Matches Created:** ${createdCount}`
+                        `**Eligible pairs:** ${candidates.length}`,
+                        `**Matches created:** ${createdCount} (${notifiedCount} people notified)`,
+                        `**Priority (missed last week):** ${missedLastWeek.size}`
                     ].join('\n'), inline: false
                 },
                 { name: '💕 New Matches', value: matchDetailsText, inline: false },
@@ -195,7 +215,7 @@ export default defineEventHandler(async (event) => {
             footer: `Auto Match Cron Job • ${new Date().toISOString()}`
         })
 
-        return { success: true, summary: { totalUsers: users?.length || 0, potentialMatches: potentialMatches.length, matchesCreated: createdCount, runtime: `${elapsedTime}s` } }
+        return { success: true, summary: { optedIn: users.length, eligiblePairs: candidates.length, matchesCreated: createdCount, notified: notifiedCount, runtime: `${elapsedTime}s` } }
 
     } catch (err: any) {
         await notifyDiscord({ title: '🚨 Auto Matchmaker Error', description: err.message || 'Unknown error occurred', color: DiscordColors.error })

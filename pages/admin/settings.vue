@@ -1,147 +1,62 @@
 <template>
-  <div>
-    <div v-if="loading" class="state-loading">Loading settings...</div>
-    
-    <div v-else class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-      <!-- Pricing Settings -->
-      <section class="admin-card">
-        <div class="admin-card__header mb-6 pb-4 border-b border-gray-100">
-          <h2 class="admin-card__title m-0">Pricing Configuration</h2>
-          <p class="admin-card__subtitle">Manage global pricing tiers</p>
+  <div class="ad-page !max-w-3xl">
+    <header class="ad-head">
+      <div>
+        <h1 class="ad-title">Settings</h1>
+        <p class="ad-sub">Prices and matching rules used across the app.</p>
+      </div>
+    </header>
+
+    <div v-if="loading" class="ad-panel"><div class="ad-empty"><span class="ad-spinner"></span></div></div>
+
+    <form v-else class="space-y-6" @submit.prevent="saveSettings">
+      <section v-for="group in groups" :key="group.title" class="ad-panel !p-0">
+        <div class="px-6 pb-2 pt-5">
+          <h2 class="font-display text-xl">{{ group.title }}</h2>
+          <p class="mt-0.5 text-sm ad-muted">{{ group.description }}</p>
         </div>
-        
-        <div class="flex flex-col gap-5">
-          <div class="form-group">
-            <label class="form-label">Match Unlock Fee (GH₵)</label>
+        <div
+          v-for="field in group.fields"
+          :key="field.key"
+          class="flex flex-col gap-2 border-t border-[#f3f1ee] px-6 py-4 sm:flex-row sm:items-center sm:justify-between sm:gap-6"
+        >
+          <label :for="field.key" class="min-w-0">
+            <span class="block text-sm font-medium">{{ field.label }}</span>
+            <span v-if="field.hint" class="mt-0.5 block text-xs ad-faint">{{ field.hint }}</span>
+          </label>
+          <div class="relative w-full shrink-0 sm:w-44">
+            <span v-if="field.prefix" class="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-sm ad-faint">{{ field.prefix }}</span>
             <input
+              v-if="field.type === 'number'"
+              :id="field.key"
+              v-model.number="(settings as any)[field.key]"
               type="number"
-              v-model.number="settings.default_match_unlock_fee"
-              min="0"
+              :min="field.min"
+              :max="field.max"
               step="1"
-              class="form-input"
+              class="form-input ad-num text-right"
+              :class="{ '!pl-12': field.prefix, '!pr-10': field.suffix }"
             />
-            <p class="text-xs text-muted mt-1">Default price to unlock a match profile</p>
-          </div>
-          
-          <div class="grid grid-cols-2 gap-4">
-            <div class="form-group">
-              <label class="form-label">Male Ticket (GH₵)</label>
-              <input
-                type="number"
-                v-model.number="settings.default_male_ticket_price"
-                min="0"
-                step="1"
-                class="form-input"
-              />
-            </div>
-            
-            <div class="form-group">
-              <label class="form-label">Female Ticket (GH₵)</label>
-              <input
-                type="number"
-                v-model.number="settings.default_female_ticket_price"
-                min="0"
-                step="1"
-                class="form-input"
-              />
-            </div>
-          </div>
-
-          <div class="form-group">
-            <label class="form-label">Shoot Your Shot Fee (GH₵)</label>
             <input
-              type="number"
-              v-model.number="settings.shoot_your_shot_fee"
-              min="0"
-              step="1"
-              class="form-input"
-            />
-            <p class="text-xs text-muted mt-1">Fee charged when someone shoots their shot</p>
-          </div>
-
-          <div class="form-group">
-            <label class="form-label">Spark Deck Price (GH₵)</label>
-            <input
-              type="number"
-              v-model.number="settings.spark_deck_price_ghs"
-              min="0"
-              step="1"
-              class="form-input"
-            />
-            <p class="text-xs text-muted mt-1">Retail price for the physical Spark Deck</p>
-          </div>
-        </div>
-      </section>
-
-      <!-- Match Settings -->
-      <section class="admin-card h-fit">
-        <div class="admin-card__header mb-6 pb-4 border-b border-gray-100">
-          <h2 class="admin-card__title m-0">Match Settings</h2>
-          <p class="admin-card__subtitle">Algorithm thresholds</p>
-        </div>
-        
-        <div class="flex flex-col gap-5">
-          <div class="form-group">
-            <label class="form-label">Auto Match Min Score (%)</label>
-            <input
-              type="number"
-              v-model.number="settings.auto_match_min_score"
-              min="0"
-              max="100"
-              step="1"
-              class="form-input"
-            />
-            <p class="text-xs text-muted mt-1">Minimum score required for cron-based auto matches</p>
-          </div>
-
-          <div class="form-group">
-            <label class="form-label">Match Expiry (Days)</label>
-            <input
-              type="number"
-              v-model.number="settings.match_expiry_days"
-              min="1"
-              max="30"
-              class="form-input"
-            />
-            <p class="text-xs text-muted mt-1">Days until pending match expires</p>
-          </div>
-        </div>
-      </section>
-
-      <!-- Platform Info -->
-      <section class="admin-card h-fit">
-        <div class="admin-card__header mb-6 pb-4 border-b border-gray-100">
-          <h2 class="admin-card__title m-0">Platform Info</h2>
-          <p class="admin-card__subtitle">System wide identifiers</p>
-        </div>
-        
-        <div class="flex flex-col gap-5">
-          <div class="form-group">
-            <label class="form-label">Platform Name</label>
-            <input
+              v-else
+              :id="field.key"
+              v-model="(settings as any)[field.key]"
               type="text"
-              v-model="settings.platform_name"
               class="form-input"
             />
+            <span v-if="field.suffix" class="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-sm ad-faint">{{ field.suffix }}</span>
           </div>
         </div>
       </section>
-    </div>
 
-    <!-- Save Button -->
-    <div class="flex flex-col items-center gap-4 py-8 border-t border-gray-100">
-      <button
-        class="btn-primary w-full max-w-xs py-3"
-        :disabled="saving"
-        @click="saveSettings"
-      >
-        {{ saving ? 'Saving...' : 'Save Changes' }}
-      </button>
-      <transition name="fade">
-        <p v-if="saveSuccess" class="text-sm font-medium text-green-600">Settings saved successfully</p>
-      </transition>
-      <p v-if="saveError" class="text-sm font-medium text-red-500">{{ saveError }}</p>
-    </div>
+      <div class="sticky bottom-4 z-10 flex items-center justify-end gap-4 rounded-full bg-white/90 py-2 pl-6 pr-2 shadow-[0_8px_28px_rgba(52,38,25,0.10)] backdrop-blur">
+        <p v-if="saveError" class="mr-auto text-sm font-medium text-[#b4232a]">{{ saveError }}</p>
+        <Transition name="fade">
+          <p v-if="saveSuccess" class="mr-auto text-sm font-medium text-[#1f7a4d]">Saved</p>
+        </Transition>
+        <button type="submit" class="btn-primary" :disabled="saving">{{ saving ? 'Saving…' : 'Save changes' }}</button>
+      </div>
+    </form>
   </div>
 </template>
 
@@ -218,6 +133,52 @@ onMounted(() => {
 })
 
 // Save settings
+interface SettingField {
+  key: string
+  label: string
+  hint?: string
+  type: 'number' | 'text'
+  prefix?: string
+  suffix?: string
+  min?: number
+  max?: number
+}
+
+const groups: { title: string; description: string; fields: SettingField[] }[] = [
+  {
+    title: 'Pricing',
+    description: 'What members pay for matches and events.',
+    fields: [
+      { key: 'default_match_unlock_fee', label: 'Match unlock', hint: 'Default price to unlock a match', type: 'number', prefix: 'GH₵', min: 0 },
+      { key: 'default_male_ticket_price', label: 'Event ticket, men', hint: 'Default for new events', type: 'number', prefix: 'GH₵', min: 0 },
+      { key: 'default_female_ticket_price', label: 'Event ticket, women', hint: 'Default for new events', type: 'number', prefix: 'GH₵', min: 0 }
+    ]
+  },
+  {
+    title: 'Matching',
+    description: 'Rules for automatic matches.',
+    fields: [
+      { key: 'auto_match_min_score', label: 'Minimum score for auto matches', hint: 'Matches below this are not created automatically', type: 'number', suffix: '%', min: 0, max: 100 },
+      { key: 'match_expiry_days', label: 'Match expiry', hint: 'How long an unpaid match stays open', type: 'number', suffix: 'days', min: 1, max: 30 }
+    ]
+  },
+  {
+    title: 'Other products',
+    description: 'Prices for features that are currently out of the menu.',
+    fields: [
+      { key: 'shoot_your_shot_fee', label: 'Shoot your shot', type: 'number', prefix: 'GH₵', min: 0 },
+      { key: 'spark_deck_price_ghs', label: 'Spark Deck', hint: 'Retail price of the physical deck', type: 'number', prefix: 'GH₵', min: 0 }
+    ]
+  },
+  {
+    title: 'Platform',
+    description: 'How the app names itself.',
+    fields: [
+      { key: 'platform_name', label: 'Platform name', type: 'text' }
+    ]
+  }
+]
+
 const saveSettings = async () => {
   saving.value = true
   saveSuccess.value = false
@@ -287,37 +248,13 @@ const saveSettings = async () => {
 </script>
 
 <style scoped>
-/* Minor utility overrides */
-.grid-cols-1 { grid-template-columns: repeat(1, minmax(0, 1fr)); }
-.md\:grid-cols-2 { 
-  @media (min-width: 768px) {
-    grid-template-columns: repeat(2, minmax(0, 1fr)); 
-  }
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.2s;
 }
-.gap-3 { gap: 0.75rem; }
-.gap-4 { gap: 1rem; }
-.gap-5 { gap: 1.25rem; }
-.gap-6 { gap: 1.5rem; }
-.mb-6 { margin-bottom: 1.5rem; }
-.mb-8 { margin-bottom: 2rem; }
-.pb-4 { padding-bottom: 1rem; }
-.m-0 { margin: 0; }
-.text-2xl { font-size: 1.5rem; }
-.text-xs { font-size: 0.75rem; }
-.text-lg { font-size: 1.125rem; }
-.font-bold { font-weight: 700; }
-.text-green-600 { color: #059669; }
-.text-red-500 { color: #EF4444; }
-.text-muted { color: var(--color-text-muted); }
-.border-b { border-bottom-width: 1px; }
-.border-t { border-top-width: 1px; }
-.border-gray-100 { border-color: #F3F4F6; }
-.flex { display: flex; }
-.flex-col { flex-direction: column; }
-.items-center { align-items: center; }
-.h-fit { height: fit-content; }
-.py-4 { padding-top: 1rem; padding-bottom: 1rem; }
-.py-8 { padding-top: 2rem; padding-bottom: 2rem; }
-.w-full { width: 100%; }
-.max-w-sm { max-width: 24rem; }
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
 </style>

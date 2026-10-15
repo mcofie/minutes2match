@@ -1,78 +1,53 @@
 import { createClient } from '@supabase/supabase-js'
-import { extractPreferencesFromBio } from '~/server/utils/ai'
+import { aiQuotaHitSince } from '~/server/utils/ai'
 
 /**
- * Admin endpoint to run bulk preference extraction for all users
+ * Read bios with AI in batches.
  * POST /api/admin/ai/bulk-extract-preferences
+ * Body: { limit?: number (default 15, max 40), refresh?: boolean }
+ *
+ * Without refresh, only members whose bio hasn't been read yet (no traits or no meaning vectors).
+ * Runs a batch per call so it fits inside a serverless time limit; call again until `remaining` is 0.
+ * Admins, or the cron secret (for scripted backfills).
  */
 export default defineEventHandler(async (event) => {
-    // Basic admin check (could be more robust)
-    // For now, we assume this is called by an admin
-    
     const config = useRuntimeConfig()
+    const authHeader = getHeader(event, 'authorization')
+    if (!(config.cronSecret && authHeader === `Bearer ${config.cronSecret}`)) {
+        await requireAdminAccess(event)
+    }
+
+    const body = (await readBody<{ limit?: number; refresh?: boolean }>(event).catch(() => null)) || {}
+    const limit = Math.min(40, Math.max(1, Number(body.limit) || 15))
+
     const supabase = createClient(config.supabaseUrl, config.supabaseServiceKey, {
         db: { schema: 'm2m' }
     })
 
-    // Fetch all profiles with a bio that haven't been processed yet 
-    // (or all if we want to refresh)
-    const { data: profiles, error: fetchError } = await supabase
+    const profiles = await fetchAllRows<any>(() => supabase
         .from('profiles')
-        .select('id, about_me')
+        .select('id, about_me, preferences_extracted, bio_embeddings')
         .not('about_me', 'is', null)
-        // .is('preferences_extracted', null) // Uncomment to only process new ones
+        .order('id'))
 
-    if (fetchError) {
-        throw createError({ statusCode: 500, message: 'Failed to fetch profiles' })
-    }
+    const hasTraits = (p: any) => p.preferences_extracted && Object.keys(p.preferences_extracted).length > 0
+    const todo = profiles.filter(p =>
+        (p.about_me || '').trim().length >= 10 && (body.refresh || !hasTraits(p) || !p.bio_embeddings)
+    )
 
-    if (!profiles || profiles.length === 0) {
-        return { success: true, message: 'No profiles found for processing' }
-    }
-
-    const results = {
-        total: profiles.length,
-        processed: 0,
-        skipped: 0,
-        failed: 0
-    }
-
-    // Process in small batches to avoid timeout or rate limiting
-    for (const profile of profiles) {
-        if (!profile.about_me || profile.about_me.length < 10) {
-            results.skipped++
-            continue
+    const startedAt = Date.now()
+    const results = { processed: 0, failed: 0, remaining: todo.length, total: todo.length, quotaReached: false }
+    for (const profile of todo.slice(0, limit)) {
+        const outcome = await analyseMemberBio(supabase, profile)
+        if (outcome === 'analysed') results.processed++
+        else if (outcome === 'failed') results.failed++
+        // Out of AI quota: stop now rather than fail every remaining bio
+        if (aiQuotaHitSince(startedAt)) {
+            results.quotaReached = true
+            break
         }
-
-        try {
-            const extracted = await extractPreferencesFromBio(profile.about_me)
-            if (extracted) {
-                const { error: updateError } = await supabase
-                    .from('profiles')
-                    .update({ preferences_extracted: extracted } as any)
-                    .eq('id', profile.id)
-
-                if (updateError) {
-                    console.error(`[AI Bulk] Update failed for ${profile.id}:`, updateError)
-                    results.failed++
-                } else {
-                    results.processed++
-                }
-            } else {
-                results.failed++
-            }
-        } catch (err) {
-            console.error(`[AI Bulk] Error processing ${profile.id}:`, err)
-            results.failed++
-        }
-
-        // Optional small sleep to respect rate limits if needed
-        // await new Promise(r => setTimeout(r, 100))
     }
+    results.remaining = Math.max(0, todo.length - results.processed)
 
-    return { 
-        success: true, 
-        message: 'Bulk processing completed',
-        results
-    }
+    return { success: true, results }
 })

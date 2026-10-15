@@ -1,5 +1,6 @@
 declare global {
   const DiscordColors: typeof import('../../server/utils/discord').DiscordColors
+  const EMBEDDING_DIMS: typeof import('../../server/utils/ai').EMBEDDING_DIMS
   const FLASH_LOBBY_ACTIVE_SESSION_WINDOW_SECONDS: typeof import('../../server/utils/flashLobby').FLASH_LOBBY_ACTIVE_SESSION_WINDOW_SECONDS
   const FLASH_LOBBY_RESPONSE_WINDOW_HOURS: typeof import('../../server/utils/flashLobby').FLASH_LOBBY_RESPONSE_WINDOW_HOURS
   const H3Error: typeof import('../../node_modules/h3').H3Error
@@ -9,6 +10,9 @@ declare global {
   const ZEND_BASE_URL: typeof import('../../server/utils/zend').ZEND_BASE_URL
   const __buildAssetsURL: typeof import('../../node_modules/@nuxt/nitro-server/dist/runtime/utils/paths').buildAssetsURL
   const __publicAssetsURL: typeof import('../../node_modules/@nuxt/nitro-server/dist/runtime/utils/paths').publicAssetsURL
+  const aiQuotaHitSince: typeof import('../../server/utils/ai').aiQuotaHitSince
+  const analyseMemberBio: typeof import('../../server/utils/bioAnalysis').analyseMemberBio
+  const announceMatch: typeof import('../../server/utils/matchAnnounce').announceMatch
   const appendCorsHeaders: typeof import('../../node_modules/h3').appendCorsHeaders
   const appendCorsPreflightHeaders: typeof import('../../node_modules/h3').appendCorsPreflightHeaders
   const appendHeader: typeof import('../../node_modules/h3').appendHeader
@@ -17,6 +21,7 @@ declare global {
   const appendResponseHeaders: typeof import('../../node_modules/h3').appendResponseHeaders
   const assertMethod: typeof import('../../node_modules/h3').assertMethod
   const auditProfileWithAI: typeof import('../../server/utils/ai').auditProfileWithAI
+  const buildBioEmbeddings: typeof import('../../server/utils/ai').buildBioEmbeddings
   const cachedEventHandler: typeof import('../../node_modules/nitropack/dist/runtime/internal/cache').cachedEventHandler
   const cachedFunction: typeof import('../../node_modules/nitropack/dist/runtime/internal/cache').cachedFunction
   const calculateDeliveryDate: typeof import('../../server/utils/order').calculateDeliveryDate
@@ -60,14 +65,17 @@ declare global {
   const defineWebSocketHandler: typeof import('../../node_modules/h3').defineWebSocketHandler
   const deleteCookie: typeof import('../../node_modules/h3').deleteCookie
   const dynamicEventHandler: typeof import('../../node_modules/h3').dynamicEventHandler
+  const embedTexts: typeof import('../../server/utils/ai').embedTexts
   const enforceRateLimit: typeof import('../../server/utils/rateLimiter').enforceRateLimit
   const eventHandler: typeof import('../../node_modules/h3').eventHandler
   const expireStaleFlashLobbyIntents: typeof import('../../server/utils/flashLobby').expireStaleFlashLobbyIntents
   const extractPreferencesFromBio: typeof import('../../server/utils/ai').extractPreferencesFromBio
+  const fetchAllRows: typeof import('../../server/utils/adminData').fetchAllRows
   const fetchEventBookingContext: typeof import('../../server/utils/events').fetchEventBookingContext
   const fetchEventScorecardContext: typeof import('../../server/utils/eventScorecards').fetchEventScorecardContext
   const fetchExistingScorecards: typeof import('../../server/utils/eventScorecards').fetchExistingScorecards
   const fetchScorecardCandidates: typeof import('../../server/utils/eventScorecards').fetchScorecardCandidates
+  const fetchVibeV2UserIds: typeof import('../../server/utils/adminData').fetchVibeV2UserIds
   const fetchVisibleEventDetail: typeof import('../../server/utils/events').fetchVisibleEventDetail
   const fetchVisibleEventsForUser: typeof import('../../server/utils/events').fetchVisibleEventsForUser
   const fetchWithEvent: typeof import('../../node_modules/h3').fetchWithEvent
@@ -125,6 +133,7 @@ declare global {
   const isResolvedIntentStatus: typeof import('../../server/utils/flashLobbyRules').isResolvedIntentStatus
   const isSamePhone: typeof import('../../server/utils/phone').isSamePhone
   const isStream: typeof import('../../node_modules/h3').isStream
+  const isVibeRetakeRequired: typeof import('../../server/utils/vibeRetake').isVibeRetakeRequired
   const isWebResponse: typeof import('../../node_modules/h3').isWebResponse
   const lazyEventHandler: typeof import('../../node_modules/h3').lazyEventHandler
   const leaveFlashLobbySession: typeof import('../../server/utils/flashLobby').leaveFlashLobbySession
@@ -160,6 +169,7 @@ declare global {
   const parseMarkdown: typeof import('../../node_modules/@nuxtjs/mdc/dist/runtime/parser').parseMarkdown
   const parseTelegramInitData: typeof import('../../server/utils/telegram').parseTelegramInitData
   const personas: typeof import('../../server/utils/personas').personas
+  const pickBestCandidate: typeof import('../../server/utils/ai').pickBestCandidate
   const processEventBookingLifecycle: typeof import('../../server/utils/events').processEventBookingLifecycle
   const processEventScorecards: typeof import('../../server/utils/eventScorecards').processEventScorecards
   const processFlashLobbyLifecycle: typeof import('../../server/utils/flashLobby').processFlashLobbyLifecycle
@@ -284,7 +294,9 @@ export { queryCollection, queryCollectionSearchSections, queryCollectionNavigati
 export { parseMarkdown } from '/Users/maxwellcofie/WebstormProjects/minutes2match/node_modules/@nuxtjs/mdc/dist/runtime/parser';
 export { stringifyMarkdown } from '/Users/maxwellcofie/WebstormProjects/minutes2match/node_modules/@nuxtjs/mdc/dist/runtime/stringify';
 export { requireAdminAccess } from '/Users/maxwellcofie/WebstormProjects/minutes2match/server/utils/admin';
-export { getGeminiModel, auditProfileWithAI, extractPreferencesFromBio, generateMatchExplanation } from '/Users/maxwellcofie/WebstormProjects/minutes2match/server/utils/ai';
+export { fetchAllRows, fetchVibeV2UserIds } from '/Users/maxwellcofie/WebstormProjects/minutes2match/server/utils/adminData';
+export { getGeminiModel, aiQuotaHitSince, EMBEDDING_DIMS, embedTexts, buildBioEmbeddings, auditProfileWithAI, extractPreferencesFromBio, generateMatchExplanation, pickBestCandidate } from '/Users/maxwellcofie/WebstormProjects/minutes2match/server/utils/ai';
+export { analyseMemberBio } from '/Users/maxwellcofie/WebstormProjects/minutes2match/server/utils/bioAnalysis';
 export { getUserBalance, creditUser, debitUser } from '/Users/maxwellcofie/WebstormProjects/minutes2match/server/utils/credits';
 export { DiscordColors, notifyRedemption, notifyDiscord, notifyNewSignup, notifyPaymentInitiated, notifyPaymentSuccess, notifyMatchUnlocked, notifyEventBooking, notifyEventBookingReleased, notifyLobbyReminder, notifyError, notifyUserLogin, notifyMatchNudge, notifyFlashLobbySparkSent, notifyFlashLobbyMutualMatch, notifyFlashLobbySuperConnectStarted, notifyFlashLobbySuperConnectCompleted, notifySubscriptionActivated, notifyFlashLobbyLifecycle } from '/Users/maxwellcofie/WebstormProjects/minutes2match/server/utils/discord';
 export { fetchEventScorecardContext, fetchScorecardCandidates, fetchExistingScorecards, saveEventScorecards, processEventScorecards } from '/Users/maxwellcofie/WebstormProjects/minutes2match/server/utils/eventScorecards';
@@ -293,6 +305,7 @@ export { FLASH_LOBBY_RESPONSE_WINDOW_HOURS, FLASH_LOBBY_ACTIVE_SESSION_WINDOW_SE
 export { normalizeGender, normalizeInterest, canUsersSeeEachOther, sanitizeSparkMessage, validateSparkMessage, isResolvedIntentStatus, resolveSparkOutcome, canPerformPostLobbyAction } from '/Users/maxwellcofie/WebstormProjects/minutes2match/server/utils/flashLobbyRules';
 export { sendHubtelSMS } from '/Users/maxwellcofie/WebstormProjects/minutes2match/server/utils/hubtel';
 export { unlockMatch, fullyUnlockMatch } from '/Users/maxwellcofie/WebstormProjects/minutes2match/server/utils/match';
+export { announceMatch } from '/Users/maxwellcofie/WebstormProjects/minutes2match/server/utils/matchAnnounce';
 export { runTargetedMatching } from '/Users/maxwellcofie/WebstormProjects/minutes2match/server/utils/matchmaker';
 export { createInAppNotification, notifyFlashLobbySparkReceived, notifyFlashLobbyMutualUnlocked, notifyFlashLobbyResolved, notifyFlashLobbyLive, notifyEventWaitlistPromoted } from '/Users/maxwellcofie/WebstormProjects/minutes2match/server/utils/notifications';
 export { notifyUser } from '/Users/maxwellcofie/WebstormProjects/minutes2match/server/utils/notify';
@@ -305,4 +318,5 @@ export { checkRateLimit, getClientIP, enforceRateLimit } from '/Users/maxwellcof
 export { stripEmojis, sendSMS } from '/Users/maxwellcofie/WebstormProjects/minutes2match/server/utils/sms';
 export { sendTelegramMessage, sendTelegramPhoto, sendTelegramVideo, setTelegramWebhook, setTelegramBotCommands } from '/Users/maxwellcofie/WebstormProjects/minutes2match/server/utils/telegram-bot';
 export { verifyTelegramData, parseTelegramInitData } from '/Users/maxwellcofie/WebstormProjects/minutes2match/server/utils/telegram';
+export { isVibeRetakeRequired } from '/Users/maxwellcofie/WebstormProjects/minutes2match/server/utils/vibeRetake';
 export { sendZendSMS, sendZendBulkSMS, sendZendOTP, verifyZendOTP, ZEND_BASE_URL, SENDER_ID } from '/Users/maxwellcofie/WebstormProjects/minutes2match/server/utils/zend';

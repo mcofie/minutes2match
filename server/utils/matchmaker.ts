@@ -3,6 +3,8 @@ import { unlockedMatchFields } from '~/utils/freeMatch'
 import { createClient } from '@supabase/supabase-js'
 import { calculateCompatibility } from '~/utils/compatibility'
 import { notifyDiscord, DiscordColors } from './discord'
+import { fetchAllRows } from './adminData'
+import { announceMatch } from './matchAnnounce'
 
 /**
  * Shared Matching Utility for Minutes 2 Match
@@ -75,7 +77,7 @@ export async function runTargetedMatching(userId: string, minScore = 75) {
     // 2. Fetch Vibe Answers for target user
     const { data: targetAnswers } = await supabase
         .from('vibe_answers')
-        .select('question_key, answer_value')
+        .select('question_key, answer_value, dimension')
         .eq('user_id', userId)
 
     // 3. Fetch Eligible Candidates
@@ -114,27 +116,35 @@ export async function runTargetedMatching(userId: string, minScore = 75) {
     const candidates = allCandidates.filter(c => !matchedThisWeek.has(c.id))
     if (candidates.length === 0) return { matched: false, count: 0 }
 
-    // 4. Fetch ALL Vibe Answers for candidates in one go (or batch if pool is huge)
+    // 4. Candidates' Vibe Answers, in batches: an .in() with hundreds of ids makes a very long URL,
+    //    and each response is capped at 1,000 rows
     const candidateIds = candidates.map(c => c.id)
-    const { data: allAnswers } = await supabase
-        .from('vibe_answers')
-        .select('user_id, question_key, answer_value')
-        .in('user_id', candidateIds)
+    const allAnswers: any[] = []
+    for (let i = 0; i < candidateIds.length; i += 50) {
+        const ids = candidateIds.slice(i, i + 50)
+        allAnswers.push(...await fetchAllRows<any>(() => supabase
+            .from('vibe_answers')
+            .select('user_id, question_key, answer_value, dimension')
+            .in('user_id', ids)
+            .order('user_id')
+            .order('question_key')))
+    }
 
     const answersMap = new Map<string, any[]>()
-    allAnswers?.forEach(ans => {
+    allAnswers.forEach(ans => {
         const existing = answersMap.get(ans.user_id) || []
-        existing.push({ question_key: ans.question_key, answer_value: ans.answer_value, answer: ans.answer_value })
+        existing.push({ question_key: ans.question_key, answer_value: ans.answer_value, answer: ans.answer_value, dimension: ans.dimension })
         answersMap.set(ans.user_id, existing)
     })
 
-    const targetFmtAnswers = (targetAnswers || []).map(a => ({ 
-        question_key: a.question_key, 
-        answer_value: a.answer_value, 
-        answer: a.answer_value 
+    const targetFmtAnswers = (targetAnswers || []).map(a => ({
+        question_key: a.question_key,
+        answer_value: a.answer_value,
+        answer: a.answer_value,
+        dimension: a.dimension
     }))
 
-    // 5. Fetch Existing Matches to avoid duplicates
+    // 5. Existing matches, so nobody is introduced to the same person twice
     const { data: existingMatches } = await supabase
         .from('matches')
         .select('user_1_id, user_2_id')
@@ -145,7 +155,7 @@ export async function runTargetedMatching(userId: string, minScore = 75) {
         matchedPartnerIds.add(m.user_1_id === userId ? m.user_2_id : m.user_1_id)
     })
 
-    // 6. Algorithm Loop
+    // 6. Score everyone the rules allow
     const results: any[] = []
     for (const candidate of candidates) {
         if (matchedPartnerIds.has(candidate.id)) continue
@@ -160,34 +170,41 @@ export async function runTargetedMatching(userId: string, minScore = 75) {
                 score: match.score,
                 reasons: match.strengths,
                 warnings: match.warnings,
-                confidence: match.confidence
+                confidence: match.confidence,
+                breakdown: match.breakdown
             })
         }
     }
 
-    // Sort by best score
     results.sort((a, b) => b.score - a.score)
-
     if (results.length === 0) return { matched: false, count: 0 }
 
-    // 7. Auto-Create Best Match
-    // We only create ONE match automatically to avoid overwhelming the user
-    const bestMatch = results[0]
-
-    // AI Explanation for the match
-    const { generateMatchExplanation } = await import('./ai')
-    const aiExplanation = await generateMatchExplanation(targetUser, bestMatch.user2, bestMatch.score)
+    // 7. A second look at close calls: when the top few are within a few points, let the AI choose
+    //    between them as a matchmaker would. The rules already filtered them; this only reorders.
+    let best = results[0]
+    let selectionNote: string | null = null
+    const closeCalls = results.filter(r => best.score - r.score <= 5).slice(0, 3)
+    if (closeCalls.length > 1) {
+        const { pickBestCandidate } = await import('./ai')
+        const pick = await pickBestCandidate(targetUser, closeCalls.map(r => ({ profile: r.user2, score: r.score, reasons: r.reasons, warnings: r.warnings })))
+        if (pick) {
+            best = closeCalls[pick.index]
+            selectionNote = `AI picked ${best.user2.display_name} from ${closeCalls.length} close candidates: ${pick.reason}`
+        }
+    }
 
     const { data: newMatch, error: insertError } = await supabase
         .from('matches')
         .insert({
             user_1_id: userId,
-            user_2_id: bestMatch.user2.id,
+            user_2_id: best.user2.id,
             ...unlockedMatchFields(),
-            match_score: bestMatch.score,
-            match_reasons: bestMatch.reasons,
-            match_warnings: bestMatch.warnings,
-            ai_analysis: aiExplanation,
+            match_score: best.score,
+            match_reasons: best.reasons,
+            match_warnings: best.warnings,
+            match_breakdown: best.breakdown,
+            match_confidence: best.confidence,
+            selection_note: selectionNote,
             created_by_label: 'system_jit'
         })
         .select()
@@ -198,42 +215,23 @@ export async function runTargetedMatching(userId: string, minScore = 75) {
         return { matched: false, count: 0 }
     }
 
-    // 8. Notifications
+    // 8. Admin heads-up
     await notifyDiscord({
-        title: '⚡ Dynamic JIT Match Created!',
-        description: `A real-time match was triggered for **${targetUser.display_name}**.`,
+        title: '⚡ On-the-spot match',
+        description: `A match was made for **${targetUser.display_name}** as soon as they were ready.`,
         color: DiscordColors.match,
         fields: [
-            { name: 'Match', value: `**${targetUser.display_name}** ↔ **${bestMatch.user2.display_name}**`, inline: true },
-            { name: 'Score', value: `**${bestMatch.score}%**`, inline: true },
-            { name: 'Confidence', value: `**${bestMatch.confidence || 0}%**`, inline: true },
-            { name: 'Strengths', value: bestMatch.reasons.join(', ') || 'General Balance', inline: false }
+            { name: 'Match', value: `**${targetUser.display_name}** ↔ **${best.user2.display_name}**`, inline: true },
+            { name: 'Score', value: `**${best.score}%**`, inline: true },
+            { name: 'Confidence', value: `**${best.confidence || 0}%**`, inline: true },
+            { name: 'Strengths', value: best.reasons.join(', ') || 'General balance', inline: false },
+            ...(selectionNote ? [{ name: 'AI pick', value: selectionNote, inline: false }] : [])
         ],
-        footer: `M2M JIT Matchmaker • Triggered Mode`
+        footer: 'M2M matchmaker · on the spot'
     })
 
-    // 9. Real-time User Alerts
-    try {
-        const { notifyUser } = await import('./notify')
-        
-        // Notify User A (Triggered User)
-        await notifyUser(userId, `🔥 Great news, ${targetUser.display_name}! We found a match for you: ${bestMatch.user2.display_name} (${bestMatch.score}% compatibility). Check it out now!`, {
-            type: 'match',
-            matchId: newMatch.id,
-            smsPriority: 'high'
-        })
+    // 9. "Why you two" note and messages to both people
+    await announceMatch(supabase, newMatch, { user1: targetUser, user2: best.user2 })
 
-        // Notify User B (The Partner)
-        await notifyUser(bestMatch.user2.id, `👋 Hi ${bestMatch.user2.display_name}! New match alert: ${targetUser.display_name} (${bestMatch.score}% compatibility). Check it out now!`, {
-            type: 'match',
-            matchId: newMatch.id,
-            smsPriority: 'normal'
-        })
-        
-        console.log(`[Matchmaker JIT] Sent notifications for match ${newMatch.id}`)
-    } catch (notifyError) {
-        console.error('[Matchmaker JIT] Failed to send user notifications:', notifyError)
-    }
-
-    return { matched: true, match: newMatch, score: bestMatch.score }
+    return { matched: true, match: newMatch, score: best.score }
 }

@@ -64,6 +64,9 @@ declare module "nitropack/types" {
     '/api/admin/matches/evaluation': {
       'get': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/admin/matches/evaluation.get').default>>>>
     }
+    '/api/admin/matches': {
+      'get': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/admin/matches/index.get').default>>>>
+    }
     '/api/admin/notify-incomplete-profiles': {
       'post': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/admin/notify-incomplete-profiles.post').default>>>>
     }
@@ -112,8 +115,14 @@ declare module "nitropack/types" {
     '/api/admin/users/verify': {
       'post': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/admin/users/verify.post').default>>>>
     }
+    '/api/admin/vibe-check/retake': {
+      'post': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/admin/vibe-check/retake.post').default>>>>
+    }
     '/api/admin/vouches/resend-sms': {
       'post': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/admin/vouches/resend-sms.post').default>>>>
+    }
+    '/api/admin/weekly-stats': {
+      'get': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/admin/weekly-stats.get').default>>>>
     }
     '/api/ai/extract-preferences': {
       'post': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/ai/extract-preferences.post').default>>>>
@@ -288,6 +297,9 @@ declare module "nitropack/types" {
     }
     '/api/matches': {
       'get': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/matches.get').default>>>>
+    }
+    '/api/matches/:id/feedback': {
+      'post': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/matches/[id]/feedback.post').default>>>>
     }
     '/api/matches/brief/:id': {
       'get': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/matches/brief/[id].get').default>>>>

@@ -1,285 +1,141 @@
 <template>
-  <div class="max-w-5xl">
-    <!-- Header -->
-    <div class="flex justify-between items-end mb-8">
+  <div class="ad-page">
+    <header class="ad-head">
       <div>
-        <h1 class="text-2xl font-bold tracking-tight text-stone-900">SMS Messaging</h1>
-        <p class="text-stone-500 mt-1">Compose and send SMS messages to users</p>
+        <h1 class="ad-title">SMS</h1>
+        <p class="ad-sub">Write a message and send it to members. Use {name} to personalise it.</p>
       </div>
-      <NuxtLink to="/admin/messaging/history" class="flex items-center gap-2 text-sm font-medium text-stone-600 hover:text-black transition-colors">
-        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <circle cx="12" cy="12" r="10"/>
-          <polyline points="12 6 12 12 16 14"/>
-        </svg>
-        View History
+      <NuxtLink to="/admin/messaging/history" class="btn-ghost">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 14"/></svg>
+        History
       </NuxtLink>
-    </div>
+    </header>
 
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-      <!-- Left: Compose Message -->
-      <div class="lg:col-span-2 space-y-6">
-        <!-- Compose Card -->
-        <div class="bg-white rounded-2xl border border-stone-200 overflow-hidden">
-          <div class="px-6 py-4 border-b border-stone-100 bg-stone-50">
-            <h2 class="font-bold text-stone-900 flex items-center gap-2">
-              <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-stone-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-              </svg>
-              Compose Message
-            </h2>
-          </div>
-          
-          <div class="p-6 space-y-4">
-            <!-- Message Templates -->
-            <div>
-              <label class="block text-xs font-bold uppercase tracking-wide text-stone-500 mb-2">Quick Templates</label>
-              <div class="flex flex-wrap gap-2">
-                <button 
-                  v-for="template in templates" 
-                  :key="template.name"
-                  @click="applyTemplate(template)"
-                  class="px-3 py-1.5 text-xs font-medium rounded-full border border-stone-200 hover:border-stone-300 hover:bg-stone-50 transition-colors"
-                >
-                  {{ template.name }}
-                </button>
-              </div>
-            </div>
-
-            <!-- Message Input -->
-            <div>
-              <label class="block text-xs font-bold uppercase tracking-wide text-stone-500 mb-2">Message</label>
-              <textarea 
-                v-model="message"
-                rows="5"
-                placeholder="Type your message here... Use {name} to personalize."
-                class="w-full px-4 py-3 rounded-xl border border-stone-200 focus:outline-none focus:ring-2 focus:ring-black/5 resize-none text-stone-900"
-                maxlength="160"
-              ></textarea>
-              <div class="flex justify-between mt-2 text-xs text-stone-400">
-                <span>{{ message.length }}/160 characters</span>
-                <span v-if="message.includes('{name}')" class="text-green-600">✓ Personalized</span>
-              </div>
-            </div>
-
-            <!-- Preview -->
-            <div v-if="message" class="bg-stone-50 rounded-xl p-4">
-              <label class="block text-xs font-bold uppercase tracking-wide text-stone-500 mb-2">Preview</label>
-              <div class="bg-white rounded-lg p-3 border border-stone-100 text-sm text-stone-700">
-                {{ previewMessage }}
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Recipients Card -->
-        <div class="bg-white rounded-2xl border border-stone-200 overflow-hidden">
-          <div class="px-6 py-4 border-b border-stone-100 bg-stone-50 flex justify-between items-center">
-            <h2 class="font-bold text-stone-900 flex items-center gap-2">
-              <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-stone-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-                <circle cx="9" cy="7" r="4"/>
-                <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
-                <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-              </svg>
-              Recipients
-              <span class="text-xs font-normal text-stone-400">({{ selectedUsers.length }} selected)</span>
-            </h2>
-            <div class="flex gap-2">
-              <button 
-                @click="selectAll" 
-                class="text-xs font-medium text-stone-500 hover:text-black"
-              >
-                Select All
-              </button>
-              <button 
-                @click="clearSelection" 
-                class="text-xs font-medium text-red-500 hover:text-red-600"
-                v-if="selectedUsers.length"
-              >
-                Clear
-              </button>
+    <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
+      <div class="space-y-6 lg:col-span-2">
+        <!-- Message -->
+        <section class="ad-panel space-y-4">
+          <div>
+            <span class="ad-label">Start from a template</span>
+            <div class="flex flex-wrap gap-1.5">
+              <button
+                v-for="template in templates"
+                :key="template.name"
+                class="h-8 rounded-full border px-3.5 text-sm transition-colors"
+                :class="message === template.message ? 'border-[#393737] bg-[#393737] text-white' : 'border-[#ded9d2] text-[#6c6862] hover:border-[#393737] hover:text-[#393737]'"
+                @click="applyTemplate(template)"
+              >{{ template.name }}</button>
             </div>
           </div>
 
-          <div class="p-6">
-            <!-- Quick Filters -->
-            <div class="flex flex-wrap gap-2 mb-4">
-              <button 
-                @click="filterUsers('all')"
-                :class="['px-3 py-1.5 text-xs font-medium rounded-full border transition-colors', activeFilter === 'all' ? 'bg-black text-white border-black' : 'border-stone-200 hover:border-stone-300']"
-              >
-                All Users ({{ users.length }})
-              </button>
-              <button 
-                @click="filterUsers('male')"
-                :class="['px-3 py-1.5 text-xs font-medium rounded-full border transition-colors', activeFilter === 'male' ? 'bg-blue-600 text-white border-blue-600' : 'border-stone-200 hover:border-stone-300']"
-              >
-                Males ({{ users.filter(u => u.gender === 'male').length }})
-              </button>
-              <button 
-                @click="filterUsers('female')"
-                :class="['px-3 py-1.5 text-xs font-medium rounded-full border transition-colors', activeFilter === 'female' ? 'bg-pink-600 text-white border-pink-600' : 'border-stone-200 hover:border-stone-300']"
-              >
-                Females ({{ users.filter(u => u.gender === 'female').length }})
-              </button>
-              <button 
-                @click="filterUsers('verified')"
-                :class="['px-3 py-1.5 text-xs font-medium rounded-full border transition-colors', activeFilter === 'verified' ? 'bg-green-600 text-white border-green-600' : 'border-stone-200 hover:border-stone-300']"
-              >
-                Verified ({{ users.filter(u => u.is_verified).length }})
-              </button>
-            </div>
-
-            <!-- Search -->
-            <input 
-              v-model="search"
-              type="text"
-              placeholder="Search by name or phone..."
-              class="w-full px-4 py-2 rounded-lg border border-stone-200 focus:outline-none focus:ring-2 focus:ring-black/5 text-sm mb-4"
-            />
-
-            <!-- User List -->
-            <div class="max-h-64 overflow-y-auto border border-stone-100 rounded-xl">
-              <div v-if="loading" class="p-8 text-center text-stone-400 text-sm">
-                Loading users...
-              </div>
-              <div v-else-if="filteredUsers.length === 0" class="p-8 text-center text-stone-400 text-sm">
-                No users found
-              </div>
-              <div v-else>
-                <label 
-                  v-for="user in filteredUsers" 
-                  :key="user.id"
-                  class="flex items-center gap-3 p-3 hover:bg-stone-50 cursor-pointer border-b border-stone-50 last:border-0"
-                >
-                  <input 
-                    type="checkbox" 
-                    :value="user.id"
-                    v-model="selectedUserIds"
-                    class="w-4 h-4 rounded border-stone-300 text-black focus:ring-black"
-                  />
-                  <div class="w-8 h-8 rounded-full bg-stone-100 flex items-center justify-center text-xs font-bold text-stone-600">
-                    {{ user.display_name?.charAt(0) || '?' }}
-                  </div>
-                  <div class="flex-1 min-w-0">
-                    <p class="text-sm font-medium text-stone-900 truncate">{{ user.display_name || 'No name' }}</p>
-                    <p class="text-xs text-stone-400">{{ user.phone }}</p>
-                  </div>
-                  <span 
-                    :class="['text-[10px] px-2 py-0.5 rounded-full font-medium', user.gender === 'male' ? 'bg-blue-50 text-blue-600' : 'bg-pink-50 text-pink-600']"
-                  >
-                    {{ user.gender }}
-                  </span>
-                </label>
-              </div>
+          <div>
+            <label class="ad-label" for="sms-message">Message</label>
+            <textarea
+              id="sms-message"
+              v-model="message"
+              rows="5"
+              maxlength="160"
+              placeholder="Hi {name}! …"
+              class="form-input resize-none !text-[0.95rem] leading-relaxed"
+            ></textarea>
+            <div class="mt-1.5 flex justify-between text-xs">
+              <span :class="message.length > 140 ? 'font-semibold text-[#9a5b0f]' : 'ad-faint'">{{ message.length }}/160</span>
+              <span v-if="message.includes('{name}')" class="text-[#1f7a4d]">Personalised</span>
             </div>
           </div>
-        </div>
-      </div>
 
-      <!-- Right: Summary & Send -->
-      <div class="space-y-6">
-        <!-- Summary Card -->
-        <div class="bg-white rounded-2xl border border-stone-200 overflow-hidden sticky top-6">
-          <div class="px-6 py-4 border-b border-stone-100 bg-stone-50">
-            <h2 class="font-bold text-stone-900">Summary</h2>
+          <div v-if="message">
+            <span class="ad-label">Preview</span>
+            <p class="max-w-sm rounded-[1.25rem] rounded-bl-md bg-[#f1efec] px-4 py-3 text-sm leading-relaxed">{{ previewMessage }}</p>
           </div>
-          
-          <div class="p-6 space-y-4">
-            <div class="flex justify-between items-center py-2 border-b border-stone-50">
-              <span class="text-sm text-stone-500">Recipients</span>
-              <span class="font-bold text-stone-900">{{ selectedUsers.length }}</span>
-            </div>
-            <div class="flex justify-between items-center py-2 border-b border-stone-50">
-              <span class="text-sm text-stone-500">Message Length</span>
-              <span class="font-bold text-stone-900">{{ message.length }}/160</span>
-            </div>
-            <div class="flex justify-between items-center py-2">
-              <span class="text-sm text-stone-500">Est. Cost</span>
-              <span class="font-bold text-stone-900">~GH₵{{ (selectedUsers.length * 0.05).toFixed(2) }}</span>
-            </div>
+        </section>
 
-            <!-- Selected Users Preview -->
-            <div v-if="selectedUsers.length > 0 && selectedUsers.length <= 5" class="pt-4 border-t border-stone-100">
-              <p class="text-xs font-bold uppercase tracking-wide text-stone-400 mb-2">Sending to:</p>
-              <div class="space-y-1">
-                <div v-for="user in selectedUsers" :key="user.id" class="text-xs text-stone-600">
-                  {{ user.display_name || user.phone }}
-                </div>
-              </div>
+        <!-- Recipients -->
+        <section class="ad-panel space-y-4">
+          <div class="flex flex-wrap items-center justify-between gap-3">
+            <h2 class="ad-label !mb-0">Recipients · {{ selectedUsers.length }} selected</h2>
+            <div class="flex gap-1">
+              <button class="btn-ghost btn-sm" @click="selectAll">Select all{{ activeFilter !== 'all' || search ? ' shown' : '' }}</button>
+              <button v-if="selectedUsers.length" class="btn-ghost btn-sm" @click="clearSelection">Clear</button>
             </div>
-            <div v-else-if="selectedUsers.length > 5" class="pt-4 border-t border-stone-100">
-              <p class="text-xs text-stone-400">
-                {{ selectedUsers.slice(0, 3).map(u => u.display_name || u.phone).join(', ') }} and {{ selectedUsers.length - 3 }} more...
-              </p>
-            </div>
+          </div>
 
-            <!-- Send Button -->
-            <button 
-              @click="sendMessages"
-              :disabled="!canSend || sending"
-              :class="[
-                'w-full py-3 rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2',
-                canSend && !sending 
-                  ? 'bg-black text-white hover:bg-stone-800 active:scale-[0.98]' 
-                  : 'bg-stone-100 text-stone-400 cursor-not-allowed'
-              ]"
+          <div class="flex flex-wrap items-center gap-2">
+            <div class="ad-tabs">
+              <button
+                v-for="f in audienceFilters"
+                :key="f.key"
+                class="ad-tab"
+                :class="{ 'is-active': activeFilter === f.key }"
+                @click="filterUsers(f.key)"
+              >
+                {{ f.label }}
+                <span class="ad-tab__count">{{ f.count }}</span>
+              </button>
+            </div>
+            <label class="ad-search">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><line x1="20" y1="20" x2="16.5" y2="16.5"/></svg>
+              <input v-model="search" type="search" placeholder="Search name or phone" aria-label="Search members" />
+            </label>
+          </div>
+          <p v-if="activeFilter !== 'all'" class="-mt-1 text-xs ad-faint">Choosing a group selects everyone in it.</p>
+
+          <div class="max-h-80 overflow-y-auto rounded-2xl border border-[#ece8e3]">
+            <div v-if="loading" class="ad-empty !py-10"><span class="ad-spinner"></span></div>
+            <p v-else-if="filteredUsers.length === 0" class="ad-empty !py-10">No members found.</p>
+            <label
+              v-for="user in filteredUsers"
+              v-else
+              :key="user.id"
+              class="flex cursor-pointer items-center gap-3 border-b border-[#f3f1ee] px-4 py-2.5 last:border-0 hover:bg-[#fcfbf9]"
             >
-              <svg v-if="sending" class="w-4 h-4 animate-spin" viewBox="0 0 24 24" fill="none">
-                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-              </svg>
-              <span v-if="sending">Sending {{ sentCount }}/{{ selectedUsers.length }}...</span>
-              <span v-else>Send {{ selectedUsers.length }} SMS</span>
-            </button>
-
-            <!-- Validation Messages -->
-            <div v-if="!message" class="text-xs text-amber-600 flex items-center gap-1">
-              <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <circle cx="12" cy="12" r="10"/>
-                <line x1="12" y1="8" x2="12" y2="12"/>
-                <line x1="12" y1="16" x2="12.01" y2="16"/>
-              </svg>
-              Please write a message
-            </div>
-            <div v-else-if="selectedUsers.length === 0" class="text-xs text-amber-600 flex items-center gap-1">
-              <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <circle cx="12" cy="12" r="10"/>
-                <line x1="12" y1="8" x2="12" y2="12"/>
-                <line x1="12" y1="16" x2="12.01" y2="16"/>
-              </svg>
-              Select at least one recipient
-            </div>
+              <input v-model="selectedUserIds" type="checkbox" :value="user.id" class="h-4 w-4" />
+              <span class="ad-avatar ad-avatar--sm">{{ user.display_name?.charAt(0) || '?' }}</span>
+              <span class="min-w-0 flex-1">
+                <span class="ad-person__name !font-medium text-sm">{{ user.display_name || 'No name' }}</span>
+                <span class="ad-person__meta">{{ user.phone }}</span>
+              </span>
+              <span v-if="user.gender" class="text-xs capitalize ad-faint">{{ user.gender }}</span>
+            </label>
           </div>
-        </div>
-
-        <!-- Recent Broadcasts -->
-        <div class="bg-white rounded-2xl border border-stone-200 overflow-hidden">
-          <div class="px-6 py-4 border-b border-stone-100 bg-stone-50">
-            <h2 class="font-bold text-stone-900 text-sm">Recent Broadcasts</h2>
-          </div>
-          <div class="p-4">
-            <div v-if="broadcasts.length === 0" class="text-center py-6 text-stone-400 text-xs">
-              No broadcasts yet
-            </div>
-            <div v-else class="space-y-3">
-              <div v-for="b in broadcasts" :key="b.id" class="text-xs">
-                <p class="text-stone-600 line-clamp-2">{{ b.message }}</p>
-                <p class="text-stone-400 mt-1">{{ b.count }} recipients · {{ formatDate(b.sent_at) }}</p>
-              </div>
-            </div>
-          </div>
-        </div>
+        </section>
       </div>
+
+      <!-- Send -->
+      <aside class="space-y-6">
+        <section class="ad-panel lg:sticky lg:top-20">
+          <h2 class="ad-label">Summary</h2>
+          <div class="ad-kv"><span>Recipients</span><span class="ad-num font-semibold">{{ selectedUsers.length }}</span></div>
+          <div class="ad-kv"><span>Length</span><span class="ad-num">{{ message.length }}/160</span></div>
+          <div class="ad-kv"><span>Estimated cost</span><span class="ad-num">~GH₵{{ (selectedUsers.length * 0.05).toFixed(2) }}</span></div>
+
+          <p v-if="selectedUsers.length" class="mt-3 text-xs leading-relaxed ad-muted">
+            To {{ selectedUsers.slice(0, 3).map(u => u.display_name || u.phone).join(', ') }}<template v-if="selectedUsers.length > 3"> and {{ selectedUsers.length - 3 }} more</template>.
+          </p>
+
+          <button class="btn-primary mt-5 w-full !py-3" :disabled="!canSend || sending" @click="sendMessages">
+            <template v-if="sending">Sending {{ sentCount }}/{{ selectedUsers.length }}…</template>
+            <template v-else>Send {{ selectedUsers.length || '' }} SMS</template>
+          </button>
+          <p v-if="!message" class="mt-2 text-center text-xs ad-faint">Write a message to send.</p>
+          <p v-else-if="selectedUsers.length === 0" class="mt-2 text-center text-xs ad-faint">Pick at least one recipient.</p>
+        </section>
+
+        <section v-if="broadcasts.length" class="ad-panel">
+          <h2 class="ad-label">Sent this session</h2>
+          <ul class="space-y-3">
+            <li v-for="b in broadcasts" :key="b.id" class="text-sm">
+              <p class="line-clamp-2">{{ b.message }}</p>
+              <p class="mt-0.5 text-xs ad-faint">{{ b.count }} recipients · {{ formatDate(b.sent_at) }}</p>
+            </li>
+          </ul>
+        </section>
+      </aside>
     </div>
 
-    <!-- Success Toast -->
     <Transition name="toast">
-      <div v-if="showSuccess" class="fixed bottom-6 right-6 bg-green-600 text-white px-6 py-3 rounded-xl shadow-xl flex items-center gap-2 z-50">
-        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
-          <polyline points="22 4 12 14.01 9 11.01"/>
-        </svg>
+      <div v-if="showSuccess" role="status" class="fixed bottom-6 right-6 z-[120] flex items-center gap-2 rounded-full bg-[#393737] px-5 py-3 text-sm text-white shadow-[0_18px_50px_rgba(52,38,25,0.25)]">
+        <span class="h-2 w-2 rounded-full bg-[#4ade80]"></span>
         {{ successMessage }}
       </div>
     </Transition>
@@ -312,13 +168,20 @@ const broadcasts = ref<any[]>([])
 
 // Templates
 const templates = [
-  { name: '🎉 Event Reminder', message: 'Hi {name}! Reminder: Your M2M event is coming up. See you there!' },
-  { name: '💕 Match Available', message: 'Hi {name}! You have a new match waiting. Log in to see who it is!' },
-  { name: '📢 Announcement', message: 'Hi {name}! We have exciting news from Minutes 2 Match...' },
-  { name: '🎁 Special Offer', message: 'Hi {name}! Exclusive offer just for you. Check your M2M dashboard!' },
+  { name: 'Event reminder', message: 'Hi {name}! Reminder: Your M2M event is coming up. See you there!' },
+  { name: 'New match', message: 'Hi {name}! You have a new match waiting. Log in to see who it is!' },
+  { name: 'Announcement', message: 'Hi {name}! We have exciting news from Minutes 2 Match...' },
+  { name: 'Special offer', message: 'Hi {name}! Exclusive offer just for you. Check your M2M dashboard!' },
 ]
 
 // Computed
+const audienceFilters = computed(() => [
+  { key: 'all', label: 'Everyone', count: users.value.length },
+  { key: 'male', label: 'Men', count: users.value.filter(u => u.gender === 'male').length },
+  { key: 'female', label: 'Women', count: users.value.filter(u => u.gender === 'female').length },
+  { key: 'verified', label: 'Verified', count: users.value.filter(u => u.is_verified).length }
+])
+
 const filteredUsers = computed(() => {
   let result = users.value
 
@@ -348,7 +211,7 @@ const selectedUsers = computed(() => {
 })
 
 const previewMessage = computed(() => {
-  return message.value.replace('{name}', 'Maxwell')
+  return message.value.replace(/\{name\}/g, 'Ama')
 })
 
 const canSend = computed(() => {

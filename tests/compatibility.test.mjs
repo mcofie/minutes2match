@@ -125,19 +125,29 @@ test('outside preferred age range is treated as a blocker, not just a lower rank
   assert.ok(result.eligibility.hardBlockers.includes('Outside preferred age range'))
 })
 
-test('intent mismatch is a soft risk but does not hard-block by itself', () => {
-  const userA = buildProfile({ id: 'user-a', intent: 'marriage' })
+test('different short-term intents are a soft risk, not a blocker', () => {
+  const userA = buildProfile({ id: 'user-a', intent: 'casual' })
   const userB = buildProfile({
     id: 'user-b',
     gender: 'female',
     interested_in: 'male',
-    intent: 'casual'
+    intent: 'friendship'
   })
 
   const result = calculateCompatibility(userA, richAnswersA, userB, richAnswersB)
 
   assert.equal(result.eligibility.eligible, true)
   assert.ok(result.eligibility.softRisks.includes('Conflict in relationship goals'))
+})
+
+test('long-term and short-term intents never match', () => {
+  const userA = buildProfile({ id: 'user-a', intent: 'marriage' })
+  const userB = buildProfile({ id: 'user-b', gender: 'female', interested_in: 'male', intent: 'casual' })
+
+  const result = calculateCompatibility(userA, richAnswersA, userB, richAnswersB)
+
+  assert.equal(result.eligibility.eligible, false)
+  assert.ok(result.eligibility.hardBlockers.includes('One wants something long-term, the other does not'))
 })
 
 test('sparse profiles reduce confidence and surface missing data', () => {
@@ -165,6 +175,57 @@ test('sparse profiles reduce confidence and surface missing data', () => {
 
   assert.ok(sparseResult.confidence < richResult.confidence)
   assert.ok(sparseResult.missingData.includes('birth date'))
-  assert.ok(sparseResult.missingData.includes('AI preference extraction'))
   assert.ok(sparseResult.missingData.includes('vibe answers'))
+})
+
+test('the same faith matches however it is written', () => {
+  const userA = buildProfile({ id: 'user-a', religion: 'Christianity' })
+  const userB = buildProfile({ id: 'user-b', gender: 'female', interested_in: 'male', religion: 'christian ' })
+  const result = calculateCompatibility(userA, richAnswersA, userB, richAnswersB)
+  assert.ok(result.strengths.includes('Shared Belief System 🙏'))
+})
+
+test('job fields match on whole words only', async () => {
+  const { isCompatibleProfession } = await import('../utils/compatibility.ts')
+  assert.equal(isCompatibleProfession('it support', 'software developer'), true)
+  assert.equal(isCompatibleProfession('digital artist', 'software developer'), false)
+})
+
+test('same city is required but earns no points', () => {
+  const userA = buildProfile({ id: 'user-a', dating_persona: undefined, occupation: '' })
+  const userB = buildProfile({ id: 'user-b', gender: 'female', interested_in: 'male', dating_persona: undefined, occupation: '' })
+  const result = calculateCompatibility(userA, richAnswersA, userB, richAnswersB)
+  assert.equal(result.breakdown.lifestyleMatch, 0)
+})
+
+test('bios compared by meaning: close vectors earn points, distant ones none', () => {
+  const unit = (v) => { const n = Math.hypot(...v); return v.map(x => x / n) }
+  const near = unit([1, 0.1, 0])
+  const far = unit([0, 0, 1])
+  const close = {
+    a: buildProfile({ id: 'a', bio_embeddings: { seeking: near, self: near } }),
+    b: buildProfile({ id: 'b', gender: 'female', interested_in: 'male', bio_embeddings: { seeking: near, self: near } })
+  }
+  const apart = {
+    a: buildProfile({ id: 'a', bio_embeddings: { seeking: near, self: near } }),
+    b: buildProfile({ id: 'b', gender: 'female', interested_in: 'male', bio_embeddings: { seeking: far, self: far } })
+  }
+  const r1 = calculateCompatibility(close.a, richAnswersA, close.b, richAnswersB)
+  const r2 = calculateCompatibility(apart.a, richAnswersA, apart.b, richAnswersB)
+  assert.equal(r1.breakdown.aiSynergy, 10)
+  assert.equal(r2.breakdown.aiSynergy, 0)
+})
+
+test('older question variants count once their dimension is known', () => {
+  // Older members answered pooled variants (love_language_v2 …); only the dimension ties them to the core question
+  const variant = richAnswersA.map(a => ({ ...a, question_key: `${a.question_key}_v2` }))
+  const withDimension = richAnswersA.map((a, i) => ({ ...variant[i], dimension: ['love_language', 'communication', 'life_goals', 'social', 'pace'][i] }))
+  const userA = buildProfile({ id: 'user-a' })
+  const userB = buildProfile({ id: 'user-b', gender: 'female', interested_in: 'male' })
+
+  const without = calculateCompatibility(userA, variant, userB, variant)
+  const withDim = calculateCompatibility(userA, withDimension, userB, withDimension)
+
+  assert.ok(without.eligibility.hardBlockers.includes('Not enough Vibe Check answers to compare'))
+  assert.equal(withDim.eligibility.eligible, true)
 })

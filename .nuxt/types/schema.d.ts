@@ -29,6 +29,10 @@ import { NuxtModule, ModuleDependencyMeta } from '@nuxt/schema'
 
    geminiApiKey: string,
 
+   geminiModel: string,
+
+   geminiEmbeddingModel: string,
+
    telegramBotToken: string,
 
    nitro: {

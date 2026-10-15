@@ -1,476 +1,127 @@
 <template>
-  <div class="dashboard-page overflow-x-hidden">
-    <!-- Welcome Header -->
-    <header class="mb-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+  <div class="ad-page !max-w-4xl">
+    <header class="ad-head">
       <div>
-        <h1 class="text-3xl font-extrabold text-stone-900 tracking-tight mb-1 italic">
-          Scoring Engine V2 ⚙️
-        </h1>
-        <p class="text-stone-500">Detailed breakdown of the compatibility calculation algorithm.</p>
+        <h1 class="ad-title">How matching works</h1>
+        <p class="ad-sub">The rules behind every introduction: who's eligible, how a pair is scored, and how the week's pairs are chosen.</p>
       </div>
-      
-      <NuxtLink to="/admin/matches/matchmaker" class="bg-white px-4 py-2 rounded-xl border border-stone-200 hover:border-stone-300 transition-all font-bold text-stone-700 shadow-sm flex items-center gap-2">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
-        Back to Matchmaker
-      </NuxtLink>
+      <NuxtLink to="/admin/matches/matchmaker" class="btn-ghost btn-sm">Back to matchmaker</NuxtLink>
     </header>
 
-    <!-- Compatibility Tiers Stats -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 mb-8">
-      <div v-for="t in tiers" :key="t.tier" class="stat-card group cursor-default">
-        <div class="flex justify-between items-start mb-4">
-          <div class="p-3 bg-stone-50 text-stone-600 rounded-xl group-hover:bg-stone-100 transition-colors">
-            <span class="text-xl">{{ t.emoji }}</span>
-          </div>
-          <span class="text-[10px] font-black px-2 py-1 bg-stone-100 text-stone-500 rounded-full uppercase tracking-tighter">
-            Tier
-          </span>
+    <div class="space-y-6">
+      <section class="ad-panel">
+        <h2 class="font-display text-2xl">1. Who's in the pool</h2>
+        <ul class="mt-3 space-y-2 text-sm leading-relaxed">
+          <li v-for="rule in poolRules" :key="rule" class="flex gap-2.5"><span class="mt-[0.5rem] h-1.5 w-1.5 shrink-0 rounded-full bg-[#393737]"></span>{{ rule }}</li>
+        </ul>
+      </section>
+
+      <section class="ad-panel">
+        <h2 class="font-display text-2xl">2. Deal-breakers</h2>
+        <p class="mt-1 text-sm ad-muted">Any one of these and the pair is never introduced, whatever the score.</p>
+        <ul class="mt-3 space-y-2 text-sm leading-relaxed">
+          <li v-for="rule in dealbreakers" :key="rule" class="flex gap-2.5"><span class="mt-[0.5rem] h-1.5 w-1.5 shrink-0 rounded-full bg-[#ed1c24]"></span>{{ rule }}</li>
+        </ul>
+      </section>
+
+      <section class="ad-panel !p-0">
+        <div class="px-6 pb-3 pt-5">
+          <h2 class="font-display text-2xl">3. The score</h2>
+          <p class="mt-1 text-sm ad-muted">Points out of 100, minus penalties. Bios add up to {{ BREAKDOWN_MAX.aiSynergy }} more; the total is capped at 100.</p>
         </div>
-        <div>
-          <span class="block text-lg font-black text-stone-900 mb-0.5 whitespace-nowrap overflow-hidden text-ellipsis">{{ t.tier }}</span>
-          <span class="text-xs font-bold text-stone-400 font-mono tracking-widest">{{ t.range }}%</span>
+        <table class="data-table">
+          <thead>
+            <tr><th>Part</th><th class="ad-right">Max</th><th>How it's earned</th></tr>
+          </thead>
+          <tbody>
+            <tr v-for="part in parts" :key="part.label" class="align-top">
+              <td class="whitespace-nowrap font-medium">{{ part.label }}</td>
+              <td class="ad-right ad-num">{{ part.max }}</td>
+              <td class="text-sm leading-relaxed ad-muted">{{ part.how }}</td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="px-6 py-5">
+          <h3 class="ad-label">Penalties</h3>
+          <ul class="space-y-1.5 text-sm">
+            <li v-for="p in penalties" :key="p" class="flex gap-2.5"><span class="mt-[0.5rem] h-1.5 w-1.5 shrink-0 rounded-full bg-[#d08a1e]"></span>{{ p }}</li>
+          </ul>
+          <h3 class="ad-label mt-5">Confidence</h3>
+          <p class="text-sm leading-relaxed">
+            Starts at 100 and drops 8 for each missing profile detail (intent, birth date, city, job, faith, hobbies),
+            and more when the pair can only be compared on the old Vibe Check. Below {{ MIN_CONFIDENCE }}% the pair isn't introduced.
+          </p>
         </div>
-      </div>
-    </div>
+      </section>
 
-    <section class="bg-white rounded-2xl border border-stone-200 shadow-sm p-6 mb-8">
-      <div class="flex items-center justify-between gap-4 mb-6">
-        <div>
-          <h2 class="text-lg font-bold text-stone-900">Live Evaluation Snapshot</h2>
-          <p class="text-sm text-stone-500">Recent match performance, score bands, and data quality signals.</p>
-        </div>
-        <button @click="fetchEvaluation" class="bg-stone-900 text-white px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-widest">
-          Refresh
-        </button>
-      </div>
+      <section class="ad-panel">
+        <h2 class="font-display text-2xl">4. Choosing the week's pairs</h2>
+        <ul class="mt-3 space-y-2 text-sm leading-relaxed">
+          <li v-for="rule in pairingRules" :key="rule" class="flex gap-2.5"><span class="mt-[0.5rem] h-1.5 w-1.5 shrink-0 rounded-full bg-[#393737]"></span>{{ rule }}</li>
+        </ul>
+      </section>
 
-      <div v-if="loadingEvaluation" class="text-sm text-stone-400 py-6">Loading evaluation metrics...</div>
-
-      <div v-else class="space-y-6">
-        <div class="grid grid-cols-2 lg:grid-cols-5 gap-4">
-          <div class="stat-card">
-            <div class="text-[10px] font-black uppercase tracking-widest text-stone-400">Matches Analyzed</div>
-            <div class="mt-2 text-3xl font-black text-stone-900">{{ evaluation.overview.matchesAnalyzed }}</div>
-          </div>
-          <div class="stat-card">
-            <div class="text-[10px] font-black uppercase tracking-widest text-stone-400">Average Score</div>
-            <div class="mt-2 text-3xl font-black text-stone-900">{{ evaluation.overview.averageScore }}%</div>
-          </div>
-          <div class="stat-card">
-            <div class="text-[10px] font-black uppercase tracking-widest text-stone-400">Unlock Rate</div>
-            <div class="mt-2 text-3xl font-black text-emerald-600">{{ evaluation.overview.unlockRate }}%</div>
-          </div>
-          <div class="stat-card">
-            <div class="text-[10px] font-black uppercase tracking-widest text-stone-400">Positive Outcome</div>
-            <div class="mt-2 text-3xl font-black text-blue-600">{{ evaluation.overview.positiveOutcomeRate }}%</div>
-          </div>
-          <div class="stat-card">
-            <div class="text-[10px] font-black uppercase tracking-widest text-stone-400">Avg Confidence</div>
-            <div class="mt-2 text-3xl font-black text-purple-600">{{ evaluation.overview.averageConfidence }}%</div>
-          </div>
-        </div>
-
-        <div class="rounded-2xl border border-stone-100 p-5">
-          <div class="flex items-center justify-between gap-3 mb-4">
-            <h3 class="text-xs font-black uppercase tracking-widest text-stone-400">Calibration Guidance</h3>
-            <span class="text-[10px] font-black uppercase tracking-widest text-stone-300">Evidence-led tuning</span>
-          </div>
-          <div v-if="!evaluation.recommendations.length" class="text-sm text-stone-400">
-            Not enough outcome data yet to generate recommendations.
-          </div>
-          <div v-else class="grid grid-cols-1 lg:grid-cols-2 gap-3">
-            <div
-              v-for="item in evaluation.recommendations"
-              :key="item.title"
-              class="rounded-xl border p-4"
-              :class="{
-                'border-red-100 bg-red-50/40': item.priority === 'high',
-                'border-amber-100 bg-amber-50/40': item.priority === 'medium',
-                'border-stone-100 bg-stone-50/40': item.priority === 'low'
-              }"
-            >
-              <div class="flex items-center justify-between gap-3 mb-2">
-                <div class="font-bold text-stone-900 text-sm">{{ item.title }}</div>
-                <span
-                  class="px-2 py-1 rounded-full text-[10px] font-black uppercase tracking-widest"
-                  :class="{
-                    'bg-red-100 text-red-700': item.priority === 'high',
-                    'bg-amber-100 text-amber-700': item.priority === 'medium',
-                    'bg-stone-100 text-stone-600': item.priority === 'low'
-                  }"
-                >
-                  {{ item.priority }}
-                </span>
-              </div>
-              <p class="text-sm text-stone-600 leading-relaxed">{{ item.detail }}</p>
-            </div>
-          </div>
-        </div>
-
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div class="rounded-2xl border border-stone-100 p-5">
-            <h3 class="text-xs font-black uppercase tracking-widest text-stone-400 mb-4">Score Band Performance</h3>
-            <div class="space-y-3">
-              <div v-for="bucket in evaluation.buckets" :key="bucket.label" class="rounded-xl border border-stone-100 p-4">
-                <div class="flex items-center justify-between mb-2">
-                  <span class="font-bold text-stone-900">{{ bucket.label }}</span>
-                  <span class="text-xs text-stone-500">{{ bucket.total }} matches</span>
-                </div>
-                <div class="grid grid-cols-2 gap-3 text-xs font-bold">
-                  <div class="text-emerald-600">Unlock: {{ bucket.unlockRate }}%</div>
-                  <div class="text-blue-600">Positive: {{ bucket.positiveRate }}%</div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div class="space-y-6">
-            <div class="rounded-2xl border border-stone-100 p-5">
-              <h3 class="text-xs font-black uppercase tracking-widest text-stone-400 mb-4">Top Warning Signals</h3>
-              <div v-if="!evaluation.topWarnings.length" class="text-sm text-stone-400">No warnings in recent matches.</div>
-              <div v-else class="space-y-2">
-                <div v-for="item in evaluation.topWarnings" :key="item.warning" class="flex items-center justify-between gap-3 text-sm">
-                  <span class="text-stone-700">{{ item.warning }}</span>
-                  <span class="px-2 py-1 rounded-full bg-rose-50 text-rose-600 text-xs font-black">{{ item.count }}</span>
-                </div>
-              </div>
-            </div>
-
-            <div class="rounded-2xl border border-stone-100 p-5">
-              <h3 class="text-xs font-black uppercase tracking-widest text-stone-400 mb-4">Missing Data Drag</h3>
-              <div v-if="!Object.keys(evaluation.missingDataCounts).length" class="text-sm text-stone-400">Recent matches have full supporting data.</div>
-              <div v-else class="space-y-2">
-                <div v-for="(count, label) in evaluation.missingDataCounts" :key="label" class="flex items-center justify-between gap-3 text-sm">
-                  <span class="text-stone-700 capitalize">{{ label }}</span>
-                  <span class="px-2 py-1 rounded-full bg-stone-100 text-stone-700 text-xs font-black">{{ count }}</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-      <!-- Main Rules Area (2/3) -->
-      <div class="lg:col-span-2 space-y-8">
-        
-        <!-- Positive Scoring Section -->
-        <section class="bg-white rounded-2xl border border-stone-200 overflow-hidden shadow-sm">
-          <div class="p-6 border-b border-stone-100 flex justify-between items-center bg-stone-50/30">
-            <h2 class="text-lg font-bold text-stone-900 flex items-center gap-3">
-              <div class="w-8 h-8 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center text-sm">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-              </div>
-              Positive Alignment (100 Points)
-            </h2>
-            <span class="text-xs font-black text-stone-400 uppercase tracking-widest">Base Weighting</span>
-          </div>
-          
-          <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div v-for="item in weights" :key="item.category" class="p-5 rounded-2xl border border-stone-100 bg-stone-50/20 hover:border-stone-200 transition-all">
-              <div class="flex items-center gap-3 mb-4">
-                <span class="text-2xl">{{ item.icon }}</span>
-                <div>
-                  <h3 class="font-bold text-stone-900 leading-none">{{ item.category }}</h3>
-                  <span class="text-[10px] text-stone-400 font-bold uppercase tracking-widest">Max {{ item.max }} Points</span>
-                </div>
-              </div>
-              <p class="text-xs text-stone-500 leading-relaxed mb-4">{{ item.description }}</p>
-              <div class="space-y-2">
-                <div v-for="bullet in item.bullets" :key="bullet" class="flex items-start gap-2 text-[10px] font-bold text-stone-600">
-                  <div class="w-1.5 h-1.5 rounded-full bg-emerald-400 mt-1 shrink-0"></div>
-                  {{ bullet }}
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <!-- Hard Filters Section -->
-        <section class="bg-stone-900 rounded-2xl p-8 relative overflow-hidden shadow-xl">
-          <div class="relative z-10 flex flex-col md:flex-row gap-8 items-center">
-            <div class="flex-1">
-              <div class="flex items-center gap-3 mb-4">
-                <div class="px-2 py-1 bg-red-500 text-white text-[10px] font-black rounded uppercase tracking-widest">Hard Filter</div>
-                <h2 class="text-xl font-bold text-white italic">The Binary Null Rule</h2>
-              </div>
-              <p class="text-stone-400 text-sm leading-relaxed mb-6">
-                If User A does not match User B's specified gender preference (or vice versa), the system triggers an immediate <span class="text-white font-bold">Hard Lock at 0%</span>. Compatibility is mathematically impossible regardless of other factors.
-              </p>
-              <div class="flex gap-4">
-                <div class="flex items-center gap-2 text-[10px] font-black text-stone-500 uppercase">
-                  <span class="w-2 h-2 rounded-full bg-red-500"></span>
-                  Gender Match Required
-                </div>
-                <div class="flex items-center gap-2 text-[10px] font-black text-stone-500 uppercase">
-                  <span class="w-2 h-2 rounded-full bg-red-500"></span>
-                  Mutual Interest Required
-                </div>
-              </div>
-            </div>
-            <div class="h-32 w-32 shrink-0 bg-stone-800 rounded-full flex items-center justify-center border-4 border-stone-700/50">
-              <span class="text-4xl font-black text-stone-600">0%</span>
-            </div>
-          </div>
-          <!-- Decorative SVG -->
-          <div class="absolute right-0 bottom-0 opacity-10 pointer-events-none">
-            <svg width="200" height="200" viewBox="0 0 24 24" fill="white"><path d="M18.36 6.64a9 9 0 1 1-12.73 0"></path><line x1="12" y1="2" x2="12" y2="12"></line></svg>
-          </div>
-        </section>
-      </div>
-
-      <!-- Sidebar Area (1/3) -->
-      <div class="space-y-8">
-         
-         <!-- Penalties Section -->
-         <section class="bg-white rounded-2xl border border-stone-200 overflow-hidden shadow-sm">
-            <div class="p-5 border-b border-stone-100 flex items-center gap-3 bg-red-50/30">
-               <div class="w-8 h-8 rounded-full bg-red-100 text-red-600 flex items-center justify-center">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-               </div>
-               <h3 class="text-sm font-bold text-stone-900 uppercase tracking-widest">Deductions</h3>
-            </div>
-            
-            <div class="p-5 space-y-4">
-               <div v-for="item in penalties" :key="item.category" class="p-4 rounded-xl border border-red-50 bg-red-50/10">
-                  <div class="flex justify-between items-start mb-3">
-                    <div class="flex items-center gap-2">
-                      <span class="text-xl">{{ item.icon }}</span>
-                      <h4 class="text-xs font-bold text-red-900 uppercase tracking-tight">{{ item.category }}</h4>
-                    </div>
-                    <span class="text-xs font-black px-2 py-0.5 bg-red-100 text-red-600 rounded">-{{ item.malus }}</span>
-                  </div>
-                  <p class="text-[10px] font-bold text-red-700/60 mb-3 leading-tight">{{ item.description }}</p>
-                  <div class="space-y-1.5">
-                    <div v-for="bullet in item.bullets" :key="bullet" class="flex items-start gap-2 text-[10px] font-bold text-stone-500 leading-tight">
-                      <span class="text-red-400 mt-[-1px]">×</span>
-                      {{ bullet }}
-                    </div>
-                  </div>
-               </div>
-            </div>
-         </section>
-
-         <!-- Dimension Breakdown -->
-         <section class="bg-stone-900 rounded-2xl p-6 shadow-xl">
-            <h3 class="text-[10px] font-black text-stone-500 uppercase tracking-[0.3em] mb-6">Algorithm Distribution</h3>
-            <div class="space-y-5">
-               <div v-for="item in weights" :key="item.category">
-                  <div class="flex justify-between text-[10px] font-black mb-1.5 uppercase tracking-wider">
-                     <span class="text-stone-400">{{ item.category }}</span>
-                     <span class="text-white">{{ item.max }}% Influence</span>
-                  </div>
-                  <div class="h-1.5 bg-stone-800 rounded-full overflow-hidden">
-                     <div class="h-full rounded-full" 
-                          :class="{
-                            'bg-emerald-500': item.max >= 30,
-                            'bg-blue-500': item.max >= 20 && item.max < 30,
-                            'bg-stone-500': item.max < 20
-                          }"
-                          :style="{ width: item.max + '%' }"></div>
-                  </div>
-               </div>
-            </div>
-            <div class="mt-8 pt-6 border-t border-stone-800">
-               <div class="p-4 bg-stone-800/50 rounded-xl border border-stone-700/50">
-                  <p class="text-[10px] font-bold text-stone-400 text-center leading-relaxed">
-                    Ranking Score: 100 Points<br/>
-                    AI Synergy Bonus: +10 Points<br/>
-                    Confidence Layer: 30-100%
-                  </p>
-               </div>
-            </div>
-         </section>
-      </div>
+      <section class="ad-panel">
+        <h2 class="font-display text-2xl">5. Where AI helps</h2>
+        <p class="mt-1 text-sm ad-muted">The rules decide who can be introduced. AI only adds detail inside those limits.</p>
+        <ul class="mt-3 space-y-2 text-sm leading-relaxed">
+          <li v-for="rule in aiRules" :key="rule" class="flex gap-2.5"><span class="mt-[0.5rem] h-1.5 w-1.5 shrink-0 rounded-full bg-[#2f5d9e]"></span>{{ rule }}</li>
+        </ul>
+      </section>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
 definePageMeta({
   layout: 'admin',
   middleware: ['admin']
 })
 
-const loadingEvaluation = ref(true)
-const evaluation = ref({
-  overview: {
-    matchesAnalyzed: 0,
-    averageScore: 0,
-    unlockRate: 0,
-    positiveOutcomeRate: 0,
-    averageConfidence: 0
-  },
-  buckets: [] as Array<{ label: string, total: number, unlockRate: number, positiveRate: number }>,
-  topWarnings: [] as Array<{ warning: string, count: number }>,
-  missingDataCounts: {} as Record<string, number>,
-  recommendations: [] as Array<{ title: string, detail: string, priority: 'high' | 'medium' | 'low' }>
-})
-
-const tiers = [
-  { tier: 'Divine Connection', emoji: '✨', range: '90-100' },
-  { tier: 'High Affinity', emoji: '🔥', range: '80-89' },
-  { tier: 'Strong Potential', emoji: '🌟', range: '70-79' },
-  { tier: 'Good Alignment', emoji: '👍', range: '60-69' },
-  { tier: 'Explorable', emoji: '🤝', range: '50-59' },
-  { tier: 'Challenging', emoji: '😬', range: '0-49' },
+const poolRules = [
+  'Verified, active (not incognito) and opted in for the current week.',
+  'Not already matched this week: one introduction per person per week.',
+  'Never introduced to the same person twice.',
+  `Pairs must reach the "Minimum score for auto matches" set in Settings.`
 ]
 
-const weights = [
-  {
-    category: 'Vibe Match',
-    icon: '🔋',
-    max: 40,
-    description: 'Core Vibe Check focus on day-to-day energetic compatibility.',
-    bullets: [
-      'Life Priority: 12pts',
-      'Love Language: 10pts',
-      'Social Energy: 8pts',
-      'Conflict Style: 5pts',
-      'Complementary partial credit: 50%'
-    ]
-  },
-  {
-    category: 'Goals & Intent',
-    icon: '💍',
-    max: 20,
-    description: 'Measures lifecycle alignment and shared destiny.',
-    bullets: [
-      'Identical Intent: 12pts',
-      'Shared Faith: 8pts',
-      'Intent Conflict: -15pt penalty'
-    ]
-  },
-  {
-    category: 'Lifestyle Synergy',
-    icon: '🍷',
-    max: 20,
-    description: 'How well habits and careers mesh.',
-    bullets: [
-      'Dating Persona: 10pts',
-      'Professional synergy: 5pts',
-      'Local Proximity: 5pts'
-    ]
-  },
-  {
-    category: 'Maturity',
-    icon: '⏳',
-    max: 10,
-    description: 'Age range compatibility and life-stage proximity.',
-    bullets: [
-      '0-3 years apart: strongest fit',
-      '4-10 years apart: still healthy',
-      'Outside preferred age ranges becomes an eligibility blocker'
-    ]
-  },
-  {
-     category: 'Interests',
-     icon: '🎨',
-     max: 10,
-     description: 'Shared hobbies and surface-level attraction.',
-     bullets: [
-       '3+ Shared Badges: 10pts',
-       '1 Shared Badge: 5pts'
-     ]
-  },
-  {
-      category: 'Persona Synergy (AI)',
-      icon: '🧠',
-      max: 10,
-      description: 'AI-extracted traits from user bios matched against partner requirements.',
-      bullets: [
-        'Trait Alignment: +2-10pts',
-        'Bio-detected Conflict: -30 penalty'
-      ]
-  }
+const dealbreakers = [
+  "Either person isn't interested in the other's gender.",
+  'Different cities, or a city we can\'t place.',
+  "One wants something long-term (marriage or serious), the other doesn't.",
+  'Opposite on having children (5 or more apart on the 1–7 scale).',
+  'Faith matters very differently (4 or more apart, with one at 6 or 7).',
+  "Either person is outside the other's preferred age range.",
+  'Both carry a sickle-cell trait (AS, SS, AC or SC).',
+  "Either person's own dealbreakers are hit (religion, intent or genotype).",
+  `Not enough Vibe Check answers to compare, or confidence below ${MIN_CONFIDENCE}%.`
+]
+
+const parts = [
+  { label: 'Vibe', max: BREAKDOWN_MAX.vibeMatch, how: 'New Vibe Check: ten 1–7 statements, each scored by how close the answers are and weighted by importance (kids 12, faith 10, marriage timeline 8, others 4–6), plus shared top-5 values (3 in common earns full marks). Members who only took the old Vibe Check are compared on its five core questions.' },
+  { label: 'Goals', max: BREAKDOWN_MAX.goalsMatch, how: 'Same relationship intent 12 (marriage with serious: 7). Same faith 8, however it\'s written ("Christianity" = "Christian").' },
+  { label: 'Lifestyle', max: BREAKDOWN_MAX.lifestyleMatch, how: 'Same dating persona 5. Same job 5, or the same field of work 3 (tech, finance and law, health, teaching, marketing, creative).' },
+  { label: 'Life stage', max: BREAKDOWN_MAX.maturityMatch, how: 'Age gap: 3 years or less 10, 6 or less 8, 10 or less 6, 15 or less 3.' },
+  { label: 'Shared hobbies', max: BREAKDOWN_MAX.interestMatch, how: '3 or more hobbies in common 10, 1–2 in common 5.' },
+  { label: 'Bios', max: BREAKDOWN_MAX.aiSynergy, how: 'Does what each person is looking for sound like how the other describes themselves? Compared by meaning once AI has read both bios; by shared words otherwise.' }
 ]
 
 const penalties = [
-  {
-    category: 'Health Risks',
-    icon: '🧬',
-    malus: 80,
-    description: 'Critical genotype incompatibilities.',
-    bullets: ['Both users carry trait (S/C)', 'SS carrier paired with any trait']
-  },
-  {
-    category: 'Dealbreakers',
-    icon: '🚫',
-    malus: 50,
-    description: 'Hits on user\'s list of non-negotiables.',
-    bullets: ['Matching a "Won\'t Date" criteria', 'Reciprocal cross-check']
-  },
-  {
-    category: 'Preference Gaps',
-    icon: '📏',
-    malus: '8-20',
-    description: 'Preference misses are now separated into blockers vs softer risks.',
-    bullets: [
-      'Outside preferred age range: hard block',
-      'Large age gap: soft risk',
-      'Intent mismatch: ranking penalty, not absolute zero'
-    ]
-  }
+  'Different short-term goals (e.g. casual and friendship): −10',
+  'Age gap over 12 years: −8',
+  'A bio mentions something the other has ruled out: −20'
 ]
 
-const fetchEvaluation = async () => {
-  loadingEvaluation.value = true
-  try {
-    const data = await $fetch('/api/admin/matches/evaluation')
-    evaluation.value = data as any
-  } catch (error) {
-    console.error('Failed to fetch evaluation metrics:', error)
-  } finally {
-    loadingEvaluation.value = false
-  }
-}
+const pairingRules = [
+  'The weekly run scores every allowed pair, then picks pairs so the most people get a good match, not just the best pair first.',
+  `Members who opted in last week but weren't matched get priority (+${MISSED_LAST_WEEK_BOOST} per person in a pair).`,
+  "Someone who finishes or retakes the Vibe Check mid-week is matched on the spot with their best available fit.",
+  'Every new match gets a short "why you two" note and both people are messaged. About 4 days later each is asked how it went.'
+]
 
-onMounted(fetchEvaluation)
+const aiRules = [
+  'Reads each bio for what the member is looking for and how they describe themselves, used in the Bios part of the score.',
+  'Writes the "why you two" note members see on their match.',
+  'Second look: when someone\'s top candidates score within 5 points of each other, it picks the one most likely to work and notes why (shown as "AI pick" on Matches).'
+]
 </script>
-
-<style scoped>
-.dashboard-page {
-  max-width: 1400px;
-  margin: 0 auto;
-}
-
-.stat-card {
-  background: white;
-  border: 1px solid #E5E7EB;
-  border-radius: 16px;
-  padding: 1.25rem;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.stat-card:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 12px 20px -5px rgba(0, 0, 0, 0.08);
-  border-color: #D1D5DB;
-}
-
-.badge {
-  display: inline-flex;
-  align-items: center;
-  padding: 0.25rem 0.625rem;
-  border-radius: 9999px;
-  font-size: 0.75rem;
-  font-weight: 700;
-  border: 1px solid transparent;
-}
-
-/* Animations from Dashboard index */
-@keyframes in {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-.stat-card, section {
-  animation: in 0.4s ease-out forwards;
-}
-
-section:nth-child(2) { animation-delay: 0.1s; }
-section:nth-child(3) { animation-delay: 0.2s; }
-</style>

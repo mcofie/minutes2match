@@ -34,9 +34,9 @@ const props = defineProps<{
 const chartItems = computed(() => {
   if (!props.breakdown) return []
   return [
-    { label: 'Vibe Match', value: normalize(props.breakdown.vibeMatch, 40) },
+    { label: 'Vibe Match', value: normalize(props.breakdown.vibeMatch, BREAKDOWN_MAX.vibeMatch) },
     { label: 'Goal Alignment', value: normalize(props.breakdown.goalsMatch, 20) },
-    { label: 'Lifestyle Sync', value: normalize(props.breakdown.lifestyleMatch, 20) },
+    { label: 'Lifestyle Sync', value: normalize(props.breakdown.lifestyleMatch, BREAKDOWN_MAX.lifestyleMatch) },
     { label: 'Maturity & Dynamic', value: normalize(props.breakdown.maturityMatch, 10) },
     { label: 'Interest Synergy', value: normalize(props.breakdown.interestMatch, 10) }
   ]

@@ -57,7 +57,9 @@ export default defineEventHandler(async (event) => {
             .eq('user_id', profile.id)
 
         // User has completed vibe check if they have key profile fields AND some vibe answers
-        const hasCompletedVibeCheck = !!(
+        // Flagged members retake the new Vibe Check before getting back in
+        const vibeRetakeRequired = await isVibeRetakeRequired(supabaseAdmin, profile.id)
+        const hasCompletedVibeCheck = !vibeRetakeRequired && !!(
             profile.gender &&
             profile.intent &&
             profile.interested_in &&

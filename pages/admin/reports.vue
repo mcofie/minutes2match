@@ -1,296 +1,208 @@
 <template>
-  <div class="admin-page">
-    <header class="page-header">
+  <div class="ad-page">
+    <header class="ad-head">
       <div>
-        <h1 class="page-title">User Reports</h1>
-        <p class="page-subtitle">Monitor community safety and handle reported incidents</p>
-      </div>
-      <div class="header-actions">
-        <!-- View Toggle -->
-        <div class="view-toggle">
-          <button 
-            v-for="tab in ['active', 'resolved']" 
-            :key="tab"
-            @click="activeTab = tab"
-            :class="['toggle-btn', { 'active': activeTab === tab }]"
-          >
-            {{ tab === 'active' ? 'Needs Review' : 'Resolved' }}
-          </button>
-        </div>
+        <h1 class="ad-title">Reports</h1>
+        <p class="ad-sub">Safety reports from members. Open a case to review it, then take action or dismiss.</p>
       </div>
     </header>
 
-    <!-- Stats Overview -->
-    <div class="stats-grid">
-      <div class="stat-card urgent">
-        <div class="stat-icon">🚨</div>
-        <div>
-          <p class="stat-label">Pending Action</p>
-          <p class="stat-value">{{ stats.pending }}</p>
-        </div>
+    <div class="ad-stats">
+      <div class="ad-stat" :class="{ 'ad-stat--alert': stats.pending > 0 }">
+        <div class="ad-stat__label">Needs action</div>
+        <div class="ad-stat__value">{{ stats.pending }}</div>
       </div>
-      <div class="stat-card info">
-        <div class="stat-icon">👀</div>
-        <div>
-          <p class="stat-label">Under Review</p>
-          <p class="stat-value">{{ stats.reviewed }}</p>
-        </div>
+      <div class="ad-stat">
+        <div class="ad-stat__label">In review</div>
+        <div class="ad-stat__value">{{ stats.reviewed }}</div>
       </div>
-      <div class="stat-card success">
-        <div class="stat-icon">✅</div>
-        <div>
-          <p class="stat-label">Total Resolves</p>
-          <p class="stat-value">{{ stats.actioned + stats.dismissed }}</p>
-        </div>
+      <div class="ad-stat">
+        <div class="ad-stat__label">Actioned</div>
+        <div class="ad-stat__value">{{ stats.actioned }}</div>
+      </div>
+      <div class="ad-stat">
+        <div class="ad-stat__label">Dismissed</div>
+        <div class="ad-stat__value">{{ stats.dismissed }}</div>
       </div>
     </div>
 
-    <!-- Filters Bar -->
-    <div class="filters-bar">
-      <div class="search-wrapper">
-        <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <circle cx="11" cy="11" r="8"/>
-          <line x1="21" y1="21" x2="16.65" y2="16.65"/>
-        </svg>
-        <input 
-          v-model="searchQuery" 
-          type="text" 
-          placeholder="Search by name or phone..." 
-          class="search-input"
-        />
+    <div class="ad-toolbar">
+      <div class="ad-tabs" role="tablist">
+        <button
+          v-for="tab in tabs"
+          :key="tab.key"
+          role="tab"
+          :aria-selected="activeTab === tab.key"
+          class="ad-tab"
+          :class="{ 'is-active': activeTab === tab.key }"
+          @click="activeTab = tab.key"
+        >
+          {{ tab.label }}
+          <span class="ad-tab__count" :class="{ 'ad-tab__count--alert': tab.key === 'active' && tab.count > 0 }">{{ tab.count }}</span>
+        </button>
       </div>
-      
-      <select v-if="activeTab === 'resolved'" v-model="filters.status" class="form-select">
-        <option value="">All Outcomes</option>
+      <select v-if="activeTab === 'resolved'" v-model="filters.status" class="ad-select" aria-label="Outcome">
+        <option value="">All outcomes</option>
         <option value="actioned">Actioned</option>
         <option value="dismissed">Dismissed</option>
       </select>
+      <div class="ad-toolbar__spacer"></div>
+      <label class="ad-search ad-search--fixed">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><line x1="20" y1="20" x2="16.5" y2="16.5"/></svg>
+        <input v-model="searchQuery" type="search" placeholder="Search name or phone" aria-label="Search reports" />
+      </label>
     </div>
 
-    <!-- Reports Table -->
-    <div class="table-container">
+    <div class="data-table-container">
       <table class="data-table">
         <thead>
           <tr>
-            <th>Reported On</th>
-            <th>Type</th>
-            <th>Reported User</th>
-            <th>Reporter</th>
+            <th>Reported member</th>
+            <th>Reason</th>
+            <th>Reported by</th>
+            <th>When</th>
             <th>Status</th>
-            <th></th>
+            <th class="ad-right"><span class="sr-only">Actions</span></th>
           </tr>
         </thead>
         <tbody>
           <tr v-if="loading">
-            <td colspan="6" class="text-center py-12 text-stone-400">
-              <div class="flex flex-col items-center gap-2">
-                <span class="animate-spin text-2xl">⏳</span>
-                <span>Loading reports...</span>
-              </div>
-            </td>
+            <td colspan="6"><div class="ad-empty"><span class="ad-spinner"></span></div></td>
           </tr>
-          
+
           <tr v-else-if="filteredReports.length === 0">
-            <td colspan="6" class="text-center py-16 text-stone-400">
-              <div class="flex flex-col items-center gap-3">
-                <span class="text-3xl opacity-50">🛡️</span>
-                <span class="font-medium">No reports found</span>
-                <span class="text-xs">Great job! The community is safe.</span>
+            <td colspan="6">
+              <div class="ad-empty">
+                <p class="ad-empty__title">{{ activeTab === 'active' ? 'All clear' : 'No resolved reports' }}</p>
+                <p>{{ searchQuery ? 'No reports match your search.' : activeTab === 'active' ? 'No open reports right now.' : 'Resolved cases will show up here.' }}</p>
               </div>
             </td>
           </tr>
-          
-          <tr v-for="report in filteredReports" :key="report.id" class="group hover:bg-stone-50 transition-colors">
-            <td>
-              <div class="flex flex-col">
-                <span class="font-medium text-stone-900">{{ formatDate(report.created_at) }}</span>
-                <span class="text-xs text-stone-400">{{ formatTimeAgo(report.created_at) }}</span>
-              </div>
-            </td>
-            <td>
-              <span class="reason-badge" :class="getReasonClass(report.reason)">
-                {{ getReasonEmoji(report.reason) }} {{ formatReason(report.reason) }}
-              </span>
-            </td>
-            <td>
-              <div class="flex items-center gap-3">
-                <div class="relative">
-                  <span class="user-avatar-sm bg-red-100 text-red-600 border border-red-200">
-                    {{ report.reported_user?.display_name?.charAt(0) || '?' }}
-                  </span>
-                  <div class="absolute -bottom-1 -right-1 w-3 h-3 bg-red-500 rounded-full border-2 border-white"></div>
+
+          <template v-else>
+            <tr v-for="report in filteredReports" :key="report.id" class="is-clickable" @click="viewReport(report)">
+              <td>
+                <div class="ad-person">
+                  <span class="ad-avatar">{{ report.reported_user?.display_name?.charAt(0) || '?' }}</span>
+                  <div class="min-w-0">
+                    <span class="ad-person__name">{{ report.reported_user?.display_name || 'Unknown' }}</span>
+                    <span class="ad-person__meta">{{ report.reported_user?.phone }}</span>
+                  </div>
                 </div>
-                <div class="flex flex-col">
-                  <span class="font-bold text-stone-900">{{ report.reported_user?.display_name || 'Unknown' }}</span>
-                  <span class="text-xs font-mono text-stone-500">{{ report.reported_user?.phone }}</span>
+              </td>
+              <td>
+                <span class="ad-pill" :class="getReasonClass(report.reason)">{{ formatReason(report.reason) }}</span>
+              </td>
+              <td>
+                <div class="ad-person">
+                  <span class="ad-avatar ad-avatar--sm">{{ report.reporter?.display_name?.charAt(0) || '?' }}</span>
+                  <span class="ad-muted">{{ report.reporter?.display_name || 'Unknown' }}</span>
                 </div>
-              </div>
-            </td>
-            <td>
-              <div class="flex items-center gap-2 opacity-70 group-hover:opacity-100 transition-opacity">
-                <span class="user-avatar-xs">{{ report.reporter?.display_name?.charAt(0) || '?' }}</span>
-                <span class="text-sm">{{ report.reporter?.display_name || 'Unknown' }}</span>
-              </div>
-            </td>
-            <td>
-              <span class="status-pill" :class="report.status">
-                <span class="dot"></span> {{ report.status }}
-              </span>
-            </td>
-            <td class="text-right">
-              <button class="btn-review group-hover:visible invisible" @click="viewReport(report)">
-                Review Case
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-              </button>
-            </td>
-          </tr>
+              </td>
+              <td class="ad-num">
+                {{ formatDate(report.created_at) }}
+                <span class="block text-xs ad-faint">{{ formatTimeAgo(report.created_at) }}</span>
+              </td>
+              <td>
+                <span class="ad-pill" :class="statusPill[report.status]">{{ statusLabel[report.status] || report.status }}</span>
+              </td>
+              <td class="ad-right">
+                <button class="btn-secondary btn-sm" @click.stop="viewReport(report)">Review</button>
+              </td>
+            </tr>
+          </template>
         </tbody>
       </table>
     </div>
 
-    <!-- Pagination -->
-    <div v-if="totalPages > 1" class="mt-4 flex justify-between items-center text-sm text-stone-500">
-      <span>Showing {{ (currentPage - 1) * pageSize + 1 }} - {{ Math.min(currentPage * pageSize, totalReports) }} of {{ totalReports }}</span>
-      <div class="flex gap-2">
-        <button 
-          @click="handlePageChange(currentPage - 1)"
-          :disabled="currentPage === 1"
-          class="px-3 py-1 border rounded hover:bg-white disabled:opacity-50"
-        >Prev</button>
-        <button 
-          @click="handlePageChange(currentPage + 1)"
-          :disabled="currentPage === totalPages"
-          class="px-3 py-1 border rounded hover:bg-white disabled:opacity-50"
-        >Next</button>
+    <div v-if="totalPages > 1" class="ad-pager">
+      <span>{{ (currentPage - 1) * pageSize + 1 }}–{{ Math.min(currentPage * pageSize, totalReports) }} of {{ totalReports }}</span>
+      <div class="ad-pager__buttons">
+        <button class="btn-secondary btn-sm" :disabled="currentPage === 1" @click="handlePageChange(currentPage - 1)">Previous</button>
+        <button class="btn-secondary btn-sm" :disabled="currentPage === totalPages" @click="handlePageChange(currentPage + 1)">Next</button>
       </div>
     </div>
 
-    <!-- Report Detail Modal -->
+    <!-- Case detail -->
     <Teleport to="body">
-      <div v-if="selectedReport" class="modal-overlay" @click.self="selectedReport = null">
-        <div class="modal modal--lg slide-in-up">
+      <div v-if="selectedReport" class="m2m-app m2m-admin modal-overlay" @click.self="selectedReport = null">
+        <div class="modal modal--wide" role="dialog" aria-modal="true" aria-labelledby="case-title">
           <div class="modal__header">
             <div>
-              <h2 class="modal__title">Case #{{ selectedReport.id.slice(0, 8) }}</h2>
-              <span class="text-xs text-stone-500">Opened {{ formatDate(selectedReport.created_at) }}</span>
+              <h2 id="case-title" class="modal__title">Case {{ selectedReport.id.slice(0, 8) }}</h2>
+              <p class="modal__sub">Opened {{ formatDate(selectedReport.created_at) }} · {{ formatTimeAgo(selectedReport.created_at) }}</p>
             </div>
-            <button class="modal__close" @click="selectedReport = null">×</button>
+            <button class="modal__close" aria-label="Close" @click="selectedReport = null">×</button>
           </div>
-          
+
           <div class="modal__content">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <!-- Left Column: Incident Details -->
-              <div class="space-y-6">
-                <!-- User Cards -->
-                <div class="bg-stone-50 p-4 rounded-xl border border-stone-200">
-                  <div class="flex justify-between items-center mb-4">
-                    <span class="text-xs font-bold uppercase tracking-wider text-stone-400">Parties Involved</span>
-                  </div>
-                  
-                  <div class="space-y-4">
-                    <!-- Reported User -->
-                    <div class="flex items-center justify-between group">
-                      <div class="flex items-center gap-3">
-                        <div class="user-avatar bg-red-100 text-red-600 ring-2 ring-red-500/20">
-                          {{ selectedReport.reported_user?.display_name?.charAt(0) || '?' }}
-                        </div>
-                        <div>
-                          <p class="font-bold text-red-700 flex items-center gap-2">
-                            {{ selectedReport.reported_user?.display_name }}
-                            <span class="px-1.5 py-0.5 bg-red-100 text-red-700 text-[10px] rounded uppercase font-bold">Reported</span>
-                          </p>
-                          <p class="text-xs text-stone-500">{{ selectedReport.reported_user?.phone }}</p>
-                        </div>
+            <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
+              <div class="space-y-5">
+                <div class="ad-panel ad-panel--flat space-y-4">
+                  <div class="flex items-center justify-between gap-3">
+                    <div class="ad-person">
+                      <span class="ad-avatar ad-avatar--lg">{{ selectedReport.reported_user?.display_name?.charAt(0) || '?' }}</span>
+                      <div class="min-w-0">
+                        <span class="ad-person__name">{{ selectedReport.reported_user?.display_name || 'Unknown' }}</span>
+                        <span class="ad-person__meta">Reported · {{ selectedReport.reported_user?.phone }}</span>
                       </div>
-                      <NuxtLink :to="`/admin/users?search=${selectedReport.reported_user?.phone}`" class="text-xs btn-xs">
-                        Profile
-                      </NuxtLink>
                     </div>
-
-                    <div class="h-px bg-stone-200 w-full"></div>
-
-                    <!-- Reporter -->
-                    <div class="flex items-center gap-3 opacity-75">
-                      <div class="user-avatar bg-stone-200 text-stone-600">
-                        {{ selectedReport.reporter?.display_name?.charAt(0) || '?' }}
-                      </div>
-                      <div>
-                        <p class="font-medium text-stone-900">{{ selectedReport.reporter?.display_name }}</p>
-                        <p class="text-xs text-stone-500">Reporter</p>
-                      </div>
+                    <NuxtLink :to="`/admin/users?search=${selectedReport.reported_user?.phone}`" class="btn-secondary btn-sm">Profile</NuxtLink>
+                  </div>
+                  <div class="ad-person">
+                    <span class="ad-avatar">{{ selectedReport.reporter?.display_name?.charAt(0) || '?' }}</span>
+                    <div class="min-w-0">
+                      <span class="ad-person__name">{{ selectedReport.reporter?.display_name || 'Unknown' }}</span>
+                      <span class="ad-person__meta">Reporter</span>
                     </div>
                   </div>
                 </div>
 
-                <!-- Description -->
                 <div>
-                  <h3 class="section-label">Incident Description</h3>
-                  <div class="bg-amber-50 border border-amber-200 rounded-lg p-4 text-sm text-stone-800 leading-relaxed shadow-sm">
-                    <p v-if="selectedReport.description">{{ selectedReport.description }}</p>
-                    <p v-else class="italic text-stone-400">No additional details provided.</p>
+                  <h3 class="ad-label">What happened</h3>
+                  <div class="ad-callout">
+                    <p v-if="selectedReport.description" class="whitespace-pre-line">{{ selectedReport.description }}</p>
+                    <p v-else class="ad-faint">No details given.</p>
                   </div>
                 </div>
               </div>
 
-              <!-- Right Column: Meta & Actions -->
-              <div class="space-y-6">
-                <!-- Meta Info -->
-                <div class="bg-white border border-stone-100 p-4 rounded-xl shadow-sm">
-                  <div class="flex justify-between items-center mb-4">
-                     <span class="reason-badge lg" :class="getReasonClass(selectedReport.reason)">
-                        {{ getReasonEmoji(selectedReport.reason) }} {{ formatReason(selectedReport.reason) }}
-                     </span>
-                     <span class="status-pill" :class="selectedReport.status">
-                        <span class="dot"></span> {{ selectedReport.status }}
-                     </span>
+              <div class="space-y-5">
+                <div>
+                  <div class="ad-kv">
+                    <span>Reason</span>
+                    <span><span class="ad-pill" :class="getReasonClass(selectedReport.reason)">{{ formatReason(selectedReport.reason) }}</span></span>
                   </div>
-
-                  <div class="space-y-3 text-sm">
-                    <div v-if="selectedReport.match_id" class="flex justify-between py-2 border-b border-stone-100">
-                      <span class="text-stone-500">Match Context</span>
-                      <span class="font-mono text-xs">{{ selectedReport.match_id.slice(0,8) }}...</span>
-                    </div>
-                    <div class="flex justify-between py-2 border-b border-stone-100">
-                      <span class="text-stone-500">Reviewer</span>
-                      <span>{{ selectedReport.reviewed_by || 'Unassigned' }}</span>
-                    </div>
+                  <div class="ad-kv">
+                    <span>Status</span>
+                    <span><span class="ad-pill" :class="statusPill[selectedReport.status]">{{ statusLabel[selectedReport.status] || selectedReport.status }}</span></span>
+                  </div>
+                  <div v-if="selectedReport.match_id" class="ad-kv">
+                    <span>Match</span>
+                    <span class="font-mono text-xs">{{ selectedReport.match_id.slice(0, 8) }}</span>
+                  </div>
+                  <div class="ad-kv">
+                    <span>Reviewer</span>
+                    <span :class="selectedReport.reviewed_by ? 'font-mono text-xs' : 'ad-faint'">{{ selectedReport.reviewed_by ? selectedReport.reviewed_by.slice(0, 8) : 'Unassigned' }}</span>
                   </div>
                 </div>
 
-                <!-- Admin Action Box -->
-                <div class="bg-stone-50 p-4 rounded-xl border border-stone-200">
-                   <h3 class="section-label mb-2">Internal Notes</h3>
-                   <textarea 
-                    v-model="adminNotes"
-                    rows="3"
-                    placeholder="Enter notes for other admins..."
-                    class="form-textarea mb-4"
-                  ></textarea>
+                <div>
+                  <label class="ad-label" for="report-notes">Internal notes</label>
+                  <textarea id="report-notes" v-model="adminNotes" rows="3" placeholder="Visible to other admins only" class="form-input"></textarea>
+                </div>
 
-                  <div class="grid grid-cols-2 gap-3 mt-4">
-                    <button 
-                      @click="updateReportStatus('dismissed')" 
-                      class="btn-action btn-dismiss"
-                      :disabled="updating || selectedReport.status === 'dismissed'"
-                    >
-                      <span>❌ Dismiss Report</span>
-                    </button>
-                    <button 
-                      @click="updateReportStatus('actioned')" 
-                      class="btn-action btn-ban"
-                      :disabled="updating || selectedReport.status === 'actioned'"
-                    >
-                      <span>🚫 Ban / Warn User</span>
-                    </button>
+                <div class="space-y-2">
+                  <div class="modal__actions">
+                    <button class="btn-secondary" :disabled="updating || selectedReport.status === 'dismissed'" @click="updateReportStatus('dismissed')">Dismiss</button>
+                    <button class="btn-danger" :disabled="updating || selectedReport.status === 'actioned'" @click="updateReportStatus('actioned')">Ban or warn</button>
                   </div>
-                  <button 
+                  <button
                     v-if="selectedReport.status === 'pending'"
-                    @click="updateReportStatus('reviewed')" 
-                    class="w-full mt-3 btn-action btn-neutral"
+                    class="btn-ghost w-full"
                     :disabled="updating"
-                  >
-                    <span>👀 Mark as Under Review</span>
-                  </button>
+                    @click="updateReportStatus('reviewed')"
+                  >Mark as in review</button>
                 </div>
               </div>
             </div>
@@ -302,7 +214,7 @@
 </template>
 
 <script setup lang="ts">
-useHead({ title: 'User Reports' })
+useHead({ title: 'Reports' })
 
 definePageMeta({
   layout: 'admin',
@@ -367,27 +279,34 @@ const formatReason = (reason: string) => {
   return reason.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())
 }
 
-const getReasonEmoji = (reason: string) => {
-  const map: Record<string, string> = {
-    'inappropriate_behavior': '😤',
-    'fake_profile': '🎭',
-    'harassment': '⚠️',
-    'spam': '📧',
-    'underage': '🔞',
-    'other': '❓'
-  }
-  return map[reason] || '❓'
-}
-
 const getReasonClass = (reason: string) => {
   switch (reason) {
-    case 'harassment': return 'bg-red-100 text-red-800 ring-1 ring-red-500/30'
-    case 'underage': return 'bg-purple-100 text-purple-800 ring-1 ring-purple-500/30'
-    case 'fake_profile': return 'bg-amber-100 text-amber-800 ring-1 ring-amber-500/30'
-    case 'spam': return 'bg-blue-100 text-blue-800 ring-1 ring-blue-500/30'
-    default: return 'bg-stone-100 text-stone-700 ring-1 ring-stone-500/20'
+    case 'harassment': return 'ad-pill--red'
+    case 'underage': return 'ad-pill--violet'
+    case 'fake_profile': return 'ad-pill--amber'
+    case 'spam': return 'ad-pill--blue'
+    default: return ''
   }
 }
+
+const statusPill: Record<string, string> = {
+  pending: 'ad-pill--red',
+  reviewed: 'ad-pill--amber',
+  actioned: 'ad-pill--green',
+  dismissed: ''
+}
+
+const statusLabel: Record<string, string> = {
+  pending: 'Needs action',
+  reviewed: 'In review',
+  actioned: 'Actioned',
+  dismissed: 'Dismissed'
+}
+
+const tabs = computed(() => [
+  { key: 'active', label: 'Open', count: stats.value.pending + stats.value.reviewed },
+  { key: 'resolved', label: 'Resolved', count: stats.value.actioned + stats.value.dismissed }
+])
 
 // Data Fetching
 const fetchReports = async () => {
@@ -503,409 +422,3 @@ onMounted(() => {
   fetchStats()
 })
 </script>
-
-<style scoped>
-/* Page Layout */
-.admin-page {
-  max-width: 1200px;
-  margin: 0 auto;
-}
-
-.page-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 2rem;
-}
-
-.page-title {
-  font-size: 1.5rem;
-  font-weight: 800;
-  color: #111827;
-  letter-spacing: -0.025em;
-}
-
-.page-subtitle {
-  color: #6B7280;
-  font-size: 0.875rem;
-  margin-top: 0.25rem;
-}
-
-/* Stats */
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1rem;
-  margin-bottom: 2rem;
-}
-
-.stat-card {
-  background: white;
-  border: 1px solid #E5E7EB;
-  border-radius: 12px;
-  padding: 1.25rem;
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  transition: transform 0.2s, box-shadow 0.2s;
-}
-
-.stat-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-}
-
-.stat-card.urgent { border-left: 4px solid #EF4444; }
-.stat-card.info { border-left: 4px solid #F59E0B; }
-.stat-card.success { border-left: 4px solid #10B981; }
-
-.stat-icon {
-  font-size: 2rem;
-  width: 3rem;
-  height: 3rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: #F3F4F6;
-  border-radius: 50%;
-}
-
-.stat-label {
-  font-size: 0.75rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: #6B7280;
-}
-
-.stat-value {
-  font-size: 1.5rem;
-  font-weight: 800;
-  color: #111827;
-}
-
-/* Controls */
-.view-toggle {
-  display: flex;
-  background: #F3F4F6;
-  padding: 4px;
-  border-radius: 8px;
-  gap: 2px;
-}
-
-.toggle-btn {
-  padding: 0.5rem 1rem;
-  font-size: 0.875rem;
-  font-weight: 600;
-  border-radius: 6px;
-  color: #6B7280;
-  transition: all 0.2s;
-}
-
-.toggle-btn.active {
-  background: white;
-  color: #111827;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
-}
-
-.filters-bar {
-  display: flex;
-  gap: 1rem;
-  margin-bottom: 1rem;
-  align-items: center;
-}
-
-.search-wrapper {
-  flex: 1;
-  position: relative;
-}
-
-.search-icon {
-  position: absolute;
-  left: 12px;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 16px;
-  height: 16px;
-  color: #9CA3AF;
-}
-
-.search-input {
-  width: 100%;
-  padding: 0.625rem 1rem 0.625rem 2.5rem;
-  border: 1px solid #E5E7EB;
-  border-radius: 8px;
-  font-size: 0.875rem;
-  transition: border-color 0.2s;
-}
-
-.search-input:focus {
-  outline: none;
-  border-color: #3B82F6;
-  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
-}
-
-/* Table */
-.table-container {
-  background: white;
-  border: 1px solid #E5E7EB;
-  border-radius: 12px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-  overflow: hidden;
-}
-
-.data-table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-.data-table th {
-  padding: 1rem 1.5rem;
-  text-align: left;
-  font-size: 0.75rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: #6B7280;
-  background: #F9FAFB;
-  border-bottom: 1px solid #E5E7EB;
-}
-
-.data-table td {
-  padding: 1rem 1.5rem;
-  border-bottom: 1px solid #F3F4F6;
-  font-size: 0.875rem;
-}
-
-.user-avatar-sm {
-  width: 36px;
-  height: 36px;
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 700;
-  font-size: 0.875rem;
-}
-
-.user-avatar-xs {
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  background: #E5E7EB;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.625rem;
-  font-weight: 700;
-  color: #6B7280;
-}
-
-/* Badges */
-.reason-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.375rem;
-  padding: 0.25rem 0.625rem;
-  border-radius: 99px;
-  font-size: 0.75rem;
-  font-weight: 600;
-}
-
-.reason-badge.lg {
-  padding: 0.375rem 0.75rem;
-  font-size: 0.875rem;
-}
-
-.status-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.375rem;
-  padding: 2px 8px;
-  border-radius: 99px;
-  font-size: 0.75rem;
-  font-weight: 600;
-  text-transform: capitalize;
-}
-
-.status-pill.pending { background: #FEF2F2; color: #DC2626; border: 1px solid #FCA5A5; }
-.status-pill.pending .dot { background: #DC2626; }
-
-.status-pill.reviewed { background: #FFFBEB; color: #D97706; border: 1px solid #FCD34D; }
-.status-pill.reviewed .dot { background: #D97706; }
-
-.status-pill.actioned { background: #ECFDF5; color: #059669; border: 1px solid #6EE7B7; }
-.status-pill.actioned .dot { background: #059669; }
-
-.status-pill.dismissed { background: #F3F4F6; color: #6B7280; border: 1px solid #D1D5DB; }
-.status-pill.dismissed .dot { background: #6B7280; }
-
-.dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-}
-
-.btn-review {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.375rem 0.75rem;
-  background: white;
-  border: 1px solid #D1D5DB;
-  border-radius: 6px;
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: #374151;
-  transition: all 0.2s;
-}
-
-.btn-review:hover {
-  background: #F3F4F6;
-  border-color: #9CA3AF;
-}
-
-/* Modal */
-.modal-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.4);
-  backdrop-filter: blur(4px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 100;
-  animation: fadeIn 0.15s ease-out;
-}
-
-.modal {
-  background: white;
-  width: 100%;
-  max-width: 800px;
-  max-height: 90vh;
-  border-radius: 16px;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-}
-
-.slide-in-up {
-  animation: slideUp 0.2s ease-out;
-}
-
-.modal__header {
-  padding: 1.25rem 1.5rem;
-  border-bottom: 1px solid #E5E7EB;
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  background: #FAFAFA;
-}
-
-.modal__title {
-  margin: 0;
-  font-size: 1.125rem;
-  font-weight: 700;
-  color: #111827;
-}
-
-.modal__close {
-  font-size: 1.5rem;
-  color: #9CA3AF;
-  line-height: 1;
-  padding: 4px;
-  border-radius: 4px;
-  transition: all 0.2s;
-}
-
-.modal__close:hover {
-  background: #E5E7EB;
-  color: #111827;
-}
-
-.modal__content {
-  padding: 2rem;
-  overflow-y: auto;
-}
-
-.section-label {
-  font-size: 0.75rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: #6B7280;
-  margin-bottom: 0.5rem;
-}
-
-.btn-action {
-  width: 100%;
-  padding: 0.75rem;
-  border-radius: 8px;
-  font-weight: 600;
-  transition: all 0.2s;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.btn-dismiss {
-  background: white;
-  border: 1px solid #D1D5DB;
-  color: #4B5563;
-}
-
-.btn-dismiss:hover {
-  background: #F3F4F6;
-  border-color: #9CA3AF;
-}
-
-.btn-ban {
-  background: #FEF2F2;
-  border: 1px solid #FCA5A5;
-  color: #DC2626;
-}
-
-.btn-ban:hover {
-  background: #FEE2E2;
-  border-color: #F87171;
-}
-
-.btn-neutral {
-  background: white;
-  border: 1px solid #D1D5DB;
-  color: #6B7280;
-  font-size: 0.875rem;
-}
-
-.btn-neutral:hover {
-  background: #F9FAFB;
-  text-decoration: underline;
-}
-
-.btn-xs {
-    padding: 2px 6px;
-    background: white;
-    border: 1px solid #e5e7eb;
-    border-radius: 4px;
-    font-size: 10px;
-    font-weight: 600;
-    color: #6b7280;
-    transition: all 0.2s;
-}
-
-.btn-xs:hover {
-    border-color: #9ca3af;
-    color: #374151;
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
-@keyframes slideUp {
-  from { transform: translateY(10px); opacity: 0; }
-  to { transform: translateY(0); opacity: 1; }
-}
-</style>

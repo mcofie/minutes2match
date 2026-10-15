@@ -65,7 +65,9 @@ export default defineEventHandler(async (event) => {
         .select('id', { count: 'exact', head: true })
         .eq('user_id', profile.id);
 
-    const hasCompletedVibeCheck = !!(
+    // Flagged members retake the new Vibe Check before getting back in
+    const vibeRetakeRequired = await isVibeRetakeRequired(supabaseAdmin, profile.id)
+    const hasCompletedVibeCheck = !vibeRetakeRequired && !!(
         profile.gender &&
         profile.intent &&
         profile.interested_in &&

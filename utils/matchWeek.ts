@@ -17,3 +17,10 @@ export const isOptedInThisWeek = (optInUntil?: string | null, now: Date = new Da
 /** Start of the current matching week (the moment the previous week ended). One match per member per week. */
 export const currentMatchWeekStart = (now: Date = new Date()): Date =>
   new Date(currentMatchWeekEnd(now).getTime() - 7 * 24 * 60 * 60 * 1000 + 1)
+
+/** Monday (UTC) of the matching week a moment falls in, as YYYY-MM-DD. Matches m2m.weekly_opt_ins.week_start. */
+export const matchWeekKey = (at: Date | string): string => {
+  const d = new Date(at)
+  const day = (d.getUTCDay() + 6) % 7 // Monday = 0
+  return new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate() - day)).toISOString().slice(0, 10)
+}

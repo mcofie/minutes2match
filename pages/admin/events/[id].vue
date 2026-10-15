@@ -869,11 +869,11 @@ onUnmounted(() => {
 .pt-6 { padding-top: 1.5rem; }
 .py-8 { padding-top: 2rem; padding-bottom: 2rem; }
 .border-t { border-top-width: 1px; }
-.border-gray-100 { border-color: #F3F4F6; }
+.border-gray-100 { border-color: #f3f1ee; }
 .w-8 { width: 2rem; }
 .h-8 { height: 2rem; }
 .rounded-full { border-radius: 9999px; }
-.bg-gray-100 { background-color: #F3F4F6; }
+.bg-gray-100 { background-color: #f3f1ee; }
 .grid { display: grid; }
 .grid-cols-2 { grid-template-columns: 1fr 1fr; }
 .block { display: block; }

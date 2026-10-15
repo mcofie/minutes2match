@@ -168,6 +168,10 @@ export default defineNuxtConfig({
         cronSecret: process.env.CRON_SECRET,
         discordWebhookUrl: process.env.DISCORD_WEBHOOK_URL,
         geminiApiKey: process.env.GEMINI_API_KEY,
+        // Override when Google retires a model (gemini-1.5-flash was retired and every AI call failed).
+        // Flash-Lite has its own, larger quota; the free tier allows 2.5 Flash only 20 requests a day.
+        geminiModel: process.env.GEMINI_MODEL || 'gemini-3.5-flash-lite',
+        geminiEmbeddingModel: process.env.GEMINI_EMBEDDING_MODEL || 'gemini-embedding-001',
         telegramBotToken: process.env.TELEGRAM_BOT_TOKEN,
         // Public keys (available client-side)
         public: {

@@ -440,6 +440,25 @@
             </div>
           </article>
 
+          <!-- How it went: a quick answer that tells us whether the match worked -->
+          <section v-if="matchProfile && match" id="how-it-went" class="mx-auto mt-10 max-w-xl scroll-mt-24 rounded-[1.75rem] bg-white p-6 text-center shadow-[0_14px_40px_rgba(52,38,25,0.08)] sm:mt-14 sm:p-8 print:hidden">
+            <h2 class="font-display text-[1.6rem] leading-tight text-[#393737] sm:text-3xl">How's it going with {{ theirFirstName }}?</h2>
+            <p class="mt-2 text-sm text-[#817a72]">Only our team sees this. It helps us make better introductions.</p>
+            <div class="mt-5 grid grid-cols-1 gap-2 sm:grid-cols-2">
+              <button
+                v-for="option in FEEDBACK_OPTIONS"
+                :key="option.value"
+                type="button"
+                class="min-h-12 rounded-full border px-4 text-[0.95rem] font-medium transition-colors disabled:opacity-60"
+                :class="myFeedback === option.value ? 'border-[#393737] bg-[#393737] text-white' : 'border-[#e5e2dd] text-[#393737] hover:border-[#393737]'"
+                :aria-pressed="myFeedback === option.value"
+                :disabled="savingFeedback"
+                @click="sendFeedback(option.value)"
+              >{{ option.label }}</button>
+            </div>
+            <p v-if="feedbackSaved" class="mt-4 text-sm text-[#1f7a4d]" role="status">Thanks, got it. You can change your answer any time.</p>
+          </section>
+
       </div>
 
     </div>
@@ -948,7 +967,7 @@ const scheduleMatchRate = computed(() => {
 // ===== Compatibility evidence ("Why you two match") =====
 const myAnswers = ref<{ question_key: string; answer_value: string }[]>([])
 
-const toVibe = (list: any[]) => (list || []).map(a => ({ question_key: a.question_key, answer: String(a.answer_value ?? '') }))
+const toVibe = (list: any[]) => (list || []).map(a => ({ question_key: a.question_key, answer: String(a.answer_value ?? ''), dimension: a.dimension }))
 
 // Same scorer the matchmaker uses, run on both profiles for the breakdown
 const compat = computed(() => {
@@ -976,9 +995,9 @@ const evidenceBars = computed(() => {
   const b = compat.value?.breakdown
   if (!b) return []
   return [
-    { label: 'Values & vibe', value: b.vibeMatch, max: 40, hint: 'Your Vibe Check answers' },
+    { label: 'Values & vibe', value: b.vibeMatch, max: BREAKDOWN_MAX.vibeMatch, hint: 'Your Vibe Check answers' },
     { label: 'Life goals', value: b.goalsMatch, max: 20, hint: 'What you want, and faith' },
-    { label: 'Lifestyle', value: b.lifestyleMatch, max: 20, hint: 'Persona, work and city' },
+    { label: 'Lifestyle', value: b.lifestyleMatch, max: BREAKDOWN_MAX.lifestyleMatch, hint: 'Persona and work' },
     { label: 'Life stage', value: b.maturityMatch, max: 10, hint: 'How close you are in age' },
     { label: 'Shared interests', value: b.interestMatch, max: 10, hint: 'Hobbies you both picked' },
     { label: 'Personality', value: b.aiSynergy || 0, max: 10, hint: 'What you each wrote about yourselves' },
@@ -1326,6 +1345,33 @@ const openContactMethod = () => {
 // Load the brief in one request (/api/matches/brief/:id). If /matches already prefetched it, or you've
 // opened it before, it shows instantly and a fresh copy replaces it quietly.
 const { briefs, loadBrief } = useMatchBrief()
+// ----- How it went -----
+const FEEDBACK_OPTIONS = [
+  { value: 'going_well', label: "We've met, it's going well" },
+  { value: 'chatting', label: "We're chatting" },
+  { value: 'no_reply', label: "Haven't heard back" },
+  { value: 'not_a_fit', label: 'Not a fit' },
+] as const
+const myFeedback = ref<string | null>(null)
+const savingFeedback = ref(false)
+const feedbackSaved = ref(false)
+const sendFeedback = async (answer: string) => {
+  if (savingFeedback.value) return
+  const previous = myFeedback.value
+  myFeedback.value = answer
+  savingFeedback.value = true
+  feedbackSaved.value = false
+  try {
+    await $fetch(`/api/matches/${matchId.value}/feedback`, { method: 'POST', body: { answer } })
+    feedbackSaved.value = true
+  } catch (e) {
+    myFeedback.value = previous
+    console.error('[Connection] Feedback failed:', e)
+  } finally {
+    savingFeedback.value = false
+  }
+}
+
 const applyBrief = (data: MatchBrief) => {
   const userId = data.me?.id
   const m = data.match
@@ -1339,6 +1385,7 @@ const applyBrief = (data: MatchBrief) => {
     unlock_price: m.unlock_price || 10,
   }
   matchProfile.value = data.partner
+  myFeedback.value = (m as any).my_feedback || null
 }
 const loadMatchData = async () => {
   const id = matchId.value
@@ -1363,7 +1410,14 @@ const loadMatchData = async () => {
   }
 }
 
-onMounted(loadMatchData)
+onMounted(async () => {
+  await loadMatchData()
+  // From the "how did it go?" SMS: jump to the question
+  if (route.query.feedback) {
+    await nextTick()
+    document.getElementById('how-it-went')?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  }
+})
 
 useHead({
   title: 'Your Connection - Minutes 2 Match'

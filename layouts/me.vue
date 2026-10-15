@@ -135,6 +135,12 @@ const isActiveTab = (to: string) => to === '/matches'
 onMounted(async () => {
     await initDashboard()
 })
+
+// Members an admin has asked to retake the new Vibe Check go there first, even if they're already signed in.
+// The flag clears itself once they save their new answers.
+watch(() => profile.value?.vibe_check_required, (required) => {
+    if (required) navigateTo('/vibe-check?returnUser=true')
+}, { immediate: true })
 </script>
 
 <style>

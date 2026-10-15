@@ -1,28 +1,32 @@
 import { createClient } from '@supabase/supabase-js'
-import { extractPreferencesFromBio } from '~/server/utils/ai'
+import { serverSupabaseUser } from '#supabase/server'
 
 /**
- * Endpoint to trigger AI preference extraction for a user
+ * Read a member's bio with AI (traits + meaning vectors), then look for a match with the new data.
  * POST /api/ai/extract-preferences
- * Body: { userId: string }
+ * Body: { userId: string }. Members can only run this for themselves; admins for anyone.
  */
 export default defineEventHandler(async (event) => {
     const body = await readBody<{ userId: string }>(event)
-    const { userId } = body
+    const { userId } = body || ({} as any)
 
     if (!userId || userId === 'undefined') {
         throw createError({ statusCode: 400, message: 'Invalid or missing userId' })
     }
+
+    const caller = await serverSupabaseUser(event)
+    const callerId = (caller as any)?.id || (caller as any)?.sub
+    if (!callerId) throw createError({ statusCode: 401, message: 'Unauthorized' })
+    if (callerId !== userId) await requireAdminAccess(event)
 
     const config = useRuntimeConfig()
     const supabase = createClient(config.supabaseUrl, config.supabaseServiceKey, {
         db: { schema: 'm2m' }
     })
 
-    // Fetch user bio
     const { data: profile, error: fetchError } = await supabase
         .from('profiles')
-        .select('about_me')
+        .select('id, about_me')
         .eq('id', userId)
         .single()
 
@@ -30,36 +34,18 @@ export default defineEventHandler(async (event) => {
         throw createError({ statusCode: 404, message: 'Profile not found' })
     }
 
-    if (!profile.about_me) {
-        return { success: true, message: 'No bio to extract from' }
+    const outcome = await analyseMemberBio(supabase, profile)
+    if (outcome === 'skipped') return { success: true, message: 'No bio to read yet' }
+    if (outcome === 'failed') return { success: false, message: 'AI could not read this bio' }
+
+    // New data may change who they fit with; look for a match (does nothing unless they're opted in and unmatched)
+    try {
+        const { runTargetedMatching } = await import('~/server/utils/matchmaker')
+        await runTargetedMatching(userId)
+    } catch (matchError) {
+        console.error('[Matchmaker JIT] Failed after AI extraction:', matchError)
     }
 
-    // Extract preferences via AI
-    const extracted = await extractPreferencesFromBio(profile.about_me)
-
-    if (extracted) {
-        // Update profile with extracted preferences
-        const { error: updateError } = await supabase
-            .from('profiles')
-            .update({ preferences_extracted: extracted } as any)
-            .eq('id', userId)
-
-        if (updateError) {
-            console.error('[AI] Update error:', updateError)
-            throw createError({ statusCode: 500, message: 'Failed to save extracted preferences' })
-        }
-
-        // Trigger Just-In-Time (JIT) Matching
-        // Since we have new AI-extracted data, re-run matching to see if any high-quality scores are found.
-        try {
-            const { runTargetedMatching } = await import('~/server/utils/matchmaker')
-            await runTargetedMatching(userId)
-        } catch (matchError) {
-            console.error('[Matchmaker JIT] Failed after AI extraction:', matchError)
-        }
-
-        return { success: true, data: extracted }
-    }
-
-    return { success: false, message: 'AI extraction returned null' }
+    const { data } = await supabase.from('profiles').select('preferences_extracted').eq('id', userId).single()
+    return { success: true, data: (data as any)?.preferences_extracted }
 })

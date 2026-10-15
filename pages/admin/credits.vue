@@ -244,7 +244,7 @@ onMounted(() => {
   background: white;
   padding: 1rem 1.5rem;
   border-radius: 1rem;
-  border: 1px solid #E5E7EB;
+  border: 1px solid #ece8e3;
   display: flex;
   flex-direction: column;
 }
@@ -269,7 +269,7 @@ onMounted(() => {
   background: white;
   padding: 1.25rem;
   border-radius: 1rem;
-  border: 1px solid #E5E7EB;
+  border: 1px solid #ece8e3;
   align-items: center;
   flex-wrap: wrap;
 }
@@ -293,7 +293,7 @@ onMounted(() => {
 .data-table-container {
   background: white;
   border-radius: 1rem;
-  border: 1px solid #E5E7EB;
+  border: 1px solid #ece8e3;
   overflow: hidden;
 }
 
@@ -306,7 +306,7 @@ onMounted(() => {
 .user-avatar-small {
   width: 2rem;
   height: 2rem;
-  background: #F3F4F6;
+  background: #f3f1ee;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -319,12 +319,12 @@ onMounted(() => {
 .user-name {
   font-size: 0.8125rem;
   font-weight: 700;
-  color: #111827;
+  color: #393737;
 }
 
 .user-phone {
   font-size: 0.6875rem;
-  color: #9CA3AF;
+  color: #9b9690;
   font-family: monospace;
 }
 
@@ -348,7 +348,7 @@ onMounted(() => {
 }
 
 .tx-row:hover {
-  background: #F9FAFB;
+  background: #faf8f5;
 }
 
 .spinner-container {
@@ -360,8 +360,8 @@ onMounted(() => {
 .spinner {
   width: 2rem;
   height: 2rem;
-  border: 3px solid #F3F4F6;
-  border-top-color: #000;
+  border: 3px solid #f3f1ee;
+  border-top-color: #393737;
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
 }

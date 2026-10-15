@@ -21,7 +21,7 @@ export default defineEventHandler(async (event) => {
     const [matchRes, meRes, myAnswersRes] = await Promise.all([
         db.from('matches').select('*').eq('id', matchId).or(`user_1_id.eq.${callerId},user_2_id.eq.${callerId}`).maybeSingle(),
         db.from('profiles').select('*').eq('id', callerId).maybeSingle(),
-        db.from('vibe_answers').select('question_key, answer_value').eq('user_id', callerId),
+        db.from('vibe_answers').select('question_key, answer_value, dimension').eq('user_id', callerId),
     ])
     const match = matchRes.data
     if (matchRes.error || !match) throw createError({ statusCode: 404, message: 'Match not found' })
@@ -30,7 +30,7 @@ export default defineEventHandler(async (event) => {
     const partnerId = match.user_1_id === callerId ? match.user_2_id : match.user_1_id
     const [partnerRes, partnerAnswersRes] = await Promise.all([
         db.from('profiles').select('*').eq('id', partnerId).maybeSingle(),
-        db.from('vibe_answers').select('question_key, answer_value').eq('user_id', partnerId),
+        db.from('vibe_answers').select('question_key, answer_value, dimension').eq('user_id', partnerId),
     ])
 
     let partner: any = null
@@ -43,8 +43,17 @@ export default defineEventHandler(async (event) => {
     // Private, per-member data: browsers may reuse it briefly, shared caches never
     setResponseHeader(event, 'Cache-Control', 'private, max-age=0, must-revalidate')
 
+    // Admin-only notes and the other person's private feedback stay on the server
+    const side = match.user_1_id === callerId ? 'user_1' : 'user_2'
+    const myFeedback = match[`${side}_feedback`] || null
+    const {
+        feedback_notes, feedback_updated_by, user_notes, selection_note,
+        user_1_feedback, user_2_feedback, user_1_feedback_at, user_2_feedback_at,
+        ...memberMatch
+    } = match
+
     return {
-        match,
+        match: { ...memberMatch, my_feedback: myFeedback },
         me: meRes.data || null,
         myAnswers: myAnswersRes.data || [],
         partner,
