@@ -53,19 +53,16 @@
           </div>
           <div class="mt-7 space-y-5 text-base leading-[1.7] sm:mt-10 sm:text-xl sm:leading-[1.6]">
             <p class="rv-item" style="--i: 1">
-              Somewhere along the way, dating turned into a game of swipes. Most apps are built to keep you scrolling,
-              not to help you find someone: more profiles, more matches, more conversations that quietly go nowhere.
-              No wonder so many of the people we know have given up on them.
+              I was tired of looking for connection in the wrong places. The dating apps didn't help: they showed
+              me photos and a line or two, and none of the things that actually make two people work.
             </p>
-            <p class="rv-item" style="--i: 2">
-              They were also built somewhere else, for someone else. They rarely ask the questions that matter most to us.
-              <em class="font-display not-italic">Does faith guide your life? How much say will your family have? Do you want children, and when?
-              What's your genotype?</em> Those answers can make or break a relationship long before the first date.
-            </p>
+            <p class="rv-item font-display text-[1.6rem] leading-snug sm:text-[2.1rem]" style="--i: 2">Swiping wasn't it.</p>
             <p class="rv-item" style="--i: 3">
-              So we built something slower and more personal: one thoughtful introduction a week, based on what you
-              actually told us about yourself. Starting in <strong class="font-semibold">Accra</strong> and <strong class="font-semibold">Nairobi</strong>.
+              We wanted real-life connection, without the stress and fatigue that come with swiping. So we built
+              something slower: one thoughtful introduction a week, based on what matters to you, from faith and
+              family to children. Starting in <strong class="font-semibold">Accra</strong> and <strong class="font-semibold">Nairobi</strong>.
             </p>
+            <p class="rv-item text-[#817a72]" style="--i: 4">— From our founder</p>
           </div>
         </section>
 
@@ -134,7 +131,9 @@
             <img src="/lovebirds.webp" alt="" width="994" height="975" loading="lazy" decoding="async" class="block h-auto w-full" />
           </figure>
           <p class="rv-item mt-4 text-base sm:mt-8 sm:text-2xl" style="--i: 1">That's why we built</p>
-          <p class="rv-item font-display mt-1 text-[2.6rem] leading-none tracking-tight sm:text-[4.25rem]" style="--i: 2">Minutes 2 Match.</p>
+          <h2 class="rv-item relative mx-auto mt-2 block h-12 w-[213px] overflow-hidden sm:h-[4.5rem] sm:w-[319px]" style="--i: 2">
+            <NuxtImg format="webp" src="/logo-full.png" alt="Minutes 2 Match" class="absolute left-1/2 top-1/2 h-[154px] w-auto max-w-none -translate-x-1/2 -translate-y-1/2 select-none sm:h-[231px]" />
+          </h2>
         </div>
 
         <!-- ===== Invitation ===== -->
