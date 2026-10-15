@@ -6,6 +6,9 @@ const SEED_DATA = `6/4/2025 3:28:59	Kwame Kwakye	24	Male	0558408624	kwameoduro16
 6/17/2025 15:31:18	Elsa	28	Female	+233 57 513 8168	elsa.yb@gmail.com	I'm a planner - I make plans and lists for almost everything, including my outfits. I can tell you what I plan to wear in two weeks on a Tuesday.	Loves God and is a follower of Christ, doesn't take themselves too seriously, great conversationalist and someone who's a lifelong learner	Communications in the Tech and Education industry	Beans :)	Seemingly tough exterior, but it doesn't take a lot to break the illusion of a barrier. I'm just a softy and sweetie on the inside :)	Cooking class or food tasting	Something serious`
 
 export default defineEventHandler(async (event) => {
+    // Admins only: this endpoint changes accounts or exposes member data
+    await requireAdminAccess(event)
+
     const config = useRuntimeConfig()
     const supabaseAdmin = createClient(
         config.supabaseUrl || process.env.SUPABASE_URL || '',

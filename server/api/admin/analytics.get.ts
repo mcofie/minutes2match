@@ -39,6 +39,9 @@ interface AnalyticsData {
 }
 
 export default defineEventHandler(async (event): Promise<AnalyticsData> => {
+    // Admins only: this endpoint changes accounts or exposes member data
+    await requireAdminAccess(event)
+
     const config = useRuntimeConfig()
 
     const supabaseUrl = config.supabaseUrl

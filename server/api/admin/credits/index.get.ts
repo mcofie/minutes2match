@@ -5,6 +5,9 @@ import { serverSupabaseServiceRole } from '#supabase/server'
  * Returns all credit transactions across all users.
  */
 export default defineEventHandler(async (event) => {
+    // Admins only: this endpoint changes accounts or exposes member data
+    await requireAdminAccess(event)
+
     const client = serverSupabaseServiceRole(event) as any
 
     const { page = 1, pageSize = 50, type = 'credit', reason = '', search = '' } = getQuery(event)

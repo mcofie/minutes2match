@@ -8,6 +8,9 @@
 import { createClient } from '@supabase/supabase-js'
 
 export default defineEventHandler(async (event) => {
+    // Admins only: this endpoint changes accounts or exposes member data
+    await requireAdminAccess(event)
+
     const body = await readBody(event)
     const { vouchId, target } = body // target: 'a' | 'b' | 'both'
 
