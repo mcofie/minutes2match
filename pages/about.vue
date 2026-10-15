@@ -62,11 +62,16 @@
               me photos and a line or two, and none of the things that actually make two people work.
             </p>
             <p class="rv-item" style="--i: 2">
-              Swiping wasn't it. We wanted real-life connection, without the stress and fatigue that come with swiping. So we built
-              something slower: one thoughtful introduction a week, based on what matters to you, from faith and
-              family to children. Starting in <strong class="font-semibold">Accra</strong> and <strong class="font-semibold">Nairobi</strong>.
+              Swiping wasn't it. We wanted real-life connection, without the stress and fatigue that come with swiping.
+              So Minutes 2 Match started as a <NuxtLink to="/events" class="underline decoration-[#393737]/30 underline-offset-4 hover:text-[#ed1c24]">speed dating event</NuxtLink>:
+              a room full of people meeting face to face, a few minutes at a time.
             </p>
-            <div class="rv-item flex items-center gap-4 pt-2" style="--i: 3">
+            <p class="rv-item" style="--i: 3">
+              Those evenings showed us how much a real conversation can do. Now we bring that feeling to every week:
+              one thoughtful introduction, based on what matters to you, from faith and family to children.
+              Starting in <strong class="font-semibold">Accra</strong> and <strong class="font-semibold">Nairobi</strong>.
+            </p>
+            <div class="rv-item flex items-center gap-4 pt-2" style="--i: 4">
               <img src="/founder-maxwell.webp" alt="Maxwell Cofie" width="640" height="800" class="h-16 w-16 shrink-0 rounded-full object-cover object-[50%_30%] shadow-[0_8px_20px_rgba(57,55,55,0.14)] ring-4 ring-white sm:h-20 sm:w-20" loading="lazy" decoding="async" />
               <p>
                 <span class="font-display block text-[1.5rem] leading-tight sm:text-[1.75rem]">Maxwell Cofie</span>
