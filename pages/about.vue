@@ -71,11 +71,12 @@
               Five minutes of real talk tells you more than a hundred photos.
             </blockquote>
             <p class="rv-item" style="--i: 5">
-              You finally meet the person behind the screen. That's why every introduction
-              comes with the same nudge: go and meet. One a week, picked for what matters to you, and always someone in your own
-              city, <strong class="font-semibold">Accra</strong> or <strong class="font-semibold">Nairobi</strong>, so meeting is easy.
+              Away from the screens, you finally meet the person. But a room only holds so many people, so I took
+              the same idea further: one thoughtful introduction a week, always someone in your own city,
+              <strong class="font-semibold">Accra</strong> or <strong class="font-semibold">Nairobi</strong>.
             </p>
-            <div class="rv-item flex items-center gap-4 pt-2" style="--i: 6">
+            <p class="rv-item" style="--i: 6">Every one comes with the same nudge: go and meet.</p>
+            <div class="rv-item flex items-center gap-4 pt-2" style="--i: 7">
               <img src="/founder-maxwell.webp" alt="Maxwell Cofie" width="640" height="800" class="h-16 w-16 shrink-0 rounded-full object-cover object-[50%_30%] shadow-[0_8px_20px_rgba(57,55,55,0.14)] ring-4 ring-white sm:h-20 sm:w-20" loading="lazy" decoding="async" />
               <p>
                 <span class="font-display block text-[1.5rem] leading-tight sm:text-[1.75rem]">Maxwell Cofie</span>
