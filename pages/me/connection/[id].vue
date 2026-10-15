@@ -1303,8 +1303,9 @@ const tldr = computed(() => {
   return lines
 })
 
-// Date ideas: a wide catalogue (utils/dateIdeas) scored on shared interests, their city and how they
-// like to spend time; the brief shows the best three, each with why it fits and when they're both free
+// Date ideas: a wide catalogue (utils/dateIdeas) scored on shared interests, city and neighbourhood, both
+// Vibe Checks (energy, drinking, faith, money, values), budget and season; the brief shows the best three,
+// each with why it fits and when they're both free
 // Each kind of date gets a label; each card's details open on tap
 const IDEA_KIND: Record<string, string> = { food: 'Food', outdoors: 'Outdoors', culture: 'Culture', active: 'Get moving', nightlife: 'Night out', cosy: 'Low-key', adventure: 'Day out' }
 const openIdeas = ref(new Set<string>())
@@ -1327,6 +1328,7 @@ const dateIdeas = computed(() => {
     intents: [me.intent, them.intent].filter(Boolean),
     windows: mutualAvailability.value,
     interestLabel: (id: string) => stripEmoji(getInterestLabel(id)),
+    locations: [me.location, them.location],
   })
 })
 
