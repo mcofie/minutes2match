@@ -30,7 +30,7 @@ export const socialLink = (app: SocialApp, raw?: string | null): { url: string; 
   if (!handle) return null
   if (VALID[app].test(handle)) {
     return {
-      url: app === 'instagram' ? `https://www.instagram.com/${handle}/` : `https://www.snapchat.com/add/${handle}`,
+      url: app === 'instagram' ? `https://www.instagram.com/${handle}` : `https://www.snapchat.com/add/${handle}`,
       handle,
       exact: true,
     }
