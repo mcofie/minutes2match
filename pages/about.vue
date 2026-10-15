@@ -127,7 +127,7 @@
 
         <!-- ===== Interlude ===== -->
         <div v-reveal class="mt-20 text-center sm:mt-32">
-          <figure class="rv-item section-art mx-auto w-60 sm:w-[26rem]">
+          <figure class="rv-item story-art mx-auto w-[min(66vw,17rem)] sm:w-[30rem]">
             <img src="/lovebirds.webp" alt="" width="994" height="975" loading="lazy" decoding="async" class="block h-auto w-full" />
           </figure>
           <p class="rv-item mt-4 text-base sm:mt-8 sm:text-2xl" style="--i: 1">That's why we built</p>
@@ -281,5 +281,13 @@ const vReveal = {
 }
 @media (prefers-reduced-motion: reduce) {
   .about-cloud { animation: none; }
+}
+/* As on the landing page: the paper melts into the page; only the ink and watercolour stay */
+.story-art img {
+  mix-blend-mode: multiply;
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, #000 12%, #000 72%, transparent 100%), linear-gradient(to right, transparent 0%, #000 12%, #000 88%, transparent 100%);
+  -webkit-mask-composite: source-in;
+  mask-image: linear-gradient(to bottom, transparent 0%, #000 12%, #000 72%, transparent 100%), linear-gradient(to right, transparent 0%, #000 12%, #000 88%, transparent 100%);
+  mask-composite: intersect;
 }
 </style>
