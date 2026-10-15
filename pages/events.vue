@@ -41,7 +41,7 @@
         <span class="inline-flex rounded-full bg-white/80 px-4 py-1.5 text-sm font-medium shadow-[0_4px_14px_rgba(57,77,100,0.08)] backdrop-blur">Events</span>
         <h1 class="font-display mx-auto mt-6 max-w-3xl text-balance text-[2.6rem] leading-[1.02] tracking-tight sm:text-7xl">Meet in person.</h1>
         <p class="mx-auto mt-5 max-w-xl text-pretty text-lg leading-snug text-[#6c6862] sm:text-xl">
-          Small, hosted evenings in Accra and Nairobi for Minutes 2 Match members. A relaxed way to meet people face to face.
+          Speed dating evenings in Accra and Nairobi. Meet a room full of people, a few minutes at a time, and leave knowing who you'd like to see again.
         </p>
       </div>
 
@@ -105,7 +105,8 @@
         <section class="mx-auto mt-20 max-w-[42rem] sm:mt-28" aria-labelledby="how-events-work">
           <div class="text-center">
             <LoveBirds v-if="loadingEvents || events.length" scene="lineup" class="section-art mx-auto mb-2 w-52 sm:mb-4 sm:w-80" />
-            <h2 id="how-events-work" class="font-display text-[2rem] leading-[1.05] tracking-tight sm:text-[3.25rem]">How events work</h2>
+            <p class="text-base sm:text-xl">Speed dating, the way we started</p>
+            <h2 id="how-events-work" class="font-display mt-1.5 text-[2rem] leading-[1.05] tracking-tight sm:text-[3.25rem]">How the evening works</h2>
           </div>
           <ol class="mt-9 space-y-7 sm:mt-12">
             <li v-for="(step, i) in EVENT_STEPS" :key="step.title" class="grid grid-cols-[2.75rem_1fr] gap-4 sm:grid-cols-[3.25rem_1fr] sm:gap-5">
@@ -116,7 +117,10 @@
               </div>
             </li>
           </ol>
-          <p v-if="!signedIn" class="mt-10 text-center text-base text-[#6c6862] sm:text-lg">
+          <p class="mt-10 text-center text-sm text-[#817a72] sm:text-base">
+            Plans changed? Release your ticket from the event page so someone on the waitlist can take your place.
+          </p>
+          <p v-if="!signedIn" class="mt-4 text-center text-base text-[#6c6862] sm:text-lg">
             Not a member yet? <NuxtLink to="/vibe-check" class="font-semibold text-[#393737] underline decoration-[#393737]/30 underline-offset-4 hover:text-[#ed1c24]">Take the free Vibe Check</NuxtLink> to join.
           </p>
         </section>
@@ -189,10 +193,13 @@ definePageMeta({
 const supabaseUser = useSupabaseUser()
 const signedIn = computed(() => !!supabaseUser.value)
 
+// How a speed dating evening runs (check-in, then scorecards: Match / Maybe / Pass; mutual Match = a match in the app)
 const EVENT_STEPS = [
-  { title: 'Book a place', text: "Pick an evening and pay securely with Paystack. If it's full, join the waitlist and we'll move you up if a place opens." },
-  { title: 'Show your ticket', text: 'Your ticket lives in your profile. Show it at the door and you\'re in.' },
-  { title: 'Plans change?', text: 'Release your ticket from the event page so someone on the waitlist can take your place.' }
+  { title: 'Book your place', text: "Pick an evening and pay securely with Paystack. Places for men and women are kept balanced, so everyone gets to meet. Full? Join the waitlist and we'll let you know if a place opens." },
+  { title: 'Check in on the night', text: "Show the ticket in your profile at the door and you're in." },
+  { title: 'Meet, a few minutes at a time', text: 'Sit down with one person, talk for a few minutes, then move on to the next. No profiles and no swiping, just real conversation.' },
+  { title: 'Pick who you’d like to see again', text: 'Afterwards, mark each person you met as Match, Maybe or Pass, and jot down private notes to remember them by. Only you see your choices.' },
+  { title: 'Mutual matches connect', text: "If you both picked Match, we'll text you both and they'll appear in your Matches, ready to say hello. If not, no one ever knows." }
 ]
 
 const supabase = useSupabaseClient<M2MDatabase>() as any
