@@ -178,6 +178,13 @@
 <script setup lang="ts">
 // UiButton is replaced by standard html button with tailwind for style consistency
 
+// Where to go after signing in: /login?redirect=/events/123 (only paths within this site)
+const loginRoute = useRoute()
+const redirectAfterLogin = () => {
+  const r = loginRoute.query.redirect
+  return typeof r === 'string' && r.startsWith('/') && !r.startsWith('//') && !r.startsWith('/login') ? r : null
+}
+
 
 useHead({
   title: 'Sign In',
@@ -397,7 +404,7 @@ const signUserIn = async (result: any) => {
         await new Promise(r => setTimeout(r, 300))
     }
 
-    const redirectPath = result.hasCompletedVibeCheck ? '/matches' : '/vibe-check?returnUser=true'
+    const redirectPath = result.hasCompletedVibeCheck ? (redirectAfterLogin() || '/matches') : '/vibe-check?returnUser=true'
     
     // Use SPA navigation
     return navigateTo(redirectPath, { replace: true })
@@ -509,7 +516,7 @@ const verifyOtp = async () => {
         await new Promise(r => setTimeout(r, 300))
       }
 
-      const redirectPath = result.hasCompletedVibeCheck ? '/matches' : '/vibe-check?returnUser=true'
+      const redirectPath = result.hasCompletedVibeCheck ? (redirectAfterLogin() || '/matches') : '/vibe-check?returnUser=true'
       
       // Store name for the greeting next time
       const res = result as any

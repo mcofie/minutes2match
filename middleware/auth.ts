@@ -57,5 +57,6 @@ export default defineNuxtRouteMiddleware(async (to) => {
 
     // 5. All checks failed — redirect to login
     console.log('[Auth Middleware] Authentication failed after all retries, redirecting to /login')
-    return navigateTo('/login')
+    // Come back here after signing in
+    return navigateTo({ path: '/login', query: to.fullPath && to.fullPath !== '/' ? { redirect: to.fullPath } : {} })
 })
