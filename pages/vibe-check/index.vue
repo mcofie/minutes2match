@@ -88,21 +88,14 @@
 
       <!-- Step 1: Quick Intro -->
       <div v-if="currentStep === 1" class="w-full animate-fade-in">
-        <!-- Sky + phone, fading into the form -->
-        <div class="relative -mx-5 -mt-8 mb-2 h-56 sm:-mt-12 sm:h-64" aria-hidden="true">
-          <div class="sky-glow absolute -inset-x-40 -top-24 bottom-0"></div>
+        <!-- Sky + lovebirds, as on the landing page -->
+        <div class="relative -mx-5 -mt-8 mb-1 flex h-56 items-end justify-center sm:-mt-12 sm:h-64" aria-hidden="true">
+          <div class="sky-glow absolute -inset-x-40 -bottom-24 -top-24"></div>
           <svg viewBox="0 0 440 230" class="cloud-drift absolute -left-16 top-6 w-56 opacity-90"><g fill="#fff" style="filter: blur(5px)"><ellipse cx="185" cy="157" rx="165" ry="53" /><circle cx="91" cy="133" r="56" /><circle cx="151" cy="91" r="76" /><circle cx="227" cy="82" r="84" /><circle cx="302" cy="112" r="67" /></g></svg>
           <svg viewBox="0 0 440 230" class="cloud-drift cloud-drift-reverse absolute -right-20 top-0 w-64 opacity-90"><g fill="#fff" style="filter: blur(6px)"><ellipse cx="185" cy="157" rx="165" ry="53" /><circle cx="91" cy="133" r="56" /><circle cx="151" cy="91" r="76" /><circle cx="227" cy="82" r="84" /><circle cx="302" cy="112" r="67" /></g></svg>
-          <div class="absolute bottom-0 left-1/2 w-[11.5rem] -translate-x-1/2 rounded-t-[2.2rem] border-[6px] border-b-0 border-[#1f1f1f] bg-white px-3 pt-3 [mask-image:linear-gradient(to_bottom,black_55%,transparent)]">
-            <div class="mx-auto mb-3 h-4 w-16 rounded-full bg-black"></div>
-            <img src="/ama_profile.png" alt="" class="mx-auto h-14 w-14 rounded-full object-cover" />
-            <p class="font-display mt-2 text-center text-sm text-[#393737]">Your match is here</p>
-            <p class="mt-0.5 text-center text-[10px] text-[#9b9690]">92% compatible · Accra</p>
-            <div class="mt-3 grid grid-cols-2 gap-1.5">
-              <div class="h-12 rounded-xl bg-[#f6f6f7]"></div>
-              <div class="h-12 rounded-xl bg-[#f6f6f7]"></div>
-            </div>
-          </div>
+          <figure class="story-art relative w-56 sm:w-64">
+            <img src="/lovebirds.webp" alt="" width="994" height="975" class="block h-auto w-full" />
+          </figure>
         </div>
 
         <h1 class="font-display text-center text-[2.4rem] leading-[1.05] tracking-tight text-balance sm:text-5xl">3 minutes to your next great match.</h1>
@@ -1279,9 +1272,17 @@ const finishOnboarding = async () => {
 .btn-next:not(:disabled):active { transform: scale(0.98); }
 .btn-next:disabled { opacity: 0.35; cursor: not-allowed; box-shadow: none; }
 
-/* Soft sky behind the phone, fading out on every side */
+/* The painting's paper melts into the sky; only the ink and watercolour stay */
+.story-art img {
+  mix-blend-mode: multiply;
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, #000 12%, #000 72%, transparent 100%), linear-gradient(to right, transparent 0%, #000 12%, #000 88%, transparent 100%);
+  -webkit-mask-composite: source-in;
+  mask-image: linear-gradient(to bottom, transparent 0%, #000 12%, #000 72%, transparent 100%), linear-gradient(to right, transparent 0%, #000 12%, #000 88%, transparent 100%);
+  mask-composite: intersect;
+}
+/* Soft sky behind the birds, fading out on every side */
 .sky-glow {
-  background: radial-gradient(ellipse 50% 65% at 50% 55%, #dbe6f1 0%, rgba(221, 231, 241, 0.75) 40%, rgba(233, 239, 245, 0.35) 65%, rgba(255, 255, 255, 0) 85%);
+  background: radial-gradient(ellipse 50% 50% at 50% 50%, #dbe6f1 0%, rgba(221, 231, 241, 0.75) 40%, rgba(233, 239, 245, 0.35) 65%, rgba(255, 255, 255, 0) 85%);
 }
 .cloud-drift { animation: cloud-drift 32s ease-in-out infinite alternate; }
 .cloud-drift-reverse { animation-duration: 40s; animation-direction: alternate-reverse; }
