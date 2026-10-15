@@ -1,140 +1,184 @@
 <template>
-  <LegalPage title="Privacy Policy" updated="January 2026">
+  <LegalPage
+    title="Privacy Policy"
+    updated="October 2026"
+    intro="The short version: we use what you tell us to find you one good match a week. Your match sees only what they need to say hello, some things (like your genotype) no one ever sees, and we never sell your data."
+  >
     <section>
-      <h2>1. Introduction</h2>
+      <h2>1. Who we are</h2>
       <p>
-        At Minutes 2 Match, we take your privacy seriously. This Privacy Policy explains how we collect, 
-        use, disclose, and safeguard your information when you use our dating and matchmaking service. 
-        Please read this policy carefully to understand our practices regarding your personal data.
+        Minutes 2 Match is a dating service based in Accra, Ghana, introducing members in Accra and Nairobi.
+        This policy explains what we collect, why, who sees it and the choices you have. It covers our website,
+        our Telegram bot, our text messages and our events.
       </p>
     </section>
 
     <section>
-      <h2>2. Information We Collect</h2>
+      <h2>2. What we collect</h2>
       <div>
-        <h3>Personal Information</h3>
+        <h3>When you sign up</h3>
         <ul>
-          <li>Name, phone number, and email address</li>
-          <li>Date of birth and gender</li>
-          <li>Profile photos you upload</li>
-          <li>Location (city)</li>
-          <li>Relationship preferences and intentions</li>
+          <li>Your name, phone number, date of birth and gender</li>
+          <li>Your city and area</li>
+          <li>The photos you upload</li>
         </ul>
-        
-        <h3>Personality & Preference Data</h3>
+
+        <h3>Your Vibe Check and profile</h3>
         <ul>
-          <li>Vibe Check assessment responses</li>
-          <li>Dating preferences and deal-breakers</li>
-          <li>Interests and hobbies</li>
-          <li>Your assigned personality type/persona</li>
+          <li>Your Vibe Check answers: what you want, your values, and how you feel about faith, family, children and money</li>
+          <li>Who you'd like to meet: gender, age range and any deal-breakers</li>
+          <li>Your bio, interests, job, height, faith and when you're usually free</li>
+          <li>Your genotype, if you choose to give it</li>
+          <li>How matches can reach you: WhatsApp, or your Instagram or Snapchat username</li>
         </ul>
-        
-        <h3>Usage Information</h3>
+
+        <h3>As you use Minutes 2 Match</h3>
         <ul>
-          <li>Device and browser information</li>
-          <li>IP address and general location</li>
-          <li>Pages visited and features used</li>
-          <li>Event attendance and match interactions</li>
+          <li>Your matches, which weeks you opt in, and your answers to "How's it going?"</li>
+          <li>Your reactions to date ideas</li>
+          <li>Event bookings and payment records</li>
+          <li>Reports you make, or that are made about you</li>
+          <li>Basic technical details, such as your browser and IP address, that our hosting records to keep the service running</li>
         </ul>
       </div>
     </section>
 
     <section>
-      <h2>3. How We Use Your Information</h2>
+      <h2>3. Sensitive information</h2>
+      <p>
+        Some of what you tell us is sensitive: your faith, your plans for family and children, and your genotype.
+        We use it only to find you a compatible match. Your genotype is never shown to anyone. We use it only to
+        avoid introducing two people who both carry a sickle-cell trait. Giving your genotype is optional, and you
+        can change or remove it on your profile at any time.
+      </p>
+    </section>
+
+    <section>
+      <h2>4. How we use it</h2>
       <div>
-        <p>We use your information to:</p>
         <ul>
-          <li>Create and manage your account</li>
-          <li>Match you with compatible users using our proprietary algorithm</li>
-          <li>Send you match notifications via SMS</li>
-          <li>Process event bookings and payments</li>
-          <li>Improve our matching algorithms and services</li>
-          <li>Communicate important updates about your account</li>
-          <li>Ensure the safety and security of our community</li>
+          <li>To introduce you to one compatible person in your city each week you opt in</li>
+          <li>To write your match letter: why we think you two could work, where you differ, and date ideas that suit you both</li>
+          <li>To text you about new matches and important account updates</li>
+          <li>To run events and process bookings</li>
+          <li>To keep the community safe: reviewing reports and removing people who break our <NuxtLink to="/terms">Terms</NuxtLink></li>
+          <li>To make matching better, using feedback such as "How's it going?" and date idea reactions</li>
         </ul>
       </div>
     </section>
 
     <section>
-      <h2>4. Information Sharing</h2>
+      <h2>5. How we use AI</h2>
+      <p>
+        Matching follows fixed rules: who's eligible, the deal-breakers and the score. To add detail within those
+        rules, we use Google's Gemini service to read bios, so we can understand what each person is looking for,
+        and to write the short "why you two" note in your match letter. AI never overrides a deal-breaker, and
+        the rules decide who can be introduced.
+      </p>
+    </section>
+
+    <section>
+      <h2>6. What your match sees</h2>
       <div>
-        <p>We may share your information with:</p>
+        <p>When you're matched, the other person sees:</p>
         <ul>
-          <li><strong>Matches:</strong> Limited profile information is shared with users you are matched with, 
-            with full details revealed only after mutual consent or payment</li>
-          <li><strong>Event Organizers:</strong> Basic information for event management purposes</li>
-          <li><strong>Payment Processors:</strong> Transaction data to process payments securely</li>
-          <li><strong>Service Providers:</strong> Companies that help us operate (SMS services, hosting, etc.)</li>
-          <li><strong>Legal Requirements:</strong> When required by law or to protect our rights</li>
+          <li>Your name, photos, age and city</li>
+          <li>Your bio, interests, job, height, faith and what you're looking for</li>
+          <li>Your Vibe Check answers, side by side with theirs, and what you have in common</li>
+          <li>How to reach you: your WhatsApp number, or your Instagram or Snapchat username if you chose one of those</li>
         </ul>
         <p>
-          We never sell your personal data to third parties.
+          They never see your genotype, your answers to "How's it going?", any reports or anything our team notes
+          about your account. If you join the Flash Lobby, the people in it can see your name, photo and basic
+          profile while it's open.
         </p>
       </div>
     </section>
 
     <section>
-      <h2>5. Data Security</h2>
+      <h2>7. Who else we share it with</h2>
+      <div>
+        <p>Only the companies that help us run Minutes 2 Match, and only what each one needs:</p>
+        <ul>
+          <li><strong>Hosting and database:</strong> Supabase and Netlify</li>
+          <li><strong>Text messages:</strong> our SMS providers, to send codes and match updates</li>
+          <li><strong>Payments:</strong> Paystack, which handles your card or mobile money details. We don't store them.</li>
+          <li><strong>AI:</strong> Google Gemini, as described above</li>
+          <li><strong>Telegram:</strong> if you choose to use our Telegram bot</li>
+          <li><strong>Event venues:</strong> your name, so they can check you in</li>
+          <li><strong>The law:</strong> when we're legally required to, or to protect someone's safety</li>
+        </ul>
+        <p>We never sell your personal data, and we don't use advertising trackers.</p>
+      </div>
+    </section>
+
+    <section>
+      <h2>8. Keeping it safe</h2>
       <p>
-        We implement appropriate technical and organizational security measures to protect your personal 
-        information. This includes encryption, secure servers, and access controls. However, no method of 
-        transmission over the Internet is 100% secure, and we cannot guarantee absolute security.
+        We protect your information with encryption, secure servers and access controls, and only our small team
+        can see account details, when they need to. No system is perfectly secure, so we can't guarantee absolute
+        security, but we work to keep your data safe and will tell you if something goes wrong that affects you.
       </p>
     </section>
 
     <section>
-      <h2>6. Your Rights</h2>
+      <h2>9. How long we keep it</h2>
+      <p>
+        We keep your information while your account is open. If you delete your account, we delete or anonymise
+        your data within 30 days, except where the law requires us to keep something (such as payment records
+        for tax).
+      </p>
+    </section>
+
+    <section>
+      <h2>10. Your choices and rights</h2>
       <div>
-        <p>You have the right to:</p>
         <ul>
-          <li>Access and receive a copy of your personal data</li>
-          <li>Correct inaccurate or incomplete information</li>
-          <li>Delete your account and personal data</li>
-          <li>Pause your account to stop appearing in matches</li>
-          <li>Opt out of promotional communications</li>
-          <li>Lodge a complaint with a data protection authority</li>
+          <li><strong>Edit</strong> your profile, answers and photos at any time</li>
+          <li><strong>Skip a week:</strong> you're only matched in the weeks you opt in, so not opting in keeps you out of matching</li>
+          <li><strong>Delete</strong> your account from your profile page</li>
+          <li><strong>Ask for a copy</strong> of your data, or for us to correct it, by emailing us</li>
+          <li><strong>Opt out</strong> of promotional messages</li>
+          <li>
+            <strong>Complain</strong> to a data protection authority: the Data Protection Commission in Ghana, or the
+            Office of the Data Protection Commissioner in Kenya
+          </li>
         </ul>
       </div>
     </section>
 
     <section>
-      <h2>7. Data Retention</h2>
+      <h2>11. Cookies and storage</h2>
       <p>
-        We retain your personal information for as long as your account is active or as needed to provide 
-        services. If you delete your account, we will delete or anonymize your data within 30 days, except 
-        where retention is required by law (e.g., payment records for tax purposes).
+        We use cookies and your browser's storage to keep you signed in and remember things like a half-finished
+        Vibe Check. You can clear them in your browser settings, but you'll be signed out.
       </p>
     </section>
 
     <section>
-      <h2>8. Cookies & Tracking</h2>
+      <h2>12. Age</h2>
       <p>
-        We use cookies and similar technologies to enhance your experience, analyze usage patterns, and 
-        remember your preferences. You can manage cookie settings through your browser, though this may 
-        affect the functionality of our Service.
+        Minutes 2 Match is for adults aged 18 and over. If we learn that someone under 18 has an account, we
+        close it and delete their data.
       </p>
     </section>
 
     <section>
-      <h2>9. Changes to This Policy</h2>
+      <h2>13. Changes to this policy</h2>
       <p>
-        We may update this Privacy Policy from time to time. We will notify you of any significant changes 
-        by posting a notice on our website or sending you a notification. Your continued use of the Service 
-        after such changes constitutes acceptance of the updated policy.
+        If we change this policy in a way that matters, we'll tell you by text or on the site before it takes
+        effect. The date at the top always shows the latest version.
       </p>
     </section>
 
     <section>
-      <h2>10. Contact Us</h2>
-      <p>
-        If you have questions or concerns about this Privacy Policy or our data practices, please contact us:
-      </p>
+      <h2>14. Contact us</h2>
+      <p>Questions about your privacy or your data:</p>
       <div class="legal-contact">
-        <p class="font-bold">Minutes 2 Match - Data Protection</p>
-        <p>Email: privacy@minutes2match.com</p>
-        <p>Location: Accra, Ghana</p>
+        <p class="font-bold">Minutes 2 Match, Data Protection</p>
+        <p>Email: <a href="mailto:privacy@minutes2match.com">privacy@minutes2match.com</a></p>
+        <p>Accra, Ghana</p>
       </div>
     </section>
-      
   </LegalPage>
 </template>
