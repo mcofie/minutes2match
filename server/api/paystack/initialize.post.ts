@@ -1,3 +1,4 @@
+import { resolveEventUserId } from '~/server/utils/events'
 /**
  * Paystack Payment Initialization
  * POST /api/paystack/initialize
@@ -38,6 +39,19 @@ export default defineEventHandler(async (event) => {
             statusCode: 400,
             message: 'Missing required fields: email, amount'
         })
+    }
+
+    // A payment made for a member must come from that member: the userId in the request decides whose
+    // subscription, free unlock and wallet are used, so it has to match the signed-in session.
+    // Guest purchases (no userId) are still allowed.
+    if (body.metadata?.userId) {
+        const sessionUserId = await resolveEventUserId(event)
+        if (!sessionUserId) {
+            throw createError({ statusCode: 401, message: 'Please sign in to continue' })
+        }
+        if (sessionUserId !== body.metadata.userId) {
+            throw createError({ statusCode: 403, message: 'This payment is for a different account' })
+        }
     }
 
     const config = useRuntimeConfig()

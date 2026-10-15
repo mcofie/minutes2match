@@ -7,6 +7,9 @@ import { runTargetedMatching } from '~/server/utils/matchmaker'
  * Body: { userIds: string[] }
  */
 export default defineEventHandler(async (event) => {
+    // Admins only: this endpoint changes accounts or exposes member data
+    await requireAdminAccess(event)
+
     const body = await readBody<{ userIds: string[] }>(event)
     const { userIds } = body
 
