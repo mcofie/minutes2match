@@ -700,6 +700,7 @@ import { personas } from '~/composables/usePersona'
 import { calculateCompatibility, getCompatibilityTier, COMPATIBILITY_MAP, normalizeCity } from '~/utils/compatibility'
 import { VIBE_CHAPTERS, VALUES_KEY, getScaleQuestion, chapterForKey, labelForKey, parseScaleAnswer, parseValuesAnswer, scaleRelation } from '~/utils/vibeQuestions'
 import { useToast } from '~/composables/useToast'
+import { useSayHello, helloHintFor, hasSaidHello } from '~/composables/useSayHello'
 import type { M2MDatabase } from '~/types/database.types'
 import type { MatchBrief } from '~/composables/useMatchBrief'
 
@@ -1300,22 +1301,8 @@ const dateIdeas = computed(() => {
 })
 
 // ----- Saying hello -----
-// WhatsApp takes a ready-made message; Instagram and Snapchat can't, so we copy it for pasting.
-const contact = computed<{ app: 'whatsapp' | 'instagram' | 'snapchat'; url: string } | null>(() => {
-  const p = matchProfile.value
-  if (!p) return null
-  const method = p.preferred_contact_method || 'phone'
-  const handle = (h?: string | null) => String(h || '').trim().replace(/^@/, '')
-  if (method === 'instagram' && handle(p.instagram_handle)) return { app: 'instagram', url: `https://instagram.com/${handle(p.instagram_handle)}` }
-  if (method === 'snapchat' && handle(p.snapchat_handle)) return { app: 'snapchat', url: `https://snapchat.com/add/${handle(p.snapchat_handle)}` }
-  if (p.phone) return { app: 'whatsapp', url: `https://wa.me/${String(p.phone).replace(/\D/g, '')}` }
-  return null
-})
-const APP_NAME = { whatsapp: 'WhatsApp', instagram: 'Instagram', snapchat: 'Snapchat' } as const
-const helloHint = computed(() => {
-  if (!contact.value) return `${theirFirstName.value} hasn't added a way to reach them yet.`
-  return contact.value.app === 'whatsapp' ? 'Opens WhatsApp with a message ready to send.' : `Copies a first message and opens ${APP_NAME[contact.value.app]}.`
-})
+// Opening the right app lives in composables/useSayHello (shared with /matches)
+const helloHint = computed(() => helloHintFor(matchProfile.value, theirFirstName.value))
 
 // A first message built on something real: the lobby, a shared interest, or the top date idea
 const openerText = computed(() => {
@@ -1332,25 +1319,11 @@ const ideaMessage = (idea: { title: string; when?: string }) => {
 }
 
 const saidHello = ref(false)
-const helloKey = computed(() => `m2m_said_hello_${matchId.value}`)
+const openHello = useSayHello()
 const sayHello = async (message = openerText.value) => {
-  if (!contact.value) {
-    toast.info(`No way to reach ${theirFirstName.value} yet`, "They haven't added a phone number or handle yet. Check back soon.")
-    showProfile.value = true
-    return
-  }
-  let url = contact.value.url
-  if (contact.value.app === 'whatsapp') {
-    url += `?text=${encodeURIComponent(message)}`
-  } else {
-    try {
-      await navigator.clipboard.writeText(message)
-      toast.success('Message copied', `Paste it into ${APP_NAME[contact.value.app]} to say hello.`)
-    } catch { /* clipboard blocked: still open the app */ }
-  }
-  window.open(url, '_blank', 'noopener')
-  saidHello.value = true
-  try { localStorage.setItem(helloKey.value, '1') } catch { /* private mode */ }
+  const opened = await openHello(matchProfile.value, theirFirstName.value, message, matchId.value)
+  if (opened) saidHello.value = true
+  else showProfile.value = true
 }
 
 // "How's it going?" once there's something to report: after saying hello, or a couple of days in
@@ -1444,7 +1417,7 @@ const loadMatchData = async () => {
 }
 
 onMounted(async () => {
-  try { saidHello.value = localStorage.getItem(helloKey.value) === '1' } catch { /* private mode */ }
+  saidHello.value = hasSaidHello(matchId.value)
   if (route.query.feedback) saidHello.value = true // came from the "how did it go?" SMS
   await loadMatchData()
   // From the "how did it go?" SMS: jump to the question

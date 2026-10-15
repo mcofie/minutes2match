@@ -7,17 +7,24 @@
     <SkeletonMatchesPage v-if="loadingMatches" />
 
     <!-- No matches yet -->
-    <section v-else-if="matches.length === 0" class="pb-6 pt-4 text-center sm:pt-10">
+    <section v-else-if="matches.length === 0" class="pb-6 pt-2 text-center sm:pt-6">
+      <LoveBirds scene="why" class="section-art mx-auto mb-2 w-52 sm:w-72" />
       <span class="inline-flex rounded-full bg-white px-3.5 py-1 text-sm text-[#393737] ring-1 ring-black/[0.08]">Your matches</span>
       <h1 class="font-display mx-auto mt-5 max-w-xl text-[2.75rem] leading-[1.02] tracking-tight text-[#393737] sm:text-[4.5rem]">Your match is on the way.</h1>
       <p class="mx-auto mt-4 max-w-md text-lg leading-snug text-[#6c6862]">
-        <template v-if="matchStatus.state === 'in' || matchStatus.state === 'next'">Matches go out {{ runLabel }}. We're finding someone who shares what matters to you, and we'll text you as soon as they're ready.</template>
+        <template v-if="matchStatus.state === 'in' || matchStatus.state === 'next'">You're in. Matches go out {{ runLabel }}. We're looking for someone who shares what matters to you, and we'll text you as soon as they're ready.</template>
         <template v-else-if="matchStatus.state === 'done'">We couldn't find you a match this week. Opt in again for the next round, {{ runLabel }}.</template>
-        <template v-else>You're not in matching yet. Opt in before {{ runLabel }} and we'll look for someone who shares what matters to you.</template>
+        <template v-else>You're not in matching yet. Opt in before {{ runLabel }} and we'll look for someone who shares what matters to you. It's free.</template>
       </p>
       <div class="mt-7 flex flex-col items-center gap-4">
-        <NuxtLink v-if="!optedInThisWeek || matchStatus.state === 'done'" to="/me" class="inline-flex items-center justify-center gap-2 rounded-full bg-[#ed1c24] px-6 py-3 text-base font-semibold text-white shadow-[0_8px_24px_rgba(237,28,36,0.18)] transition-colors hover:bg-[#d71920]">Opt in for this week</NuxtLink>
-        <NuxtLink to="/#how-it-works" class="text-base font-semibold text-[#393737] underline-offset-4 hover:underline">How matching works</NuxtLink>
+        <button v-if="canOptIn" type="button" class="btn-solid grain grain-strong inline-flex items-center justify-center gap-2 px-7 py-3.5 text-base disabled:opacity-60" :disabled="savingOptIn" @click="optIn">
+          {{ savingOptIn ? 'Opting in…' : `Opt in for ${runDay}` }}
+        </button>
+        <p v-else class="inline-flex items-center gap-2 rounded-full bg-[#e9f6ef] px-4 py-2 text-sm font-semibold text-[#1f7a4d]">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.75" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4" aria-hidden="true"><path d="M20 6 9 17l-5-5" /></svg>
+          You're in for {{ runDay }}
+        </p>
+        <NuxtLink to="/about#how-it-works" class="text-base font-semibold text-[#393737] underline-offset-4 hover:underline">How matching works</NuxtLink>
       </div>
     </section>
 
@@ -27,7 +34,7 @@
         <span class="inline-flex rounded-full bg-white px-3.5 py-1 text-sm text-[#393737] ring-1 ring-black/[0.08]">{{ featuredIsThisWeek ? "This week's match" : 'Your latest match' }}</span>
         <h1 class="font-display mt-4 text-[2.9rem] leading-[1.02] tracking-tight text-[#393737] sm:mt-5 sm:text-[5rem]">Meet {{ featuredName }}.</h1>
         <p class="mt-3 text-lg text-[#6c6862] sm:text-xl">
-          <template v-if="scoreOf(featured)">{{ scoreOf(featured) }}% compatible. </template>Matched {{ matchedWhen(featured.created_at) }}.
+          <template v-if="scoreLine(featured)">{{ scoreLine(featured) }} </template>Matched {{ matchedWhen(featured.created_at) }}.
         </p>
         <p v-if="profile?.is_active === false" class="mt-3 inline-flex rounded-full bg-[#fff1f1] px-3 py-1 text-xs font-medium text-[#b4232a]">You're hidden from matching right now</p>
       </section>
@@ -53,7 +60,7 @@
           <span v-for="(dot, i) in KEEPSAKE_SPARKLES" :key="i" aria-hidden="true" class="absolute rounded-full bg-white" :style="{ left: dot[0], top: dot[1], width: `${dot[2]}px`, height: `${dot[2]}px`, opacity: dot[3] }"></span>
           <div class="absolute inset-x-0 bottom-0 flex flex-col items-end pb-3 pl-[3.6rem] pr-2.5 pt-12 text-right sm:pb-4 sm:pr-4 sm:pt-16" :style="{ background: keepsake.band }">
             <span class="whitespace-nowrap text-[0.6rem] font-semibold uppercase tracking-[0.14em] text-white/75 sm:text-[0.65rem]"><span class="hidden sm:inline">Match </span>No. {{ keepsake.number }}</span>
-            <span class="font-display mt-1 text-[0.9rem] leading-[1.1] tracking-tight text-white [text-shadow:0_1px_8px_rgba(0,0,0,0.15)] sm:text-xl">{{ keepsake.line }}</span>
+            <span v-if="keepsake.line" class="font-display mt-1 text-[0.9rem] leading-[1.1] tracking-tight text-white [text-shadow:0_1px_8px_rgba(0,0,0,0.15)] sm:text-xl">{{ keepsake.line }}</span>
             <span class="mt-1.5 whitespace-nowrap text-[0.65rem] tabular-nums text-white/80 sm:text-xs"><span class="sm:hidden">{{ keepsake.monthShort }}</span><span class="hidden sm:inline">{{ keepsake.month }}</span></span>
           </div>
         </div>
@@ -67,19 +74,22 @@
             <span class="min-w-0" :class="row.icon === 'note' ? 'font-display text-[1.05rem] leading-snug' : ''">{{ row.text }}</span>
           </li>
         </ul>
-        <div class="mt-5 flex justify-center">
-          <NuxtLink :to="briefLink(featured)" @pointerenter="prefetchBrief(featured.id)" class="inline-flex items-center justify-center gap-2 rounded-full bg-[#ed1c24] px-6 py-3 text-base font-semibold text-white shadow-[0_8px_24px_rgba(237,28,36,0.18)] transition-colors hover:bg-[#d71920] w-full sm:w-auto">Read your match brief</NuxtLink>
+        <div class="mt-5 flex flex-col gap-2 sm:flex-row sm:justify-center">
+          <NuxtLink :to="briefLink(featured)" @pointerenter="prefetchBrief(featured.id)" class="btn-solid grain inline-flex w-full items-center justify-center px-6 py-3 text-base sm:w-auto">Read your match brief</NuxtLink>
+          <button type="button" class="inline-flex w-full items-center justify-center gap-1.5 rounded-full border border-[#393737] px-6 py-3 text-base font-semibold text-[#393737] transition-colors hover:bg-[#393737] hover:text-white sm:w-auto" @click="sayHelloToFeatured">
+            Say hello <span aria-hidden="true">→</span>
+          </button>
         </div>
+        <p class="mt-3 text-center text-xs text-[#9b9690]">{{ helloHintFor(featured.matchedProfile, featuredName) }}</p>
       </div>
 
-      <!-- No match yet this week -->
-      <div v-if="!featuredIsThisWeek" class="mx-auto mt-5 flex max-w-md items-center justify-between gap-4 rounded-2xl bg-white px-5 py-4 ring-1 ring-black/[0.05]">
-        <p class="text-sm leading-snug text-[#393737]">
-          <template v-if="matchStatus.state === 'in' || matchStatus.state === 'next'">Your next match arrives {{ runLabel }}. We'll text you when it's ready.</template>
-          <template v-else-if="matchStatus.state === 'done'">No match for you this week. Opt in again for {{ runLabel }}.</template>
-          <template v-else>You're not in matching yet. Opt in before {{ runLabel }}.</template>
-        </p>
-        <NuxtLink v-if="!optedInThisWeek || matchStatus.state === 'done'" to="/me" class="shrink-0 rounded-full bg-[#ed1c24] px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-[#d71920]">Opt in</NuxtLink>
+      <!-- Where you stand for the next run -->
+      <div class="mx-auto mt-5 flex max-w-md items-center justify-between gap-4 rounded-2xl bg-white px-5 py-4 ring-1 ring-black/[0.05]">
+        <p class="text-sm leading-snug text-[#393737]">{{ nextRunText }}</p>
+        <button v-if="canOptIn" type="button" class="btn-solid grain shrink-0 px-4 py-2 text-sm disabled:opacity-60" :disabled="savingOptIn" @click="optIn">{{ savingOptIn ? 'Opting in…' : 'Opt in' }}</button>
+        <span v-else class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#e9f6ef] text-[#1f7a4d]" aria-label="You're in">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.75" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4" aria-hidden="true"><path d="M20 6 9 17l-5-5" /></svg>
+        </span>
       </div>
 
       <!-- Past matches: one quiet row, like an FAQ item -->
@@ -99,9 +109,9 @@
               </span>
               <span class="min-w-0 flex-1">
                 <span class="font-display block truncate text-lg leading-tight text-[#393737]">{{ nameOf(m) }}</span>
-                <span class="mt-0.5 block truncate text-sm text-[#9b9690]">Matched {{ matchedWhen(m.created_at) }}</span>
+                <span class="mt-0.5 block truncate text-sm text-[#9b9690]">Matched {{ matchedWhen(m.created_at) }}<template v-if="scoreOf(m) >= 50"> · {{ scoreOf(m) }}%</template></span>
               </span>
-              <span v-if="scoreOf(m)" class="shrink-0 text-sm tabular-nums text-[#6c6862]">{{ scoreOf(m) }}%</span>
+              <span v-if="myFeedback[m.id]" class="shrink-0 rounded-full px-2.5 py-1 text-xs font-medium" :class="FEEDBACK_LABEL[myFeedback[m.id]]?.cls || 'bg-[#f4f2ef] text-[#6c6862]'">{{ FEEDBACK_LABEL[myFeedback[m.id]]?.label || 'Answered' }}</span>
             </NuxtLink>
           </li>
         </ul>
@@ -111,8 +121,9 @@
 </template>
 
 <script setup lang="ts">
-import { isOptedInThisWeek, weeklyMatchStatus, formatMatchRun, currentMatchWeekEnd } from '~/utils/matchWeek'
+import { weeklyMatchStatus, formatMatchRun, currentMatchWeekEnd, optInWeekEnd } from '~/utils/matchWeek'
 import { useToast } from '~/composables/useToast'
+import { useSayHello, helloHintFor } from '~/composables/useSayHello'
 import { useMatchStore } from '~/stores/useMatchStore'
 import { storeToRefs } from 'pinia'
 import type { M2MDatabase } from '~/types/database.types'
@@ -124,12 +135,41 @@ definePageMeta({
 
 const supabase = useSupabaseClient<M2MDatabase>() as any
 const toast = useToast()
-const { profile, fetchPendingMatchCount } = useDashboard()
-const optedInThisWeek = computed(() => profile.value?.is_active !== false && isOptedInThisWeek(profile.value?.weekly_opt_in_until))
+const { profile, fetchProfileById } = useDashboard()
 // Matching runs once a week, on Sunday (see utils/matchWeek)
 const matchStatus = computed(() => weeklyMatchStatus(profile.value?.weekly_opt_in_until, profile.value?.is_active !== false))
 const runLabel = computed(() => formatMatchRun(matchStatus.value.runAt))
-const { isTMA, hapticFeedback } = useTelegram()
+// "Sunday 19 October"
+const runDay = computed(() => matchStatus.value.runAt.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' }))
+// Not in for the next run yet: offer the one-tap opt-in
+const canOptIn = computed(() => ['open', 'closed', 'done'].includes(matchStatus.value.state))
+
+// Opt in right here (same update as the profile page): before Sunday's run it counts for this week, after it for next
+const savingOptIn = ref(false)
+const optIn = async () => {
+  const userId = currentUserId.value || profile.value?.id
+  if (!userId || savingOptIn.value) return
+  savingOptIn.value = true
+  try {
+    const { error } = await supabase.schema('m2m').from('profiles')
+      .update({ weekly_opt_in_until: optInWeekEnd().toISOString(), is_active: true } as any).eq('id', userId)
+    if (error) throw error
+    await fetchProfileById(userId)
+    toast.success("You're in", `Your match arrives ${runLabel.value}. We'll text you.`)
+  } catch (err) {
+    console.error('[Matches] Opt-in failed:', err)
+    toast.error("Couldn't opt you in", 'Please try again.')
+  } finally {
+    savingOptIn.value = false
+  }
+}
+
+const nextRunText = computed(() => {
+  const state = matchStatus.value.state
+  if (state === 'in' || state === 'next') return `You're in for ${runDay.value}. We'll text you when your next match is ready.`
+  if (state === 'done' && !featuredIsThisWeek.value) return `No match for you this week. Opt in again for ${runDay.value}.`
+  return `Want your next match on ${runDay.value}? Opt in, it's free.`
+})
 
 const matchStore = useMatchStore()
 const { matches, loadingMatches } = storeToRefs(matchStore)
@@ -160,9 +200,42 @@ const stripEmoji = (text: string) => String(text || '').replace(/[\p{Extended_Pi
 const nameOf = (m: any) => m?.matchedProfile?.display_name?.split(' ')[0] || 'Your match'
 const featuredName = computed(() => nameOf(featured.value))
 const scoreOf = (m: any) => Math.round(Number(m?.match_score) || 0)
-const metaLine = (m: any) => {
-  const p = m?.matchedProfile || {}
-  return [p.birth_date ? getAge(p.birth_date) : null, p.location, p.occupation].filter(Boolean).join(' · ')
+// As in the match letter: below 50 we don't put a number on it
+const scoreLine = (m: any) => {
+  const score = scoreOf(m)
+  if (!score) return ''
+  return score < 50 ? 'Different in ways worth exploring.' : `${score}% compatible.`
+}
+// "accra, east legon" -> "Accra, East Legon"
+const formatPlace = (raw?: string | null) => String(raw || '').replace(/_/g, ' ').trim().toLowerCase().replace(/(^|[\s,(-])\p{L}/gu, c => c.toUpperCase())
+
+// Say hello from here too, with a first message built on something real
+const openHello = useSayHello()
+const sayHelloToFeatured = () => {
+  const m = featured.value
+  if (!m) return
+  const hi = m.matchedProfile?.display_name ? `Hi ${featuredName.value}` : 'Hi'
+  const sharedId = (m.matchedProfile?.interests || []).find((i: string) => (profile.value?.interests || []).includes(i) && INTEREST_SCENE[i])
+  const message = m.is_from_lobby
+    ? `${hi}, it was great connecting in the lobby. Coffee this week?`
+    : sharedId
+      ? `${hi}, looks like we're both into ${INTEREST_SCENE[sharedId].words}. Coffee this week?`
+      : `${hi}, we've just been matched on Minutes 2 Match. Coffee this week?`
+  openHello(m.matchedProfile, featuredName.value, message, m.id)
+}
+
+// Your own answer to "how's it going?" for each past match
+const FEEDBACK_LABEL: Record<string, { label: string; cls: string }> = {
+  going_well: { label: 'Going well', cls: 'bg-[#e9f6ef] text-[#1f7a4d]' },
+  chatting: { label: 'Chatting', cls: 'bg-[#eaf1fb] text-[#2f5d9e]' },
+  no_reply: { label: 'No reply', cls: 'bg-[#f4f2ef] text-[#6c6862]' },
+  not_a_fit: { label: 'Not a fit', cls: 'bg-[#f4f2ef] text-[#9b9690]' },
+}
+const myFeedback = ref<Record<string, string>>({})
+const loadMyFeedback = async () => {
+  try {
+    myFeedback.value = await $fetch<Record<string, string>>('/api/matches/my-feedback')
+  } catch { /* the list still works without it */ }
 }
 const featuredNote = computed(() => stripEmoji(featured.value?.ai_analysis || featured.value?.matchedProfile?.ai_analysis || ''))
 const featuredReasons = computed<string[]>(() =>
@@ -212,7 +285,7 @@ const keepsake = computed(() => {
   const intent = m?.matchedProfile?.intent === profile.value?.intent ? m?.matchedProfile?.intent : null
 
   let scene: KeepsakeScene = SCENES[hashString(m?.id || '') % SCENES.length]
-  let line = 'Made for each other'
+  let line = ''
   if (shared) {
     scene = INTEREST_SCENE[shared].scene
     line = `Both love ${INTEREST_SCENE[shared].words}`
@@ -237,7 +310,6 @@ const keepsake = computed(() => {
 
 // Line icons for the detail list (lucide-style paths)
 const ICONS: Record<string, string> = {
-  score: '<path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/>',
   place: '<path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/>',
   work: '<rect width="20" height="14" x="2" y="7" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>',
   shared: '<path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3Z"/>',
@@ -248,8 +320,7 @@ const featuredRows = computed(() => {
   if (!m) return []
   const p = m.matchedProfile || {}
   const rows: { icon: string; text: string }[] = []
-  if (scoreOf(m)) rows.push({ icon: 'score', text: `${scoreOf(m)}% compatible` })
-  const place = [p.birth_date ? `${getAge(p.birth_date)}` : '', p.location].filter(Boolean).join(' · ')
+  const place = [p.birth_date ? `${getAge(p.birth_date)}` : '', formatPlace(p.location)].filter(Boolean).join(' · ')
   if (place) rows.push({ icon: 'place', text: place })
   if (p.occupation) rows.push({ icon: 'work', text: p.occupation })
   if (featuredReasons.value.length) rows.push({ icon: 'shared', text: featuredReasons.value.join(' · ') })
@@ -284,17 +355,6 @@ onMounted(async () => {
         loadingMatches.value = false
     }
     prefetchBrief(featured.value?.id)
+    if (pastMatches.value.length) loadMyFeedback()
 })
 </script>
-
-<style scoped>
-@keyframes ghost-float {
-  0%, 100% { transform: translateY(0) rotate(0deg); }
-  50% { transform: translateY(-5px) rotate(5deg); }
-}
-
-.animate-ghost {
-  animation: ghost-float 3s ease-in-out infinite;
-  display: inline-block;
-}
-</style>
