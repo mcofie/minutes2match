@@ -35,9 +35,8 @@ export default defineEventHandler(async (event) => {
 
     let partner: any = null
     if (partnerRes.data) {
-        // Internal fields a match never needs
-        const { telegram_id, weekly_opt_in_until, ...rest } = partnerRes.data
-        partner = { ...rest, vibeAnswers: partnerAnswersRes.data || [] }
+        // Only what a match may see (no admin notes, genotype, etc.)
+        partner = { ...toPartnerProfile(partnerRes.data), vibeAnswers: partnerAnswersRes.data || [] }
     }
 
     // Private, per-member data: browsers may reuse it briefly, shared caches never

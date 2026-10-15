@@ -3,7 +3,7 @@ import { serverSupabaseServiceRole, serverSupabaseUser } from '#supabase/server'
 /**
  * POST /api/enrich_matches  { matchUserIds: string[] }
  *
- * Returns full profiles (plus Vibe Check answers) for the people the signed-in
+ * Returns profiles (minus private fields, see server/utils/partnerProfile) plus Vibe Check answers for the people the signed-in
  * member is matched with. Any requested ID that isn't one of the caller's
  * matches is silently left out, so this can't be used to read other members.
  */
@@ -59,10 +59,9 @@ export default defineEventHandler(async (event) => {
 
     const profileMap: Record<string, any> = {}
     profiles?.forEach((p: any) => {
-        // Internal fields a match never needs
-        const { telegram_id, weekly_opt_in_until, ...rest } = p
+        // Only what a match may see (no admin notes, genotype, etc.)
         profileMap[p.id] = {
-            ...rest,
+            ...toPartnerProfile(p),
             vibeAnswers: vibes?.filter((v: any) => v.user_id === p.id) || []
         }
     })
