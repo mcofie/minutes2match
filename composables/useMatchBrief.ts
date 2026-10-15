@@ -6,6 +6,13 @@ export interface MatchBrief {
     me: any
     myAnswers: { question_key: string; answer_value: any }[]
     partner: any
+    /** date idea catalogue, this pair's reactions and everyone's totals; null before migration 079 */
+    dateIdeas?: {
+        catalog: any[]
+        myReactions: Record<string, string>
+        hidden: string[]
+        stats: Record<string, { went: number; keen: number; notForUs: number }>
+    } | null
 }
 
 // One request per brief at a time, however many callers ask

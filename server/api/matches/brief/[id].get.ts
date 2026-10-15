@@ -52,10 +52,54 @@ export default defineEventHandler(async (event) => {
         ...memberMatch
     } = match
 
+    const dateIdeas = await loadDateIdeas(db, matchId, callerId)
+
     return {
         match: { ...memberMatch, my_feedback: myFeedback },
+        dateIdeas,
         me: meRes.data || null,
         myAnswers: myAnswersRes.data || [],
         partner,
     }
 })
+
+/**
+ * The date idea catalogue (with partner offers), this pair's reactions and everyone's totals.
+ * Returns null if the date_ideas tables don't exist yet (migration 079); the page then uses the built-in list.
+ */
+async function loadDateIdeas(db: any, matchId: string, callerId: string) {
+    const ideasRes = await db
+        .from('date_ideas')
+        .select('*, venue:partner_venues(name, discount_label, website_url, is_active, expires_at)')
+        .eq('is_active', true)
+        .order('sort_order')
+    if (ideasRes.error) return null
+
+    const now = Date.now()
+    const catalog = (ideasRes.data || []).map((row: any) => {
+        const live = row.venue?.is_active && (!row.venue.expires_at || new Date(row.venue.expires_at).getTime() > now)
+        return { ...row, venue: live ? row.venue : null }
+    })
+
+    const [pairRes, allRes] = await Promise.all([
+        db.from('date_idea_reactions').select('user_id, idea_id, reaction').eq('match_id', matchId),
+        db.from('date_idea_reactions').select('idea_id, reaction').limit(5000)
+    ])
+
+    const myReactions: Record<string, string> = {}
+    const hidden = new Set<string>()
+    for (const r of pairRes.data || []) {
+        if (r.user_id === callerId) myReactions[r.idea_id] = r.reaction
+        if (r.reaction === 'not_for_us') hidden.add(r.idea_id)
+    }
+
+    const stats: Record<string, { went: number; keen: number; notForUs: number }> = {}
+    for (const r of allRes.data || []) {
+        const s = (stats[r.idea_id] ||= { went: 0, keen: 0, notForUs: 0 })
+        if (r.reaction === 'went') s.went++
+        else if (r.reaction === 'keen') s.keen++
+        else s.notForUs++
+    }
+
+    return { catalog, myReactions, hidden: [...hidden], stats }
+}

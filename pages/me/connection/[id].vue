@@ -343,6 +343,7 @@
                         Top pick
                       </span>
                       <span class="rounded-full bg-[#f4f2ef] px-2 py-0.5 text-[11px] font-medium text-[#6c6862]">{{ IDEA_KIND[idea.kind] || 'Date' }}</span>
+                      <span v-if="idea.venue?.offer" class="rounded-full bg-[#e9f6ef] px-2 py-0.5 text-[11px] font-semibold text-[#1f7a4d]" :title="`Partner offer at ${idea.venue.name}`">{{ idea.venue.offer }}</span>
                     </div>
                     <h4 class="font-display mt-2.5 text-[1.15rem] leading-[1.2] text-[#393737] sm:text-[1.3rem]">{{ idea.title }}</h4>
 
@@ -379,6 +380,19 @@
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-3.5 w-3.5 shrink-0 text-[#9b9690]" aria-hidden="true"><path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21Z" /><circle cx="12" cy="9.5" r="2.5" /></svg>
                         <span class="truncate">{{ idea.where }}</span>
                       </p>
+                    </div>
+
+                    <!-- What they think: helps us suggest better dates to everyone -->
+                    <div v-if="ideaData" class="mt-3 flex flex-wrap gap-1.5 print:hidden" role="group" :aria-label="`Your take on ${idea.title}`">
+                      <button
+                        v-for="r in IDEA_REACTIONS"
+                        :key="r.value"
+                        type="button"
+                        class="h-8 rounded-full border px-3 text-[12px] font-medium transition-colors"
+                        :class="myIdeaReactions[idea.id] === r.value ? 'border-[#393737] bg-[#393737] text-white' : 'border-[#e5e2dd] text-[#6c6862] hover:border-[#393737] hover:text-[#393737]'"
+                        :aria-pressed="myIdeaReactions[idea.id] === r.value"
+                        @click="reactToIdea(idea.id, r.value)"
+                      >{{ r.label }}</button>
                     </div>
                   </li>
                 </ol>
@@ -1303,8 +1317,9 @@ const tldr = computed(() => {
   return lines
 })
 
-// Date ideas: a wide catalogue (utils/dateIdeas) scored on shared interests, their city and how they
-// like to spend time; the brief shows the best three, each with why it fits and when they're both free
+// Date ideas: a wide catalogue (utils/dateIdeas) scored on shared interests, city and neighbourhood, both
+// Vibe Checks (energy, drinking, faith, money, values), budget and season; the brief shows the best three,
+// each with why it fits and when they're both free
 // Each kind of date gets a label; each card's details open on tap
 const IDEA_KIND: Record<string, string> = { food: 'Food', outdoors: 'Outdoors', culture: 'Culture', active: 'Get moving', nightlife: 'Night out', cosy: 'Low-key', adventure: 'Day out' }
 const openIdeas = ref(new Set<string>())
@@ -1314,6 +1329,32 @@ const toggleIdea = (id: string) => {
   else next.add(id)
   openIdeas.value = next
 }
+// From the database (migration 079): catalogue with partner offers, and reactions. Null → built-in list
+const ideaData = ref<MatchBrief['dateIdeas']>(null)
+const ideaCatalog = computed(() => (ideaData.value?.catalog || []).map(ideaFromRow))
+const myIdeaReactions = ref<Record<string, string>>({})
+const hiddenIdeas = ref<string[]>([])
+
+const IDEA_REACTIONS = [
+  { value: 'went', label: 'We went' },
+  { value: 'keen', label: 'Sounds fun' },
+  { value: 'not_for_us', label: 'Not for us' },
+] as const
+const reactToIdea = async (ideaId: string, reaction: string) => {
+  const previous = myIdeaReactions.value[ideaId] || null
+  const next = previous === reaction ? null : reaction // tap again to undo
+  myIdeaReactions.value = { ...myIdeaReactions.value, [ideaId]: next as any }
+  // "Not for us" swaps the idea out for the next best one straight away
+  if (next === 'not_for_us') hiddenIdeas.value = [...hiddenIdeas.value, ideaId]
+  try {
+    await $fetch(`/api/matches/${matchId.value}/date-idea`, { method: 'POST', body: { ideaId, reaction: next } })
+  } catch (e) {
+    myIdeaReactions.value = { ...myIdeaReactions.value, [ideaId]: previous as any }
+    if (next === 'not_for_us') hiddenIdeas.value = hiddenIdeas.value.filter(id => id !== ideaId)
+    console.error('[Connection] Date idea reaction failed:', e)
+  }
+}
+
 const dateIdeas = computed(() => {
   const me = currentUser.value
   const them = matchProfile.value
@@ -1327,6 +1368,10 @@ const dateIdeas = computed(() => {
     intents: [me.intent, them.intent].filter(Boolean),
     windows: mutualAvailability.value,
     interestLabel: (id: string) => stripEmoji(getInterestLabel(id)),
+    locations: [me.location, them.location],
+    catalog: ideaCatalog.value,
+    hidden: hiddenIdeas.value,
+    ideaStats: ideaData.value?.stats,
   })
 })
 
@@ -1386,6 +1431,9 @@ const applyBrief = (data: MatchBrief) => {
   }
   matchProfile.value = data.partner
   myFeedback.value = (m as any).my_feedback || null
+  ideaData.value = data.dateIdeas || null
+  myIdeaReactions.value = { ...(data.dateIdeas?.myReactions || {}) }
+  hiddenIdeas.value = [...(data.dateIdeas?.hidden || [])]
 }
 const loadMatchData = async () => {
   const id = matchId.value

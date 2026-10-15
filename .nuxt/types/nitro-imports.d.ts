@@ -225,6 +225,7 @@ declare global {
   const splitCookiesString: typeof import('../../node_modules/h3').splitCookiesString
   const stringifyMarkdown: typeof import('../../node_modules/@nuxtjs/mdc/dist/runtime/stringify').stringifyMarkdown
   const stripEmojis: typeof import('../../server/utils/sms').stripEmojis
+  const telegramWebhookSecret: typeof import('../../server/utils/telegram-bot').telegramWebhookSecret
   const toEventHandler: typeof import('../../node_modules/h3').toEventHandler
   const toNodeListener: typeof import('../../node_modules/h3').toNodeListener
   const toPlainHandler: typeof import('../../node_modules/h3').toPlainHandler
@@ -316,7 +317,7 @@ export { personas, calculatePersona } from '/Users/maxwellcofie/WebstormProjects
 export { normalizeGhanaPhone, isSamePhone } from '/Users/maxwellcofie/WebstormProjects/minutes2match/server/utils/phone';
 export { checkRateLimit, getClientIP, enforceRateLimit } from '/Users/maxwellcofie/WebstormProjects/minutes2match/server/utils/rateLimiter';
 export { stripEmojis, sendSMS } from '/Users/maxwellcofie/WebstormProjects/minutes2match/server/utils/sms';
-export { sendTelegramMessage, sendTelegramPhoto, sendTelegramVideo, setTelegramWebhook, setTelegramBotCommands } from '/Users/maxwellcofie/WebstormProjects/minutes2match/server/utils/telegram-bot';
+export { telegramWebhookSecret, sendTelegramMessage, sendTelegramPhoto, sendTelegramVideo, setTelegramWebhook, setTelegramBotCommands } from '/Users/maxwellcofie/WebstormProjects/minutes2match/server/utils/telegram-bot';
 export { verifyTelegramData, parseTelegramInitData } from '/Users/maxwellcofie/WebstormProjects/minutes2match/server/utils/telegram';
 export { isVibeRetakeRequired } from '/Users/maxwellcofie/WebstormProjects/minutes2match/server/utils/vibeRetake';
 export { sendZendSMS, sendZendBulkSMS, sendZendOTP, verifyZendOTP, ZEND_BASE_URL, SENDER_ID } from '/Users/maxwellcofie/WebstormProjects/minutes2match/server/utils/zend';
