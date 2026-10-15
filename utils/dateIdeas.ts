@@ -36,7 +36,33 @@ export interface DateIdea {
   outdoor?: boolean
   /** part of the city it's in, for city spots (see AREA_ZONES) */
   zone?: Zone
+  /** partner venue offer shown with the idea */
+  venue?: { name: string; offer?: string | null; url?: string | null } | null
 }
+
+/** A row of m2m.date_ideas (with its partner venue, if any) as a DateIdea */
+export const ideaFromRow = (row: any): DateIdea => ({
+  id: row.id,
+  title: row.title,
+  desc: row.description || '',
+  tags: row.tags || [],
+  energy: row.energy,
+  slot: row.slot,
+  kind: row.kind,
+  city: row.city || undefined,
+  country: row.country || undefined,
+  place: row.place || undefined,
+  dayTrip: !!row.day_trip,
+  deep: !!row.deep,
+  price: row.price,
+  alcohol: !!row.alcohol,
+  outdoor: !!row.outdoor,
+  zone: row.zone || undefined,
+  venue: row.venue ? { name: row.venue.name, offer: row.venue.discount_label, url: row.venue.website_url } : null
+})
+
+/** How everyone has reacted to an idea so far */
+export interface IdeaStats { went: number; keen: number; notForUs: number }
 
 // Parts of each city, so a date can sit near both people. Neighbourhoods match the CityPicker's
 type Zone = 'accra-central' | 'accra-north' | 'accra-east' | 'nairobi-central' | 'nairobi-west' | 'nairobi-south' | 'nairobi-north'
@@ -133,6 +159,12 @@ export interface DateIdeaInput {
   locations?: (string | null | undefined)[]
   /** defaults to now; used for the rainy season */
   today?: Date
+  /** the catalogue to pick from (from m2m.date_ideas); defaults to the built-in list */
+  catalog?: DateIdea[]
+  /** ideas this pair said "Not for us" to */
+  hidden?: string[]
+  /** reactions across all pairs, by idea id */
+  ideaStats?: Record<string, IdeaStats>
 }
 
 export interface PickedIdea extends DateIdea {
@@ -184,7 +216,9 @@ export function pickDateIdeas(input: DateIdeaInput, count = 3): PickedIdea[] {
   const month = (input.today || new Date()).getMonth()
   const rainy = (RAINY_MONTHS[city] || []).includes(month)
 
-  const pool = DATE_CATALOG.filter(d =>
+  const hidden = new Set(input.hidden || [])
+  const pool = (input.catalog?.length ? input.catalog : DATE_CATALOG).filter(d =>
+    !hidden.has(d.id) &&
     (!d.city || d.city === city) &&
     (!d.country || d.country === country) &&
     !(noAlcohol && d.alcohol))
@@ -243,6 +277,16 @@ export function pickDateIdeas(input: DateIdeaInput, count = 3): PickedIdea[] {
       else if (near === 1) { score += 1; why.push('Handy for one of you') }
     }
     if (rainy && idea.outdoor) score -= idea.dayTrip ? 3 : 2
+
+    // 6. What other pairs thought: "We went" counts most. Smoothed, so it takes about ten
+    //    reactions to have half the effect, and never more than ±2
+    const stats = input.ideaStats?.[idea.id]
+    if (stats) {
+      const reactions = stats.went + stats.keen + stats.notForUs
+      const net = stats.went * 2 + stats.keen - stats.notForUs * 1.5
+      score += Math.max(-2, Math.min(2, (net / (reactions + 10)) * 4))
+      if (stats.went >= 3) why.push(`${stats.went} couples have been`)
+    }
 
     return { ...idea, score, why }
   }).sort((a, b) => b.score - a.score)

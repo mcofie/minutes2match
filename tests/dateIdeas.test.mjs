@@ -1,7 +1,7 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
 
-import { pickDateIdeas, DATE_CATALOG, zoneOf } from '../utils/dateIdeas.ts'
+import { pickDateIdeas, DATE_CATALOG, zoneOf, ideaFromRow } from '../utils/dateIdeas.ts'
 
 const byId = Object.fromEntries(DATE_CATALOG.map(d => [d.id, d]))
 const answers = (pairs = {}) => new Map(Object.entries(pairs))
@@ -69,4 +69,34 @@ test('picks stay varied', () => {
 
 test('catalogue ids used in tests exist', () => {
   assert.ok(byId['acc-legon'] && byId['acc-jazz'])
+})
+
+test('a database catalogue replaces the built-in list', () => {
+  const row = { id: 'acc-test', title: 'Test idea', description: 'x', tags: ['music'], energy: 'any', slot: 'evening', kind: 'food', city: 'accra', country: null, place: 'Somewhere', day_trip: false, deep: false, price: 1, alcohol: false, outdoor: false, zone: null, venue: { name: 'Cafe', discount_label: '10% off', website_url: null } }
+  const idea = ideaFromRow(row)
+  assert.equal(idea.desc, 'x')
+  assert.equal(idea.venue.offer, '10% off')
+  const picks = pickDateIdeas(base({ shared: ['music'], catalog: [idea] }))
+  assert.deepEqual(picks.map(p => p.id), ['acc-test'])
+})
+
+test('"Not for us" hides an idea for the pair', () => {
+  const top = pickDateIdeas(base({ shared: ['music', 'dancing'] }))[0].id
+  const picks = pickDateIdeas(base({ shared: ['music', 'dancing'], hidden: [top] }))
+  assert.ok(!picks.some(p => p.id === top))
+})
+
+test('reactions from other pairs break ties, but cannot overturn a clearly better fit', () => {
+  const make = (id, tags) => ({ id, title: id, desc: '', tags, energy: 'any', slot: 'evening', kind: 'food', price: 1 })
+  const top = (catalog, ideaStats) => pickDateIdeas(base({ shared: ['art', 'music'], catalog, ideaStats }), 1)[0].id
+
+  // Two equally good ideas: feedback decides
+  const tie = [make('a', ['art']), make('b', ['art'])]
+  assert.equal(top(tie), 'a')
+  assert.equal(top(tie, { a: { went: 0, keen: 0, notForUs: 1 } }), 'b')
+  assert.equal(top(tie, { b: { went: 3, keen: 0, notForUs: 0 } }), 'b')
+
+  // One idea fits their shared interests much better: even lots of "Not for us" doesn't sink it
+  const clear = [make('a', ['art', 'music']), make('b', ['art'])]
+  assert.equal(top(clear, { a: { went: 0, keen: 0, notForUs: 40 } }), 'a')
 })

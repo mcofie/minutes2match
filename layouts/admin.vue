@@ -102,6 +102,7 @@ const navGroups: { label: string; items: NavItem[] }[] = [
       { to: '/admin/matches/matchmaker', label: 'Matchmaker', icon: '<path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/>' },
       { to: '/admin/matches', label: 'Matches', exact: true, icon: '<path d="M8 6h13"/><path d="M8 12h13"/><path d="M8 18h13"/><circle cx="3.5" cy="6" r="1"/><circle cx="3.5" cy="12" r="1"/><circle cx="3.5" cy="18" r="1"/>' },
       { to: '/admin/events', label: 'Events', icon: '<rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>' },
+      { to: '/admin/date-ideas', label: 'Date ideas', icon: '<path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21Z"/><circle cx="12" cy="9.5" r="2.5"/>' },
     ],
   },
   {
@@ -135,6 +136,7 @@ const pageTitle = computed(() => {
   if (path === '/admin/matches/matchmaker') return 'Matchmaker'
   if (path.startsWith('/admin/matches')) return 'Matches'
   if (path.startsWith('/admin/events')) return 'Events'
+  if (path.startsWith('/admin/date-ideas')) return 'Date ideas'
   if (path === '/admin/messaging/history') return 'SMS history'
   if (path.startsWith('/admin/messaging')) return 'SMS'
   if (path.startsWith('/admin/payments')) return 'Payments'
