@@ -62,9 +62,8 @@
               <span class="truncate">{{ theirFirstName }}'s profile</span>
             </button>
             </div>
-            <button type="button" class="inline-flex shrink-0 items-center gap-2 rounded-full bg-white px-3 py-2.5 text-sm font-medium text-[#393737] ring-1 ring-black/10 transition-colors hover:bg-[#fafafa] sm:px-4" @click="printLetter">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4" aria-hidden="true"><path d="M6 9V2h12v7" /><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" /><rect x="6" y="14" width="12" height="8" /></svg>
-              <span class="sr-only sm:not-sr-only">Print or save as PDF</span>
+            <button type="button" class="btn-solid grain inline-flex h-10 shrink-0 items-center gap-1.5 px-4 text-sm sm:h-11 sm:px-5" @click="sayHello()">
+              Say hello <span aria-hidden="true">→</span>
             </button>
           </div>
 
@@ -101,7 +100,7 @@
                   <span v-else class="font-display flex h-full w-full items-center justify-center text-3xl text-[#9b9690]">{{ myFirstName.charAt(0) }}</span>
                 </div>
                 <div class="-ml-5 h-20 w-20 overflow-hidden rounded-full bg-[#eef1f5] ring-4 ring-white sm:h-24 sm:w-24">
-                  <img v-if="matchProfile?.photo_url" :src="avatarUrl(matchProfile.photo_url, 96)" alt="" decoding="async" fetchpriority="high" class="h-full w-full object-cover" :class="(match?.unlocked || match?.currentUserPaid) ? '' : 'scale-110 blur-[6px]'" />
+                  <img v-if="matchProfile?.photo_url" :src="avatarUrl(matchProfile.photo_url, 96)" alt="" decoding="async" fetchpriority="high" class="h-full w-full object-cover" />
                   <span v-else class="font-display flex h-full w-full items-center justify-center text-3xl text-[#9b9690]">?</span>
                 </div>
               </div>
@@ -135,17 +134,15 @@
                 <p style="--i: 0" class="rv-item font-display pb-0.5 text-[1.75rem] leading-[1.1] tracking-tight sm:text-[2.6rem]">Dear {{ myFirstName }},</p>
                 <p class="rv-item" style="--i: 1">
                   We've found someone we think you'll really like.
-                  <template v-if="!fromScorer">You and <strong class="font-semibold">{{ theirName === 'Them' ? 'your match' : theirName }}</strong> connected in the Flash Lobby, so we've put together everything your profiles say about you two.</template>
+                  <template v-if="!fromScorer">You and <strong class="font-semibold">{{ theirName }}</strong> connected in the Flash Lobby, so we've put together everything your profiles say about you two.</template>
                   <template v-else>
-                  <template v-if="theirName !== 'Them'">Their name is <strong class="font-semibold">{{ theirName }}</strong>, and on paper</template>
-                  <template v-else>We can't tell you their name just yet, but on paper</template>
-                  the two of you are <strong class="font-semibold">{{ matchScoreValue }}% compatible</strong>.
+                  Their name is <strong class="font-semibold">{{ theirName }}</strong>.
                   <template v-if="lowScore">You're different in some interesting ways, and that can make for great conversation.</template>
-                  <template v-else>That's what we call {{ matchTier.tier.toLowerCase() }}.</template>
+                  <template v-else>On paper, we'd call the two of you {{ matchTier.tier.toLowerCase() }}.</template>
                   </template>
                 </p>
                 <p v-if="tldr.length > 1" class="rv-item" style="--i: 2">{{ tldr.slice(1).join(' ') }}</p>
-                <p class="rv-item" style="--i: 3">We didn't take this lightly, so here's everything we saw. Judge for yourself.</p>
+                <p class="rv-item" style="--i: 3">We put your answers side by side, and here's everything we saw. Judge for yourself.</p>
               </div>
 
               <!-- The headline numbers -->
@@ -171,14 +168,23 @@
                 </p>
               </section>
 
-              <!-- II. Where you line up -->
-              <section v-if="briefNum('lineup')" v-reveal class="letter-section mt-14 sm:mt-28">
-                <div class="rv-item text-center">
-                  <LoveBirds scene="lineup" class="section-art mx-auto mb-2 w-56 sm:mb-6 sm:w-96 print:hidden" />
-                  <p class="text-base text-[#393737] sm:text-2xl">By the numbers</p>
-                  <h3 class="font-display mt-1.5 text-[2rem] leading-[1.05] tracking-tight text-[#393737] sm:text-[4rem]">Where you line up</h3>
+              <!-- II. Where you line up: the score breakdown, on request -->
+              <section v-if="briefNum('lineup')" v-reveal class="letter-section mt-10 sm:mt-14">
+                <div class="rv-item text-center print:hidden">
+                  <button
+                    type="button"
+                    class="inline-flex items-center gap-1.5 rounded-full bg-white px-5 py-2.5 text-sm font-medium text-[#393737] ring-1 ring-black/10 transition-colors hover:bg-[#fafafa]"
+                    :aria-expanded="showScore"
+                    aria-controls="score-breakdown"
+                    @click="showScore = !showScore"
+                  >
+                    {{ showScore ? 'Hide the breakdown' : `See how we got to ${matchScoreValue}%` }}
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="h-3.5 w-3.5 transition-transform duration-200" :class="{ 'rotate-180': showScore }" aria-hidden="true"><path d="m6 9 6 6 6-6" /></svg>
+                  </button>
                 </div>
-                <p class="rv-item mx-auto mt-2.5 max-w-xl text-center sm:mt-4 text-base leading-[1.65] text-[#6c6862] sm:text-xl sm:leading-[1.6]" style="--i: 1">Your {{ matchScoreValue }}% is made of six parts. Here's what each one earned.</p>
+                <div id="score-breakdown" class="grid transition-[grid-template-rows] duration-300 ease-out print:!grid-rows-[1fr]" :class="showScore ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'">
+                <div class="min-h-0 overflow-hidden" :inert="!showScore">
+                <p class="mx-auto mt-6 max-w-xl text-center text-base leading-[1.65] text-[#6c6862] sm:text-lg">Your {{ matchScoreValue }}% is made of six parts. Here's what each one earned.</p>
                 <ul class="rv-item mt-5 flex flex-wrap justify-center gap-x-5 gap-y-2 text-sm text-[#6c6862]" style="--i: 2" aria-label="What the score icons mean">
                   <li v-for="k in BAR_KEY" :key="k.id" class="inline-flex items-center gap-1.5">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="h-[18px] w-[18px] text-[#9b9690]" aria-hidden="true" v-html="RELATION_ICON[k.id]"></svg>{{ k.label }}
@@ -207,6 +213,8 @@
                     </div>
                   </div>
                 </dl>
+                </div>
+                </div>
               </section>
 
               <!-- III. What you share -->
@@ -333,6 +341,11 @@
                   <h3 class="font-display mt-1.5 text-[2rem] leading-[1.05] tracking-tight text-[#393737] sm:text-[4rem]">A few date ideas</h3>
                 </div>
                 <p class="rv-item mx-auto mt-2.5 max-w-xl text-center text-base leading-[1.65] text-[#6c6862] sm:mt-4 sm:text-xl sm:leading-[1.6]" style="--i: 1">Picked for you two from what you share, where you live and when you're both free. Swipe to see them all.</p>
+                <p class="rv-item mx-auto mt-3 max-w-xl text-center text-sm leading-relaxed text-[#817a72] sm:text-base" style="--i: 1">
+                  <template v-if="mutualAvailability.length">You're both usually free {{ freeTimesText }}.</template>
+                  <template v-else-if="!hasAvailability(matchProfile)">{{ theirFirstName }} hasn't set their free times yet, so agree on a time when you say hello.</template>
+                  <template v-else>Your usual free times don't overlap, but most people find a time that works anyway.</template>
+                </p>
 
                 <!-- Swipe through: cards bleed to the screen edge and snap into place; details open per card -->
                 <ol class="no-scrollbar -mx-4 -mb-6 mt-6 flex items-stretch snap-x snap-mandatory gap-3 overflow-x-auto scroll-px-4 px-4 pb-10 pt-1 sm:-mx-6 sm:mt-9 sm:scroll-px-6 sm:px-6 sm:[mask-image:linear-gradient(to_right,transparent,#000_1.5rem,#000_calc(100%-1.5rem),transparent)] print:mx-0 print:flex-wrap print:overflow-visible print:px-0" aria-label="Date ideas">
@@ -388,6 +401,10 @@
                       </p>
                     </div>
 
+                    <button type="button" class="mt-3 inline-flex h-10 items-center justify-center gap-1.5 rounded-full border border-[#393737] px-4 text-[13px] font-semibold text-[#393737] transition-colors hover:bg-[#393737] hover:text-white print:hidden" @click="sayHello(ideaMessage(idea))">
+                      Suggest this to {{ theirFirstName }}
+                    </button>
+
                     <!-- What they think: helps us suggest better dates to everyone -->
                     <div v-if="ideaData" class="mt-3 flex flex-wrap gap-1.5 print:hidden" role="group" :aria-label="`Your take on ${idea.title}`">
                       <button
@@ -404,48 +421,17 @@
                 </ol>
               </section>
 
-            <!-- When you're both free -->
-            <section v-if="match?.unlocked || match?.currentUserPaid" v-reveal class="letter-section mt-12 sm:mt-16 print:hidden">
-              <div class="rv-item text-center">
-                <h3 class="font-display text-[1.75rem] leading-tight tracking-tight text-[#393737] sm:text-[2.25rem]">When you're both free</h3>
-                <p v-if="mutualAvailability.length > 0" class="mt-1 text-sm tabular-nums text-[#6c6862]">{{ scheduleMatchRate }}% overlap</p>
-              </div>
-
-              <ul v-if="mutualAvailability.length > 0" class="rv-item mt-5 divide-y divide-[#e5e2de] border-y border-[#e5e2de]">
-                <li v-for="overlap in mutualAvailability" :key="overlap.day" class="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 py-3.5">
-                  <span class="text-base text-[#393737]">{{ overlap.day }}</span>
-                  <span class="flex flex-wrap gap-2">
-                    <span v-for="slot in overlap.slots" :key="slot" class="rounded-full bg-white px-3 py-1 ring-1 ring-black/5 text-sm capitalize text-[#393737]">{{ slot }}</span>
-                  </span>
-                </li>
-              </ul>
-
-              <div v-else class="rv-item mt-4 text-center">
-                <p class="text-lg leading-relaxed text-[#6c6862]">
-                  <template v-if="!matchProfile?.availability || Object.values(matchProfile.availability).every((a: any) => !a?.length)">
-                    {{ matchProfile?.display_name }} hasn't set their free times yet. Agree on a time when you say hello.
-                  </template>
-                  <template v-else>
-                    Your usual free times don't overlap, but most matches find a time that works anyway.
-                  </template>
-                </p>
-                <button type="button" class="mt-4 rounded-full border border-[#ed1c24] px-5 py-2.5 text-sm font-medium text-[#ed1c24] transition-colors hover:bg-[#ed1c24] hover:text-white" @click="openContactMethod">
-                  Suggest a time
-                </button>
-              </div>
-            </section>
-
               <!-- Sign-off -->
               <footer v-reveal class="letter-section mt-14 sm:mt-28">
                 <p class="rv-item text-base leading-[1.65] sm:text-xl sm:leading-[1.6]">We have a good feeling about this one.</p>
                 <p class="rv-item mt-6 text-base sm:text-xl sm:leading-[1.6]" style="--i: 1">With love,</p>
                 <p class="mt-1"><span class="sig-write font-script inline-block text-[2.6rem] leading-none text-[#c4121a]">Minutes 2 Match</span></p>
-                <p class="rv-item mt-2 text-sm text-[#9b9690]" style="--i: 3">Your matchmakers in Accra &amp; Nairobi</p>
+                <p class="rv-item mt-2 text-sm text-[#9b9690]" style="--i: 3">Accra &amp; Nairobi</p>
 
                 <p class="rv-item mt-10 border-t border-[#e5e2de] pt-6 text-base leading-relaxed text-[#6c6862]" style="--i: 4">
                   <span class="font-semibold text-[#393737]">P.S.</span>
                   Don't overthink the first message. Something like
-                  <span class="text-[#393737]">“Hi {{ theirName === 'Them' ? 'there' : theirName }}, {{ !fromScorer ? 'it was great connecting in the lobby' : lowScore ? 'our matchmakers think we should meet' : `our matchmakers think we're a ${matchScoreValue}% match` }}. Coffee this week?”</span>
+                  <span class="text-[#393737]">“{{ openerText }}”</span>
                   works beautifully.
                 </p>
 
@@ -454,14 +440,19 @@
               <!-- Closing, like Popcorn's "I'm ready. Join Popcorn." -->
               <div v-reveal class="mt-16 pb-4 text-center sm:mt-32 sm:pb-10 print:hidden">
                 <p class="rv-item font-display text-[2.2rem] leading-[1.05] tracking-tight sm:text-[4.25rem]">Your move.<br />Say hello to {{ theirFirstName }}.</p>
-                <button type="button" class="rv-item btn-solid grain grain-strong mt-6 w-full px-8 py-4 text-base sm:mt-8 sm:w-auto" style="--i: 1" @click="openContactMethod">Say hello <span aria-hidden="true">→</span></button>
+                <button type="button" class="rv-item btn-solid grain grain-strong mt-6 w-full px-8 py-4 text-base sm:mt-8 sm:w-auto" style="--i: 1" @click="sayHello()">Say hello <span aria-hidden="true">→</span></button>
+                <p class="rv-item mt-3 text-sm text-[#9b9690]" style="--i: 2">{{ helloHint }}</p>
+                <button type="button" class="rv-item mt-8 inline-flex items-center gap-2 text-sm text-[#817a72] underline-offset-4 transition-colors hover:text-[#393737] hover:underline" style="--i: 3" @click="printLetter">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4" aria-hidden="true"><path d="M6 9V2h12v7" /><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" /><rect x="6" y="14" width="12" height="8" /></svg>
+                  Print or save this letter as a PDF
+                </button>
               </div>
             </div>
             </div>
           </article>
 
           <!-- How it went: a quick answer that tells us whether the match worked -->
-          <section v-if="matchProfile && match" id="how-it-went" class="mx-auto mt-10 max-w-xl scroll-mt-24 rounded-[1.75rem] bg-white p-6 text-center shadow-[0_14px_40px_rgba(52,38,25,0.08)] sm:mt-14 sm:p-8 print:hidden">
+          <section v-if="matchProfile && match && showHowItWent" id="how-it-went" class="mx-auto mt-10 max-w-xl scroll-mt-24 rounded-[1.75rem] bg-white p-6 text-center shadow-[0_14px_40px_rgba(52,38,25,0.08)] sm:mt-14 sm:p-8 print:hidden">
             <h2 class="font-display text-[1.6rem] leading-tight text-[#393737] sm:text-3xl">How's it going with {{ theirFirstName }}?</h2>
             <p class="mt-2 text-sm text-[#817a72]">Only our team sees this. It helps us make better introductions.</p>
             <div class="mt-5 grid grid-cols-1 gap-2 sm:grid-cols-2">
@@ -519,33 +510,27 @@
             <div class="relative mx-auto h-32 w-32 sm:h-36 sm:w-36">
               <div class="h-full w-full overflow-hidden rounded-full bg-[#eef1f5] ring-[6px] ring-white shadow-[0_14px_36px_rgba(57,77,100,0.14)]">
                 <img
-                  v-if="isOpen && matchProfile?.photo_url"
+                  v-if="matchProfile?.photo_url"
                   :src="avatarUrl(matchProfile.photo_url, 144)"
                   decoding="async"
                   :alt="matchProfile.display_name"
                   class="h-full w-full cursor-zoom-in object-cover transition-transform duration-500 hover:scale-105"
                   @click="showImageZoom = true"
                 />
-                <img v-else-if="matchProfile?.photo_url" :src="avatarUrl(matchProfile.photo_url, 144)" alt="" decoding="async" class="h-full w-full scale-110 object-cover blur-[8px]" />
-                <span v-else class="font-display flex h-full w-full items-center justify-center text-5xl text-[#9b9690]">{{ isOpen ? (matchProfile?.display_name || '?').charAt(0).toUpperCase() : '?' }}</span>
+                <span v-else class="font-display flex h-full w-full items-center justify-center text-5xl text-[#9b9690]">{{ (matchProfile?.display_name || '?').charAt(0).toUpperCase() }}</span>
               </div>
             </div>
 
             <h2 class="font-display mt-5 inline-flex items-center gap-2 text-[2rem] leading-tight text-[#393737] sm:text-[2.25rem]">
-              {{ isOpen ? matchProfile?.display_name : (personaData?.name || 'Your match') }}
+              {{ matchProfile?.display_name }}
               <svg v-if="matchProfile?.is_verified" viewBox="0 0 24 24" class="h-5 w-5 shrink-0 text-[#3b82c4]" aria-label="Verified member" role="img"><path fill="currentColor" d="M12 2.5l2.4 1.8 3-.2.9 2.9 2.4 1.8-1 2.8 1 2.8-2.4 1.8-.9 2.9-3-.2L12 21.5l-2.4-1.8-3 .2-.9-2.9-2.4-1.8 1-2.8-1-2.8 2.4-1.8.9-2.9 3 .2z" /><path d="m8.5 12.2 2.3 2.3 4.7-4.8" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /></svg>
             </h2>
             <p class="mt-1 text-base text-[#6c6862]">
-              <template v-if="isOpen">{{ [getAge(matchProfile?.birth_date), formatPlace(matchProfile?.location)].filter(Boolean).join(' · ') }}</template>
-              <template v-else>Details unlock once you're connected</template>
+              {{ [getAge(matchProfile?.birth_date), formatPlace(matchProfile?.location)].filter(Boolean).join(' · ') }}
             </p>
-            <span class="mt-3 inline-flex items-center gap-1.5 rounded-full bg-white px-3 py-1 text-xs font-medium text-[#6c6862] ring-1 ring-black/5">
-              <span class="h-1.5 w-1.5 rounded-full" :class="match?.unlocked ? 'bg-[#2f9e5b]' : 'bg-[#e0a03a]'" aria-hidden="true"></span>
-              {{ match?.unlocked ? 'Connected' : 'Waiting to connect' }}
-            </span>
 
             <!-- How to reach them -->
-            <div v-if="match?.unlocked && matchProfile" class="mt-7 overflow-hidden rounded-[1.5rem] bg-white text-left ring-1 ring-black/5">
+            <div v-if="matchProfile" class="mt-7 overflow-hidden rounded-[1.5rem] bg-white text-left ring-1 ring-black/5">
               <p class="px-5 pb-1 pt-4 text-sm text-[#9b9690]">Reach {{ theirFirstName }}</p>
               <template v-if="matchProfile.preferred_contact_method === 'instagram' || matchProfile.preferred_contact_method === 'snapchat'">
                 <a
@@ -586,10 +571,11 @@
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4 shrink-0 text-[#b5b0aa]" aria-hidden="true"><path d="m9 18 6-6-6-6" /></svg>
                 </a>
               </template>
+              <p v-else class="px-5 pb-4 pt-1 text-sm text-[#9b9690]">{{ theirFirstName }} hasn't added a way to reach them yet. Check back soon.</p>
             </div>
 
               <!-- Details -->
-              <dl v-if="isOpen && profileFacts.length" class="mt-4 grid grid-cols-2 gap-2.5 text-left">
+              <dl v-if="profileFacts.length" class="mt-4 grid grid-cols-2 gap-2.5 text-left">
                 <div v-for="row in profileFacts" :key="row.label" class="rounded-[1.25rem] bg-white px-4 py-3.5 ring-1 ring-black/5">
                   <dt class="text-xs text-[#9b9690]">{{ row.label }}</dt>
                   <dd class="mt-0.5 truncate text-base font-medium text-[#393737]">{{ row.value }}</dd>
@@ -690,7 +676,7 @@
     <!-- Image Zoom Modal -->
     <Teleport to="body">
       <Transition name="fade">
-        <div v-if="showImageZoom && match?.unlocked && matchProfile?.photo_url" class="fixed inset-0 bg-black/95 backdrop-blur-md z-[100] flex items-center justify-center p-4 sm:p-8" @click.self="showImageZoom = false">
+        <div v-if="showImageZoom && matchProfile?.photo_url" class="fixed inset-0 bg-black/95 backdrop-blur-md z-[100] flex items-center justify-center p-4 sm:p-8" @click.self="showImageZoom = false">
           <button @click="showImageZoom = false" class="absolute top-6 right-6 text-white hover:text-white/80 transition-colors p-2 z-[101] bg-stone-800/50 rounded-full border border-white/10 hover:bg-stone-800">
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" x2="6" y1="6" y2="18"/><line x1="6" x2="18" y1="6" y2="18"/></svg>
           </button>
@@ -706,48 +692,6 @@
       </Transition>
     </Teleport>
 
-    <!-- Nudge Custom Message Modal -->
-    <Teleport to="body">
-       <div 
-         v-if="showNudgeModal" 
-         class="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-stone-900/60 backdrop-blur-md transition-all duration-300"
-         @click.self="showNudgeModal = false"
-       >
-         <div class="relative w-full max-w-sm bg-white rounded-3xl shadow-[0_10px_30px_rgba(52,38,25,0.07)] p-6 animate-in zoom-in duration-300 ring-1 ring-black/5">
-           <div class="flex items-center justify-between mb-4">
-             <h3 class="text-xl font-serif font-semibold">Customize Nudge</h3>
-             <button @click="showNudgeModal = false" class="text-stone-400 hover:text-[#393737] transition-colors">
-               <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
-             </button>
-           </div>
-
-           <p class="text-xs text-stone-500 mb-4 leading-relaxed">
-             Personalize your message to encourage <strong>{{ (match?.unlocked || match?.currentUserPaid) ? matchProfile?.display_name : 'your match' }}</strong> to unlock your profile.
-           </p>
-
-           <div class="mb-4">
-             <textarea 
-               v-model="nudgeMessage" 
-               placeholder="Hey! Just unlocked our match. Hope you're having a great day!"
-               class="w-full h-24 p-4 rounded-2xl border border-stone-100 focus:border-amber-400 focus:ring-0 text-sm font-medium resize-none transition-all placeholder:text-stone-300"
-               maxlength="120"
-             ></textarea>
-             <div class="flex justify-end mt-1">
-               <span class="text-[10px] font-bold" :class="nudgeMessage.length > 100 ? 'text-amber-600' : 'text-stone-300'">{{ nudgeMessage.length }}/120</span>
-             </div>
-           </div>
-
-           <button 
-             @click="handleNudge(nudgeMessage)"
-             :disabled="nudging || !nudgeMessage.trim()"
-             class="w-full py-3.5 bg-amber-400 text-[#393737] font-semibold text-xs rounded-2xl transition-all flex items-center justify-center gap-2"
-           >
-             <span v-if="nudging" class="w-4 h-4 border border-black/30 border-t-black rounded-full animate-spin"></span>
-             {{ nudging ? 'Sending...' : 'Send Nudge' }}
-           </button>
-         </div>
-       </div>
-    </Teleport>
   </main>
 </template>
 
@@ -771,17 +715,8 @@ const loading = ref(true)
 const error = ref<string | null>(null)
 const match = ref<any>(null)
 const matchProfile = ref<any>(null)
-const unlocking = ref(false)
-const nudging = ref(false)
-const nudged = ref(false)
-const showNudgeModal = ref(false)
-const nudgeMessage = ref('')
 const showImageZoom = ref(false)
-
-const personaData = computed(() => {
-  const personaId = matchProfile.value?.dating_persona
-  return personaId ? personas[personaId] : Object.values(personas)[0]
-})
+const showScore = ref(false)
 
 const getAge = (birthDate: string | null) => {
   if (!birthDate) return null
@@ -874,28 +809,6 @@ const submitReport = async () => {
   }
 }
 
-const handleNudge = async (customMessage: string) => {
-   if (!match.value?.id) return
-   nudging.value = true
-   try {
-     const res = await $fetch('/api/matches/nudge', {
-       method: 'POST',
-       body: { matchId: match.value.id, customMessage }
-     })
-     if ((res as any).success) {
-       toast.success('Nudge sent', "We've sent them an SMS alert.")
-       nudged.value = true
-       showNudgeModal.value = false
-     } else {
-       toast.error('Nudge Failed', (res as any).message || 'Something went wrong.')
-     }
-   } catch (err) {
-     toast.error('Nudge Failed', 'Connection error.')
-   } finally {
-     nudging.value = false
-   }
-}
-
 const handleBlock = () => {
    // Placeholder for block functionality
    if(confirm('Are you sure you want to block this user?')) {
@@ -976,14 +889,6 @@ const mutualAvailability = computed(() => {
   return shared
 })
 
-const scheduleMatchRate = computed(() => {
-  if (mutualAvailability.value.length === 0) return 0
-  const slots = mutualAvailability.value.reduce((acc: number, curr: any) => acc + curr.slots.length, 0)
-  // Max slots is ~12. Scale to 100.
-  const score = Math.round((slots / 12) * 100)
-  return Math.min(score + 30, 99) // Base 30 + slot bonus
-})
-
 // ===== Compatibility evidence ("Why you two match") =====
 const myAnswers = ref<{ question_key: string; answer_value: string }[]>([])
 
@@ -1010,7 +915,7 @@ const matchTier = computed(() => getCompatibilityTier(matchScoreValue.value))
 // Below 50 we don't put a label on it: different isn't a verdict
 const lowScore = computed(() => matchScoreValue.value < 50)
 const tierPhrase = computed(() => (lowScore.value ? 'Different in ways worth exploring' : matchTier.value.tier))
-const theirName = computed(() => (match.value?.unlocked || match.value?.currentUserPaid) ? (matchProfile.value?.display_name || 'Them') : 'Them')
+const theirName = computed(() => matchProfile.value?.display_name || 'your match')
 
 const matchReasons = computed<string[]>(() => {
   const r = match.value?.match_reasons
@@ -1169,7 +1074,7 @@ const valueNames = (vals: string[]) => vals.map(stripEmoji)
 
 // Honest, friendly talking points where you answered differently
 const talkingPoints = computed(() => {
-  const them = theirName.value === 'Them' ? 'they' : theirName.value
+  const them = matchProfile.value?.display_name ? theirName.value : 'they'
   return answerPairs.value
     .filter(p => p.relation === 'different')
     .slice(0, 2)
@@ -1203,11 +1108,10 @@ const matchedOn = computed(() => match.value?.created_at
   ? new Date(match.value.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })
   : '')
 
-const theirFirstName = computed(() => theirName.value === 'Them' ? 'Your match' : theirName.value.split(' ')[0])
+const theirFirstName = computed(() => (matchProfile.value?.display_name ? theirName.value.split(' ')[0] : 'Your match'))
 
 // Their profile lives in a side panel so the letter stays the focus
 const showProfile = ref(false)
-const isOpen = computed(() => !!(match.value?.unlocked || match.value?.currentUserPaid))
 // "accra, east legon" -> "Accra, East Legon"
 const formatPlace = (raw?: string | null) => String(raw || '').replace(/_/g, ' ').trim().toLowerCase().replace(/(^|[\s,(-])\p{L}/gu, c => c.toUpperCase())
 const contactHandle = computed(() => {
@@ -1395,17 +1299,82 @@ const dateIdeas = computed(() => {
   })
 })
 
-const openContactMethod = () => {
-   if (!matchProfile.value) return
-   const method = matchProfile.value.preferred_contact_method || 'phone'
-   if (method === 'instagram' && matchProfile.value.instagram_handle) {
-      window.open(`https://instagram.com/${matchProfile.value.instagram_handle.replace('@', '')}`, '_blank')
-   } else if (method === 'snapchat' && matchProfile.value.snapchat_handle) {
-      window.open(`https://snapchat.com/add/${matchProfile.value.snapchat_handle}`, '_blank')
-   } else if (matchProfile.value.phone) {
-      window.open(`https://wa.me/${matchProfile.value.phone?.replace(/\D/g, '')}`, '_blank')
-   }
+// ----- Saying hello -----
+// WhatsApp takes a ready-made message; Instagram and Snapchat can't, so we copy it for pasting.
+const contact = computed<{ app: 'whatsapp' | 'instagram' | 'snapchat'; url: string } | null>(() => {
+  const p = matchProfile.value
+  if (!p) return null
+  const method = p.preferred_contact_method || 'phone'
+  const handle = (h?: string | null) => String(h || '').trim().replace(/^@/, '')
+  if (method === 'instagram' && handle(p.instagram_handle)) return { app: 'instagram', url: `https://instagram.com/${handle(p.instagram_handle)}` }
+  if (method === 'snapchat' && handle(p.snapchat_handle)) return { app: 'snapchat', url: `https://snapchat.com/add/${handle(p.snapchat_handle)}` }
+  if (p.phone) return { app: 'whatsapp', url: `https://wa.me/${String(p.phone).replace(/\D/g, '')}` }
+  return null
+})
+const APP_NAME = { whatsapp: 'WhatsApp', instagram: 'Instagram', snapchat: 'Snapchat' } as const
+const helloHint = computed(() => {
+  if (!contact.value) return `${theirFirstName.value} hasn't added a way to reach them yet.`
+  return contact.value.app === 'whatsapp' ? 'Opens WhatsApp with a message ready to send.' : `Copies a first message and opens ${APP_NAME[contact.value.app]}.`
+})
+
+// A first message built on something real: the lobby, a shared interest, or the top date idea
+const openerText = computed(() => {
+  const hi = matchProfile.value?.display_name ? `Hi ${theirFirstName.value}` : 'Hi'
+  if (!fromScorer.value) return `${hi}, it was great connecting in the lobby. Coffee this week?`
+  const interest = sharedInterests.value[0]
+  if (interest) return `${hi}, looks like we're both into ${stripEmoji(getInterestLabel(interest)).toLowerCase()}. Coffee this week?`
+  return `${hi}, we've just been matched on Minutes 2 Match. Coffee this week?`
+})
+const ideaMessage = (idea: { title: string; when?: string }) => {
+  const hi = matchProfile.value?.display_name ? `Hi ${theirFirstName.value}` : 'Hi'
+  const when = idea.when ? `, ${idea.when.charAt(0).toLowerCase()}${idea.when.slice(1)}` : ''
+  return `${hi}, how about this for a first date: ${idea.title.replace(/\.$/, '')}${when}?`
 }
+
+const saidHello = ref(false)
+const helloKey = computed(() => `m2m_said_hello_${matchId.value}`)
+const sayHello = async (message = openerText.value) => {
+  if (!contact.value) {
+    toast.info(`No way to reach ${theirFirstName.value} yet`, "They haven't added a phone number or handle yet. Check back soon.")
+    showProfile.value = true
+    return
+  }
+  let url = contact.value.url
+  if (contact.value.app === 'whatsapp') {
+    url += `?text=${encodeURIComponent(message)}`
+  } else {
+    try {
+      await navigator.clipboard.writeText(message)
+      toast.success('Message copied', `Paste it into ${APP_NAME[contact.value.app]} to say hello.`)
+    } catch { /* clipboard blocked: still open the app */ }
+  }
+  window.open(url, '_blank', 'noopener')
+  saidHello.value = true
+  try { localStorage.setItem(helloKey.value, '1') } catch { /* private mode */ }
+}
+
+// "How's it going?" once there's something to report: after saying hello, or a couple of days in
+const showHowItWent = computed(() => {
+  if (saidHello.value || myFeedback.value) return true
+  const created = match.value?.created_at ? new Date(match.value.created_at).getTime() : 0
+  return !!created && Date.now() - created >= 2 * 24 * 60 * 60 * 1000
+})
+
+const hasAvailability = (p: any) => {
+  let a = p?.availability
+  try { if (typeof a === 'string') a = JSON.parse(a) } catch { return false }
+  return !!a && Object.values(a).some((slots: any) => Array.isArray(slots) && slots.length > 0)
+}
+// "Saturday afternoon, Sunday evening and weekday mornings"
+const freeTimesText = computed(() => {
+  const parts = mutualAvailability.value.map(w => {
+    const day = w.day
+    const slots = w.slots.map(x => x.toLowerCase())
+    const slotText = slots.length > 1 ? `${slots.slice(0, -1).join(', ')} and ${slots[slots.length - 1]}` : slots[0]
+    return w.day === 'Weekdays' ? (slots.length > 1 ? `on weekdays (${slotText})` : `weekday ${slotText}s`) : `${day} ${slotText}`
+  })
+  return parts.length > 1 ? `${parts.slice(0, -1).join(', ')} and ${parts[parts.length - 1]}` : parts[0] || ''
+})
 
 // Load the brief in one request (/api/matches/brief/:id). If /matches already prefetched it, or you've
 // opened it before, it shows instantly and a fresh copy replaces it quietly.
@@ -1444,10 +1413,6 @@ const applyBrief = (data: MatchBrief) => {
   myAnswers.value = (data.myAnswers as any[]) || []
   match.value = {
     ...m,
-    // Matching needs no acceptance: every match is open from the start
-    unlocked: true,
-    currentUserPaid: m.user_1_id === userId ? m.user_1_paid : m.user_2_paid,
-    unlock_price: m.unlock_price || 10,
   }
   matchProfile.value = data.partner
   myFeedback.value = (m as any).my_feedback || null
@@ -1479,6 +1444,8 @@ const loadMatchData = async () => {
 }
 
 onMounted(async () => {
+  try { saidHello.value = localStorage.getItem(helloKey.value) === '1' } catch { /* private mode */ }
+  if (route.query.feedback) saidHello.value = true // came from the "how did it go?" SMS
   await loadMatchData()
   // From the "how did it go?" SMS: jump to the question
   if (route.query.feedback) {
