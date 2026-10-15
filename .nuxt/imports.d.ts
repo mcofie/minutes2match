@@ -54,7 +54,7 @@ export { useZend } from '../composables/useZend';
 export { avatarUrl } from '../utils/avatarUrl';
 export { SERVED_CITIES, memberCity, memberCityLabel, cityAreaTerms, ServedCity, CityKey } from '../utils/cities';
 export { BREAKDOWN_MAX, COMPATIBILITY_MAP, ACCRA_AREAS, NAIROBI_AREAS, normalizeCity, calculateAge, checkAgeViolation, isCompatibleProfession, MIN_V2_ANSWERS, MIN_LEGACY_ANSWERS, MIN_CONFIDENCE, calculateCompatibility, getCompatibilityTier, VibeAnswer, UserProfile, CompatibilitySignalCategory, CompatibilitySignal, CompatibilityResult } from '../utils/compatibility';
-export { DATE_CATALOG, pickDateIdeas, Slot, DateIdea, DateIdeaInput, PickedIdea } from '../utils/dateIdeas';
+export { ideaFromRow, zoneOf, DATE_CATALOG, pickDateIdeas, Slot, DateIdea, IdeaStats, DateIdeaInput, PickedIdea } from '../utils/dateIdeas';
 export { downloadCSV } from '../utils/downloadCsv';
 export { unlockedMatchFields } from '../utils/freeMatch';
 export { currentMatchWeekEnd, isOptedInThisWeek, currentMatchWeekStart, matchWeekKey } from '../utils/matchWeek';

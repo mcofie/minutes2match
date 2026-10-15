@@ -298,6 +298,9 @@ declare module "nitropack/types" {
     '/api/matches': {
       'get': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/matches.get').default>>>>
     }
+    '/api/matches/:id/date-idea': {
+      'post': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/matches/[id]/date-idea.post').default>>>>
+    }
     '/api/matches/:id/feedback': {
       'post': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/matches/[id]/feedback.post').default>>>>
     }
@@ -334,9 +337,6 @@ declare module "nitropack/types" {
     }
     '/api/paystack/webhook': {
       'post': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/paystack/webhook.post').default>>>>
-    }
-    '/api/profiles/create': {
-      'post': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/profiles/create.post').default>>>>
     }
     '/api/profiles/trigger-match': {
       'post': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/profiles/trigger-match.post').default>>>>

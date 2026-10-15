@@ -67,6 +67,7 @@ declare global {
   const getScaleQuestion: typeof import('../../utils/vibeQuestions').getScaleQuestion
   const h: typeof import('vue').h
   const hasInjectionContext: typeof import('vue').hasInjectionContext
+  const ideaFromRow: typeof import('../../utils/dateIdeas').ideaFromRow
   const inject: typeof import('vue').inject
   const injectHead: typeof import('../../node_modules/nuxt/dist/app/composables/head').injectHead
   const isCompatibleProfession: typeof import('../../utils/compatibility').isCompatibleProfession
@@ -288,6 +289,7 @@ declare global {
   const withMemo: typeof import('vue').withMemo
   const withModifiers: typeof import('vue').withModifiers
   const withScopeId: typeof import('vue').withScopeId
+  const zoneOf: typeof import('../../utils/dateIdeas').zoneOf
 }
 // for type re-export
 declare global {
@@ -331,7 +333,7 @@ declare global {
   export type { VibeAnswer, UserProfile, CompatibilitySignalCategory, CompatibilitySignal, CompatibilityResult } from '../../utils/compatibility'
   import('../../utils/compatibility')
   // @ts-ignore
-  export type { Slot, DateIdea, DateIdeaInput, PickedIdea } from '../../utils/dateIdeas'
+  export type { Slot, DateIdea, IdeaStats, DateIdeaInput, PickedIdea } from '../../utils/dateIdeas'
   import('../../utils/dateIdeas')
   // @ts-ignore
   export type { CandidatePair } from '../../utils/pairing'
@@ -413,6 +415,7 @@ declare module 'vue' {
     readonly getScaleQuestion: UnwrapRef<typeof import('../../utils/vibeQuestions')['getScaleQuestion']>
     readonly h: UnwrapRef<typeof import('vue')['h']>
     readonly hasInjectionContext: UnwrapRef<typeof import('vue')['hasInjectionContext']>
+    readonly ideaFromRow: UnwrapRef<typeof import('../../utils/dateIdeas')['ideaFromRow']>
     readonly inject: UnwrapRef<typeof import('vue')['inject']>
     readonly injectHead: UnwrapRef<typeof import('../../node_modules/nuxt/dist/app/composables/head')['injectHead']>
     readonly isCompatibleProfession: UnwrapRef<typeof import('../../utils/compatibility')['isCompatibleProfession']>
@@ -634,5 +637,6 @@ declare module 'vue' {
     readonly withMemo: UnwrapRef<typeof import('vue')['withMemo']>
     readonly withModifiers: UnwrapRef<typeof import('vue')['withModifiers']>
     readonly withScopeId: UnwrapRef<typeof import('vue')['withScopeId']>
+    readonly zoneOf: UnwrapRef<typeof import('../../utils/dateIdeas')['zoneOf']>
   }
 }
