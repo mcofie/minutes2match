@@ -456,11 +456,11 @@ useSeoMeta({
   ogTitle: 'Minutes 2 Match | Date without swiping',
   ogDescription: 'We get to know you deeply, then introduce you to one compatible match each week.',
   ogUrl: 'https://minutes2match.com/',
-  ogImage: 'https://minutes2match.com/og-image.png',
+  ogImage: 'https://minutes2match.com/og-lovebirds.png',
   twitterCard: 'summary_large_image',
   twitterTitle: 'Minutes 2 Match | Date without swiping',
   twitterDescription: 'We get to know you deeply, then introduce you to one compatible match each week.',
-  twitterImage: 'https://minutes2match.com/og-image.png',
+  twitterImage: 'https://minutes2match.com/og-lovebirds.png',
 })
 useHead({ link: [{ rel: 'canonical', href: 'https://minutes2match.com/' }] })
 

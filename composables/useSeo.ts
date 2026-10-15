@@ -21,7 +21,7 @@ export function useSeo(options: SeoOptions = {}) {
     const baseUrl = config.public.baseUrl || 'https://minutes2match.com'
     const siteName = 'Minutes 2 Match'
     const defaultDescription = 'Find your perfect match through curated speed dating events. Science-backed compatibility matching for meaningful connections.'
-    const defaultImage = `${baseUrl}/og-image.png`
+    const defaultImage = `${baseUrl}/og-lovebirds.png`
 
     const title = options.title
         ? `${options.title} | ${siteName}`

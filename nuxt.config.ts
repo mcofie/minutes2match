@@ -111,15 +111,15 @@ export default defineNuxtConfig({
                 { property: 'og:locale', content: 'en_GB' },
                 { property: 'og:title', content: 'Minutes 2 Match | Date without swiping' },
                 { property: 'og:description', content: 'We get to know you deeply, then introduce you to one compatible match each week.' },
-                { property: 'og:image', content: 'https://minutes2match.com/og-image.png' },
+                { property: 'og:image', content: 'https://minutes2match.com/og-lovebirds.png' },
                 { property: 'og:image:width', content: '1200' },
                 { property: 'og:image:height', content: '630' },
-                { property: 'og:image:alt', content: 'Minutes 2 Match: date without swiping' },
+                { property: 'og:image:alt', content: 'Minutes 2 Match: date without swiping. Two painted lovebirds on a branch.' },
                 // Twitter
                 { name: 'twitter:card', content: 'summary_large_image' },
                 { name: 'twitter:title', content: 'Minutes 2 Match | Date without swiping' },
                 { name: 'twitter:description', content: 'We get to know you deeply, then introduce you to one compatible match each week.' },
-                { name: 'twitter:image', content: 'https://minutes2match.com/og-image.png' },
+                { name: 'twitter:image', content: 'https://minutes2match.com/og-lovebirds.png' },
             ],
             link: [
                 { rel: 'icon', href: '/favicon.ico', sizes: '48x48' },
