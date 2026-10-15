@@ -113,7 +113,7 @@ const penalties = [
 ]
 
 const pairingRules = [
-  'The weekly run scores every allowed pair, then picks pairs so the most people get a good match, not just the best pair first.',
+  'The weekly run (Sundays at 12:00 UTC: noon in Accra, 3pm in Nairobi) scores every allowed pair, then picks pairs so the most people get a good match, not just the best pair first. Opting in after the run counts for the next week.',
   `Members who opted in last week but weren't matched get priority (+${MISSED_LAST_WEEK_BOOST} per person in a pair).`,
   "Someone who finishes or retakes the Vibe Check mid-week is matched on the spot with their best available fit.",
   'Every new match gets a short "why you two" note and both people are messaged. About 4 days later each is asked how it went.'

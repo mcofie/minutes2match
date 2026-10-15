@@ -3,7 +3,7 @@
     <header class="ad-head">
       <div>
         <h1 class="ad-title">Matches</h1>
-        <p class="ad-sub">Members opt in each week and are matched automatically. Matching is free and introductions stay open.</p>
+        <p class="ad-sub">Members opt in each week and are matched automatically every Sunday at noon (Accra time, 3pm Nairobi). Matching is free and introductions stay open.</p>
       </div>
       <div class="ad-actions">
         <div class="ad-tabs" role="tablist" aria-label="City">

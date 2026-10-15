@@ -51,26 +51,23 @@
 
     <!-- This week's matching -->
     <section class="overflow-hidden rounded-[1.75rem] p-5 shadow-[0_10px_30px_rgba(52,38,25,0.07)] ring-1 ring-black/5" :class="optedIn ? 'bg-gradient-to-br from-[#eef7f1] to-white' : 'bg-gradient-to-br from-[#e9eff5] to-white'">
-      <p class="text-sm font-medium text-[#9b9690]">This week's matching</p>
-      <h3 class="font-display mt-1 text-2xl text-[#393737]">{{ optedIn ? "You're in for this week." : 'Want a match this week?' }}</h3>
-      <p class="mt-1.5 text-base leading-relaxed text-[#6c6862]">
-        <template v-if="optedIn">We'll include you until {{ weekEndLabel }}.</template>
-        <template v-else>Opt in before {{ weekEndLabel }}. It's free.</template>
-      </p>
+      <p class="text-sm font-medium text-[#9b9690]">Weekly matching</p>
+      <h3 class="font-display mt-1 text-2xl text-[#393737]">{{ OPT_IN_COPY[matchStatus.state].title }}</h3>
+      <p class="mt-1.5 text-base leading-relaxed text-[#6c6862]">{{ OPT_IN_COPY[matchStatus.state].body(runLabel) }}</p>
       <button
-        v-if="!optedIn"
+        v-if="!optedIn || matchStatus.state === 'done'"
         type="button"
         :disabled="savingOptIn"
         class="btn-solid grain grain-strong mt-5 w-full px-6 py-3.5 text-base disabled:opacity-60 sm:w-auto sm:px-8"
         @click="setWeeklyOptIn(true)"
-      >{{ savingOptIn ? 'Opting in…' : 'Opt in for this week' }}</button>
+      >{{ savingOptIn ? 'Opting in…' : matchStatus.state === 'closed' || matchStatus.state === 'done' ? 'Opt in for next week' : 'Opt in for this week' }}</button>
       <button
         v-else
         type="button"
         :disabled="savingOptIn"
         class="mt-4 rounded-full px-1 py-1 text-sm font-medium text-[#6c6862] underline-offset-4 hover:text-[#393737] hover:underline disabled:opacity-60"
         @click="setWeeklyOptIn(false)"
-      >{{ savingOptIn ? 'Updating…' : 'Skip this week' }}</button>
+      >{{ savingOptIn ? 'Updating…' : matchStatus.state === 'next' ? 'Skip next week' : 'Skip this week' }}</button>
     </section>
 
     <!-- Your personality type, from the Vibe Check -->
@@ -370,7 +367,7 @@ import { PhotoError } from '~/composables/usePhotoUpload'
 import { renderPersonaCard } from '~/composables/useShareCard'
 import { personaArtSrc } from '~/utils/personaArt'
 import type { M2MDatabase } from '~/types/database.types'
-import { currentMatchWeekEnd, isOptedInThisWeek } from '~/utils/matchWeek'
+import { isOptedInThisWeek, optInWeekEnd, weeklyMatchStatus, formatMatchRun, type WeeklyMatchState } from '~/utils/matchWeek'
 import { normalizeCity } from '~/utils/compatibility'
 import { SCALE_QUESTIONS, VALUES_KEY } from '~/utils/vibeQuestions'
 import { personas } from '~/composables/usePersona'
@@ -494,9 +491,16 @@ const firstName = computed(() => (profile.value?.display_name || 'there').split(
 // ===== 1. Weekly opt-in =====
 const savingOptIn = ref(false)
 const optedIn = computed(() => profile.value?.is_active !== false && isOptedInThisWeek(profile.value?.weekly_opt_in_until))
-const weekEndLabel = computed(() =>
-  currentMatchWeekEnd().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' }) + ' night'
-)
+// Matching runs once a week, on Sunday (see utils/matchWeek): where this member stands, and when
+const matchStatus = computed(() => weeklyMatchStatus(profile.value?.weekly_opt_in_until, profile.value?.is_active !== false))
+const runLabel = computed(() => formatMatchRun(matchStatus.value.runAt))
+const OPT_IN_COPY: Record<WeeklyMatchState, { title: string; body: (run: string) => string }> = {
+  open: { title: 'Want a match this week?', body: run => `Matches go out ${run}. Opt in before then. It's free.` },
+  in: { title: "You're in for this week.", body: run => `Your match arrives ${run}. We'll text you when it's ready.` },
+  done: { title: "This week's matches are out.", body: run => `Opt in again for the next round, ${run}.` },
+  closed: { title: "This week's matches are out.", body: run => `Opt in now for the next round, ${run}. It's free.` },
+  next: { title: "You're in for next week.", body: run => `Your match arrives ${run}. We'll text you when it's ready.` },
+}
 
 const setWeeklyOptIn = async (optIn: boolean) => {
   const userId = currentUserId.value
@@ -507,13 +511,17 @@ const setWeeklyOptIn = async (optIn: boolean) => {
   savingOptIn.value = true
   try {
     const update = optIn
-      ? { weekly_opt_in_until: currentMatchWeekEnd().toISOString(), is_active: true }
+      // Before Sunday's run this counts for this week; after it, for next week
+      ? { weekly_opt_in_until: optInWeekEnd().toISOString(), is_active: true }
       : { weekly_opt_in_until: null }
     const { error } = await supabase.schema('m2m').from('profiles').update(update as any).eq('id', userId)
     if (error) throw error
     await fetchProfileById(userId)
     haptic.hapticSuccess()
-    toast.success(optIn ? "You're in this week 💫" : 'Skipping this week', optIn ? "We'll text you when your match is ready." : 'Opt in again whenever you like.')
+    toast.success(
+      optIn ? "You're in 💫" : 'Skipping',
+      optIn ? `Your match arrives ${runLabel.value}. We'll text you.` : 'Opt in again whenever you like.'
+    )
   } catch (err: any) {
     console.error('[Me] Opt-in update failed:', err)
     haptic.hapticError()

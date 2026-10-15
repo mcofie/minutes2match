@@ -11,11 +11,12 @@
       <span class="inline-flex rounded-full bg-white px-3.5 py-1 text-sm text-[#393737] ring-1 ring-black/[0.08]">Your matches</span>
       <h1 class="font-display mx-auto mt-5 max-w-xl text-[2.75rem] leading-[1.02] tracking-tight text-[#393737] sm:text-[4.5rem]">Your match is on the way.</h1>
       <p class="mx-auto mt-4 max-w-md text-lg leading-snug text-[#6c6862]">
-        <template v-if="optedInThisWeek">We're finding someone who shares what matters to you. We'll text you as soon as they're ready.</template>
-        <template v-else>You're not in this week's matching yet. Opt in and we'll look for someone who shares what matters to you.</template>
+        <template v-if="matchStatus.state === 'in' || matchStatus.state === 'next'">Matches go out {{ runLabel }}. We're finding someone who shares what matters to you, and we'll text you as soon as they're ready.</template>
+        <template v-else-if="matchStatus.state === 'done'">We couldn't find you a match this week. Opt in again for the next round, {{ runLabel }}.</template>
+        <template v-else>You're not in matching yet. Opt in before {{ runLabel }} and we'll look for someone who shares what matters to you.</template>
       </p>
       <div class="mt-7 flex flex-col items-center gap-4">
-        <NuxtLink v-if="!optedInThisWeek" to="/me" class="inline-flex items-center justify-center gap-2 rounded-full bg-[#ed1c24] px-6 py-3 text-base font-semibold text-white shadow-[0_8px_24px_rgba(237,28,36,0.18)] transition-colors hover:bg-[#d71920]">Opt in for this week</NuxtLink>
+        <NuxtLink v-if="!optedInThisWeek || matchStatus.state === 'done'" to="/me" class="inline-flex items-center justify-center gap-2 rounded-full bg-[#ed1c24] px-6 py-3 text-base font-semibold text-white shadow-[0_8px_24px_rgba(237,28,36,0.18)] transition-colors hover:bg-[#d71920]">Opt in for this week</NuxtLink>
         <NuxtLink to="/#how-it-works" class="text-base font-semibold text-[#393737] underline-offset-4 hover:underline">How matching works</NuxtLink>
       </div>
     </section>
@@ -74,10 +75,11 @@
       <!-- No match yet this week -->
       <div v-if="!featuredIsThisWeek" class="mx-auto mt-5 flex max-w-md items-center justify-between gap-4 rounded-2xl bg-white px-5 py-4 ring-1 ring-black/[0.05]">
         <p class="text-sm leading-snug text-[#393737]">
-          <template v-if="optedInThisWeek">This week's match is on the way. We'll text you when it's ready.</template>
-          <template v-else>You're not in this week's matching yet.</template>
+          <template v-if="matchStatus.state === 'in' || matchStatus.state === 'next'">Your next match arrives {{ runLabel }}. We'll text you when it's ready.</template>
+          <template v-else-if="matchStatus.state === 'done'">No match for you this week. Opt in again for {{ runLabel }}.</template>
+          <template v-else>You're not in matching yet. Opt in before {{ runLabel }}.</template>
         </p>
-        <NuxtLink v-if="!optedInThisWeek" to="/me" class="shrink-0 rounded-full bg-[#ed1c24] px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-[#d71920]">Opt in</NuxtLink>
+        <NuxtLink v-if="!optedInThisWeek || matchStatus.state === 'done'" to="/me" class="shrink-0 rounded-full bg-[#ed1c24] px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-[#d71920]">Opt in</NuxtLink>
       </div>
 
       <!-- Past matches: one quiet row, like an FAQ item -->
@@ -109,7 +111,7 @@
 </template>
 
 <script setup lang="ts">
-import { currentMatchWeekEnd, isOptedInThisWeek } from '~/utils/matchWeek'
+import { isOptedInThisWeek, weeklyMatchStatus, formatMatchRun, currentMatchWeekEnd } from '~/utils/matchWeek'
 import { useToast } from '~/composables/useToast'
 import { useMatchStore } from '~/stores/useMatchStore'
 import { storeToRefs } from 'pinia'
@@ -124,6 +126,9 @@ const supabase = useSupabaseClient<M2MDatabase>() as any
 const toast = useToast()
 const { profile, fetchPendingMatchCount } = useDashboard()
 const optedInThisWeek = computed(() => profile.value?.is_active !== false && isOptedInThisWeek(profile.value?.weekly_opt_in_until))
+// Matching runs once a week, on Sunday (see utils/matchWeek)
+const matchStatus = computed(() => weeklyMatchStatus(profile.value?.weekly_opt_in_until, profile.value?.is_active !== false))
+const runLabel = computed(() => formatMatchRun(matchStatus.value.runAt))
 const { isTMA, hapticFeedback } = useTelegram()
 
 const matchStore = useMatchStore()
