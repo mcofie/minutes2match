@@ -478,7 +478,7 @@ const scrollToSection = (id: string) => {
 
 const footerCols: { title: string; links: { label: string; to?: string; href?: string; section?: string }[] }[] = [
   { title: 'Product', links: [{ label: 'How it works', section: 'how-it-works' }, { label: 'Events', to: '/events' }, { label: 'Vibe Check', to: '/vibe-check' }] },
-  { title: 'Company', links: [{ label: 'Contact', href: 'mailto:hello@minutes2match.com' }, { label: 'Instagram', href: 'https://www.instagram.com/minutes2match' }, { label: 'Terms', to: '/terms' }, { label: 'Privacy', to: '/privacy' }] },
+  { title: 'Company', links: [{ label: 'About', to: '/about' }, { label: 'Contact', href: 'mailto:hello@minutes2match.com' }, { label: 'Instagram', href: 'https://www.instagram.com/minutes2match' }, { label: 'Terms', to: '/terms' }, { label: 'Privacy', to: '/privacy' }] },
 ]
 const footerCities = [
   { city: 'Accra', country: 'Ghana', flag: 'gh' as const },
