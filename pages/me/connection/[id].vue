@@ -1,6 +1,5 @@
 <template>
   <main class="m2m-app letter-page relative min-h-screen min-h-dvh overflow-x-clip bg-[#f7f7f7] text-[#393737] print:min-h-0 print:bg-none print:bg-white">
-    <div aria-hidden="true" class="pointer-events-none absolute left-1/2 top-16 h-80 w-80 -translate-x-1/2 rounded-full bg-[#ed1c24]/[0.04] blur-3xl print:hidden"></div>
 
     <!-- Header (same as the app layout): centred logo, tabs on the right on desktop -->
     <nav class="sticky top-0 z-[60] border-b border-black/[0.04] bg-white/85 backdrop-blur-md print:hidden">
@@ -49,7 +48,7 @@
       <div class="mx-auto max-w-3xl space-y-4 sm:space-y-6 print:max-w-none print:space-y-0">
 
           <!-- ===== The match brief, as a printable love letter ===== -->
-          <div v-if="matchProfile" class="sticky top-14 z-40 -mx-4 flex items-center justify-between gap-3 bg-[#f7f7f7]/85 px-4 py-2 backdrop-blur-md sm:py-2.5 sm:top-16 sm:mx-0 sm:rounded-full sm:px-2 print:hidden">
+          <div v-if="matchProfile" class="sticky top-14 z-40 -mx-4 flex items-center justify-between gap-3 bg-[#f7f7f7]/85 px-4 py-2 backdrop-blur-md sm:top-16 sm:mx-0 sm:bg-transparent sm:px-0 sm:py-2.5 sm:backdrop-blur-none print:hidden">
             <div class="flex min-w-0 items-center gap-2">
             <NuxtLink to="/matches" aria-label="Back to matches" class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white text-[#393737] ring-1 ring-black/10 sm:hidden">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4" aria-hidden="true"><path d="m15 18-6-6 6-6" /></svg>
@@ -70,7 +69,7 @@
           <article v-if="matchProfile" class="love-letter letter-flow relative text-[#393737]">
             <!-- Sky header -->
             <header class="relative isolate mx-[calc(50%-50vw)] overflow-hidden bg-gradient-to-b from-[#f7f7f7] via-[#e9eff5] to-[#dde7f1] px-5 pb-16 pt-6 text-center sm:px-6 sm:pb-32 sm:pt-16 print:mx-0">
-              <div aria-hidden="true" class="pointer-events-none absolute inset-x-0 top-0 z-0 print:hidden">
+              <div aria-hidden="true" class="pointer-events-none absolute inset-x-0 top-0 z-0 h-[32rem] [mask-image:linear-gradient(to_bottom,transparent,#000_9rem)] print:hidden">
                 <svg viewBox="0 0 440 230" class="connection-cloud-drift absolute -left-24 -top-24 w-[270px] opacity-75 sm:-left-16 sm:-top-32 sm:w-[390px]">
                   <defs>
                     <filter id="brief-cloud-left-soft" x="-15%" y="-25%" width="130%" height="160%"><feGaussianBlur stdDeviation="8"/></filter>
