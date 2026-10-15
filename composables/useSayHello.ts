@@ -1,16 +1,21 @@
 import { useToast } from '~/composables/useToast'
+import { socialLink } from '~/utils/socialHandles'
 
 export type HelloApp = 'whatsapp' | 'instagram' | 'snapchat'
 export const HELLO_APP_NAME: Record<HelloApp, string> = { whatsapp: 'WhatsApp', instagram: 'Instagram', snapchat: 'Snapchat' }
 
-/** How to reach a match: their preferred app if they've filled it in, else WhatsApp on their phone */
-export const contactFor = (p: any): { app: HelloApp; url: string } | null => {
+/**
+ * How to reach a match: their preferred app if they've filled it in, else WhatsApp on their phone.
+ * exact is false when what they typed isn't a real username (often their name), so we search for it.
+ */
+export const contactFor = (p: any): { app: HelloApp; url: string; handle?: string; exact: boolean } | null => {
   if (!p) return null
   const method = p.preferred_contact_method || 'phone'
-  const handle = (h?: string | null) => String(h || '').trim().replace(/^@/, '')
-  if (method === 'instagram' && handle(p.instagram_handle)) return { app: 'instagram', url: `https://instagram.com/${handle(p.instagram_handle)}` }
-  if (method === 'snapchat' && handle(p.snapchat_handle)) return { app: 'snapchat', url: `https://snapchat.com/add/${handle(p.snapchat_handle)}` }
-  if (p.phone) return { app: 'whatsapp', url: `https://wa.me/${String(p.phone).replace(/\D/g, '')}` }
+  if (method === 'instagram' || method === 'snapchat') {
+    const link = socialLink(method, method === 'instagram' ? p.instagram_handle : p.snapchat_handle)
+    if (link) return { app: method, ...link }
+  }
+  if (p.phone) return { app: 'whatsapp', url: `https://wa.me/${String(p.phone).replace(/\D/g, '')}`, exact: true }
   return null
 }
 
@@ -18,7 +23,9 @@ export const contactFor = (p: any): { app: HelloApp; url: string } | null => {
 export const helloHintFor = (p: any, firstName: string) => {
   const c = contactFor(p)
   if (!c) return `${firstName} hasn't added a way to reach them yet.`
-  return c.app === 'whatsapp' ? 'Opens WhatsApp with a message ready to send.' : `Copies a first message and opens ${HELLO_APP_NAME[c.app]}.`
+  if (c.app === 'whatsapp') return 'Opens WhatsApp with a message ready to send.'
+  if (!c.exact) return `${firstName} added “${c.handle}” rather than a username, so search ${HELLO_APP_NAME[c.app]} for them. We'll copy a first message for you.`
+  return `Copies a first message and opens ${HELLO_APP_NAME[c.app]}.`
 }
 
 const helloKey = (matchId: string) => `m2m_said_hello_${matchId}`
@@ -44,7 +51,9 @@ export const useSayHello = () => {
     } else {
       try {
         await navigator.clipboard.writeText(message)
-        toast.success('Message copied', `Paste it into ${HELLO_APP_NAME[c.app]} to say hello.`)
+        toast.success('Message copied', c.exact
+          ? `Paste it into ${HELLO_APP_NAME[c.app]} to say hello.`
+          : `Search ${HELLO_APP_NAME[c.app]} for “${c.handle}”, then paste it to say hello.`)
       } catch { /* clipboard blocked: still open the app */ }
     }
     window.open(url, '_blank', 'noopener')

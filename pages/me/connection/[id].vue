@@ -546,7 +546,7 @@
                   </span>
                   <span class="min-w-0 flex-1">
                     <span class="block text-base font-medium text-[#393737]">{{ matchProfile.preferred_contact_method === 'instagram' ? 'Instagram' : 'Snapchat' }}</span>
-                    <span class="block truncate text-sm text-[#9b9690]">@{{ contactHandle }}</span>
+                    <span class="block truncate text-sm text-[#9b9690]">{{ socialContact?.exact ? `@${contactHandle}` : `Search for “${contactHandle}”` }}</span>
                   </span>
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4 shrink-0 text-[#b5b0aa]" aria-hidden="true"><path d="M7 17 17 7M8 7h9v9" /></svg>
                 </a>
@@ -701,6 +701,7 @@ import { calculateCompatibility, getCompatibilityTier, COMPATIBILITY_MAP, normal
 import { VIBE_CHAPTERS, VALUES_KEY, getScaleQuestion, chapterForKey, labelForKey, parseScaleAnswer, parseValuesAnswer, scaleRelation } from '~/utils/vibeQuestions'
 import { useToast } from '~/composables/useToast'
 import { useSayHello, helloHintFor, hasSaidHello } from '~/composables/useSayHello'
+import { socialLink } from '~/utils/socialHandles'
 import type { M2MDatabase } from '~/types/database.types'
 import type { MatchBrief } from '~/composables/useMatchBrief'
 
@@ -1115,14 +1116,15 @@ const theirFirstName = computed(() => (matchProfile.value?.display_name ? theirN
 const showProfile = ref(false)
 // "accra, east legon" -> "Accra, East Legon"
 const formatPlace = (raw?: string | null) => String(raw || '').replace(/_/g, ' ').trim().toLowerCase().replace(/(^|[\s,(-])\p{L}/gu, c => c.toUpperCase())
-const contactHandle = computed(() => {
+// Their Instagram or Snapchat link; when they typed a name instead of a username, a search for it
+const socialContact = computed(() => {
   const p = matchProfile.value
-  const raw = p?.preferred_contact_method === 'instagram' ? p?.instagram_handle : p?.preferred_contact_method === 'snapchat' ? p?.snapchat_handle : ''
-  return String(raw || '').trim().replace(/^@+/, '').replace(/\s+/g, '')
+  const app = p?.preferred_contact_method
+  if (app !== 'instagram' && app !== 'snapchat') return null
+  return socialLink(app, app === 'instagram' ? p.instagram_handle : p.snapchat_handle)
 })
-const contactHref = computed(() => matchProfile.value?.preferred_contact_method === 'instagram'
-  ? `https://instagram.com/${encodeURIComponent(contactHandle.value)}`
-  : `https://snapchat.com/add/${encodeURIComponent(contactHandle.value)}`)
+const contactHandle = computed(() => socialContact.value?.handle || '')
+const contactHref = computed(() => socialContact.value?.url || '')
 // Age and city sit under the name, so the tiles carry the rest
 const profileFacts = computed(() => {
   const p = matchProfile.value

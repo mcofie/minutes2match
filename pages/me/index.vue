@@ -210,10 +210,12 @@
                 <div v-if="editForm.preferred_contact_method === 'instagram' || editForm.preferred_contact_method === 'snapchat'" class="relative mt-3">
                   <label :for="editForm.preferred_contact_method === 'instagram' ? 'me-ig' : 'me-sc'" class="sr-only">{{ editForm.preferred_contact_method === 'instagram' ? 'Instagram handle' : 'Snapchat username' }}</label>
                   <span class="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-base text-[#9b9690]" aria-hidden="true">@</span>
-                  <input v-if="editForm.preferred_contact_method === 'instagram'" id="me-ig" v-model="editForm.instagram_handle" type="text" placeholder="your Instagram handle" autocomplete="off" autocapitalize="off" spellcheck="false" :class="[FIELD, 'pl-9']" @blur="editForm.instagram_handle = editForm.instagram_handle.trim().replace(/^@+/, '')" />
-                  <input v-else id="me-sc" v-model="editForm.snapchat_handle" type="text" placeholder="your Snapchat username" autocomplete="off" autocapitalize="off" spellcheck="false" :class="[FIELD, 'pl-9']" @blur="editForm.snapchat_handle = editForm.snapchat_handle.trim().replace(/^@+/, '')" />
+                  <input v-if="editForm.preferred_contact_method === 'instagram'" id="me-ig" v-model="editForm.instagram_handle" type="text" placeholder="your Instagram handle" autocomplete="off" autocapitalize="off" spellcheck="false" :class="[FIELD, 'pl-9']" @blur="editForm.instagram_handle = cleanHandle(editForm.instagram_handle)" />
+                  <input v-else id="me-sc" v-model="editForm.snapchat_handle" type="text" placeholder="your Snapchat username" autocomplete="off" autocapitalize="off" spellcheck="false" :class="[FIELD, 'pl-9']" @blur="editForm.snapchat_handle = cleanHandle(editForm.snapchat_handle)" />
                 </div>
-                <p v-else class="mt-2 text-sm text-[#9b9690]">Your match sees your WhatsApp number once your connection is unlocked.</p>
+                <p v-if="handleProblem" class="mt-2 text-sm text-[#b4232a]" role="alert">{{ handleProblem }}</p>
+                <p v-else-if="editForm.preferred_contact_method === 'instagram' || editForm.preferred_contact_method === 'snapchat'" class="mt-2 text-sm text-[#9b9690]">Your username, not your name, so your match can find you. For example: ama.k</p>
+                <p v-else class="mt-2 text-sm text-[#9b9690]">Your match can message you on WhatsApp.</p>
               </fieldset>
             </div>
 
@@ -367,6 +369,7 @@ import { PhotoError } from '~/composables/usePhotoUpload'
 import { renderPersonaCard } from '~/composables/useShareCard'
 import { personaArtSrc } from '~/utils/personaArt'
 import type { M2MDatabase } from '~/types/database.types'
+import { cleanHandle, isValidHandle } from '~/utils/socialHandles'
 import { isOptedInThisWeek, optInWeekEnd, weeklyMatchStatus, formatMatchRun, type WeeklyMatchState } from '~/utils/matchWeek'
 import { normalizeCity } from '~/utils/compatibility'
 import { SCALE_QUESTIONS, VALUES_KEY } from '~/utils/vibeQuestions'
@@ -536,6 +539,20 @@ const setWeeklyOptIn = async (optIn: boolean) => {
   }
 }
 
+// Instagram / Snapchat: a real username, so "Say hello" can open their profile (not "Ama Kofi")
+const handleProblem = computed(() => {
+  const app = editForm.preferred_contact_method
+  if (app !== 'instagram' && app !== 'snapchat') return ''
+  const raw = app === 'instagram' ? editForm.instagram_handle : editForm.snapchat_handle
+  const name = app === 'instagram' ? 'Instagram' : 'Snapchat'
+  if (!cleanHandle(raw)) return ''
+  if (/\s/.test(cleanHandle(raw))) return `That looks like a name. Add your ${name} username instead (no spaces), e.g. ama.k`
+  if (!isValidHandle(app, raw)) return app === 'instagram'
+    ? 'Instagram usernames use only letters, numbers, full stops and underscores.'
+    : 'Snapchat usernames are 3–15 characters and start with a letter.'
+  return ''
+})
+
 // ===== 2. Profile (bio, social & lifestyle, hobbies, who you seek) =====
 const editForm = reactive({
   about_me: '',
@@ -632,6 +649,10 @@ const saveProfile = async (): Promise<boolean> => {
     toast.error('Please sign in again', 'Your session may have expired.')
     return false
   }
+  if (handleProblem.value) {
+    toast.error('Check your username', handleProblem.value)
+    return false
+  }
   if (editForm.min_age > editForm.max_age) {
     toast.error('Check the age range', 'The youngest age must be below the oldest.')
     return false
@@ -642,8 +663,8 @@ const saveProfile = async (): Promise<boolean> => {
     const { error } = await supabase.schema('m2m').from('profiles').update({
       about_me: editForm.about_me.trim() || null,
       preferred_contact_method: editForm.preferred_contact_method || 'phone',
-      instagram_handle: editForm.instagram_handle.trim() || null,
-      snapchat_handle: editForm.snapchat_handle.trim() || null,
+      instagram_handle: cleanHandle(editForm.instagram_handle) || null,
+      snapchat_handle: cleanHandle(editForm.snapchat_handle) || null,
       occupation: editForm.occupation.trim() || null,
       religion: editForm.religion || null,
       height_cm: editForm.height_cm,
