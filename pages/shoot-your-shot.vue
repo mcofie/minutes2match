@@ -13,7 +13,7 @@
           <NuxtLink to="/#process" class="hover:text-rose-500 dark:hover:text-rose-400 transition-colors">Process</NuxtLink>
           <NuxtLink to="/vouch" class="hover:text-rose-500 dark:hover:text-rose-400 transition-colors">Vouch</NuxtLink>
           <NuxtLink to="/shoot-your-shot" class="text-rose-500 dark:text-rose-400">Shoot Your Shot</NuxtLink>
-          <NuxtLink to="/pricing" class="hover:text-rose-500 dark:text-stone-300 dark:hover:text-rose-400 transition-colors">Pricing</NuxtLink>
+          <NuxtLink to="/about" class="hover:text-rose-500 dark:text-stone-300 dark:hover:text-rose-400 transition-colors">About</NuxtLink>
         </div>
 
         <div class="flex items-center gap-4 md:gap-8">
@@ -58,8 +58,8 @@
             <NuxtLink to="/shoot-your-shot" @click="mobileMenuOpen = false" class="block w-full text-left py-3 text-sm font-bold text-rose-500 transition-colors border-b border-stone-100 dark:border-stone-800">
               Shoot Your Shot
             </NuxtLink>
-            <NuxtLink to="/pricing" @click="mobileMenuOpen = false" class="block w-full text-left py-3 text-sm font-bold hover:text-rose-500 dark:hover:text-rose-400 dark:text-stone-200 transition-colors border-b border-stone-100 dark:border-stone-800">
-               Pricing
+            <NuxtLink to="/about" @click="mobileMenuOpen = false" class="block w-full text-left py-3 text-sm font-bold hover:text-rose-500 dark:hover:text-rose-400 dark:text-stone-200 transition-colors border-b border-stone-100 dark:border-stone-800">
+               About
             </NuxtLink>
             <NuxtLink to="/login" @click="mobileMenuOpen = false" class="block w-full py-3 text-sm font-bold hover:text-rose-500 dark:hover:text-rose-400 dark:text-stone-200 transition-colors border-b border-stone-100 dark:border-stone-800">
               MEMBER LOGIN

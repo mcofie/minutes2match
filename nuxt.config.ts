@@ -36,6 +36,8 @@ export default defineNuxtConfig({
         '/me/**': { ssr: false },
         '/matches': { ssr: false },
         '/events': { ssr: false },
+        // Weekly matching is free; the old pricing page now points to how it works
+        '/pricing': { redirect: { to: '/about#how-it-works', status: 301 } },
         '/vouch/**': { ssr: false },
         '/shot/**': { ssr: false },
         '/shoot-your-shot': { ssr: false },

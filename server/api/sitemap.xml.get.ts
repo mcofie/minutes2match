@@ -16,6 +16,9 @@ export default defineEventHandler(async (event) => {
         { url: '/', priority: '1.0', changefreq: 'weekly' },
         { url: '/vibe-check', priority: '0.9', changefreq: 'monthly' },
         { url: '/events', priority: '0.8', changefreq: 'daily' },
+        { url: '/about', priority: '0.7', changefreq: 'monthly' },
+        { url: '/terms', priority: '0.3', changefreq: 'yearly' },
+        { url: '/privacy', priority: '0.3', changefreq: 'yearly' },
     ]
 
     // Fetch dynamic pages (events)
