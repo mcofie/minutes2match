@@ -58,21 +58,22 @@
           </div>
           <div class="mt-7 space-y-5 text-base leading-[1.7] sm:mt-10 sm:text-xl sm:leading-[1.6]">
             <p class="rv-item" style="--i: 1">
-              We were tired of looking for connection in the wrong places. The dating apps didn't help: they showed
-              us photos and a line or two, and none of the things that actually make two people work.
+              I was tired of looking for connection in the wrong places. The dating apps didn't help: they showed
+              me photos and a line or two, and none of the things that actually make two people work.
             </p>
             <p class="rv-item" style="--i: 2">
-              So in 2024, we started Minutes 2 Match as a speed dating evening at
+              So in 2024, I started Minutes 2 Match as a speed dating evening at
               <a href="https://www.instagram.com/north_ridgecafe" target="_blank" rel="noopener" class="underline decoration-[#393737]/30 underline-offset-4 hover:text-[#ed1c24]">North Ridge Café</a>
               in Accra: real people, face to face, a few minutes at a time.
             </p>
-            <p class="rv-item" style="--i: 3">That room taught us something simple:</p>
+            <p class="rv-item" style="--i: 3">That room taught me something simple:</p>
             <blockquote class="rv-item font-display border-l-2 border-[#ed1c24] py-1 pl-5 text-[1.6rem] leading-[1.2] tracking-tight sm:pl-7 sm:text-[2.25rem]" style="--i: 4">
               Five minutes of real talk tells you more than a hundred photos.
             </blockquote>
             <p class="rv-item" style="--i: 5">
-              You finally meet the person behind the screen. That's why every introduction we make comes with the
-              same nudge: go and meet. One a week, picked for what matters to you.
+              You finally meet the person behind the screen. That's why every introduction
+              comes with the same nudge: go and meet. One a week, picked for what matters to you, and always someone in your own
+              city, <strong class="font-semibold">Accra</strong> or <strong class="font-semibold">Nairobi</strong>, so meeting is easy.
             </p>
             <div class="rv-item flex items-center gap-4 pt-2" style="--i: 6">
               <img src="/founder-maxwell.webp" alt="Maxwell Cofie" width="640" height="800" class="h-16 w-16 shrink-0 rounded-full object-cover object-[50%_30%] shadow-[0_8px_20px_rgba(57,55,55,0.14)] ring-4 ring-white sm:h-20 sm:w-20" loading="lazy" decoding="async" />
