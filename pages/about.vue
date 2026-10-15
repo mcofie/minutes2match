@@ -19,15 +19,20 @@
         </svg>
       </div>
 
-      <div class="relative z-10">
-        <NuxtLink to="/" aria-label="Minutes 2 Match home" class="relative mx-auto block h-7 w-[124px] overflow-hidden sm:h-8 sm:w-[140px]">
+      <nav class="relative z-10 mx-auto flex h-10 max-w-6xl items-center justify-between text-left" aria-label="Main">
+        <NuxtLink to="/events" class="text-sm font-medium text-[#6c6862] hover:text-[#393737]">Events</NuxtLink>
+        <NuxtLink to="/" aria-label="Minutes 2 Match home" class="absolute left-1/2 top-1/2 block h-7 w-[124px] -translate-x-1/2 -translate-y-1/2 overflow-hidden sm:h-8 sm:w-[140px]">
           <NuxtImg format="webp" src="/logo-full.png" alt="Minutes 2 Match" class="absolute left-1/2 top-1/2 h-[90px] w-auto max-w-none -translate-x-1/2 -translate-y-1/2 select-none sm:h-[102px]" />
         </NuxtLink>
+        <NuxtLink v-if="signedIn" to="/matches" class="rounded-full bg-white/80 px-3.5 py-1.5 text-sm font-semibold text-[#393737] shadow-sm">Matches</NuxtLink>
+        <NuxtLink v-else to="/login" class="rounded-full bg-white/80 px-3.5 py-1.5 text-sm font-semibold text-[#393737] shadow-sm">Log in</NuxtLink>
+      </nav>
 
+      <div class="relative z-10">
         <span class="mt-14 inline-flex rounded-full bg-white/80 px-4 py-1.5 text-sm font-medium text-[#393737] shadow-[0_4px_14px_rgba(57,77,100,0.08)] backdrop-blur sm:mt-20">Our story</span>
-        <h1 class="font-display mx-auto mt-6 max-w-3xl text-balance text-[2.6rem] leading-[1.02] tracking-tight sm:text-7xl">Dating, the way it should feel.</h1>
+        <h1 class="font-display mx-auto mt-6 max-w-3xl text-balance text-[2.6rem] leading-[1.02] tracking-tight sm:text-7xl">Swiping wasn't it.</h1>
         <p class="mx-auto mt-5 max-w-xl text-pretty text-lg leading-snug text-[#6c6862] sm:mt-6 sm:text-xl">
-          We started Minutes 2 Match because finding your person shouldn't feel like a second job.
+          We started Minutes 2 Match for real-life connection, without the stress and fatigue that come with swiping.
         </p>
       </div>
 
@@ -47,7 +52,7 @@
         <!-- ===== I. Why we started ===== -->
         <section v-reveal class="pt-6 sm:pt-12">
           <div class="rv-item text-center">
-            <LoveBirds scene="why" class="section-art mx-auto mb-2 w-56 sm:mb-6 sm:w-96" />
+            <img src="/founder-maxwell.webp" alt="Maxwell Cofie, founder of Minutes 2 Match" width="640" height="800" class="mx-auto mb-6 block w-44 rounded-[1.75rem] shadow-[0_18px_44px_rgba(57,55,55,0.16)] sm:mb-9 sm:w-60" loading="lazy" decoding="async" />
             <p class="text-base sm:text-2xl">Where it began</p>
             <h2 class="font-display mt-1.5 text-[2rem] leading-[1.05] tracking-tight sm:text-[4rem]">Why we started</h2>
           </div>
@@ -56,34 +61,19 @@
               I was tired of looking for connection in the wrong places. The dating apps didn't help: they showed
               me photos and a line or two, and none of the things that actually make two people work.
             </p>
-            <p class="rv-item font-display text-[1.6rem] leading-snug sm:text-[2.1rem]" style="--i: 2">Swiping wasn't it.</p>
-            <p class="rv-item" style="--i: 3">
-              We wanted real-life connection, without the stress and fatigue that come with swiping. So we built
+            <p class="rv-item" style="--i: 2">
+              Swiping wasn't it. We wanted real-life connection, without the stress and fatigue that come with swiping. So we built
               something slower: one thoughtful introduction a week, based on what matters to you, from faith and
               family to children. Starting in <strong class="font-semibold">Accra</strong> and <strong class="font-semibold">Nairobi</strong>.
             </p>
-            <p class="rv-item text-[#817a72]" style="--i: 4">— From our founder</p>
+            <p class="rv-item pt-1" style="--i: 3">
+              <span class="font-display block text-[1.5rem] leading-tight sm:text-[1.75rem]">Maxwell Cofie</span>
+              <span class="text-sm text-[#817a72] sm:text-base">Founder, Minutes 2 Match</span>
+            </p>
           </div>
         </section>
 
-        <!-- ===== II. What we believe ===== -->
-        <section v-reveal class="mt-20 sm:mt-32">
-          <div class="rv-item text-center">
-            <p class="text-base sm:text-2xl">The short version</p>
-            <h2 class="font-display mt-1.5 text-[2rem] leading-[1.05] tracking-tight sm:text-[4rem]">What we believe</h2>
-          </div>
-          <ol class="mt-8 space-y-4 sm:mt-12">
-            <li v-for="(belief, i) in BELIEFS" :key="belief.title" class="rv-item rounded-[1.75rem] bg-white p-6 shadow-[0_10px_30px_rgba(57,77,100,0.06)] ring-1 ring-black/[0.04] sm:p-8" :style="{ '--i': i + 1 }">
-              <p class="text-sm font-medium text-[#c4121a]">{{ String(i + 1).padStart(2, '0') }}</p>
-              <h3 class="font-display mt-1 text-[1.6rem] leading-tight sm:text-3xl">{{ belief.title }}</h3>
-              <p class="mt-2 text-base leading-relaxed text-[#6c6862] sm:text-lg">
-                {{ belief.text }}<sup v-if="belief.ref"><a :href="`#ref-${belief.ref}`" class="ml-0.5 font-medium text-[#c4121a] no-underline hover:underline">[{{ belief.ref }}]</a></sup>
-              </p>
-            </li>
-          </ol>
-        </section>
-
-        <!-- ===== III. How it works ===== -->
+        <!-- ===== II. How it works ===== -->
         <section id="how-it-works" v-reveal class="mt-20 scroll-mt-6 sm:mt-32">
           <div class="rv-item text-center">
             <LoveBirds scene="lineup" class="section-art mx-auto mb-2 w-56 sm:mb-6 sm:w-96" />
@@ -102,12 +92,15 @@
           <p class="rv-item mt-10 text-center text-base text-[#6c6862] sm:text-lg" style="--i: 5">
             Rather meet people in person first? <NuxtLink to="/events" class="font-semibold text-[#393737] underline decoration-[#393737]/30 underline-offset-4 hover:text-[#ed1c24]">Come to one of our events.</NuxtLink>
           </p>
+          <p class="rv-item mx-auto mt-6 flex max-w-lg items-start justify-center gap-2.5 text-center text-sm leading-relaxed text-[#817a72] sm:text-base" style="--i: 6">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2" /><path d="M8 11V7a4 4 0 0 1 8 0v4" /></svg>
+            <span>Your answers are used to find and introduce your match, and we never sell your data. <NuxtLink to="/privacy" class="underline underline-offset-4 hover:text-[#393737]">Privacy policy</NuxtLink></span>
+          </p>
         </section>
 
-        <!-- ===== IV. What we're hoping to achieve ===== -->
+        <!-- ===== III. What we're hoping to achieve ===== -->
         <section v-reveal class="mt-20 sm:mt-32">
           <div class="rv-item text-center">
-            <LoveBirds scene="share" class="section-art mx-auto mb-2 w-56 sm:mb-6 sm:w-96" />
             <p class="text-base sm:text-2xl">Where we're going</p>
             <h2 class="font-display mt-1.5 text-[2rem] leading-[1.05] tracking-tight sm:text-[4rem]">What we're hoping to achieve</h2>
           </div>
@@ -119,7 +112,7 @@
             <li v-for="(goal, i) in GOALS" :key="goal.title" class="rv-item flex gap-4" :style="{ '--i': i + 2 }">
               <svg viewBox="0 0 24 24" fill="currentColor" class="mt-1.5 h-5 w-5 shrink-0 text-[#ed1c24]" aria-hidden="true"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" /></svg>
               <p class="text-base leading-[1.7] sm:text-xl sm:leading-[1.6]">
-                <strong class="font-semibold">{{ goal.title }}</strong> {{ goal.text }}
+                <strong class="font-semibold">{{ goal.title }}</strong> {{ goal.text }}<template v-for="r in goal.refs || []" :key="r"><sup><a :href="`#ref-${r}`" class="ml-0.5 font-medium text-[#c4121a] no-underline hover:underline">[{{ r }}]</a></sup></template>
               </p>
             </li>
           </ul>
@@ -181,28 +174,13 @@ useSeoMeta({
   title: 'About · Minutes 2 Match',
   description: 'Why we started Minutes 2 Match: one thoughtful introduction a week, built around what matters to you, starting in Accra and Nairobi.',
   ogTitle: 'Why we started Minutes 2 Match',
-  ogDescription: 'Dating, the way it should feel: one thoughtful introduction a week, built around what matters to you.',
+  ogDescription: 'Swiping wasn\'t it: one thoughtful introduction a week, built around what matters to you.',
   ogType: 'website',
   ogUrl: 'https://minutes2match.com/about'
 })
 useHead({ link: [{ rel: 'canonical', href: 'https://minutes2match.com/about' }] })
 
-const BELIEFS = [
-  {
-    title: 'The people in your life shape your life.',
-    text: "The longest study of adult life ever run found that the quality of our close relationships, more than money or fame, is what keeps us happy and healthy as we age.",
-    ref: 1
-  },
-  {
-    title: 'Loneliness is a health issue, not a personal failing.',
-    text: 'The World Health Organization now treats social connection as a global health priority. We think meeting the right person should be easier, not harder.',
-    ref: 2
-  },
-  {
-    title: 'Fewer, better introductions beat endless choice.',
-    text: "One person you're genuinely curious about is worth more than a hundred you'll never message. So we introduce you to one, and tell you why."
-  }
-]
+const signedIn = computed(() => !!useSupabaseUser().value)
 
 const STEPS = [
   {
@@ -223,8 +201,13 @@ const STEPS = [
   }
 ]
 
-const GOALS = [
-  { title: 'Make every introduction count.', text: "We'd rather introduce you to one person you're excited about than fill your phone with strangers." },
+const GOALS: { title: string; text: string; refs?: number[] }[] = [
+  { title: 'Make every introduction count.', text: "One person you're genuinely curious about is worth more than a hundred you'll never message." },
+  {
+    title: 'Help fewer people feel alone.',
+    text: 'Close relationships, more than money or fame, keep us happy and healthy as we age, and the World Health Organization now treats social connection as a global health priority.',
+    refs: [1, 2]
+  },
   { title: 'Build for where we live.', text: 'Accra and Nairobi first, with questions and date ideas that fit life here, and more cities as we grow.' },
   { title: 'Make dating feel human again.', text: 'Kind, intentional and safe, with a real team that reads your feedback and keeps the community respectful.' }
 ]
