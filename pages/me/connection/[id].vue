@@ -106,9 +106,10 @@
                 </div>
               </div>
 
-              <h2 class="font-display mx-auto mt-5 text-[2.5rem] leading-none sm:mt-6 tracking-tight text-[#393737] sm:text-7xl">{{ matchScoreValue }}% compatible.</h2>
+              <h2 class="font-display mx-auto mt-5 text-[2.5rem] leading-none sm:mt-6 tracking-tight text-[#393737] sm:text-7xl"><template v-if="fromScorer">{{ matchScoreValue }}% compatible.</template><template v-else>You picked each other.</template></h2>
               <p class="mx-auto mt-3 max-w-md text-base leading-snug text-[#6c6862] sm:mt-5 sm:text-xl">
-                {{ matchTier.tier }}, based on your Vibe Check, what you're each looking for and your profiles.
+                <template v-if="fromScorer">{{ tierPhrase }}, based on your Vibe Check, what you're each looking for and your profiles.</template>
+                <template v-else>You connected in the Flash Lobby. Here's what your profiles say about you two.</template>
               </p>
               <p class="mt-3 text-sm text-[#9b9690]">
                 <template v-if="matchedOn">Matched on {{ matchedOn }} · </template>For {{ myFirstName }}
@@ -134,9 +135,14 @@
                 <p style="--i: 0" class="rv-item font-display pb-0.5 text-[1.75rem] leading-[1.1] tracking-tight sm:text-[2.6rem]">Dear {{ myFirstName }},</p>
                 <p class="rv-item" style="--i: 1">
                   We've found someone we think you'll really like.
+                  <template v-if="!fromScorer">You and <strong class="font-semibold">{{ theirName === 'Them' ? 'your match' : theirName }}</strong> connected in the Flash Lobby, so we've put together everything your profiles say about you two.</template>
+                  <template v-else>
                   <template v-if="theirName !== 'Them'">Their name is <strong class="font-semibold">{{ theirName }}</strong>, and on paper</template>
                   <template v-else>We can't tell you their name just yet, but on paper</template>
-                  the two of you are <strong class="font-semibold">{{ matchScoreValue }}% compatible</strong>. That's what we call {{ matchTier.tier.toLowerCase() }}.
+                  the two of you are <strong class="font-semibold">{{ matchScoreValue }}% compatible</strong>.
+                  <template v-if="lowScore">You're different in some interesting ways, and that can make for great conversation.</template>
+                  <template v-else>That's what we call {{ matchTier.tier.toLowerCase() }}.</template>
+                  </template>
                 </p>
                 <p v-if="tldr.length > 1" class="rv-item" style="--i: 2">{{ tldr.slice(1).join(' ') }}</p>
                 <p class="rv-item" style="--i: 3">We didn't take this lightly, so here's everything we saw. Judge for yourself.</p>
@@ -439,7 +445,7 @@
                 <p class="rv-item mt-10 border-t border-[#e5e2de] pt-6 text-base leading-relaxed text-[#6c6862]" style="--i: 4">
                   <span class="font-semibold text-[#393737]">P.S.</span>
                   Don't overthink the first message. Something like
-                  <span class="text-[#393737]">“Hi {{ theirName === 'Them' ? 'there' : theirName }}, our matchmakers think we're a {{ matchScoreValue }}% match. Coffee this week?”</span>
+                  <span class="text-[#393737]">“Hi {{ theirName === 'Them' ? 'there' : theirName }}, {{ !fromScorer ? 'it was great connecting in the lobby' : lowScore ? 'our matchmakers think we should meet' : `our matchmakers think we're a ${matchScoreValue}% match` }}. Coffee this week?”</span>
                   works beautifully.
                 </p>
 
@@ -995,14 +1001,24 @@ const compat = computed(() => {
 })
 
 // The stored score is what they saw on the match card, so lead with it
+// Matches from the Flash Lobby weren't made by the scorer: the two people picked each other, and the lobby
+// doesn't apply the matching rules. Their saved score and "reasons" (sometimes the opening chat line) don't
+// describe the pair, so those briefs talk about how they met instead of a percentage.
+const fromScorer = computed(() => !(match.value?.is_from_lobby || match.value?.created_by_label === 'flash_lobby'))
 const matchScoreValue = computed(() => Math.round(Number(match.value?.match_score ?? compat.value?.score ?? 0)))
 const matchTier = computed(() => getCompatibilityTier(matchScoreValue.value))
+// Below 50 we don't put a label on it: different isn't a verdict
+const lowScore = computed(() => matchScoreValue.value < 50)
+const tierPhrase = computed(() => (lowScore.value ? 'Different in ways worth exploring' : matchTier.value.tier))
 const theirName = computed(() => (match.value?.unlocked || match.value?.currentUserPaid) ? (matchProfile.value?.display_name || 'Them') : 'Them')
 
 const matchReasons = computed<string[]>(() => {
   const r = match.value?.match_reasons
-  const list = Array.isArray(r) ? r : (compat.value?.strengths || [])
-  return list.filter((x: any) => typeof x === 'string').map(stripEmoji).filter(Boolean).slice(0, 5)
+  // Lobby matches: their saved reasons aren't the scorer's, so use what the profiles actually share
+  const list = fromScorer.value && Array.isArray(r) ? r : (compat.value?.eligibility?.eligible ? compat.value.strengths : [])
+  // Reasons are short phrases; never show a chat line ("Name: message …") as one
+  const isChatLine = (x: string) => /^[^:]{1,30}:\s/.test(x) || x.length > 80
+  return list.filter((x: any) => typeof x === 'string' && !isChatLine(x)).map(stripEmoji).filter(Boolean).slice(0, 5)
 })
 
 const evidenceBars = computed(() => {
@@ -1170,7 +1186,7 @@ const printLetter = () => window.print()
 const briefSections = computed(() => {
   const present: Record<string, boolean> = {
     why: !!match.value?.ai_analysis || matchReasons.value.length > 0,
-    lineup: evidenceBars.value.length > 0,
+    lineup: fromScorer.value && evidenceBars.value.length > 0, // a lobby match has no score to break down
     share: sharedFacts.value.length > 0,
     words: answerPairs.value.length > 0,
     talk: talkingPoints.value.length > 0,
@@ -1303,7 +1319,11 @@ const tldr = computed(() => {
   const them = matchProfile.value
   if (!me || !them) return []
   const name = theirName.value === 'Them' ? 'your match' : theirName.value
-  const lines: string[] = [`You and ${name} are ${matchScoreValue.value}% compatible, which we call ${matchTier.value.tier.toLowerCase()}.`]
+  const lines: string[] = [!fromScorer.value
+    ? `You and ${name} connected in the Flash Lobby.`
+    : lowScore.value
+      ? `You and ${name} are ${matchScoreValue.value}% compatible, and different in some interesting ways.`
+      : `You and ${name} are ${matchScoreValue.value}% compatible, which we call ${matchTier.value.tier.toLowerCase()}.`]
   const common: string[] = []
   if (me.intent && me.intent === them.intent) common.push(`want ${INTENT_LABELS[me.intent] || me.intent}`)
   if (me.religion && them.religion && me.religion.toLowerCase() === them.religion.toLowerCase()) common.push('share your faith')
