@@ -8,7 +8,7 @@
     "generate": "nuxt generate",
     "preview": "nuxt preview",
     "test:flash-lobby": "node --test tests/flash-lobby-rules.test.mjs",
-    "test:matching": "node --import ./tests/register-ts.mjs --test tests/compatibility.test.mjs tests/pairing.test.mjs tests/dateIdeas.test.mjs"
+    "test:matching": "node --import ./tests/register-ts.mjs --test tests/compatibility.test.mjs tests/pairing.test.mjs tests/dateIdeas.test.mjs tests/smsQueue.test.mjs"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",

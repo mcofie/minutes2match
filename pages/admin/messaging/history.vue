@@ -126,10 +126,11 @@
               <td class="px-6 py-4">
                 <span :class="[
                   'text-xs px-2.5 py-1 rounded-full font-medium',
-                  sms.status === 'sent' ? 'bg-green-50 text-green-700' : 
-                  sms.status === 'failed' ? 'bg-red-50 text-red-700' : 'bg-amber-50 text-amber-700'
+                  sms.status === 'sent' ? 'bg-green-50 text-green-700' :
+                  sms.status === 'failed' ? 'bg-red-50 text-red-700' :
+                  sms.status === 'cancelled' ? 'bg-stone-100 text-stone-600' : 'bg-amber-50 text-amber-700'
                 ]">
-                  {{ sms.status === 'sent' ? '✓ Sent' : sms.status === 'failed' ? '✗ Failed' : '⏳ Pending' }}
+                  {{ ({ sent: 'Sent', failed: 'Failed', cancelled: 'Not sent', sending: 'Sending', pending: 'Queued' } as Record<string, string>)[sms.status] || sms.status }}
                 </span>
               </td>
               <td class="px-6 py-4">

@@ -1,173 +1,59 @@
 /**
- * Admin Bulk SMS API
- * POST /api/admin/bulk-sms
- * 
- * Sends SMS messages to multiple recipients via Zend bulk API.
- * Requires admin authentication.
+ * POST /api/admin/bulk-sms   { recipients: [{ id, phone, name }], message }
+ *
+ * Starts a bulk SMS blast. Nothing is sent here: the blast and one queued row per recipient
+ * (de-duplicated by phone, {name} filled in) are saved, and the id is returned straight away.
+ * Sending happens in batches via POST /api/admin/bulk-sms/:id/process (the admin page calls it
+ * until done) and /api/cron/sms-queue (finishes blasts if the page is closed). See server/utils/smsBroadcast.ts.
  */
+import { buildQueueRows } from '~/server/utils/smsBroadcast'
 
-import { serverSupabaseServiceRole, serverSupabaseUser } from '#supabase/server'
-import type { M2MDatabase } from '~/types/database.types'
-import { sendSMS } from '~/server/utils/sms'
-
-interface SMSRecipient {
-    id: string
-    phone: string
-    name?: string
-}
-
-interface SMSResult {
-    id: string
-    phone: string
-    success: boolean
-    messageId?: string
-    error?: string
-    provider?: string
-}
-
-async function delay(ms: number): Promise<void> {
-    return new Promise(resolve => setTimeout(resolve, ms))
-}
+const MAX_RECIPIENTS = 20000
+const MAX_LENGTH = 640 // four SMS segments
 
 export default defineEventHandler(async (event) => {
-    // 1. Verify user is authenticated
-    const user = await serverSupabaseUser(event)
-    if (!user) {
-        throw createError({ statusCode: 401, message: 'Unauthorized' })
+  const { client, userId } = await requireAdminAccess(event)
+  const db = client.schema('m2m') as any
+
+  const { recipients, message } = (await readBody(event)) || {}
+  if (!Array.isArray(recipients) || recipients.length === 0) {
+    throw createError({ statusCode: 400, message: 'Pick at least one recipient' })
+  }
+  if (recipients.length > MAX_RECIPIENTS) {
+    throw createError({ statusCode: 400, message: `At most ${MAX_RECIPIENTS.toLocaleString()} recipients per blast` })
+  }
+  if (typeof message !== 'string' || !message.trim()) {
+    throw createError({ statusCode: 400, message: 'Write a message first' })
+  }
+  if (message.length > MAX_LENGTH) {
+    throw createError({ statusCode: 400, message: `Keep the message under ${MAX_LENGTH} characters` })
+  }
+
+  const { data: broadcast, error: createErr } = await db
+    .from('sms_broadcasts')
+    .insert({ message: message.trim(), created_by: userId, status: 'sending' })
+    .select('id')
+    .single()
+  if (createErr) {
+    // 42P01: table missing (migration 080 not run)
+    throw createError({ statusCode: 500, message: createErr.code === '42P01' ? 'Run migration 080 to enable bulk SMS' : 'Could not start the blast' })
+  }
+
+  const { rows, noPhone, duplicates } = buildQueueRows(broadcast.id, message.trim(), recipients, userId)
+  for (let i = 0; i < rows.length; i += 500) {
+    const { error } = await db.from('sms_history').insert(rows.slice(i, i + 500))
+    if (error) {
+      // Don't leave a half-queued blast behind
+      await db.from('sms_history').delete().eq('broadcast_id', broadcast.id)
+      await db.from('sms_broadcasts').delete().eq('id', broadcast.id)
+      console.error('[Bulk SMS] Queueing failed:', error)
+      throw createError({ statusCode: 500, message: 'Could not queue the messages' })
     }
+  }
 
-    const config = useRuntimeConfig()
-    const supabase = serverSupabaseServiceRole<M2MDatabase>(event)
+  await db.from('sms_broadcasts')
+    .update({ total: rows.length, ...(rows.length ? {} : { status: 'done', finished_at: new Date().toISOString() }) })
+    .eq('id', broadcast.id)
 
-    // 2. Check admin status in m2m schema
-    const { data: adminRecord } = await supabase
-        .schema('m2m')
-        .from('admins')
-        .select('role')
-        .eq('id', user.id)
-        .maybeSingle()
-
-    const isDevAdmin = user.email === 'maxcofie@gmail.com'
-    if (!adminRecord && !isDevAdmin) {
-        console.warn(`[Admin] Denied access to ${user.email} (${user.id})`)
-        throw createError({ statusCode: 403, message: 'Admin access required' })
-    }
-
-    // 3. Parse request body
-    const body = await readBody(event)
-    const { recipients, message } = body as { recipients: SMSRecipient[]; message: string }
-
-    if (!recipients || !Array.isArray(recipients) || recipients.length === 0) {
-        throw createError({ statusCode: 400, message: 'Recipients array is required' })
-    }
-
-    if (!message || typeof message !== 'string') {
-        throw createError({ statusCode: 400, message: 'Message is required' })
-    }
-
-    if (recipients.length > 1000) {
-        throw createError({ statusCode: 400, message: 'Maximum 1000 recipients per batch' })
-    }
-
-    console.log(`[Bulk SMS] Starting broadcast to ${recipients.length} recipients...`)
-
-    const broadcastId = crypto.randomUUID()
-    const results: SMSResult[] = []
-    const historyToInsert: any[] = []
-    
-    let successCount = 0
-    let failCount = 0
-
-    // Process in batches to balance speed and stability
-    const BATCH_SIZE = 50
-    const INTER_BATCH_DELAY = 100 // ms
-
-    for (let i = 0; i < recipients.length; i += BATCH_SIZE) {
-        const batch = recipients.slice(i, i + BATCH_SIZE)
-        
-        const batchPromises = batch.map(async (recipient) => {
-            if (!recipient.phone) {
-                return { id: recipient.id, phone: 'unknown', success: false, error: 'No phone number' } as SMSResult
-            }
-
-            try {
-                const personalizedMessage = recipient.name
-                    ? message.replace(/\{name\}/g, recipient.name)
-                    : message
-
-                // Use the orchestrator (Telegram -> Hubtel -> Zend)
-                const result = await sendSMS(recipient.phone, personalizedMessage, { priority: 'normal' })
-
-                return {
-                    id: recipient.id,
-                    phone: recipient.phone,
-                    success: true,
-                    messageId: result.id,
-                    provider: result.provider
-                } as SMSResult
-            } catch (error: any) {
-                console.error(`[Bulk SMS] Failed for ${recipient.phone}:`, error.message)
-                return {
-                    id: recipient.id,
-                    phone: recipient.phone,
-                    success: false,
-                    error: error.message || 'Failed'
-                } as SMSResult
-            }
-        })
-
-        const batchResults = await Promise.all(batchPromises)
-
-        for (let j = 0; j < batchResults.length; j++) {
-            const res = batchResults[j]
-            const recipient = batch[j]
-            
-            results.push(res)
-            
-            if (res.success) successCount++
-            else failCount++
-
-            // Prepare history log
-            historyToInsert.push({
-                recipient_id: recipient.id,
-                recipient_phone: recipient.phone,
-                recipient_name: recipient.name,
-                message: recipient.name ? message.replace(/\{name\}/g, recipient.name) : message,
-                status: res.success ? 'sent' : 'failed',
-                broadcast_id: broadcastId,
-                sent_by: user.id
-            })
-        }
-
-        // Add a small delay between batches
-        if (i + BATCH_SIZE < recipients.length) {
-            await delay(INTER_BATCH_DELAY)
-        }
-    }
-
-    // Bulk Log to DB
-    if (historyToInsert.length > 0) {
-        console.log(`[Bulk SMS] Logging ${historyToInsert.length} history records...`)
-        const { error: logError } = await supabase
-            .schema('m2m')
-            .from('sms_history')
-            .insert(historyToInsert)
-        
-        if (logError) {
-            console.error('[Bulk SMS] Failed to log history:', logError)
-        }
-    }
-
-    console.log(`[Bulk SMS] Broadcast ${broadcastId} finished: ${successCount} success, ${failCount} failed.`)
-
-    return {
-        success: true,
-        broadcastId,
-        summary: {
-            total: recipients.length,
-            sent: successCount,
-            failed: failCount
-        },
-        results
-    }
+  return { success: true, broadcastId: broadcast.id, queued: rows.length, skipped: { noPhone, duplicates } }
 })

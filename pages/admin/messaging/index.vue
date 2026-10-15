@@ -103,6 +103,37 @@
 
       <!-- Send -->
       <aside class="space-y-6">
+        <!-- Blast in progress (or just finished) -->
+        <section v-if="blast" class="ad-panel" aria-live="polite">
+          <div class="flex items-center justify-between gap-3">
+            <h2 class="ad-label !mb-0">{{ blast.status === 'sending' ? (sending ? 'Sending' : 'Paused') : blast.status === 'cancelled' ? 'Stopped' : 'Sent' }}</h2>
+            <span class="ad-num text-sm font-semibold">{{ blastPercent }}%</span>
+          </div>
+          <div class="mt-3 flex h-2 overflow-hidden rounded-full bg-[#f1efec]" :title="`${blast.sent} sent, ${blast.failed} failed of ${blast.total}`">
+            <span class="h-full bg-[#393737] transition-[width] duration-500" :style="{ width: (blast.total ? (blast.sent / blast.total) * 100 : 0) + '%' }"></span>
+            <span class="h-full bg-[#ed1c24] transition-[width] duration-500" :style="{ width: (blast.total ? (blast.failed / blast.total) * 100 : 0) + '%' }"></span>
+          </div>
+          <div class="mt-3 ad-kv"><span>Sent</span><span class="ad-num font-semibold">{{ blast.sent }} of {{ blast.total }}</span></div>
+          <div v-if="blast.failed" class="ad-kv"><span>Failed</span><span class="ad-num text-[#b4232a]">{{ blast.failed }}</span></div>
+          <div v-if="blast.cancelled" class="ad-kv"><span>Not sent (stopped)</span><span class="ad-num">{{ blast.cancelled }}</span></div>
+          <p v-if="blastMessage" class="mt-3 line-clamp-2 text-xs ad-faint">"{{ blastMessage }}"</p>
+
+          <div class="mt-4 flex flex-wrap gap-2">
+            <template v-if="blast.status === 'sending'">
+              <button v-if="!sending" class="btn-ink btn-sm" @click="runBlast(blast.broadcastId)">Continue</button>
+              <button class="btn-ghost btn-sm" @click="cancelBlast">Stop sending</button>
+            </template>
+            <template v-else>
+              <button v-if="blast.failed" class="btn-ink btn-sm" :disabled="sending" @click="retryFailed">Retry {{ blast.failed }} failed</button>
+              <NuxtLink to="/admin/messaging/history" class="btn-ghost btn-sm">View in history</NuxtLink>
+              <button class="btn-ghost btn-sm" @click="dismissBlast">Done</button>
+            </template>
+          </div>
+          <p v-if="blast.status === 'sending'" class="mt-3 text-xs leading-relaxed ad-faint">
+            {{ sending ? 'Keep this page open to send fastest.' : 'Paused.' }} Unsent messages stay queued, and the server finishes them if the page is closed.
+          </p>
+        </section>
+
         <section class="ad-panel lg:sticky lg:top-20">
           <h2 class="ad-label">Summary</h2>
           <div class="ad-kv"><span>Recipients</span><span class="ad-num font-semibold">{{ selectedUsers.length }}</span></div>
@@ -113,8 +144,8 @@
             To {{ selectedUsers.slice(0, 3).map(u => u.display_name || u.phone).join(', ') }}<template v-if="selectedUsers.length > 3"> and {{ selectedUsers.length - 3 }} more</template>.
           </p>
 
-          <button class="btn-primary mt-5 w-full !py-3" :disabled="!canSend || sending" @click="sendMessages">
-            <template v-if="sending">Sending {{ sentCount }}/{{ selectedUsers.length }}…</template>
+          <button class="btn-primary mt-5 w-full !py-3" :disabled="!canSend || sending || (!!blast && !blastDone)" @click="sendMessages">
+            <template v-if="sending && !blast">Starting…</template>
             <template v-else>Send {{ selectedUsers.length || '' }} SMS</template>
           </button>
           <p v-if="!message" class="mt-2 text-center text-xs ad-faint">Write a message to send.</p>
@@ -156,7 +187,6 @@ const user = useSupabaseUser()
 // State
 const loading = ref(true)
 const sending = ref(false)
-const sentCount = ref(0)
 const showSuccess = ref(false)
 const successMessage = ref('')
 const users = ref<any[]>([])
@@ -251,85 +281,118 @@ const applyTemplate = (template: { name: string; message: string }) => {
   message.value = template.message
 }
 
+// ----- Sending: a blast is queued on the server, then sent in batches while this page asks for more -----
+interface BlastProgress {
+  broadcastId: string
+  status: 'sending' | 'done' | 'cancelled'
+  total: number
+  pending: number
+  sending: number
+  sent: number
+  failed: number
+  cancelled: number
+}
+const blast = ref<BlastProgress | null>(null)
+const blastMessage = ref('')
+const stopRequested = ref(false)
+const blastDone = computed(() => !!blast.value && blast.value.status !== 'sending')
+const blastPercent = computed(() => {
+  const b = blast.value
+  if (!b || !b.total) return 0
+  return Math.round(((b.sent + b.failed + b.cancelled) / b.total) * 100)
+})
+
+// Keep asking the server to send the next batches until nothing is left (or Cancel is pressed)
+const runBlast = async (broadcastId: string) => {
+  sending.value = true
+  stopRequested.value = false
+  let errors = 0
+  try {
+    while (!stopRequested.value) {
+      try {
+        blast.value = await $fetch<BlastProgress>(`/api/admin/bulk-sms/${broadcastId}/process`, { method: 'POST' })
+        errors = 0
+      } catch (e) {
+        // A dropped request doesn't lose anything: unsent messages stay queued. Try again a few times.
+        if (++errors >= 4) throw e
+        await new Promise(r => setTimeout(r, 2000 * errors))
+        continue
+      }
+      if (blast.value.status !== 'sending') break
+    }
+  } catch (error: any) {
+    console.error('Broadcast error:', error)
+    alert('Sending paused because the server isn\'t responding. Unsent messages are still queued; press Continue to carry on.')
+  } finally {
+    sending.value = false
+  }
+
+  if (blast.value?.status === 'done') {
+    const b = blast.value
+    broadcasts.value.unshift({ id: b.broadcastId, message: blastMessage.value, count: b.sent, sent_at: new Date().toISOString() })
+    successMessage.value = b.failed ? `Sent ${b.sent} of ${b.total}. ${b.failed} failed.` : `Sent to all ${b.sent} recipients.`
+    showSuccess.value = true
+    setTimeout(() => { showSuccess.value = false }, 5000)
+  }
+}
+
 const sendMessages = async () => {
   if (!canSend.value) return
-  
+  const count = selectedUsers.value.length
+  if (count > 20 && !confirm(`Send this SMS to ${count} members?`)) return
+
   sending.value = true
-  sentCount.value = 0
-  
-  // Generate a broadcast ID to group messages
-  const broadcastId = crypto.randomUUID()
-  
   try {
-    // Get the current session for auth
-    const { data: sessionData } = await supabase.auth.getSession()
-    const token = sessionData?.session?.access_token
-    
-    if (!token) {
-      throw new Error('Not authenticated')
-    }
-
-    // Prepare recipients for bulk API
-    const recipients = selectedUsers.value
-      .filter(u => u.phone)
-      .map(u => ({
-        id: u.id,
-        phone: u.phone,
-        name: u.display_name || ''
-      }))
-
-    // Call bulk SMS API (server handles history logging in bulk)
-    const result = await $fetch<{
-      success: boolean
-      broadcastId: string
-      summary: { total: number; sent: number; failed: number }
-      results: Array<{ id: string; phone: string; success: boolean; error?: string }>
-    }>('/api/admin/bulk-sms', {
+    const recipients = selectedUsers.value.map(u => ({ id: u.id, phone: u.phone, name: u.display_name || '' }))
+    const res = await $fetch<{ broadcastId: string; queued: number; skipped: { noPhone: number; duplicates: number } }>('/api/admin/bulk-sms', {
       method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token}`
-      },
-      body: {
-        recipients,
-        message: message.value
-      }
+      body: { recipients, message: message.value }
     })
-
-    sentCount.value = result.summary.sent
-    const failedCount = result.summary.failed
-    
-    // Log the broadcast locally for the UI
-    broadcasts.value.unshift({
-      id: result.broadcastId || broadcastId,
-      message: message.value,
-      count: sentCount.value,
-      sent_at: new Date().toISOString()
-    })
-    
-    // Show success/partial success message
-    if (failedCount > 0) {
-      if (sentCount.value === 0) {
-        throw new Error('All messages failed to send. Check logs.')
-      }
-      successMessage.value = `Sent ${sentCount.value} messages (${failedCount} failed)`
-    } else {
-      successMessage.value = `Sent ${sentCount.value} messages successfully!`
-    }
-    showSuccess.value = true
-    setTimeout(() => { showSuccess.value = false }, 4000)
-    
-    // Reset
+    blastMessage.value = message.value
+    blast.value = { broadcastId: res.broadcastId, status: 'sending', total: res.queued, pending: res.queued, sending: 0, sent: 0, failed: 0, cancelled: 0 }
+    // Clear the form: the blast now lives on the server
     message.value = ''
     selectedUserIds.value = []
     activeFilter.value = 'all'
-    
+    await runBlast(res.broadcastId)
   } catch (error: any) {
     console.error('Broadcast error:', error)
-    alert(error.data?.message || error.message || 'Failed to send messages. Please try again.')
-  } finally {
+    alert(error.data?.message || error.message || 'Could not start sending. Please try again.')
     sending.value = false
-    sentCount.value = 0
   }
+}
+
+const cancelBlast = async () => {
+  if (!blast.value) return
+  if (!confirm('Stop sending? Messages already sent stay sent.')) return
+  stopRequested.value = true
+  try {
+    blast.value = await $fetch<BlastProgress>(`/api/admin/bulk-sms/${blast.value.broadcastId}/cancel`, { method: 'POST' })
+  } catch (e) {
+    alert('Could not cancel. Please try again.')
+  }
+}
+
+const retryFailed = async () => {
+  if (!blast.value) return
+  blast.value = await $fetch<BlastProgress>(`/api/admin/bulk-sms/${blast.value.broadcastId}/retry`, { method: 'POST' })
+  if (blast.value.status === 'sending') await runBlast(blast.value.broadcastId)
+}
+
+const dismissBlast = () => {
+  blast.value = null
+}
+
+// A blast still sending from earlier (page closed, connection dropped): offer to carry on
+const findUnfinishedBlast = async () => {
+  const { data } = await (supabase as any).schema('m2m').from('sms_broadcasts')
+    .select('id, message').eq('status', 'sending').order('created_at', { ascending: false }).limit(1)
+  const unfinished = data?.[0]
+  if (!unfinished) return
+  blastMessage.value = unfinished.message
+  try {
+    blast.value = await $fetch<BlastProgress>(`/api/admin/bulk-sms/${unfinished.id}`)
+  } catch {}
 }
 
 const formatDate = (dateStr: string) => {
@@ -346,6 +409,7 @@ const formatDate = (dateStr: string) => {
 // Initialize
 onMounted(() => {
   fetchUsers()
+  findUnfinishedBlast()
 })
 </script>
 

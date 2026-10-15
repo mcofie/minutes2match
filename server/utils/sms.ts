@@ -21,6 +21,11 @@ export async function sendSMS(
     options: {
         provider?: 'hubtel' | 'zend',
         priority?: 'low' | 'normal' | 'high' | 'urgent',
+        /**
+         * The member's Telegram chat, if the caller already looked it up (bulk sends do, once per batch).
+         * Pass null for "no Telegram"; leave it out to have it looked up here.
+         */
+        telegramId?: string | null,
     } = {}
 ) {
     const config = useRuntimeConfig()
@@ -35,6 +40,17 @@ export async function sendSMS(
     let hubtelError: string | null = null
 
     const tryTelegram = async () => {
+        // Already known (bulk sends look these up in one query per batch)
+        if ('telegramId' in options) {
+            if (!options.telegramId) return null
+            try {
+                await sendTelegramMessage(options.telegramId, cleanMessage)
+                return { success: true, provider: 'telegram', id: 'tg_' + Date.now() }
+            } catch (err: any) {
+                console.warn(`[SMS] Telegram send failed for ${normalizedPhone}: ${err.message}. Falling back to SMS.`)
+                return null
+            }
+        }
         try {
             // Lazy load supabase ONLY if we need it
             if (!config.supabaseUrl || !config.supabaseServiceKey) return null
