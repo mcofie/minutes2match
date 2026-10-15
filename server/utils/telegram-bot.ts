@@ -1,3 +1,14 @@
+import { createHash } from 'node:crypto'
+
+/**
+ * Secret Telegram echoes back on every webhook call. Derived from the bot token so there's
+ * nothing extra to configure; it changes only if the token does.
+ */
+export const telegramWebhookSecret = () => {
+    const token = useRuntimeConfig().telegramBotToken || ''
+    return createHash('sha256').update(`m2m-webhook:${token}`).digest('hex').slice(0, 48)
+}
+
 
 /**
  * Telegram Bot API Utility
@@ -83,6 +94,7 @@ export async function sendTelegramVideo(chatId: string | number, videoUrl: strin
 
 /**
  * Sets the webhook for the Telegram bot.
+ * Run /api/telegram/setup-webhook again after deploying a change to the secret, or updates are rejected.
  */
 export async function setTelegramWebhook(url: string): Promise<any> {
     const config = useRuntimeConfig();
@@ -94,9 +106,11 @@ export async function setTelegramWebhook(url: string): Promise<any> {
 
     const apiUrl = `https://api.telegram.org/bot${token}/setWebhook`;
 
+    // Telegram sends this back in every update's X-Telegram-Bot-Api-Secret-Token header,
+    // so the webhook can tell real updates from forged ones
     const response = await $fetch<any>(apiUrl, {
         method: 'POST',
-        body: { url }
+        body: { url, secret_token: telegramWebhookSecret() }
     });
 
     return response;

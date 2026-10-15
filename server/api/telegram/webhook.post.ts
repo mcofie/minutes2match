@@ -1,6 +1,6 @@
 
 import { createClient } from '@supabase/supabase-js';
-import { sendTelegramMessage, sendTelegramPhoto, sendTelegramVideo, setTelegramBotCommands } from '~/server/utils/telegram-bot';
+import { sendTelegramMessage, sendTelegramPhoto, sendTelegramVideo, setTelegramBotCommands, telegramWebhookSecret } from '~/server/utils/telegram-bot';
 import { calculatePersona, personas } from '~/server/utils/personas';
 import { notifyDiscord, DiscordColors } from '~/server/utils/discord';
 
@@ -34,8 +34,14 @@ const CORE_QUESTIONS = [
 ];
 
 export default defineEventHandler(async (event) => {
-  const body = await readBody(event);
   const config = useRuntimeConfig(event);
+
+  // Only Telegram knows the secret it was registered with (see setTelegramWebhook); reject anything else
+  if (getHeader(event, 'x-telegram-bot-api-secret-token') !== telegramWebhookSecret()) {
+    throw createError({ statusCode: 401, statusMessage: 'Unauthorized' });
+  }
+
+  const body = await readBody(event);
 
   if (!body || (!body.message && !body.callback_query && !body.inline_query)) {
     return { status: 'ignored' };
@@ -165,6 +171,11 @@ async function startVibeCheck(chatId: number, tgUserId: number, supabase: any) {
 }
 
 async function handleContactShared(chatId: number, tgUserId: number, contact: any, supabase: any) {
+  // Telegram lets people share any contact card; only link a number to the person who owns it
+  if (!contact?.user_id || String(contact.user_id) !== String(tgUserId)) {
+    return sendTelegramMessage(chatId, "Please share *your own* number using the button below, so we can confirm it's you.");
+  }
+
   // 1. Sanitize phone
   const phone = contact.phone_number.startsWith('+') ? contact.phone_number : `+${contact.phone_number}`;
   
